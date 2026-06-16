@@ -442,61 +442,51 @@ except ImportError:
 
 # --- 3. SQLite MONETIZATION, SESSION, AND CACHE DATABASE ---
 def init_database():
-    conn = sqlite3.connect("zovix_v2", check_same_thread=False)
+    conn = sqlite3.connect("zovix_v3.db", check_same_thread=False)
     cursor = conn.cursor()
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS users (
-            username TEXT PRIMARY KEY,
-            password TEXT,
-            credits INTEGER DEFAULT 100,
-            xp_points INTEGER DEFAULT 0,
-            streak_count INTEGER DEFAULT 0,
-            last_claim_date TEXT DEFAULT '',
-            voucher_credits INTEGER DEFAULT 0,
-            voucher_expires_at TEXT DEFAULT ''
-        )
-    """)
     try:
-        cursor.execute("ALTER TABLE users ADD COLUMN streak_count INTEGER DEFAULT 0")
-    except sqlite3.OperationalError:
-        pass
-    try:
-        cursor.execute("ALTER TABLE users ADD COLUMN last_claim_date TEXT DEFAULT ''")
-    except sqlite3.OperationalError:
-        pass
-    try:
-        cursor.execute("ALTER TABLE users ADD COLUMN voucher_credits INTEGER DEFAULT 0")
-    except sqlite3.OperationalError:
-        pass
-    try:
-        cursor.execute("ALTER TABLE users ADD COLUMN voucher_expires_at TEXT DEFAULT ''")
-    except sqlite3.OperationalError:
-        pass
+        # 1. Sabse pehle users table banao saare naye columns ke sath
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                username TEXT PRIMARY KEY,
+                password TEXT,
+                credits REAL DEFAULT 0,
+                xp_points REAL DEFAULT 0,
+                streak_count INTEGER DEFAULT 0,
+                last_claim_date TEXT,
+                voucher_credits INTEGER DEFAULT 0,
+                voucher_expires_at TEXT DEFAULT ''
+            )
+        """)
         
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS history (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT,
-            file_name TEXT,
-            timestamp TEXT,
-            prompt TEXT,
-            path TEXT
-        )
-    """)
-    
-    # --- SQLite Cache Setup ---
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS api_cache (
-            prompt TEXT PRIMARY KEY,
-            cached_path TEXT,
-            timestamp TEXT
-        )
-    """)
-    
-    cursor.execute("INSERT OR IGNORE INTO users (username, password, credits, xp_points, streak_count, last_claim_date, voucher_credits, voucher_expires_at) VALUES ('prabhat', 'vidix123', 100, 0, 0, '', 0, '')")
-    conn.commit()
-    conn.close()
+        # 2. History table banao
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT,
+                file_name TEXT,
+                timestamp TEXT,
+                prompt TEXT,
+                path TEXT
+            )
+        """)
+        
+        # 3. Cache table banao
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS api_cache (
+                prompt TEXT PRIMARY KEY,
+                cached_path TEXT,
+                timestamp TEXT
+            )
+        """)
+        
+        conn.commit()
+    except sqlite3.OperationalError as e:
+        print(f"Database Init Error: {e}")
+    finally:
+        conn.close()
 
+# Iske thik niche dhyan se check kar lena ki init_database() call ho raha ho
 init_database()
 
 # --- VOUCHER CHECK & DECAY SYSTEM ---
