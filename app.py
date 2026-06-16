@@ -547,7 +547,7 @@ def register_user_db(username, password):
         # 2. Fir user ko insert karega (8 columns = 8 placeholders)
         cursor.execute(
             "INSERT INTO users (username, password, credits, xp_points, streak_count, last_claim_date, voucher_credits, voucher_expires_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-            (username, password, 0, 0, 0, '', 0, '')
+            (username, password, 50, 10, 0, '', 0, '')
         )
         conn.commit()
         success = True
