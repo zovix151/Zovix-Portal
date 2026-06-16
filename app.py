@@ -442,7 +442,7 @@ except ImportError:
 
 # --- 3. SQLite MONETIZATION, SESSION, AND CACHE DATABASE ---
 def init_database():
-    conn = sqlite3.connect("zovix_v3.db", check_same_thread=False)
+    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
     cursor = conn.cursor()
     try:
         # 1. Sabse pehle users table banao saare naye columns ke sath
@@ -493,7 +493,7 @@ init_database()
 def check_and_expire_vouchers(username):
     if not username:
         return
-    conn = sqlite3.connect("zovix_v3.db", check_same_thread=False)
+    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
     cursor = conn.cursor()
     try:
         cursor.execute("SELECT voucher_credits, voucher_expires_at FROM users WHERE username = ?", (username,))
@@ -513,7 +513,7 @@ def check_and_expire_vouchers(username):
 
 # Database helpers
 def authenticate_user_db(username, password):
-    conn = sqlite3.connect("zovix_v3.db", check_same_thread=False)
+    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
     cursor = conn.cursor()
     try:
         cursor.execute("SELECT password FROM users WHERE username = ?", (username,))
@@ -527,7 +527,7 @@ def authenticate_user_db(username, password):
     return False
 
 def register_user_db(username, password):
-    conn = sqlite3.connect("zovix_v3.db", check_same_thread=False)
+    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
     cursor = conn.cursor()
     try:
         # 1. Pehle ye confirm karega ki agar users table nahi hai toh ban jaye (Saare V3 Columns ke sath)
@@ -562,7 +562,7 @@ def register_user_db(username, password):
 
 # --- DIRECT SOCIAL LOGIN/REGISTER FLOW ---
 def login_or_register_social(email, platform):
-    conn = sqlite3.connect("zovix_v3.db", check_same_thread=False)
+    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
     cursor = conn.cursor()
     try:
         cursor.execute("SELECT username FROM users WHERE username = ?", (email,))
@@ -579,7 +579,7 @@ def login_or_register_social(email, platform):
 
 def get_user_credits_db(username):
     check_and_expire_vouchers(username) # Ensure voucher validity
-    conn = sqlite3.connect("zovix_v3.db", check_same_thread=False)
+    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
     cursor = conn.cursor()
     row = None
     try:
@@ -594,7 +594,7 @@ def get_user_credits_db(username):
     return 0
 
 def add_credits(username, amount, credit_type="standard"):
-    conn = sqlite3.connect("zovix_v3.db", check_same_thread=False)
+    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
     cursor = conn.cursor()
     try:
         if credit_type == "voucher":
@@ -611,7 +611,7 @@ def add_credits(username, amount, credit_type="standard"):
 
 def deduct_credits_db(username, amount):
     check_and_expire_vouchers(username)
-    conn = sqlite3.connect("zovix_v3.db", check_same_thread=False)
+    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
     cursor = conn.cursor()
     try:
         cursor.execute("SELECT credits, voucher_credits FROM users WHERE username = ?", (username,))
@@ -632,7 +632,7 @@ def deduct_credits_db(username, amount):
         conn.close()
 
 def get_user_xp_db(username):
-    conn = sqlite3.connect("zovix_v3.db", check_same_thread=False)
+    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
     cursor = conn.cursor()
     row = None
     try:
@@ -645,7 +645,7 @@ def get_user_xp_db(username):
     return row[0] if row and row[0] is not None else 0
 
 def update_user_xp_db(username, xp_amount):
-    conn = sqlite3.connect("zovix_v3.db", check_same_thread=False)
+    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
     cursor = conn.cursor()
     try:
         cursor.execute("UPDATE users SET xp_points = xp_points + ? WHERE username = ?", (xp_amount, username))
@@ -656,7 +656,7 @@ def update_user_xp_db(username, xp_amount):
         conn.close()
 
 def get_user_streak_info(username):
-    conn = sqlite3.connect("zovix_v3.db", check_same_thread=False)
+    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
     cursor = conn.cursor()
     row = None
     try:
@@ -669,7 +669,7 @@ def get_user_streak_info(username):
     return row if row else (0, "")
 
 def claim_daily_reward_db(username):
-    conn = sqlite3.connect("zovix_v3.db", check_same_thread=False)
+    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
     cursor = conn.cursor()
     today_str = datetime.date.today().isoformat()
     try:
@@ -700,7 +700,7 @@ def credit_check(username, required_credits):
     return get_user_credits_db(username) >= required_credits
 
 def save_render_to_db(username, file_name, prompt, path):
-    conn = sqlite3.connect("zovix_v3.db", check_same_thread=False)
+    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
     cursor = conn.cursor()
     try:
         timestamp = time.strftime("%b %d, %Y - %I:%M %p")
@@ -713,7 +713,7 @@ def save_render_to_db(username, file_name, prompt, path):
         conn.close()
 
 def load_renders_history_db(username):
-    conn = sqlite3.connect("zovix_v3.db", check_same_thread=False)
+    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
     cursor = conn.cursor()
     history = []
     try:
@@ -733,7 +733,7 @@ def load_renders_history_db(username):
     return history
 
 def get_cached_clip(prompt):
-    conn = sqlite3.connect("zovix_v3.db", check_same_thread=False)
+    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
     cursor = conn.cursor()
     row = None
     try:
@@ -748,7 +748,7 @@ def get_cached_clip(prompt):
     return None
 
 def cache_clip(prompt, path):
-    conn = sqlite3.connect("zovix_v3.db", check_same_thread=False)
+    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
     cursor = conn.cursor()
     try:
         timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
@@ -2268,10 +2268,32 @@ with st.sidebar:
     std_c, v_c, expires_at_str = (0, 0, "")
     if st.session_state["is_logged_in"]:
         check_and_expire_vouchers(st.session_state["logged_user"])
-        conn = sqlite3.connect("vidix_studio.db", check_same_thread=False)
+        conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
         cursor = conn.cursor()
-        cursor.execute("SELECT credits, voucher_credits, voucher_expires_at FROM users WHERE username = ?", (st.session_state["logged_user"],))
-        row = cursor.fetchone()
+        try:
+            cursor.execute("SELECT credits, voucher_credits, voucher_expires_at FROM users WHERE username = ?", (st.session_state['logged_user'],))
+            row = cursor.fetchone()
+        except sqlite3.OperationalError as e:
+            if "no such table: users" in str(e):
+                # Agar table nahi mili, toh turant pehle yahi table create kar do!
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS users (
+                        username TEXT PRIMARY KEY,
+                        password TEXT,
+                        credits REAL DEFAULT 0,
+                        xp_points REAL DEFAULT 0,
+                        streak_count INTEGER DEFAULT 0,
+                        last_claim_date TEXT,
+                        voucher_credits INTEGER DEFAULT 0,
+                        voucher_expires_at TEXT DEFAULT ''
+                    )
+                """)
+                conn.commit()
+                # Table banane ke baad dobara query chalao taaki khali row check ho sake
+                cursor.execute("SELECT credits, voucher_credits, voucher_expires_at FROM users WHERE username = ?", (st.session_state['logged_user'],))
+                row = cursor.fetchone()
+            else:
+                raise 
         conn.close()
         if row:
             std_c, v_c, expires_at_str = row[0], row[1], row[2]
