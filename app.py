@@ -540,7 +540,11 @@ def register_user_db(username, password):
     conn = sqlite3.connect("zovix_v3.db", check_same_thread=False)
     cursor = conn.cursor()
     try:
-        cursor.execute("INSERT INTO users (username, password, credits, xp_points, streak_count, last_claim_date, voucher_credits, voucher_expires_at) VALUES (?, ?, 100, 0, 0, '', 0, '')", (username, password))
+        # Puraani line ko hatakar ye copy-paste karo (8 columns = 8 placeholders)
+        cursor.execute(
+            "INSERT INTO users (username, password, credits, xp_points, streak_count, last_claim_date, voucher_credits, voucher_expires_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            (username, password, 0, 0, 0, '', 0, '')
+        )
         conn.commit()
         success = True
     except sqlite3.IntegrityError:
