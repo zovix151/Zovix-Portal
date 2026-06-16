@@ -233,6 +233,29 @@ def get_hwaccel_args() -> List[str]:
         return []
 
 
+def run_ffmpeg_command(cmd: List[str], context: str = "") -> bool:
+    try:
+        result = subprocess.run(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            check=True,
+        )
+        return True
+    except subprocess.CalledProcessError as exc:
+        print(f"[FFMPEG ERROR] Context: {context}")
+        print(f"[FFMPEG ERROR] Return code: {exc.returncode}")
+        print(f"[FFMPEG ERROR] Command: {' '.join(cmd)}")
+        print(f"[FFMPEG STDERR] {exc.stderr}")
+        return False
+    except Exception as exc:
+        print(f"[FFMPEG ERROR] Context: {context}")
+        print(f"[FFMPEG ERROR] Exception: {exc}")
+        print(f"[FFMPEG ERROR] Command: {' '.join(cmd)}")
+        return False
+
+
 def get_audio_duration(audio_path: str) -> float:
     try:
         if MP3 is not None:
@@ -655,48 +678,46 @@ def build_scene_stitched_video_isolated(
             "-shortest",
             segment_mux_path,
         ]
-        try:
-            subprocess.run(ff_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+        if run_ffmpeg_command(ff_cmd, context=f"segment {idx} primary render"):
             if os.path.exists(segment_mux_path) and os.path.getsize(segment_mux_path) > 0:
                 return segment_mux_path
-        except Exception:
-            fallback_cmd = [
-                "ffmpeg",
-                *get_hwaccel_args(),
-                "-y",
-                "-stream_loop",
-                "-1",
-                "-i",
-                raw_video_path,
-                "-i",
-                audio_segment_path,
-                "-t",
-                f"{dur:.2f}",
-                "-vf",
-                f"scale={res_width}:{res_height}:force_original_aspect_ratio=increase,crop={res_width}:{res_height},setsar=1",
-                "-r",
-                "24",
-                "-pix_fmt",
-                "yuv420p",
-                "-c:v",
-                "libx264",
-                "-preset",
-                "ultrafast",
-                "-c:a",
-                "aac",
-                "-map",
-                "0:v:0",
-                "-map",
-                "1:a:0",
-                "-shortest",
-                segment_mux_path,
-            ]
-            try:
-                subprocess.run(fallback_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
-                if os.path.exists(segment_mux_path) and os.path.getsize(segment_mux_path) > 0:
-                    return segment_mux_path
-            except Exception:
-                pass
+
+        fallback_cmd = [
+            "ffmpeg",
+            *get_hwaccel_args(),
+            "-y",
+            "-stream_loop",
+            "-1",
+            "-i",
+            raw_video_path,
+            "-i",
+            audio_segment_path,
+            "-t",
+            f"{dur:.2f}",
+            "-vf",
+            f"scale={res_width}:{res_height}:force_original_aspect_ratio=increase,crop={res_width}:{res_height},setsar=1",
+            "-r",
+            "24",
+            "-pix_fmt",
+            "yuv420p",
+            "-c:v",
+            "libx264",
+            "-preset",
+            "ultrafast",
+            "-c:a",
+            "aac",
+            "-map",
+            "0:v:0",
+            "-map",
+            "1:a:0",
+            "-shortest",
+            segment_mux_path,
+        ]
+        if run_ffmpeg_command(fallback_cmd, context=f"segment {idx} fallback render"):
+            if os.path.exists(segment_mux_path) and os.path.getsize(segment_mux_path) > 0:
+                return segment_mux_path
+
+        print(f"[build_scene_stitched_video_isolated] Scene segment {idx} failed to render: {raw_video_path} / {audio_segment_path}")
         return None
 
     try:
@@ -760,7 +781,30 @@ def build_scene_stitched_video_isolated(
             "copy",
             temp_stitched_output,
         ]
-        subprocess.run(concat_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+        if not run_ffmpeg_command(concat_cmd, context="concat stitched scenes"):
+            reencode_concat_cmd = [
+                "ffmpeg",
+                *get_hwaccel_args(),
+                "-y",
+                "-f",
+                "concat",
+                "-safe",
+                "0",
+                "-i",
+                manifest_file,
+                "-c:v",
+                "libx264",
+                "-preset",
+                "ultrafast",
+                "-c:a",
+                "aac",
+                "-b:a",
+                "192k",
+                temp_stitched_output,
+            ]
+            if not run_ffmpeg_command(reencode_concat_cmd, context="concat stitched scenes reencode"):
+                print("[build_scene_stitched_video_isolated] Failed to concatenate scene segments.")
+                return False
 
         if bgm_path and os.path.exists(bgm_path):
             mix_cmd = [
@@ -787,12 +831,19 @@ def build_scene_stitched_video_isolated(
                 "192k",
                 video_output,
             ]
-            try:
-                subprocess.run(mix_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
-            except Exception:
-                shutil.copy(temp_stitched_output, video_output)
+            if not run_ffmpeg_command(mix_cmd, context="add bgm to stitched video"):
+                print("[build_scene_stitched_video_isolated] BGM mix failed, copying stitched output instead.")
+                try:
+                    shutil.copy(temp_stitched_output, video_output)
+                except Exception as exc:
+                    print(f"[build_scene_stitched_video_isolated] Copying stitched output failed: {exc}")
+                    return False
         else:
-            shutil.copy(temp_stitched_output, video_output)
+            try:
+                shutil.copy(temp_stitched_output, video_output)
+            except Exception as exc:
+                print(f"[build_scene_stitched_video_isolated] Copying stitched output failed: {exc}")
+                return False
 
         return os.path.exists(video_output) and os.path.getsize(video_output) > 1000
     except Exception:
