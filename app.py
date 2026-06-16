@@ -540,7 +540,21 @@ def register_user_db(username, password):
     conn = sqlite3.connect("zovix_v3.db", check_same_thread=False)
     cursor = conn.cursor()
     try:
-        # Puraani line ko hatakar ye copy-paste karo (8 columns = 8 placeholders)
+        # 1. Pehle ye confirm karega ki agar users table nahi hai toh ban jaye (Saare V3 Columns ke sath)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                username TEXT PRIMARY KEY,
+                password TEXT,
+                credits REAL DEFAULT 0,
+                xp_points REAL DEFAULT 0,
+                streak_count INTEGER DEFAULT 0,
+                last_claim_date TEXT,
+                voucher_credits INTEGER DEFAULT 0,
+                voucher_expires_at TEXT DEFAULT ''
+            )
+        """)
+        
+        # 2. Fir user ko insert karega (8 columns = 8 placeholders)
         cursor.execute(
             "INSERT INTO users (username, password, credits, xp_points, streak_count, last_claim_date, voucher_credits, voucher_expires_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
             (username, password, 0, 0, 0, '', 0, '')
@@ -548,6 +562,9 @@ def register_user_db(username, password):
         conn.commit()
         success = True
     except sqlite3.IntegrityError:
+        success = False
+    except sqlite3.OperationalError as e:
+        print(f"Database Error: {e}")
         success = False
     finally:
         conn.close()
