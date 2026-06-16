@@ -3025,7 +3025,14 @@ elif st.session_state["current_page"] == "studio":
                                         add_credits(st.session_state.get("logged_user"), required_credits, "standard")
                                     except Exception:
                                         pass
-                                    status_indicator.write("❌ Stitching pipeline execution failed.")
+
+                                    # 🚨 Background thread ke andar se chhupa hua asli error nikalne ke liye:
+                                    asli_error = "File 'final_shorts.mp4' generate nahi ho saki (No specific thread error recorded)."
+                                    if render_result_container and isinstance(render_result_container, list) and len(render_result_container) > 0:
+                                        asli_error = render_result_container[0].get("error", asli_error)
+
+                                    # 🔥 Ab ye generic text nahi dikhayega, balki seedhe screen par RED BOX mein error print karega!
+                                    status_indicator.error(f"🚨 PIPELINE CRASHED! ASLI PYTHON ERROR YAHAN HAI:\n{asli_error}")
                                     st.session_state["render_failed"] = True
 
                                 st.session_state["render_status"] = "idle"
