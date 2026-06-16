@@ -4,3 +4,7 @@ google-generativeai
 pillow
 pandas
 edge-tts
+mutagen
+pydantic
+huggingface_hub
+requests
