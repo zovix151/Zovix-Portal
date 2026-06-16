@@ -585,6 +585,7 @@ def build_scene_stitched_video_isolated(
     bgm_path: Optional[str] = None,
     bgm_volume: float = 0.3,
     music_mood: Optional[str] = None,
+    status_dict: Optional[Dict[str, Any]] = None,
 ) -> bool:
     safe_remove_file(video_output)
     res_width, res_height = 720, 1280
@@ -846,7 +847,8 @@ def build_scene_stitched_video_isolated(
                 return False
 
         return os.path.exists(video_output) and os.path.getsize(video_output) > 1000
-    except Exception:
+    except Exception as e:
+        print(f"[build_scene_stitched_video_isolated] CRITICAL ERROR: {traceback.format_exc()}")
         return False
     finally:
         try:

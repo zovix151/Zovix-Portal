@@ -2985,6 +2985,13 @@ elif st.session_state["current_page"] == "studio":
                                             result["video_path"] = video_output
                                         else:
                                             result["success"] = False
+                                            # Agar video build fail ho gaya toh error message set kar do
+                                            if not os.path.exists(video_output):
+                                                result["error"] = f"Video file '{video_output}' was not created by the stitcher engine. Check FFmpeg and asset availability."
+                                            elif os.path.getsize(video_output) <= 1000:
+                                                result["error"] = f"Video file '{video_output}' is too small ({os.path.getsize(video_output)} bytes). Stitching failed."
+                                            else:
+                                                result["error"] = "StitcherEngine.build_scene_stitched_video_isolated() returned False without specific error."
                                     except Exception:
                                         error_msg = traceback.format_exc()
                                         result["success"] = False
@@ -3062,7 +3069,13 @@ elif st.session_state["current_page"] == "studio":
                                     # 🚨 Background thread ke andar se chhupa hua asli error nikalne ke liye:
                                     asli_error = "File 'final_shorts.mp4' generate nahi ho saki (No specific thread error recorded)."
                                     if render_result_container and isinstance(render_result_container, list) and len(render_result_container) > 0:
-                                        asli_error = render_result_container[0].get("error", asli_error)
+                                        thread_error = render_result_container[0].get("error")
+                                        if thread_error:
+                                            asli_error = thread_error
+                                    
+                                    # Handle None case
+                                    if asli_error is None:
+                                        asli_error = "Stitching pipeline crashed without providing error details. Check FFmpeg installation and asset availability."
 
                                     # 🔥 Ab ye generic text nahi dikhayega, balki seedhe screen par RED BOX mein error print karega!
                                     status_indicator.error(f"🚨 PIPELINE CRASHED! ASLI PYTHON ERROR YAHAN HAI:\n{asli_error}")
