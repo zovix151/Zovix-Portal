@@ -3019,6 +3019,8 @@ elif st.session_state["current_page"] == "studio":
                                         st.session_state["history_renders"] = load_renders_history_db(st.session_state.get("logged_user"))
                                         st.session_state["render_done"] = True
                                 else:
+                                    # Agar file nahi bani toh ye log terminal (black panel) mein print hoga
+                                    print("❌❌❌ LOG: final_shorts.mp4 FILE HI NAHI BANI! ❌❌❌")
                                     try:
                                         add_credits(st.session_state.get("logged_user"), required_credits, "standard")
                                     except Exception:
@@ -3028,9 +3030,14 @@ elif st.session_state["current_page"] == "studio":
 
                                 st.session_state["render_status"] = "idle"
                                 st.markdown("</div>", unsafe_allow_html=True)
-                        except Exception:
+                        except Exception as e:
+                            # Agar code ke andar koi crash hua, toh ye asli error black panel mein print karega
+                            print(f"❌❌❌ ASLI PYTHON ERROR YAHAN HAI: {e} ❌❌❌")
+                            import traceback
+                            print(traceback.format_exc())
+                            
                             try:
-                                add_credits(st.session_state["logged_user"], required_credits, "standard")
+                                add_credits(st.session_state.get("logged_user"), required_credits, "standard")
                             except Exception:
                                 pass
                             if bgm_temp_path:
