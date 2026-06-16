@@ -3031,11 +3031,12 @@ elif st.session_state["current_page"] == "studio":
                                 st.session_state["render_status"] = "idle"
                                 st.markdown("</div>", unsafe_allow_html=True)
                         except Exception as e:
-                            # Agar code ke andar koi crash hua, toh ye asli error black panel mein print karega
-                            print(f"❌❌❌ ASLI PYTHON ERROR YAHAN HAI: {e} ❌❌❌")
                             import traceback
-                            print(traceback.format_exc())
-                            
+                            asli_error = traceback.format_exc()
+
+                            # 🔥 Yeh line error ko seedhe tumhari browser screen par RED BOX mein dikha degi!
+                            status_indicator.error(f"🚨 ASLI ERROR MIL GAYA:\n{asli_error}")
+
                             try:
                                 add_credits(st.session_state.get("logged_user"), required_credits, "standard")
                             except Exception:
@@ -3043,7 +3044,9 @@ elif st.session_state["current_page"] == "studio":
                             if bgm_temp_path:
                                 safe_remove_file(bgm_temp_path)
                             st.session_state["render_failed"] = True
-                            st.rerun()
+
+                            # 🚨 Is line ko comment (#) kar rahe hain taaki page refresh na ho aur error screen par ruka rahe!
+                            # st.rerun()
 
                     with canvas_slot.container():
                         scene_count = 3
