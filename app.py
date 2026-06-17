@@ -2346,46 +2346,51 @@ with st.sidebar:
     st.sidebar.caption(f"🟢 Project Autosaved: {now}")
 
 
+# --- 17. PREMIUM HEADER FUNCTION ---
+def show_header(logo_width=180, title_size="32px"):
+    """Display premium centered header with logo and title"""
+    col1, col2, col3 = st.columns([1, 2, 1])
+    
+    with col2:
+        # Logo display
+        logo_path = find_valid_logo_path()
+        if logo_path:
+            st.image(logo_path, width=logo_width)
+        else:
+            # Fallback: show Z logo as HTML if no image file
+            st.markdown(f"""
+                <div style='text-align: center; margin-bottom: 15px;'>
+                    <svg viewBox="0 0 100 100" style="width: {logo_width}px; height: {logo_width}px; filter: drop-shadow(0 0 25px rgba(245, 158, 11, 0.4));">
+                        <defs>
+                            <linearGradient id="z-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#fcd34d" />
+                                <stop offset="100%" stop-color="#c2410b" />
+                            </linearGradient>
+                        </defs>
+                        <path d="M18 12 L72 12 L58 44 L86 44 L38 88 L12 88 L18 12 Z" fill="url(#z-grad)" stroke="#fde68a" stroke-width="4" />
+                    </svg>
+                </div>
+            """, unsafe_allow_html=True)
+        
+        # Premium Styling for "HYPER ENGINE"
+        st.markdown(f"""
+            <h1 style='text-align: center; color: #E0E0E0; font-family: Orbitron, sans-serif; letter-spacing: 5px; margin-top: -10px; font-size: {title_size};'>
+                HYPER ENGINE
+            </h1>
+            <p style='text-align: center; color: #808080; font-size: 14px; letter-spacing: 2px; text-transform: uppercase;'>
+                ADVANCED CINEMATIC RENDERING
+            </p>
+        """, unsafe_allow_html=True)
+
+
 # --- 17. SYSTEM PAGE ROUTING ---
 if st.session_state["current_page"] == "landing":
     
     main_banner_col, auth_panel_col = st.columns([1.7, 1.3], gap="large")
     
     with main_banner_col:
-        logo_path = find_valid_logo_path()
-        
-        logo_col, title_col = st.columns([0.22, 0.78])
-        if logo_path:
-            with logo_col:
-                st.image(logo_path, width=180)
-            with title_col:
-                st.markdown("<h1 style='font-size: 85px !important; margin-top: 25px; font-family: \"Orbitron\", sans-serif; font-weight: 900; margin-left: -20px;' class='brand-text-gold'>ZOVIX</h1>", unsafe_allow_html=True)
-        else:
-            svg_data = """<svg viewBox="0 0 100 100" width="180" style="filter: drop-shadow(0 0 12px rgba(255, 215, 0, 0.4));">
-                <defs>
-                    <linearGradient id="gold-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stop-color="#FFF3B0" />
-                        <stop offset="30%" stop-color="#CA9E32" />
-                        <stop offset="70%" stop-color="#F5C518" />
-                        <stop offset="100%" stop-color="#6E5005" />
-                    </linearGradient>
-                </defs>
-                <polygon points="50,15 30,35 70,35" fill="url(#gold-grad)" opacity="0.9" stroke="#000000" stroke-width="0.3"/>
-                <polygon points="30,35 10,35 20,50 30,35" fill="url(#gold-grad)" opacity="0.8" stroke="#000000" stroke-width="0.3"/>
-                <polygon points="50,15 30,35 20,50 50,50" fill="url(#gold-grad)" opacity="0.85" stroke="#000000" stroke-width="0.3"/>
-                <polygon points="50,15 70,35 80,50 50,50" fill="url(#gold-grad)" opacity="0.95" stroke="#000000" stroke-width="0.3"/>
-                <polygon points="70,35 90,35 80,50 70,35" fill="url(#gold-grad)" opacity="0.8" stroke="#000000" stroke-width="0.3"/>
-                <polygon points="10,35 50,90 20,50" fill="url(#gold-grad)" opacity="0.75" stroke="#000000" stroke-width="0.3"/>
-                <polygon points="20,50 50,90 50,50" fill="url(#gold-grad)" opacity="0.85" stroke="#000000" stroke-width="0.3"/>
-                <polygon points="50,50 50,90 80,50" fill="url(#gold-grad)" opacity="0.9" stroke="#000000" stroke-width="0.3"/>
-                <polygon points="80,50 50,90 90,35" fill="url(#gold-grad)" opacity="0.8" stroke="#000000" stroke-width="0.3"/>
-            </svg>"""
-            with logo_col:
-                st.markdown(svg_data, unsafe_allow_html=True)
-            with title_col:
-                st.markdown("<h1 style='font-size: 85px !important; margin-top: 25px; font-family: \"Orbitron\", sans-serif; font-weight: 900; margin-left: -20px;' class='brand-text-gold'>ZOVIX</h1>", unsafe_allow_html=True)
-        
-        st.title("Transform Ideas into Cinematic Scene Breakdowns")
+        show_header(logo_width=180, title_size="42px")
+        st.markdown("<div style='margin-top: 30px;'></div>", unsafe_allow_html=True)
         st.write("Construct contextual AI breakdowns matching technical visual criteria with custom formatting rules.")
         
         st.markdown("<div style='margin-top: 40px;'></div>", unsafe_allow_html=True)
@@ -2615,39 +2620,8 @@ elif st.session_state["current_page"] == "studio":
         
     col_hdr_l, col_hdr_r = st.columns([13, 3], gap="small")
     with col_hdr_l:
-        logo_path = find_valid_logo_path()
-        hdr_logo_col, hdr_title_col = st.columns([0.12, 0.88])
-        
-        if logo_path:
-            with hdr_logo_col:
-                st.image(logo_path, width=80)
-            with hdr_title_col:
-                st.markdown("<h1 style='font-size: 45px !important; margin-top: 5px; font-family: \"Orbitron\", sans-serif; font-weight: 900; margin-left: -35px;' class='brand-text-gold'>ZOVIX</h1>", unsafe_allow_html=True)
-        else:
-            svg_data_small = """<svg viewBox="0 0 100 100" width="80" style="filter: drop-shadow(0 0 10px rgba(255, 192, 203, 0.35));">
-                <defs>
-                    <linearGradient id="gold-grad-sm" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stop-color="#FFF3B0" />
-                        <stop offset="30%" stop-color="#CA9E32" />
-                        <stop offset="70%" stop-color="#F5C518" />
-                        <stop offset="100%" stop-color="#6E5005" />
-                    </linearGradient>
-                </defs>
-                <polygon points="50,15 30,35 70,35" fill="url(#gold-grad-sm)" opacity="0.9" stroke="#000000" stroke-width="0.3"/>
-                <polygon points="30,35 10,35 20,50 30,35" fill="url(#gold-grad-sm)" opacity="0.8" stroke="#000000" stroke-width="0.3"/>
-                <polygon points="50,15 30,35 20,50 50,50" fill="url(#gold-grad-sm)" opacity="0.85" stroke="#000000" stroke-width="0.3"/>
-                <polygon points="50,15 70,35 80,50 50,50" fill="url(#gold-grad-sm)" opacity="0.95" stroke="#000000" stroke-width="0.3"/>
-                <polygon points="70,35 90,35 80,50 70,35" fill="url(#gold-grad-sm)" opacity="0.8" stroke="#000000" stroke-width="0.3"/>
-                <polygon points="10,35 50,90 20,50" fill="url(#gold-grad-sm)" opacity="0.75" stroke="#000000" stroke-width="0.3"/>
-                <polygon points="20,50 50,90 50,50" fill="url(#gold-grad-sm)" opacity="0.85" stroke="#000000" stroke-width="0.3"/>
-                <polygon points="50,50 50,90 80,50" fill="url(#gold-grad-sm)" opacity="0.9" stroke="#000000" stroke-width="0.3"/>
-                <polygon points="80,50 50,90 90,35" fill="url(#gold-grad-sm)" opacity="0.8" stroke="#000000" stroke-width="0.3"/>
-            </svg>"""
-            with hdr_logo_col:
-                st.markdown(svg_data_small, unsafe_allow_html=True)
-            with hdr_title_col:
-                st.markdown("<h1 style='font-size: 45px !important; margin-top: 5px; font-family: \"Orbitron\", sans-serif; font-weight: 900; margin-left: -35px;' class='brand-text-gold'>ZOVIX</h1>", unsafe_allow_html=True)
-            
+        show_header(logo_width=100, title_size="28px")
+    
     with col_hdr_r:
         st.markdown("<div style='margin-top: 18px;'></div>", unsafe_allow_html=True)
         st.markdown("<div class='exit-btn-wrapper'>", unsafe_allow_html=True)
