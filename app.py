@@ -3429,3 +3429,22 @@ elif st.session_state["current_page"] == "studio":
             </div>
         </div>
     """, unsafe_allow_html=True)
+
+
+def show_privacy_policy():
+    st.markdown("---")
+    with st.expander("Legal & Privacy Policy"):
+        st.markdown("""
+        ### Privacy Policy for Zovix
+        **Last updated: June 17, 2026**
+        
+        At Zovix, we prioritize your privacy. This policy outlines how we handle your data.
+        
+        **1. Information Collection:** We collect minimal information (like email) to provide our services.
+        **2. Data Usage:** Information is used solely to maintain and improve the Zovix platform.
+        **3. Payments:** We use Razorpay for secure transactions. Please review their policy at [razorpay.com/privacy](https://razorpay.com/privacy/).
+        **4. Contact:** For any questions, reach out to us at **zovixenterprises@gmail.com**.
+        """)
+
+# Call the privacy policy renderer at the end of the app
+show_privacy_policy()
