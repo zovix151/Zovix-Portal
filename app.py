@@ -3328,6 +3328,7 @@ def render_payment_modal():
 # ========================================================
 
 def render_razorpay_checkout(order_id, amount, plan_name, credits, username, key_id):
+    import json
     amount_inr = amount / 100
     safe_plan_name = str(plan_name).replace("'", "\\'").replace("\n", " ")
     safe_username = str(username).replace("'", "\\'").replace("\n", " ")
@@ -3340,7 +3341,7 @@ def render_razorpay_checkout(order_id, amount, plan_name, credits, username, key
         <style>
             body {{ margin: 0; padding: 0; background: transparent; font-family: 'Inter', 'Segoe UI', sans-serif; }}
             .checkout-container {{
-                display: flex; justify-content: center; align-items: center; min-height: 320px; padding: 12px;
+                display: flex; justify-content: center; align-items: center; min-height: 480px; padding: 12px;
                 background: linear-gradient(135deg, #0a0a12 0%, #1a1a2e 100%);
                 border-radius: 16px; border: 1px solid rgba(69, 243, 255, 0.2);
             }}
@@ -3367,8 +3368,6 @@ def render_razorpay_checkout(order_id, amount, plan_name, credits, username, key
             .payment-status {{ margin-top: 12px; font-size: 12px; color: #94a3b8; }}
             .payment-status.success {{ color: #10b981; }}
             .payment-status.error {{ color: #ef4444; }}
-            .payment-link {{ margin-top: 8px; display: none; }}
-            .payment-link a {{ color: #45f3ff; text-decoration: none; font-size: 12px; }}
             @media (max-width: 600px) {{
                 .payment-card {{ padding: 18px 14px; margin: 0 4px; }}
                 .payment-title {{ font-size: 15px; }}
@@ -3388,12 +3387,10 @@ def render_razorpay_checkout(order_id, amount, plan_name, credits, username, key
                     <div class="row"><span class="label">👤 User</span><span class="value">{safe_username}</span></div>
                 </div>
                 <button class="payment-btn" id="pay-btn" type="button">💳 Pay Now</button>
-                <div class="payment-status" id="paymentStatus">🔒 Secure payment via Razorpay. Click Pay Now to continue.</div>
-                <div class="payment-link" id="paymentLink">
-                    <a href="https://razorpay.com/" target="_blank" rel="noopener">Open Razorpay Checkout</a>
-                </div>
+                <div class="payment-status" id="paymentStatus">🔒 Click Pay Now to checkout securely.</div>
             </div>
         </div>
+
         <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
         <script>
             (function() {{
@@ -3404,24 +3401,17 @@ def render_razorpay_checkout(order_id, amount, plan_name, credits, username, key
                 const planName = {json.dumps(safe_plan_name)};
                 const keyId = {json.dumps(key_id)};
                 const paymentStatus = document.getElementById('paymentStatus');
-                const paymentLink = document.getElementById('paymentLink');
                 const payButton = document.getElementById('pay-btn');
-                let checkoutReady = false;
-                let checkoutInstance = null;
 
                 function updateStatus(message, type) {{
                     paymentStatus.className = 'payment-status ' + type;
                     paymentStatus.innerHTML = message;
                 }}
 
-                function initCheckout() {{
+                function openCheckout() {{
                     if (typeof Razorpay === 'undefined') {{
-                        updateStatus('⚠️ Razorpay SDK is still loading. Please wait a moment...', 'error');
-                        return false;
-                    }}
-
-                    if (checkoutReady && checkoutInstance) {{
-                        return true;
+                        updateStatus('⚠️ Razorpay SDK missing. Refreshing...', 'error');
+                        return;
                     }}
 
                     const options = {{
@@ -3442,43 +3432,29 @@ def render_razorpay_checkout(order_id, amount, plan_name, credits, username, key
                             updateStatus('✅ Processing payment...', 'success');
                             payButton.disabled = true;
                             payButton.innerHTML = '⏳ Processing...';
+                            // Streamlit window to parent data mechanism fallback
+                            if (window.parent) {{
+                                window.parent.postMessage({{
+                                    type: 'razorpay_success',
+                                    payment_id: response.razorpay_payment_id,
+                                    order_id: response.razorpay_order_id,
+                                    signature: response.razorpay_signature
+                                }}, '*');
+                            }}
                         }}
                     }};
 
                     try {{
-                        checkoutInstance = new Razorpay(options);
-                        checkoutReady = true;
-                        return true;
+                        const rzp = new Razorpay(options);
+                        rzp.open();
+                        updateStatus('🔄 Razorpay checkout modal active.', 'success');
                     }} catch (err) {{
-                        updateStatus('⚠️ Checkout could not be initialized. Please retry.', 'error');
-                        paymentLink.style.display = 'block';
-                        return false;
-                    }}
-                }}
-
-                function openCheckout() {{
-                    if (!checkoutReady && !initCheckout()) {{
-                        return;
-                    }}
-
-                    try {{
-                        checkoutInstance.open();
-                        updateStatus('🔄 Opening Razorpay checkout...', 'success');
-                    }} catch (err) {{
-                        updateStatus('⚠️ Checkout could not be opened. Please retry.', 'error');
-                        paymentLink.style.display = 'block';
+                        updateStatus('⚠️ Error launching checkout window.', 'error');
                     }}
                 }}
 
                 payButton.addEventListener('click', function(e) {{
                     e.preventDefault();
-                    e.stopPropagation();
-                    openCheckout();
-                }});
-
-                payButton.addEventListener('touchend', function(e) {{
-                    e.preventDefault();
-                    e.stopPropagation();
                     openCheckout();
                 }});
             }})();
@@ -3487,31 +3463,9 @@ def render_razorpay_checkout(order_id, amount, plan_name, credits, username, key
     </html>
     """
 
-    wrapper_html = f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <style>
-            body {{ margin: 0; padding: 0; background: transparent; }}
-            .razorpay-frame-wrap {{ padding: 4px; background: transparent; }}
-            iframe {{ width: 100%; min-height: 500px; border: none; border-radius: 16px; background: transparent; }}
-        </style>
-    </head>
-    <body>
-        <div class="razorpay-frame-wrap">
-            <iframe id="razorpay-iframe" title="Razorpay Checkout" sandbox="allow-scripts allow-same-origin allow-popups allow-forms"></iframe>
-        </div>
-        <script>
-            (function() {{
-                const iframe = document.getElementById('razorpay-iframe');
-                iframe.srcdoc = {json.dumps(checkout_html)};
-            }})();
-        </script>
-    </body>
-    </html>
-    """
-    return wrapper_html
+    # Yahan hum double nested wrapper_html hata kar clean inline srcdoc bana rahe hain 
+    # Jo seedhe Streamlit components.v1.html ko pas hoga, no CORS block anymore!
+    return checkout_html
 
 def handle_payment_response():
     query_params = st.query_params
