@@ -8,3 +8,4 @@ mutagen
 pydantic
 huggingface_hub
 requests
+razorpay

@@ -1,0 +1,21 @@
+[33mcb1c226[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m updated branding to Hyper Engine
+[33m5bd7d87[m Merge branch 'main' of https://github.com/zovix150/Zovix-Portal
+[33m8aa2840[m Added Privacy Policy footer
+[33m50bd6b2[m Added Dev Container Folder
+[33m7278ad8[m add ffmpeg
+[33m1029e0d[m feat: improved earror logging and pipeline stability in engine.py
+[33m927479c[m feat: initialized v4 db with default credits and fixed social register
+[33m7518de1[m fix: auto-create users table on early select queries and bump to v4
+[33m69c2040[m fix ensure all table are initialized before app run
+[33mfc5fe1e[m fix: ensure users table creation inside register_user_db
+[33m869be18[m database updated to v3 for fresh schema
+[33m1b14817[m database updated to v3 for fresh schema
+[33mb3db8bd[m added rarror logging
+[33m138b006[m added rarror logging
+[33m5aa4af7[m added earror logging
+[33mdf190da[m added rarror logging
+[33m2fc33d7[m added rarror logging
+[33m794a914[m Add all dependencies to requirements.txt
+[33m9f90c50[m Cleanup coad and requirements
+[33m37e99e0[m Update requirements with all libraries
+[33m1422f67[m Freshclean start

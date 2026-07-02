@@ -1,0 +1,1925 @@
+2026-07-01 18:05:13,128 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:05:13,130 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:05:13,164 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:05:19,599 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:05:19,600 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:05:19,607 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:05:23,201 - Zovix - ERROR - Authentication error: no such column: twofa_secret
+2026-07-01 18:09:54,456 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:09:54,456 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:09:54,472 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:09:59,777 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:09:59,778 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:09:59,785 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:10:01,856 - Zovix - ERROR - Authentication error: no such column: twofa_secret
+2026-07-01 18:10:21,630 - Zovix - ERROR - Authentication error: no such column: twofa_secret
+2026-07-01 18:13:09,114 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:13:09,115 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:13:09,136 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:13:09,137 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:13:11,281 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:13:11,282 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:13:11,289 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:13:11,290 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:13:13,380 - Zovix - ERROR - Load face videos error: no such column: quality
+2026-07-01 18:13:13,382 - Zovix - ERROR - Has subscription error: no such column: plan_type
+2026-07-01 18:13:13,591 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:13:13,592 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:13:13,597 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:13:13,598 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:14:36,744 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:14:36,744 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:14:36,752 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:14:36,753 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:14:36,992 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:14:36,992 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:14:36,998 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:14:36,999 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:14:38,090 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:14:38,091 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:14:38,098 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:14:38,099 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:14:40,300 - Zovix - ERROR - Load face videos error: no such column: quality
+2026-07-01 18:14:40,302 - Zovix - ERROR - Has subscription error: no such column: plan_type
+2026-07-01 18:14:40,584 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:14:40,585 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:14:40,593 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:14:40,593 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:18:07,812 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:18:07,813 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:18:07,825 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:18:07,826 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:18:09,985 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:18:09,992 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:18:09,999 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:18:10,003 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:18:12,372 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:18:12,373 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:18:12,385 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:18:12,390 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:19:07,919 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:19:07,920 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:19:07,938 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:19:07,939 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:19:09,922 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:19:09,922 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:19:09,937 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:19:09,939 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:19:12,208 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:19:12,210 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:19:12,216 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:19:12,218 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:19:35,293 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:19:35,293 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:19:35,302 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:19:35,303 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:19:37,114 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:19:37,115 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:19:37,121 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:19:37,121 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:19:37,382 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:19:37,382 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:19:37,391 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:19:37,393 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:21:06,449 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:21:06,450 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:21:06,455 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:21:06,456 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:21:10,687 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:21:10,687 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:21:10,693 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:21:10,694 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:21:13,218 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:21:13,219 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:21:13,225 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:21:13,227 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:39:50,882 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:39:50,884 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:39:50,898 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:39:50,899 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:39:52,775 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:39:52,778 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:39:52,783 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:39:52,789 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:39:55,248 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:39:55,250 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:39:55,256 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:39:55,258 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:42:39,529 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:42:39,530 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:42:39,543 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:42:39,544 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:42:41,416 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:42:41,419 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:42:41,427 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:42:41,429 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:42:44,424 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:42:44,425 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:42:44,438 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:42:44,440 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:46:55,152 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:46:55,152 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:46:55,158 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:46:55,159 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:46:57,104 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:46:57,104 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:46:57,110 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:46:57,110 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:46:57,283 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:46:57,288 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:46:57,294 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:46:57,296 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:46:59,588 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:46:59,588 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:46:59,594 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:46:59,595 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:46:59,796 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:46:59,798 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:46:59,804 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:46:59,807 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:47:01,046 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:47:01,047 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:47:01,052 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:47:01,053 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:47:01,242 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:47:01,244 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:47:01,250 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:47:01,254 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:47:02,662 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:47:02,662 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:47:02,668 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:47:02,669 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:47:02,897 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:47:02,898 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:47:02,905 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:47:02,908 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:47:17,936 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:47:17,938 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:47:17,949 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:47:17,951 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:47:19,804 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:47:19,805 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:47:19,812 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:47:19,815 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:47:22,656 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:47:22,658 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:47:22,673 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:47:22,676 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:47:24,207 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:47:24,208 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:47:24,213 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:47:24,213 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:47:25,258 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:47:25,258 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:47:25,264 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:47:25,265 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:47:25,476 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:47:25,476 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:47:25,482 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:47:25,487 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:47:35,346 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:47:35,347 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:47:35,352 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:47:35,354 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:47:35,561 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:47:35,562 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:47:35,570 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:47:35,573 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:48:49,016 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:48:49,017 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:48:49,028 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:48:49,032 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:48:50,881 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:48:50,882 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:48:50,890 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:48:50,890 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:48:53,035 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:48:53,036 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:48:53,047 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:48:53,049 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:49:19,072 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:49:19,072 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:49:19,078 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:49:19,079 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:49:20,490 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:49:20,490 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:49:20,497 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:49:20,497 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:49:20,695 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:49:20,699 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:49:20,706 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:49:20,709 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:52:42,083 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:52:42,084 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:52:42,096 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:52:42,098 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:52:43,830 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:52:43,830 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:52:43,836 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:52:43,837 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:52:47,143 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:52:47,144 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:52:47,154 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:52:47,161 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:52:48,665 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:52:48,666 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:52:48,669 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:52:48,669 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:52:50,332 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:52:50,332 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:52:50,339 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:52:50,339 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:52:50,545 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:52:50,546 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:52:50,553 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:52:50,554 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:55:20,331 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:55:20,332 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:55:20,343 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:55:20,344 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:55:22,216 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:55:22,218 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:55:22,224 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:55:22,228 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:55:25,134 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:55:25,135 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:55:25,140 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:55:25,140 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:55:26,688 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:55:26,689 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:55:26,693 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:55:26,696 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:55:27,576 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:55:27,576 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:55:27,582 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:55:27,583 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:55:27,786 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:55:27,787 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:55:27,793 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:55:27,796 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:55:40,933 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:55:40,933 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:55:40,939 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:55:40,940 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:55:41,167 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:55:41,168 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:55:41,173 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:55:41,174 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:56:15,824 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:56:15,825 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:56:15,836 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:56:15,837 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:56:17,802 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:56:17,803 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:56:17,812 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:56:17,813 - Zovix - INFO - Database initialized successfully
+2026-07-01 18:56:20,650 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 18:56:20,651 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 18:56:20,661 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 18:56:20,662 - Zovix - INFO - Database initialized successfully
+2026-07-01 20:02:36,093 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 20:02:36,093 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 20:02:36,098 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 20:02:36,098 - Zovix - INFO - Database initialized successfully
+2026-07-01 20:02:38,964 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 20:02:38,965 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 20:02:38,984 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 20:02:38,986 - Zovix - INFO - Database initialized successfully
+2026-07-01 20:02:41,962 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 20:02:41,965 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 20:02:41,987 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 20:02:41,991 - Zovix - INFO - Database initialized successfully
+2026-07-01 20:02:52,261 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 20:02:52,263 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 20:02:52,278 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 20:02:52,280 - Zovix - INFO - Database initialized successfully
+2026-07-01 20:03:00,158 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 20:03:00,161 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 20:03:00,171 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 20:03:00,173 - Zovix - INFO - Database initialized successfully
+2026-07-01 20:03:02,460 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 20:03:02,465 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 20:03:02,474 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 20:03:02,476 - Zovix - INFO - Database initialized successfully
+2026-07-01 20:03:04,390 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 20:03:04,391 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 20:03:04,402 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 20:03:04,406 - Zovix - INFO - Database initialized successfully
+2026-07-01 20:03:05,808 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 20:03:05,808 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 20:03:05,814 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 20:03:05,815 - Zovix - INFO - Database initialized successfully
+2026-07-01 20:03:06,024 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 20:03:06,026 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 20:03:06,036 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 20:03:06,037 - Zovix - INFO - Database initialized successfully
+2026-07-01 20:03:08,402 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 20:03:08,403 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 20:03:08,410 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 20:03:08,411 - Zovix - INFO - Database initialized successfully
+2026-07-01 20:03:08,599 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 20:03:08,606 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 20:03:08,613 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 20:03:08,617 - Zovix - INFO - Database initialized successfully
+2026-07-01 20:05:06,685 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 20:05:06,686 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 20:05:06,707 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 20:05:06,708 - Zovix - INFO - Database initialized successfully
+2026-07-01 20:05:08,811 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 20:05:08,814 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 20:05:08,826 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 20:05:08,826 - Zovix - INFO - Database initialized successfully
+2026-07-01 20:05:11,639 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 20:05:11,641 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 20:05:11,651 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 20:05:11,652 - Zovix - INFO - Database initialized successfully
+2026-07-01 20:05:20,858 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 20:05:20,858 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 20:05:20,868 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 20:05:20,869 - Zovix - INFO - Database initialized successfully
+2026-07-01 20:05:21,067 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 20:05:21,068 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 20:05:21,079 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 20:05:21,081 - Zovix - INFO - Database initialized successfully
+2026-07-01 20:05:34,888 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 20:05:34,888 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 20:05:34,895 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 20:05:34,897 - Zovix - INFO - Database initialized successfully
+2026-07-01 20:05:35,095 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 20:05:35,096 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 20:05:35,103 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 20:05:35,104 - Zovix - INFO - Database initialized successfully
+2026-07-01 20:05:40,025 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 20:05:40,025 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 20:05:40,033 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 20:05:40,034 - Zovix - INFO - Database initialized successfully
+2026-07-01 20:05:40,261 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 20:05:40,268 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 20:05:40,273 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 20:05:40,273 - Zovix - INFO - Database initialized successfully
+2026-07-01 20:05:44,624 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 20:05:44,624 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 20:05:44,630 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 20:05:44,631 - Zovix - INFO - Database initialized successfully
+2026-07-01 20:05:44,868 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 20:05:44,869 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 20:05:44,876 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 20:05:44,877 - Zovix - INFO - Database initialized successfully
+2026-07-01 20:05:48,618 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 20:05:48,619 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 20:05:48,624 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 20:05:48,625 - Zovix - INFO - Database initialized successfully
+2026-07-01 20:05:48,901 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 20:05:48,904 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 20:05:48,909 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 20:05:48,913 - Zovix - INFO - Database initialized successfully
+2026-07-01 20:44:37,490 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 20:44:37,492 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 20:44:37,507 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 20:44:37,508 - Zovix - INFO - Database initialized successfully
+2026-07-01 20:44:39,847 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 20:44:39,848 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 20:44:39,858 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 20:44:39,859 - Zovix - INFO - Database initialized successfully
+2026-07-01 20:44:42,918 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 20:44:42,918 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 20:44:42,928 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 20:44:42,931 - Zovix - INFO - Database initialized successfully
+2026-07-01 20:45:04,502 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 20:45:04,503 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 20:45:04,515 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 20:45:04,517 - Zovix - INFO - Database initialized successfully
+2026-07-01 20:45:06,890 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 20:45:06,891 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 20:45:06,905 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 20:45:06,906 - Zovix - INFO - Database initialized successfully
+2026-07-01 20:45:09,836 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 20:45:09,837 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 20:45:09,843 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 20:45:09,846 - Zovix - INFO - Database initialized successfully
+2026-07-01 20:45:17,292 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 20:45:17,292 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 20:45:17,302 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 20:45:17,304 - Zovix - INFO - Database initialized successfully
+2026-07-01 21:49:43,488 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 21:49:43,488 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 21:49:43,497 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 21:49:43,499 - Zovix - INFO - Database initialized successfully
+2026-07-01 21:49:47,720 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 21:49:47,721 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 21:49:47,734 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 21:49:47,735 - Zovix - INFO - Database initialized successfully
+2026-07-01 21:49:51,073 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 21:49:51,073 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 21:49:51,079 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 21:49:51,081 - Zovix - INFO - Database initialized successfully
+2026-07-01 21:50:04,566 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 21:50:04,566 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 21:50:04,574 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 21:50:04,576 - Zovix - INFO - Database initialized successfully
+2026-07-01 21:50:13,409 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 21:50:13,409 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 21:50:13,415 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 21:50:13,415 - Zovix - INFO - Database initialized successfully
+2026-07-01 21:50:13,598 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 21:50:13,599 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 21:50:13,606 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 21:50:13,609 - Zovix - INFO - Database initialized successfully
+2026-07-01 21:50:17,244 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 21:50:17,244 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 21:50:17,253 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 21:50:17,254 - Zovix - INFO - Database initialized successfully
+2026-07-01 21:50:17,471 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 21:50:17,472 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 21:50:17,477 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 21:50:17,485 - Zovix - INFO - Database initialized successfully
+2026-07-01 21:51:25,426 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 21:51:25,431 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 21:51:25,445 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 21:51:25,446 - Zovix - INFO - Database initialized successfully
+2026-07-01 21:56:17,807 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 21:56:17,807 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 21:56:17,813 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 21:56:17,813 - Zovix - INFO - Database initialized successfully
+2026-07-01 21:56:20,323 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 21:56:20,324 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 21:56:20,330 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 21:56:20,331 - Zovix - INFO - Database initialized successfully
+2026-07-01 21:56:22,870 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 21:56:22,871 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 21:56:22,879 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 21:56:22,885 - Zovix - INFO - Database initialized successfully
+2026-07-01 21:56:26,329 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 21:56:26,329 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 21:56:26,335 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 21:56:26,336 - Zovix - INFO - Database initialized successfully
+2026-07-01 21:56:28,440 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 21:56:28,440 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 21:56:28,446 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 21:56:28,448 - Zovix - INFO - Database initialized successfully
+2026-07-01 21:56:28,646 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 21:56:28,656 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 21:56:28,668 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 21:56:28,669 - Zovix - INFO - Database initialized successfully
+2026-07-01 21:56:30,365 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 21:56:30,366 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 21:56:30,376 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 21:56:30,377 - Zovix - INFO - Database initialized successfully
+2026-07-01 21:56:30,582 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 21:56:30,595 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 21:56:30,600 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 21:56:30,602 - Zovix - INFO - Database initialized successfully
+2026-07-01 21:56:49,538 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 21:56:49,542 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 21:56:49,561 - Zovix - WARNING - Could not add column created_at: Cannot add a column with non-constant default
+2026-07-01 21:56:49,562 - Zovix - INFO - Database initialized successfully
+2026-07-01 22:10:15,661 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 22:10:15,662 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 22:10:15,662 - Zovix - WARNING - stripe not installed.
+2026-07-01 22:10:15,663 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 22:10:15,664 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 22:10:15,666 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 22:10:15,668 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 22:10:16,461 - Zovix - INFO - Migrated DB: added column 'created_at' to users table
+2026-07-01 22:10:16,467 - Zovix - INFO - Migrated DB: populated 'created_at' for existing users
+2026-07-01 22:10:16,480 - Zovix - INFO - Database initialized successfully
+2026-07-01 22:10:18,441 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 22:10:18,449 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 22:10:18,452 - Zovix - WARNING - stripe not installed.
+2026-07-01 22:10:18,471 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 22:10:18,473 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 22:10:18,477 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 22:10:18,477 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 22:10:18,488 - Zovix - INFO - Database initialized successfully
+2026-07-01 22:10:21,169 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 22:10:21,171 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 22:10:21,173 - Zovix - WARNING - stripe not installed.
+2026-07-01 22:10:21,175 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 22:10:21,183 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 22:10:21,185 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 22:10:21,185 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 22:10:21,202 - Zovix - INFO - Database initialized successfully
+2026-07-01 22:10:31,069 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 22:10:31,072 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 22:10:31,074 - Zovix - WARNING - stripe not installed.
+2026-07-01 22:10:31,075 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 22:10:31,079 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 22:10:31,082 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 22:10:31,083 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 22:10:31,104 - Zovix - INFO - Database initialized successfully
+2026-07-01 22:10:33,041 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 22:10:33,042 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 22:10:33,043 - Zovix - WARNING - stripe not installed.
+2026-07-01 22:10:33,045 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 22:10:33,046 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 22:10:33,048 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 22:10:33,053 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 22:10:33,067 - Zovix - INFO - Database initialized successfully
+2026-07-01 22:10:35,464 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 22:10:35,466 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 22:10:35,469 - Zovix - WARNING - stripe not installed.
+2026-07-01 22:10:35,471 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 22:10:35,483 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 22:10:35,491 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 22:10:35,493 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 22:10:35,503 - Zovix - INFO - Database initialized successfully
+2026-07-01 22:10:38,611 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 22:10:38,612 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 22:10:38,613 - Zovix - WARNING - stripe not installed.
+2026-07-01 22:10:38,614 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 22:10:38,615 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 22:10:38,617 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 22:10:38,617 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 22:10:38,628 - Zovix - INFO - Database initialized successfully
+2026-07-01 22:10:40,657 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 22:10:40,658 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 22:10:40,659 - Zovix - WARNING - stripe not installed.
+2026-07-01 22:10:40,661 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 22:10:40,661 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 22:10:40,664 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 22:10:40,664 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 22:10:40,667 - Zovix - INFO - Database initialized successfully
+2026-07-01 22:10:40,869 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 22:10:40,871 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 22:10:40,873 - Zovix - WARNING - stripe not installed.
+2026-07-01 22:10:40,875 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 22:10:40,882 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 22:10:40,888 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 22:10:40,889 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 22:10:40,896 - Zovix - INFO - Database initialized successfully
+2026-07-01 22:10:43,180 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 22:10:43,182 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 22:10:43,183 - Zovix - WARNING - stripe not installed.
+2026-07-01 22:10:43,185 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 22:10:43,186 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 22:10:43,188 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 22:10:43,189 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 22:10:43,195 - Zovix - INFO - Database initialized successfully
+2026-07-01 22:10:43,422 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 22:10:43,423 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 22:10:43,424 - Zovix - WARNING - stripe not installed.
+2026-07-01 22:10:43,426 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 22:10:43,428 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 22:10:43,432 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 22:10:43,432 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 22:10:43,441 - Zovix - INFO - Database initialized successfully
+2026-07-01 22:10:58,759 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 22:10:58,761 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 22:10:58,763 - Zovix - WARNING - stripe not installed.
+2026-07-01 22:10:58,764 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 22:10:58,777 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 22:10:58,783 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 22:10:58,785 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 22:10:58,803 - Zovix - INFO - Database initialized successfully
+2026-07-01 22:13:54,454 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 22:13:54,455 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 22:13:54,457 - Zovix - WARNING - stripe not installed.
+2026-07-01 22:13:54,458 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 22:13:54,459 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 22:13:54,462 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 22:13:54,462 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 22:13:54,475 - Zovix - INFO - Database initialized successfully
+2026-07-01 22:13:57,322 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 22:13:57,325 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 22:13:57,327 - Zovix - WARNING - stripe not installed.
+2026-07-01 22:13:57,329 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 22:13:57,352 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 22:13:57,358 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 22:13:57,360 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 22:13:57,371 - Zovix - INFO - Database initialized successfully
+2026-07-01 22:16:08,005 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 22:16:08,006 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 22:16:08,008 - Zovix - WARNING - stripe not installed.
+2026-07-01 22:16:08,009 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 22:16:08,010 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 22:16:08,012 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 22:16:08,012 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 22:16:08,021 - Zovix - INFO - Database initialized successfully
+2026-07-01 22:16:08,285 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 22:16:08,288 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 22:16:08,290 - Zovix - WARNING - stripe not installed.
+2026-07-01 22:16:08,291 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 22:16:08,294 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 22:16:08,299 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 22:16:08,301 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 22:16:08,311 - Zovix - INFO - Database initialized successfully
+2026-07-01 22:22:35,870 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 22:22:35,871 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 22:22:35,871 - Zovix - WARNING - stripe not installed.
+2026-07-01 22:22:35,871 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 22:22:35,873 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 22:22:35,874 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 22:22:35,874 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 22:22:36,663 - Zovix - INFO - Database initialized successfully
+2026-07-01 22:22:38,619 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 22:22:38,623 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 22:22:38,628 - Zovix - WARNING - stripe not installed.
+2026-07-01 22:22:38,636 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 22:22:38,639 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 22:22:38,643 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 22:22:38,646 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 22:22:38,654 - Zovix - INFO - Database initialized successfully
+2026-07-01 22:22:40,848 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 22:22:40,851 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 22:22:40,865 - Zovix - WARNING - stripe not installed.
+2026-07-01 22:22:40,868 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 22:22:40,870 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 22:22:40,878 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 22:22:40,880 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 22:22:40,894 - Zovix - INFO - Database initialized successfully
+2026-07-01 22:22:44,956 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 22:22:44,957 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 22:22:44,958 - Zovix - WARNING - stripe not installed.
+2026-07-01 22:22:44,958 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 22:22:44,960 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 22:22:44,963 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 22:22:44,963 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 22:22:44,970 - Zovix - INFO - Database initialized successfully
+2026-07-01 22:22:45,994 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 22:22:45,996 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 22:22:45,997 - Zovix - WARNING - stripe not installed.
+2026-07-01 22:22:45,998 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 22:22:45,999 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 22:22:46,001 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 22:22:46,002 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 22:22:46,009 - Zovix - INFO - Database initialized successfully
+2026-07-01 22:22:46,165 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 22:22:46,166 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 22:22:46,166 - Zovix - WARNING - stripe not installed.
+2026-07-01 22:22:46,166 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 22:22:46,168 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 22:22:46,169 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 22:22:46,169 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 22:22:46,173 - Zovix - INFO - Database initialized successfully
+2026-07-01 22:22:57,864 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 22:22:57,865 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 22:22:57,866 - Zovix - WARNING - stripe not installed.
+2026-07-01 22:22:57,867 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 22:22:57,868 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 22:22:57,870 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 22:22:57,871 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 22:22:57,880 - Zovix - INFO - Database initialized successfully
+2026-07-01 22:23:02,392 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 22:23:02,393 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 22:23:02,394 - Zovix - WARNING - stripe not installed.
+2026-07-01 22:23:02,396 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 22:23:02,397 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 22:23:02,400 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 22:23:02,401 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 22:23:02,409 - Zovix - INFO - Database initialized successfully
+2026-07-01 22:23:02,623 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 22:23:02,625 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 22:23:02,627 - Zovix - WARNING - stripe not installed.
+2026-07-01 22:23:02,628 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 22:23:02,630 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 22:23:02,634 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 22:23:02,635 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 22:23:02,648 - Zovix - INFO - Database initialized successfully
+2026-07-01 22:23:08,870 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 22:23:08,871 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 22:23:08,873 - Zovix - WARNING - stripe not installed.
+2026-07-01 22:23:08,874 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 22:23:08,881 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 22:23:08,885 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 22:23:08,886 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 22:23:08,910 - Zovix - INFO - Database initialized successfully
+2026-07-01 22:23:10,953 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 22:23:10,956 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 22:23:10,958 - Zovix - WARNING - stripe not installed.
+2026-07-01 22:23:10,959 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 22:23:10,965 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 22:23:10,969 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 22:23:10,970 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 22:23:10,981 - Zovix - INFO - Database initialized successfully
+2026-07-01 22:23:13,462 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 22:23:13,465 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 22:23:13,477 - Zovix - WARNING - stripe not installed.
+2026-07-01 22:23:13,480 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 22:23:13,483 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 22:23:13,487 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 22:23:13,489 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 22:23:13,501 - Zovix - INFO - Database initialized successfully
+2026-07-01 22:41:36,592 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 22:41:36,593 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 22:41:36,594 - Zovix - WARNING - stripe not installed.
+2026-07-01 22:41:36,596 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 22:41:36,597 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 22:41:36,599 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 22:41:36,599 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 22:41:36,623 - Zovix - INFO - Database initialized successfully
+2026-07-01 22:41:38,586 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 22:41:38,589 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 22:41:38,596 - Zovix - WARNING - stripe not installed.
+2026-07-01 22:41:38,598 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 22:41:38,600 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 22:41:38,604 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 22:41:38,604 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 22:41:38,620 - Zovix - INFO - Database initialized successfully
+2026-07-01 22:41:42,326 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 22:41:42,328 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 22:41:42,330 - Zovix - WARNING - stripe not installed.
+2026-07-01 22:41:42,332 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 22:41:42,340 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 22:41:42,343 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 22:41:42,343 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 22:41:42,358 - Zovix - INFO - Database initialized successfully
+2026-07-01 22:41:57,051 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 22:41:57,052 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 22:41:57,053 - Zovix - WARNING - stripe not installed.
+2026-07-01 22:41:57,055 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 22:41:57,056 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 22:41:57,064 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 22:41:57,065 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 22:41:57,076 - Zovix - INFO - Database initialized successfully
+2026-07-01 22:41:58,692 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 22:41:58,694 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 22:41:58,696 - Zovix - WARNING - stripe not installed.
+2026-07-01 22:41:58,697 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 22:41:58,698 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 22:41:58,704 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 22:41:58,704 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 22:41:58,713 - Zovix - INFO - Database initialized successfully
+2026-07-01 22:41:58,912 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 22:41:58,914 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 22:41:58,915 - Zovix - WARNING - stripe not installed.
+2026-07-01 22:41:58,917 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 22:41:58,924 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 22:41:58,927 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 22:41:58,928 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 22:41:58,940 - Zovix - INFO - Database initialized successfully
+2026-07-01 22:42:02,276 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 22:42:02,278 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 22:42:02,280 - Zovix - WARNING - stripe not installed.
+2026-07-01 22:42:02,281 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 22:42:02,298 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 22:42:02,301 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 22:42:02,302 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 22:42:02,307 - Zovix - INFO - Database initialized successfully
+2026-07-01 22:42:02,554 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 22:42:02,555 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 22:42:02,557 - Zovix - WARNING - stripe not installed.
+2026-07-01 22:42:02,559 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 22:42:02,566 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 22:42:02,570 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 22:42:02,571 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 22:42:02,579 - Zovix - INFO - Database initialized successfully
+2026-07-01 22:42:07,816 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 22:42:07,818 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 22:42:07,819 - Zovix - WARNING - stripe not installed.
+2026-07-01 22:42:07,821 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 22:42:07,828 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 22:42:07,831 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 22:42:07,831 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 22:42:07,843 - Zovix - INFO - Database initialized successfully
+2026-07-01 22:42:08,093 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 22:42:08,095 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 22:42:08,097 - Zovix - WARNING - stripe not installed.
+2026-07-01 22:42:08,099 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 22:42:08,103 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 22:42:08,109 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 22:42:08,110 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 22:42:08,125 - Zovix - INFO - Database initialized successfully
+2026-07-01 22:42:23,622 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 22:42:23,623 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 22:42:23,624 - Zovix - WARNING - stripe not installed.
+2026-07-01 22:42:23,624 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 22:42:23,625 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 22:42:23,627 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 22:42:23,627 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 22:42:23,637 - Zovix - INFO - Database initialized successfully
+2026-07-01 22:42:45,490 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 22:42:45,492 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 22:42:45,494 - Zovix - WARNING - stripe not installed.
+2026-07-01 22:42:45,496 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 22:42:45,497 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 22:42:45,512 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 22:42:45,513 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 22:42:45,524 - Zovix - INFO - Database initialized successfully
+2026-07-01 22:42:49,440 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 22:42:49,442 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 22:42:49,444 - Zovix - WARNING - stripe not installed.
+2026-07-01 22:42:49,447 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 22:42:49,463 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 22:42:49,467 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 22:42:49,469 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 22:42:49,483 - Zovix - INFO - Database initialized successfully
+2026-07-01 22:46:00,715 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 22:46:00,717 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 22:46:00,719 - Zovix - WARNING - stripe not installed.
+2026-07-01 22:46:00,720 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 22:46:00,720 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 22:46:00,734 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 22:46:00,736 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 22:46:00,752 - Zovix - INFO - Database initialized successfully
+2026-07-01 22:46:16,086 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 22:46:16,087 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 22:46:16,089 - Zovix - WARNING - stripe not installed.
+2026-07-01 22:46:16,090 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 22:46:16,091 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 22:46:16,094 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 22:46:16,094 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 22:46:16,100 - Zovix - INFO - Database initialized successfully
+2026-07-01 22:46:18,575 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 22:46:18,578 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 22:46:18,580 - Zovix - WARNING - stripe not installed.
+2026-07-01 22:46:18,582 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 22:46:18,584 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 22:46:18,591 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 22:46:18,592 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 22:46:18,609 - Zovix - INFO - Database initialized successfully
+2026-07-01 22:50:28,034 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 22:50:28,037 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 22:50:28,038 - Zovix - WARNING - stripe not installed.
+2026-07-01 22:50:28,040 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 22:50:28,045 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 22:50:28,048 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 22:50:28,049 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 22:50:28,074 - Zovix - INFO - Database initialized successfully
+2026-07-01 22:50:30,801 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 22:50:30,802 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 22:50:30,803 - Zovix - WARNING - stripe not installed.
+2026-07-01 22:50:30,804 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 22:50:30,805 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 22:50:30,807 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 22:50:30,808 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 22:50:30,820 - Zovix - INFO - Database initialized successfully
+2026-07-01 22:50:33,355 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 22:50:33,357 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 22:50:33,358 - Zovix - WARNING - stripe not installed.
+2026-07-01 22:50:33,359 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 22:50:33,361 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 22:50:33,374 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 22:50:33,375 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 22:50:33,384 - Zovix - INFO - Database initialized successfully
+2026-07-01 22:51:52,956 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 22:51:52,958 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 22:51:52,960 - Zovix - WARNING - stripe not installed.
+2026-07-01 22:51:52,962 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 22:51:52,973 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 22:51:52,976 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 22:51:52,977 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 22:51:54,005 - Zovix - INFO - Database initialized successfully
+2026-07-01 22:51:56,393 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 22:51:56,399 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 22:51:56,405 - Zovix - WARNING - stripe not installed.
+2026-07-01 22:51:56,406 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 22:51:56,407 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 22:51:56,412 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 22:51:56,413 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 22:51:56,423 - Zovix - INFO - Database initialized successfully
+2026-07-01 22:52:00,128 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 22:52:00,130 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 22:52:00,132 - Zovix - WARNING - stripe not installed.
+2026-07-01 22:52:00,134 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 22:52:00,136 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 22:52:00,138 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 22:52:00,139 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 22:52:00,146 - Zovix - INFO - Database initialized successfully
+2026-07-01 22:54:46,304 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 22:54:46,306 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 22:54:46,307 - Zovix - WARNING - stripe not installed.
+2026-07-01 22:54:46,309 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 22:54:46,315 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 22:54:46,318 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 22:54:46,319 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 22:54:46,335 - Zovix - INFO - Database initialized successfully
+2026-07-01 22:54:48,266 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 22:54:48,267 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 22:54:48,268 - Zovix - WARNING - stripe not installed.
+2026-07-01 22:54:48,270 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 22:54:48,271 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 22:54:48,281 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 22:54:48,282 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 22:54:48,296 - Zovix - INFO - Database initialized successfully
+2026-07-01 22:54:51,001 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 22:54:51,002 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 22:54:51,003 - Zovix - WARNING - stripe not installed.
+2026-07-01 22:54:51,004 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 22:54:51,006 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 22:54:51,017 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 22:54:51,018 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 22:54:51,033 - Zovix - INFO - Database initialized successfully
+2026-07-01 23:28:15,339 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 23:28:15,341 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 23:28:15,343 - Zovix - WARNING - stripe not installed.
+2026-07-01 23:28:15,345 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 23:28:15,350 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 23:28:15,354 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 23:28:15,355 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 23:28:15,381 - Zovix - INFO - Database initialized successfully
+2026-07-01 23:28:17,468 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 23:28:17,471 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 23:28:17,473 - Zovix - WARNING - stripe not installed.
+2026-07-01 23:28:17,474 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 23:28:17,475 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 23:28:17,493 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 23:28:17,494 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 23:28:17,502 - Zovix - INFO - Database initialized successfully
+2026-07-01 23:28:20,878 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 23:28:20,880 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 23:28:20,883 - Zovix - WARNING - stripe not installed.
+2026-07-01 23:28:20,886 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 23:28:20,888 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 23:28:20,890 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 23:28:20,891 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 23:28:20,906 - Zovix - INFO - Database initialized successfully
+2026-07-01 23:28:28,917 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 23:28:28,919 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 23:28:28,920 - Zovix - WARNING - stripe not installed.
+2026-07-01 23:28:28,921 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 23:28:28,924 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 23:28:28,927 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 23:28:28,928 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 23:28:28,936 - Zovix - INFO - Database initialized successfully
+2026-07-01 23:28:30,397 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 23:28:30,398 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 23:28:30,398 - Zovix - WARNING - stripe not installed.
+2026-07-01 23:28:30,399 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 23:28:30,400 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 23:28:30,402 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 23:28:30,402 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 23:28:30,412 - Zovix - INFO - Database initialized successfully
+2026-07-01 23:28:30,604 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 23:28:30,607 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 23:28:30,609 - Zovix - WARNING - stripe not installed.
+2026-07-01 23:28:30,611 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 23:28:30,618 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 23:28:30,621 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 23:28:30,622 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 23:28:30,633 - Zovix - INFO - Database initialized successfully
+2026-07-01 23:28:39,280 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 23:28:39,282 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 23:28:39,283 - Zovix - WARNING - stripe not installed.
+2026-07-01 23:28:39,284 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 23:28:39,285 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 23:28:39,288 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 23:28:39,289 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 23:28:39,296 - Zovix - INFO - Database initialized successfully
+2026-07-01 23:28:39,539 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 23:28:39,540 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 23:28:39,541 - Zovix - WARNING - stripe not installed.
+2026-07-01 23:28:39,543 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 23:28:39,544 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 23:28:39,548 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 23:28:39,548 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 23:28:39,558 - Zovix - INFO - Database initialized successfully
+2026-07-01 23:32:54,719 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 23:32:54,721 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 23:32:54,724 - Zovix - WARNING - stripe not installed.
+2026-07-01 23:32:54,725 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 23:32:54,731 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 23:32:54,734 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 23:32:54,735 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 23:32:54,761 - Zovix - INFO - Database initialized successfully
+2026-07-01 23:32:56,835 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 23:32:56,838 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 23:32:56,839 - Zovix - WARNING - stripe not installed.
+2026-07-01 23:32:56,840 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 23:32:56,841 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 23:32:56,856 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 23:32:56,857 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 23:32:56,867 - Zovix - INFO - Database initialized successfully
+2026-07-01 23:32:59,968 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 23:32:59,970 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 23:32:59,972 - Zovix - WARNING - stripe not installed.
+2026-07-01 23:32:59,974 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 23:32:59,979 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 23:32:59,985 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 23:32:59,986 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 23:33:00,003 - Zovix - INFO - Database initialized successfully
+2026-07-01 23:33:08,518 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 23:33:08,518 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 23:33:08,519 - Zovix - WARNING - stripe not installed.
+2026-07-01 23:33:08,520 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 23:33:08,521 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 23:33:08,523 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 23:33:08,523 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 23:33:08,532 - Zovix - INFO - Database initialized successfully
+2026-07-01 23:33:08,740 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 23:33:08,742 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 23:33:08,743 - Zovix - WARNING - stripe not installed.
+2026-07-01 23:33:08,744 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 23:33:08,746 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 23:33:08,752 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 23:33:08,752 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 23:33:08,760 - Zovix - INFO - Database initialized successfully
+2026-07-01 23:33:10,174 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 23:33:10,175 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 23:33:10,175 - Zovix - WARNING - stripe not installed.
+2026-07-01 23:33:10,176 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 23:33:10,177 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 23:33:10,179 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 23:33:10,180 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 23:33:10,186 - Zovix - INFO - Database initialized successfully
+2026-07-01 23:33:10,387 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 23:33:10,390 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 23:33:10,392 - Zovix - WARNING - stripe not installed.
+2026-07-01 23:33:10,394 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 23:33:10,399 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 23:33:10,403 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 23:33:10,404 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 23:33:10,416 - Zovix - INFO - Database initialized successfully
+2026-07-01 23:33:14,614 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 23:33:14,615 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 23:33:14,616 - Zovix - WARNING - stripe not installed.
+2026-07-01 23:33:14,617 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 23:33:14,618 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 23:33:14,620 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 23:33:14,620 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 23:33:14,628 - Zovix - INFO - Database initialized successfully
+2026-07-01 23:33:14,821 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 23:33:14,822 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 23:33:14,823 - Zovix - WARNING - stripe not installed.
+2026-07-01 23:33:14,825 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 23:33:14,828 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 23:33:14,836 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 23:33:14,837 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 23:33:14,849 - Zovix - INFO - Database initialized successfully
+2026-07-01 23:33:19,030 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 23:33:19,031 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 23:33:19,032 - Zovix - WARNING - stripe not installed.
+2026-07-01 23:33:19,033 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 23:33:19,035 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 23:33:19,038 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 23:33:19,038 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 23:33:19,048 - Zovix - INFO - Database initialized successfully
+2026-07-01 23:33:19,213 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 23:33:19,214 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 23:33:19,214 - Zovix - WARNING - stripe not installed.
+2026-07-01 23:33:19,214 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 23:33:19,216 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 23:33:19,218 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 23:33:19,218 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 23:33:19,238 - Zovix - INFO - Database initialized successfully
+2026-07-01 23:33:22,337 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 23:33:22,338 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 23:33:22,338 - Zovix - WARNING - stripe not installed.
+2026-07-01 23:33:22,340 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 23:33:22,340 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 23:33:22,343 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 23:33:22,343 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 23:33:22,350 - Zovix - INFO - Database initialized successfully
+2026-07-01 23:33:22,705 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 23:33:22,706 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 23:33:22,707 - Zovix - WARNING - stripe not installed.
+2026-07-01 23:33:22,707 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 23:33:22,708 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 23:33:22,710 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 23:33:22,711 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 23:33:22,719 - Zovix - INFO - Database initialized successfully
+2026-07-01 23:36:45,096 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 23:36:45,097 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 23:36:45,098 - Zovix - WARNING - stripe not installed.
+2026-07-01 23:36:45,099 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 23:36:45,100 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 23:36:45,102 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 23:36:45,102 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 23:36:45,111 - Zovix - INFO - Database initialized successfully
+2026-07-01 23:36:46,539 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 23:36:46,539 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 23:36:46,540 - Zovix - WARNING - stripe not installed.
+2026-07-01 23:36:46,541 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 23:36:46,543 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 23:36:46,545 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 23:36:46,547 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 23:36:46,554 - Zovix - INFO - Database initialized successfully
+2026-07-01 23:36:46,789 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 23:36:46,791 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 23:36:46,793 - Zovix - WARNING - stripe not installed.
+2026-07-01 23:36:46,795 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 23:36:46,802 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 23:36:46,805 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 23:36:46,806 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 23:36:46,814 - Zovix - INFO - Database initialized successfully
+2026-07-01 23:36:51,372 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 23:36:51,373 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 23:36:51,374 - Zovix - WARNING - stripe not installed.
+2026-07-01 23:36:51,375 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 23:36:51,376 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 23:36:51,378 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 23:36:51,378 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 23:36:51,388 - Zovix - INFO - Database initialized successfully
+2026-07-01 23:36:51,596 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 23:36:51,599 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 23:36:51,601 - Zovix - WARNING - stripe not installed.
+2026-07-01 23:36:51,602 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 23:36:51,606 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 23:36:51,608 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 23:36:51,609 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 23:36:51,619 - Zovix - INFO - Database initialized successfully
+2026-07-01 23:40:21,184 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 23:40:21,186 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 23:40:21,188 - Zovix - WARNING - stripe not installed.
+2026-07-01 23:40:21,189 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 23:40:21,195 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 23:40:21,198 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 23:40:21,199 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 23:40:21,220 - Zovix - INFO - Database initialized successfully
+2026-07-01 23:40:23,073 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 23:40:23,075 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 23:40:23,076 - Zovix - WARNING - stripe not installed.
+2026-07-01 23:40:23,077 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 23:40:23,079 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 23:40:23,083 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 23:40:23,084 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 23:40:23,095 - Zovix - INFO - Database initialized successfully
+2026-07-01 23:40:25,428 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 23:40:25,431 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 23:40:25,433 - Zovix - WARNING - stripe not installed.
+2026-07-01 23:40:25,435 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 23:40:25,439 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 23:40:25,441 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 23:40:25,442 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 23:40:25,457 - Zovix - INFO - Database initialized successfully
+2026-07-01 23:40:27,145 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 23:40:27,147 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 23:40:27,148 - Zovix - WARNING - stripe not installed.
+2026-07-01 23:40:27,149 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 23:40:27,150 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 23:40:27,153 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 23:40:27,154 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 23:40:27,168 - Zovix - INFO - Database initialized successfully
+2026-07-01 23:40:28,345 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 23:40:28,345 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 23:40:28,346 - Zovix - WARNING - stripe not installed.
+2026-07-01 23:40:28,347 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 23:40:28,348 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 23:40:28,350 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 23:40:28,350 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 23:40:28,362 - Zovix - INFO - Database initialized successfully
+2026-07-01 23:40:28,595 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 23:40:28,597 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 23:40:28,599 - Zovix - WARNING - stripe not installed.
+2026-07-01 23:40:28,600 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 23:40:28,608 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 23:40:28,610 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 23:40:28,611 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 23:40:28,619 - Zovix - INFO - Database initialized successfully
+2026-07-01 23:40:30,423 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 23:40:30,425 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 23:40:30,426 - Zovix - WARNING - stripe not installed.
+2026-07-01 23:40:30,427 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 23:40:30,429 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 23:40:30,430 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 23:40:30,430 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 23:40:30,437 - Zovix - INFO - Database initialized successfully
+2026-07-01 23:40:30,686 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-01 23:40:30,687 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-01 23:40:30,688 - Zovix - WARNING - stripe not installed.
+2026-07-01 23:40:30,689 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-01 23:40:30,690 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-01 23:40:30,693 - Zovix - INFO - Started 4 threaded workers
+2026-07-01 23:40:30,694 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-01 23:40:30,703 - Zovix - INFO - Database initialized successfully
+2026-07-02 12:54:15,095 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 12:54:15,096 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 12:54:15,097 - Zovix - WARNING - stripe not installed.
+2026-07-02 12:54:15,098 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 12:54:15,117 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 12:54:15,120 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 12:54:15,121 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 12:54:15,901 - Zovix - INFO - Database initialized successfully
+2026-07-02 12:54:21,140 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 12:54:21,141 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 12:54:21,143 - Zovix - WARNING - stripe not installed.
+2026-07-02 12:54:21,145 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 12:54:21,146 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 12:54:21,150 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 12:54:21,150 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 12:54:21,157 - Zovix - INFO - Database initialized successfully
+2026-07-02 12:54:23,907 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 12:54:23,909 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 12:54:23,911 - Zovix - WARNING - stripe not installed.
+2026-07-02 12:54:23,912 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 12:54:23,913 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 12:54:23,917 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 12:54:23,918 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 12:54:23,929 - Zovix - INFO - Database initialized successfully
+2026-07-02 12:56:05,288 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 12:56:05,289 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 12:56:05,290 - Zovix - WARNING - stripe not installed.
+2026-07-02 12:56:05,291 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 12:56:05,292 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 12:56:05,296 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 12:56:05,298 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 12:56:05,307 - Zovix - INFO - Database initialized successfully
+2026-07-02 12:56:06,962 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 12:56:06,963 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 12:56:06,964 - Zovix - WARNING - stripe not installed.
+2026-07-02 12:56:06,965 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 12:56:06,965 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 12:56:06,966 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 12:56:06,966 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 12:56:06,972 - Zovix - INFO - Database initialized successfully
+2026-07-02 12:56:07,180 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 12:56:07,182 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 12:56:07,185 - Zovix - WARNING - stripe not installed.
+2026-07-02 12:56:07,194 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 12:56:07,209 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 12:56:07,229 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 12:56:07,236 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 12:56:07,250 - Zovix - INFO - Database initialized successfully
+2026-07-02 12:56:57,619 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 12:56:57,621 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 12:56:57,622 - Zovix - WARNING - stripe not installed.
+2026-07-02 12:56:57,623 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 12:56:57,624 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 12:56:57,629 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 12:56:57,630 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 12:56:57,641 - Zovix - INFO - Database initialized successfully
+2026-07-02 13:10:03,991 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 13:10:03,992 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 13:10:03,994 - Zovix - WARNING - stripe not installed.
+2026-07-02 13:10:03,995 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 13:10:03,996 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 13:10:03,999 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 13:10:04,000 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 13:10:04,012 - Zovix - INFO - Database initialized successfully
+2026-07-02 13:10:07,374 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 13:10:07,376 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 13:10:07,377 - Zovix - WARNING - stripe not installed.
+2026-07-02 13:10:07,378 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 13:10:07,379 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 13:10:07,382 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 13:10:07,383 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 13:10:07,389 - Zovix - INFO - Database initialized successfully
+2026-07-02 13:10:07,548 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 13:10:07,551 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 13:10:07,552 - Zovix - WARNING - stripe not installed.
+2026-07-02 13:10:07,553 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 13:10:07,554 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 13:10:07,558 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 13:10:07,559 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 13:10:07,566 - Zovix - INFO - Database initialized successfully
+2026-07-02 13:11:15,957 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 13:11:15,958 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 13:11:15,959 - Zovix - WARNING - stripe not installed.
+2026-07-02 13:11:15,960 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 13:11:15,961 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 13:11:15,963 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 13:11:15,965 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 13:11:15,971 - Zovix - INFO - Database initialized successfully
+2026-07-02 13:11:16,157 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 13:11:16,158 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 13:11:16,159 - Zovix - WARNING - stripe not installed.
+2026-07-02 13:11:16,159 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 13:11:16,160 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 13:11:16,163 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 13:11:16,163 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 13:11:16,165 - Zovix - INFO - Database initialized successfully
+2026-07-02 13:11:18,931 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 13:11:18,932 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 13:11:18,933 - Zovix - WARNING - stripe not installed.
+2026-07-02 13:11:18,934 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 13:11:18,935 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 13:11:18,937 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 13:11:18,937 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 13:11:18,944 - Zovix - INFO - Database initialized successfully
+2026-07-02 13:11:19,136 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 13:11:19,139 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 13:11:19,141 - Zovix - WARNING - stripe not installed.
+2026-07-02 13:11:19,143 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 13:11:19,145 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 13:11:19,147 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 13:11:19,148 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 13:11:19,153 - Zovix - INFO - Database initialized successfully
+2026-07-02 13:11:20,520 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 13:11:20,521 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 13:11:20,521 - Zovix - WARNING - stripe not installed.
+2026-07-02 13:11:20,522 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 13:11:20,523 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 13:11:20,525 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 13:11:20,526 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 13:11:20,533 - Zovix - INFO - Database initialized successfully
+2026-07-02 13:11:20,669 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 13:11:20,670 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 13:11:20,671 - Zovix - WARNING - stripe not installed.
+2026-07-02 13:11:20,671 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 13:11:20,672 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 13:11:20,674 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 13:11:20,677 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 13:11:20,681 - Zovix - INFO - Database initialized successfully
+2026-07-02 13:11:21,379 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 13:11:21,380 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 13:11:21,382 - Zovix - WARNING - stripe not installed.
+2026-07-02 13:11:21,383 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 13:11:21,384 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 13:11:21,386 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 13:11:21,386 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 13:11:21,392 - Zovix - INFO - Database initialized successfully
+2026-07-02 13:11:21,591 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 13:11:21,593 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 13:11:21,595 - Zovix - WARNING - stripe not installed.
+2026-07-02 13:11:21,596 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 13:11:21,599 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 13:11:21,602 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 13:11:21,602 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 13:11:21,611 - Zovix - INFO - Database initialized successfully
+2026-07-02 13:12:34,335 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 13:12:34,337 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 13:12:34,338 - Zovix - WARNING - stripe not installed.
+2026-07-02 13:12:34,339 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 13:12:34,340 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 13:12:34,342 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 13:12:34,342 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 13:12:34,351 - Zovix - INFO - Database initialized successfully
+2026-07-02 13:13:11,666 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 13:13:11,667 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 13:13:11,667 - Zovix - WARNING - stripe not installed.
+2026-07-02 13:13:11,667 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 13:13:11,667 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 13:13:11,668 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 13:13:11,668 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 13:13:11,670 - Zovix - INFO - Database initialized successfully
+2026-07-02 13:13:28,127 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 13:13:28,128 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 13:13:28,129 - Zovix - WARNING - stripe not installed.
+2026-07-02 13:13:28,130 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 13:13:28,131 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 13:13:28,133 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 13:13:28,133 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 13:13:28,140 - Zovix - INFO - Database initialized successfully
+2026-07-02 13:13:35,001 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 13:13:35,002 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 13:13:35,003 - Zovix - WARNING - stripe not installed.
+2026-07-02 13:13:35,004 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 13:13:35,006 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 13:13:35,008 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 13:13:35,008 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 13:13:35,016 - Zovix - INFO - Database initialized successfully
+2026-07-02 13:13:43,356 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 13:13:43,357 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 13:13:43,358 - Zovix - WARNING - stripe not installed.
+2026-07-02 13:13:43,360 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 13:13:43,361 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 13:13:43,362 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 13:13:43,363 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 13:13:43,371 - Zovix - INFO - Database initialized successfully
+2026-07-02 13:14:13,199 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 13:14:13,200 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 13:14:13,201 - Zovix - WARNING - stripe not installed.
+2026-07-02 13:14:13,201 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 13:14:13,202 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 13:14:13,204 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 13:14:13,204 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 13:14:13,211 - Zovix - INFO - Database initialized successfully
+2026-07-02 13:15:21,004 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 13:15:21,005 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 13:15:21,006 - Zovix - WARNING - stripe not installed.
+2026-07-02 13:15:21,007 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 13:15:21,008 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 13:15:21,010 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 13:15:21,010 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 13:15:21,017 - Zovix - INFO - Database initialized successfully
+2026-07-02 13:15:27,267 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 13:15:27,268 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 13:15:27,269 - Zovix - WARNING - stripe not installed.
+2026-07-02 13:15:27,270 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 13:15:27,271 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 13:15:27,273 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 13:15:27,273 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 13:15:27,281 - Zovix - INFO - Database initialized successfully
+2026-07-02 13:17:06,041 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 13:17:06,042 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 13:17:06,043 - Zovix - WARNING - stripe not installed.
+2026-07-02 13:17:06,044 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 13:17:06,045 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 13:17:06,047 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 13:17:06,047 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 13:17:06,054 - Zovix - INFO - Database initialized successfully
+2026-07-02 13:39:12,157 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 13:39:12,160 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 13:39:12,162 - Zovix - WARNING - stripe not installed.
+2026-07-02 13:39:12,164 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 13:39:12,172 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 13:39:12,175 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 13:39:12,177 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 13:39:12,192 - Zovix - INFO - Database initialized successfully
+2026-07-02 13:39:12,435 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 13:39:12,437 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 13:39:12,439 - Zovix - WARNING - stripe not installed.
+2026-07-02 13:39:12,441 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 13:39:12,443 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 13:39:12,447 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 13:39:12,448 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 13:39:12,460 - Zovix - INFO - Database initialized successfully
+2026-07-02 15:09:11,676 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 15:09:11,678 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 15:09:11,680 - Zovix - WARNING - stripe not installed.
+2026-07-02 15:09:11,682 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 15:09:11,701 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 15:09:11,709 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 15:09:11,716 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 15:09:12,752 - Zovix - INFO - Database initialized successfully
+2026-07-02 15:09:15,046 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 15:09:15,053 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 15:09:15,056 - Zovix - WARNING - stripe not installed.
+2026-07-02 15:09:15,060 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 15:09:15,061 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 15:09:15,066 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 15:09:15,067 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 15:09:15,078 - Zovix - INFO - Database initialized successfully
+2026-07-02 15:09:17,587 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 15:09:17,589 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 15:09:17,590 - Zovix - WARNING - stripe not installed.
+2026-07-02 15:09:17,591 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 15:09:17,592 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 15:09:17,598 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 15:09:17,600 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 15:09:17,613 - Zovix - INFO - Database initialized successfully
+2026-07-02 15:09:22,423 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 15:09:22,424 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 15:09:22,425 - Zovix - WARNING - stripe not installed.
+2026-07-02 15:09:22,426 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 15:09:22,427 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 15:09:22,429 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 15:09:22,430 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 15:09:22,443 - Zovix - INFO - Database initialized successfully
+2026-07-02 15:09:24,393 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 15:09:24,394 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 15:09:24,395 - Zovix - WARNING - stripe not installed.
+2026-07-02 15:09:24,396 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 15:09:24,397 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 15:09:24,398 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 15:09:24,399 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 15:09:24,408 - Zovix - INFO - Database initialized successfully
+2026-07-02 15:09:24,599 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 15:09:24,600 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 15:09:24,601 - Zovix - WARNING - stripe not installed.
+2026-07-02 15:09:24,602 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 15:09:24,603 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 15:09:24,606 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 15:09:24,606 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 15:09:24,614 - Zovix - INFO - Database initialized successfully
+2026-07-02 15:09:39,331 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 15:09:39,332 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 15:09:39,333 - Zovix - WARNING - stripe not installed.
+2026-07-02 15:09:39,334 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 15:09:39,335 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 15:09:39,339 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 15:09:39,340 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 15:09:39,352 - Zovix - INFO - Database initialized successfully
+2026-07-02 15:09:39,552 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 15:09:39,554 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 15:09:39,555 - Zovix - WARNING - stripe not installed.
+2026-07-02 15:09:39,557 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 15:09:39,563 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 15:09:39,566 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 15:09:39,567 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 15:09:39,576 - Zovix - INFO - Database initialized successfully
+2026-07-02 15:10:42,251 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 15:10:42,253 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 15:10:42,255 - Zovix - WARNING - stripe not installed.
+2026-07-02 15:10:42,256 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 15:10:42,273 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 15:10:42,279 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 15:10:42,280 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 15:10:42,299 - Zovix - INFO - Database initialized successfully
+2026-07-02 15:10:44,326 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 15:10:44,330 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 15:10:44,334 - Zovix - WARNING - stripe not installed.
+2026-07-02 15:10:44,351 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 15:10:44,353 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 15:10:44,360 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 15:10:44,363 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 15:10:44,371 - Zovix - INFO - Database initialized successfully
+2026-07-02 15:10:46,566 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 15:10:46,568 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 15:10:46,570 - Zovix - WARNING - stripe not installed.
+2026-07-02 15:10:46,578 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 15:10:46,581 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 15:10:46,587 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 15:10:46,589 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 15:10:46,604 - Zovix - INFO - Database initialized successfully
+2026-07-02 15:10:48,887 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 15:10:48,888 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 15:10:48,889 - Zovix - WARNING - stripe not installed.
+2026-07-02 15:10:48,890 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 15:10:48,891 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 15:10:48,894 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 15:10:48,894 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 15:10:48,902 - Zovix - INFO - Database initialized successfully
+2026-07-02 15:11:01,809 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 15:11:01,811 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 15:11:01,812 - Zovix - WARNING - stripe not installed.
+2026-07-02 15:11:01,813 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 15:11:01,814 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 15:11:01,816 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 15:11:01,816 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 15:11:01,826 - Zovix - INFO - Database initialized successfully
+2026-07-02 15:11:03,529 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 15:11:03,530 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 15:11:03,531 - Zovix - WARNING - stripe not installed.
+2026-07-02 15:11:03,533 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 15:11:03,534 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 15:11:03,539 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 15:11:03,539 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 15:11:03,547 - Zovix - INFO - Database initialized successfully
+2026-07-02 15:11:07,292 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 15:11:07,293 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 15:11:07,294 - Zovix - WARNING - stripe not installed.
+2026-07-02 15:11:07,295 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 15:11:07,296 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 15:11:07,298 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 15:11:07,298 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 15:11:07,307 - Zovix - INFO - Database initialized successfully
+2026-07-02 15:11:07,521 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 15:11:07,523 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 15:11:07,525 - Zovix - WARNING - stripe not installed.
+2026-07-02 15:11:07,526 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 15:11:07,534 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 15:11:07,537 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 15:11:07,538 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 15:11:07,548 - Zovix - INFO - Database initialized successfully
+2026-07-02 15:11:18,796 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 15:11:18,797 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 15:11:18,799 - Zovix - WARNING - stripe not installed.
+2026-07-02 15:11:18,800 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 15:11:18,801 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 15:11:18,804 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 15:11:18,805 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 15:11:18,813 - Zovix - INFO - Database initialized successfully
+2026-07-02 15:11:19,036 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 15:11:19,038 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 15:11:19,039 - Zovix - WARNING - stripe not installed.
+2026-07-02 15:11:19,040 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 15:11:19,041 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 15:11:19,041 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 15:11:19,042 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 15:11:19,044 - Zovix - INFO - Database initialized successfully
+2026-07-02 15:11:20,414 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 15:11:20,415 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 15:11:20,416 - Zovix - WARNING - stripe not installed.
+2026-07-02 15:11:20,417 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 15:11:20,419 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 15:11:20,422 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 15:11:20,423 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 15:11:20,431 - Zovix - INFO - Database initialized successfully
+2026-07-02 15:11:20,641 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 15:11:20,643 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 15:11:20,645 - Zovix - WARNING - stripe not installed.
+2026-07-02 15:11:20,646 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 15:11:20,653 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 15:11:20,656 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 15:11:20,657 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 15:11:20,668 - Zovix - INFO - Database initialized successfully
+2026-07-02 15:11:22,821 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 15:11:22,822 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 15:11:22,823 - Zovix - WARNING - stripe not installed.
+2026-07-02 15:11:22,824 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 15:11:22,825 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 15:11:22,827 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 15:11:22,828 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 15:11:22,837 - Zovix - INFO - Database initialized successfully
+2026-07-02 15:11:22,965 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 15:11:22,966 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 15:11:22,966 - Zovix - WARNING - stripe not installed.
+2026-07-02 15:11:22,967 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 15:11:22,968 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 15:11:22,969 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 15:11:22,969 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 15:11:22,972 - Zovix - INFO - Database initialized successfully
+2026-07-02 15:11:33,508 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 15:11:33,509 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 15:11:33,510 - Zovix - WARNING - stripe not installed.
+2026-07-02 15:11:33,511 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 15:11:33,512 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 15:11:33,515 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 15:11:33,516 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 15:11:33,525 - Zovix - INFO - Database initialized successfully
+2026-07-02 15:11:37,955 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 15:11:37,956 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 15:11:37,957 - Zovix - WARNING - stripe not installed.
+2026-07-02 15:11:37,957 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 15:11:37,958 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 15:11:37,960 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 15:11:37,961 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 15:11:37,968 - Zovix - INFO - Database initialized successfully
+2026-07-02 15:11:38,207 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 15:11:38,209 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 15:11:38,211 - Zovix - WARNING - stripe not installed.
+2026-07-02 15:11:38,212 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 15:11:38,213 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 15:11:38,221 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 15:11:38,222 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 15:11:38,229 - Zovix - INFO - Database initialized successfully
+2026-07-02 15:11:43,899 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 15:11:43,901 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 15:11:43,903 - Zovix - WARNING - stripe not installed.
+2026-07-02 15:11:43,904 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 15:11:43,909 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 15:11:43,913 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 15:11:43,913 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 15:11:43,935 - Zovix - INFO - Database initialized successfully
+2026-07-02 15:11:46,136 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 15:11:46,138 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 15:11:46,139 - Zovix - WARNING - stripe not installed.
+2026-07-02 15:11:46,140 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 15:11:46,141 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 15:11:46,143 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 15:11:46,143 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 15:11:46,151 - Zovix - INFO - Database initialized successfully
+2026-07-02 15:11:48,348 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 15:11:48,349 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 15:11:48,351 - Zovix - WARNING - stripe not installed.
+2026-07-02 15:11:48,352 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 15:11:48,359 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 15:11:48,364 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 15:11:48,366 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 15:11:48,382 - Zovix - INFO - Database initialized successfully
+2026-07-02 15:11:52,826 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 15:11:52,827 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 15:11:52,827 - Zovix - WARNING - stripe not installed.
+2026-07-02 15:11:52,828 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 15:11:52,829 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 15:11:52,831 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 15:11:52,831 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 15:11:52,839 - Zovix - INFO - Database initialized successfully
+2026-07-02 15:11:55,180 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 15:11:55,181 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 15:11:55,182 - Zovix - WARNING - stripe not installed.
+2026-07-02 15:11:55,183 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 15:11:55,184 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 15:11:55,186 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 15:11:55,186 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 15:11:55,194 - Zovix - INFO - Database initialized successfully
+2026-07-02 15:11:55,394 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 15:11:55,395 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 15:11:55,395 - Zovix - WARNING - stripe not installed.
+2026-07-02 15:11:55,396 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 15:11:55,397 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 15:11:55,399 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 15:11:55,404 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 15:11:55,412 - Zovix - INFO - Database initialized successfully
+2026-07-02 15:23:20,489 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 15:23:20,491 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 15:23:20,493 - Zovix - WARNING - stripe not installed.
+2026-07-02 15:23:20,495 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 15:23:20,497 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 15:23:20,504 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 15:23:20,505 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 15:23:20,530 - Zovix - INFO - Database initialized successfully
+2026-07-02 15:23:23,739 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 15:23:23,740 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 15:23:23,741 - Zovix - WARNING - stripe not installed.
+2026-07-02 15:23:23,742 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 15:23:23,743 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 15:23:23,746 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 15:23:23,746 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 15:23:23,756 - Zovix - INFO - Database initialized successfully
+2026-07-02 15:23:26,373 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 15:23:26,375 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 15:23:26,377 - Zovix - WARNING - stripe not installed.
+2026-07-02 15:23:26,380 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 15:23:26,381 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 15:23:26,384 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 15:23:26,386 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 15:23:26,400 - Zovix - INFO - Database initialized successfully
+2026-07-02 15:23:30,061 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 15:23:30,062 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 15:23:30,063 - Zovix - WARNING - stripe not installed.
+2026-07-02 15:23:30,064 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 15:23:30,066 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 15:23:30,068 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 15:23:30,069 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 15:23:30,075 - Zovix - INFO - Database initialized successfully
+2026-07-02 15:23:31,102 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 15:23:31,103 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 15:23:31,104 - Zovix - WARNING - stripe not installed.
+2026-07-02 15:23:31,105 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 15:23:31,107 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 15:23:31,109 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 15:23:31,109 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 15:23:31,117 - Zovix - INFO - Database initialized successfully
+2026-07-02 15:23:31,325 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 15:23:31,326 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 15:23:31,328 - Zovix - WARNING - stripe not installed.
+2026-07-02 15:23:31,328 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 15:23:31,331 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 15:23:31,333 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 15:23:31,334 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 15:23:31,352 - Zovix - INFO - Database initialized successfully
+2026-07-02 15:23:36,573 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 15:23:36,575 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 15:23:36,575 - Zovix - WARNING - stripe not installed.
+2026-07-02 15:23:36,577 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 15:23:36,578 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 15:23:36,581 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 15:23:36,581 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 15:23:36,593 - Zovix - INFO - Database initialized successfully
+2026-07-02 15:23:36,842 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 15:23:36,845 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 15:23:36,850 - Zovix - WARNING - stripe not installed.
+2026-07-02 15:23:36,855 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 15:23:36,858 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 15:23:36,861 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 15:23:36,863 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 15:23:36,875 - Zovix - INFO - Database initialized successfully
+2026-07-02 15:23:43,577 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 15:23:43,578 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 15:23:43,581 - Zovix - WARNING - stripe not installed.
+2026-07-02 15:23:43,582 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 15:23:43,584 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 15:23:43,587 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 15:23:43,588 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 15:23:43,609 - Zovix - INFO - Database initialized successfully
+2026-07-02 15:24:13,796 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 15:24:13,796 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 15:24:13,796 - Zovix - WARNING - stripe not installed.
+2026-07-02 15:24:13,796 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 15:24:13,798 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 15:24:13,799 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 15:24:13,799 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 15:24:14,454 - Zovix - INFO - Database initialized successfully
+2026-07-02 15:37:04,990 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 15:37:04,991 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 15:37:04,991 - Zovix - WARNING - stripe not installed.
+2026-07-02 15:37:04,991 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 15:37:04,993 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 15:37:04,994 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 15:37:04,994 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 15:37:05,505 - Zovix - INFO - Database initialized successfully
+2026-07-02 15:37:11,947 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 15:37:11,948 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 15:37:11,949 - Zovix - WARNING - stripe not installed.
+2026-07-02 15:37:11,950 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 15:37:11,951 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 15:37:11,953 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 15:37:11,953 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 15:37:11,961 - Zovix - INFO - Database initialized successfully
+2026-07-02 15:37:14,238 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 15:37:14,239 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 15:37:14,240 - Zovix - WARNING - stripe not installed.
+2026-07-02 15:37:14,241 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 15:37:14,242 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 15:37:14,245 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 15:37:14,249 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 15:37:14,261 - Zovix - INFO - Database initialized successfully
+2026-07-02 15:37:19,154 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 15:37:19,155 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 15:37:19,157 - Zovix - WARNING - stripe not installed.
+2026-07-02 15:37:19,158 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 15:37:19,160 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 15:37:19,163 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 15:37:19,163 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 15:37:19,175 - Zovix - INFO - Database initialized successfully
+2026-07-02 15:37:19,357 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 15:37:19,359 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 15:37:19,361 - Zovix - WARNING - stripe not installed.
+2026-07-02 15:37:19,362 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 15:37:19,368 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 15:37:19,373 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 15:37:19,374 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 15:37:19,381 - Zovix - INFO - Database initialized successfully
+2026-07-02 15:37:32,368 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 15:37:32,370 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 15:37:32,372 - Zovix - WARNING - stripe not installed.
+2026-07-02 15:37:32,373 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 15:37:32,381 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 15:37:32,383 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 15:37:32,384 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 15:37:32,404 - Zovix - INFO - Database initialized successfully
+2026-07-02 15:37:38,010 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 15:37:38,011 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 15:37:38,012 - Zovix - WARNING - stripe not installed.
+2026-07-02 15:37:38,013 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 15:37:38,014 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 15:37:38,016 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 15:37:38,016 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 15:37:38,024 - Zovix - INFO - Database initialized successfully
+2026-07-02 15:37:39,518 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 15:37:39,519 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 15:37:39,520 - Zovix - WARNING - stripe not installed.
+2026-07-02 15:37:39,522 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 15:37:39,523 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 15:37:39,527 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 15:37:39,527 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 15:37:39,544 - Zovix - INFO - Database initialized successfully
+2026-07-02 17:34:11,362 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 17:34:11,362 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 17:34:11,363 - Zovix - WARNING - stripe not installed.
+2026-07-02 17:34:11,363 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 17:34:11,365 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 17:34:11,366 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 17:34:11,366 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 17:34:12,152 - Zovix - INFO - Database initialized successfully
+2026-07-02 17:34:14,215 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 17:34:14,219 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 17:34:14,220 - Zovix - WARNING - stripe not installed.
+2026-07-02 17:34:14,222 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 17:34:14,223 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 17:34:14,242 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 17:34:14,243 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 17:34:14,248 - Zovix - INFO - Database initialized successfully
+2026-07-02 17:34:16,772 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 17:34:16,777 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 17:34:16,783 - Zovix - WARNING - stripe not installed.
+2026-07-02 17:34:16,787 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 17:34:16,795 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 17:34:16,813 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 17:34:16,814 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 17:34:16,819 - Zovix - INFO - Database initialized successfully
+2026-07-02 17:34:24,734 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 17:34:24,740 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 17:34:24,747 - Zovix - WARNING - stripe not installed.
+2026-07-02 17:34:24,757 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 17:34:24,758 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 17:34:24,768 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 17:34:24,774 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 17:34:24,808 - Zovix - INFO - Database initialized successfully
+2026-07-02 17:34:26,962 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 17:34:26,963 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 17:34:26,964 - Zovix - WARNING - stripe not installed.
+2026-07-02 17:34:26,965 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 17:34:26,968 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 17:34:26,973 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 17:34:26,974 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 17:34:26,985 - Zovix - INFO - Database initialized successfully
+2026-07-02 17:34:27,160 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 17:34:27,162 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 17:34:27,163 - Zovix - WARNING - stripe not installed.
+2026-07-02 17:34:27,164 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 17:34:27,164 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 17:34:27,166 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 17:34:27,167 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 17:34:27,175 - Zovix - INFO - Database initialized successfully
+2026-07-02 17:34:28,707 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 17:34:28,708 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 17:34:28,709 - Zovix - WARNING - stripe not installed.
+2026-07-02 17:34:28,710 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 17:34:28,711 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 17:34:28,716 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 17:34:28,716 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 17:34:28,722 - Zovix - INFO - Database initialized successfully
+2026-07-02 17:34:28,924 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 17:34:28,926 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 17:34:28,928 - Zovix - WARNING - stripe not installed.
+2026-07-02 17:34:28,929 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 17:34:28,930 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 17:34:28,933 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 17:34:28,934 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 17:34:28,943 - Zovix - INFO - Database initialized successfully
+2026-07-02 17:34:34,756 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 17:34:34,758 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 17:34:34,759 - Zovix - WARNING - stripe not installed.
+2026-07-02 17:34:34,761 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 17:34:34,762 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 17:34:34,764 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 17:34:34,765 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 17:34:34,773 - Zovix - INFO - Database initialized successfully
+2026-07-02 17:34:34,991 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 17:34:34,994 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 17:34:34,995 - Zovix - WARNING - stripe not installed.
+2026-07-02 17:34:34,997 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 17:34:35,005 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 17:34:35,008 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 17:34:35,009 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 17:34:35,025 - Zovix - INFO - Database initialized successfully
+2026-07-02 17:34:43,153 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 17:34:43,155 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 17:34:43,156 - Zovix - WARNING - stripe not installed.
+2026-07-02 17:34:43,157 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 17:34:43,159 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 17:34:43,161 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 17:34:43,161 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 17:34:43,164 - Zovix - INFO - Database initialized successfully
+2026-07-02 17:35:31,559 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 17:35:31,561 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 17:35:31,562 - Zovix - WARNING - stripe not installed.
+2026-07-02 17:35:31,563 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 17:35:31,564 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 17:35:31,566 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 17:35:31,566 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 17:35:31,575 - Zovix - INFO - Database initialized successfully
+2026-07-02 17:35:36,171 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 17:35:36,172 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 17:35:36,173 - Zovix - WARNING - stripe not installed.
+2026-07-02 17:35:36,174 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 17:35:36,176 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 17:35:36,179 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 17:35:36,179 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 17:35:36,188 - Zovix - INFO - Database initialized successfully
+2026-07-02 17:35:41,587 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 17:35:41,588 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 17:35:41,589 - Zovix - WARNING - stripe not installed.
+2026-07-02 17:35:41,590 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 17:35:41,591 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 17:35:41,593 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 17:35:41,593 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 17:35:41,602 - Zovix - INFO - Database initialized successfully
+2026-07-02 17:35:58,104 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 17:35:58,105 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 17:35:58,106 - Zovix - WARNING - stripe not installed.
+2026-07-02 17:35:58,107 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 17:35:58,108 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 17:35:58,110 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 17:35:58,111 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 17:35:58,118 - Zovix - INFO - Database initialized successfully
+2026-07-02 17:35:58,259 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-02 17:35:58,261 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-02 17:35:58,262 - Zovix - WARNING - stripe not installed.
+2026-07-02 17:35:58,263 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-02 17:35:58,264 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-02 17:35:58,266 - Zovix - INFO - Started 4 threaded workers
+2026-07-02 17:35:58,266 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-02 17:35:58,273 - Zovix - INFO - Database initialized successfully
