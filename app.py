@@ -2997,6 +2997,15 @@ def render_binance_checkout(binance_data: dict, credits: int, plan_name: str):
 # 29. ENHANCED PAYMENT UI
 # ========================================================
 
+def clear_payment_state():
+    st.session_state["show_payment"] = False
+    st.session_state["show_gateway_form"] = False
+    st.session_state["selected_gateway"] = None
+    st.session_state["razorpay_order_id"] = None
+    st.session_state["razorpay_payment_id"] = None
+    st.session_state["razorpay_signature"] = None
+
+
 def render_enhanced_payment_ui():
     st.markdown("<h4 style='font-family: Orbitron; color: #FFC0CB;'>💎 Buy Credits</h4>", unsafe_allow_html=True)
     
@@ -3033,6 +3042,10 @@ def render_enhanced_payment_ui():
     )
     
     st.markdown("---")
+
+    if st.session_state.get("show_payment", False):
+        render_payment_modal()
+        return
     
     if "Monthly Subscriptions" in plan_type:
         st.markdown("### 🚀 Monthly Subscription Plans")
@@ -3131,191 +3144,180 @@ def render_enhanced_payment_ui():
                         st.session_state["show_gateway_form"] = True
                         st.rerun()
     
-    if st.session_state.get("show_payment", False):
-        render_payment_modal()
-
 # ========================================================
 # 30. PAYMENT MODAL
 # ========================================================
 
 def render_payment_modal():
-    st.markdown("""
-        <div style="background: rgba(0,0,0,0.7); position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 999; 
-                    display: flex; align-items: center; justify-content: center; padding: 20px;">
-            <div style="background: #06070a; border: 2px solid rgba(69,243,255,0.3); border-radius: 20px; 
-                        padding: 30px; max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto;">
-    """, unsafe_allow_html=True)
-    
-    st.markdown("<h3 style='font-family: Orbitron; color: #45f3ff; text-align: center;'>💳 Complete Payment</h3>", unsafe_allow_html=True)
-    
     credits = st.session_state.get("pending_credits", 0)
     plan_name = st.session_state.get("pending_pack_name", "")
     amount = st.session_state.get("pending_amount", 0)
     selected_currency = st.session_state.get("payment_currency", "INR")
     converted_amount = convert_price(amount, selected_currency)
-    
-    st.markdown(f"""
-        <div style="background: rgba(69,243,255,0.05); border-radius: 12px; padding: 15px; margin: 15px 0; 
-                    border: 1px solid rgba(69,243,255,0.1);">
-            <div style="display: flex; justify-content: space-between; padding: 5px 0; color: #c0c0c0;">
-                <span>📦 Plan</span><span style="color: #45f3ff; font-weight: bold;">{plan_name}</span>
+
+    with st.container(border=True):
+        col_title, col_close = st.columns([5, 1])
+        with col_title:
+            st.markdown("<h3 style='font-family: Orbitron; color: #45f3ff; margin: 0;'>💳 Complete Payment</h3>", unsafe_allow_html=True)
+        with col_close:
+            if st.button("❌ Close", key="payment_panel_close_btn", use_container_width=True):
+                clear_payment_state()
+                st.rerun()
+
+        st.markdown(f"""
+            <div style="background: rgba(69,243,255,0.05); border-radius: 12px; padding: 15px; margin: 12px 0 16px 0; 
+                        border: 1px solid rgba(69,243,255,0.1);">
+                <div style="display: flex; justify-content: space-between; padding: 5px 0; color: #c0c0c0;">
+                    <span>📦 Plan</span><span style="color: #45f3ff; font-weight: bold;">{plan_name}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 5px 0; color: #c0c0c0;">
+                    <span>⚡ Credits</span><span style="color: #45f3ff; font-weight: bold;">+{credits}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 5px 0; color: #c0c0c0;">
+                    <span>💰 Amount</span><span style="color: #45f3ff; font-weight: bold;">{selected_currency} {converted_amount:.2f}</span>
+                </div>
             </div>
-            <div style="display: flex; justify-content: space-between; padding: 5px 0; color: #c0c0c0;">
-                <span>⚡ Credits</span><span style="color: #45f3ff; font-weight: bold;">+{credits}</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; padding: 5px 0; color: #c0c0c0;">
-                <span>💰 Amount</span><span style="color: #45f3ff; font-weight: bold;">{selected_currency} {converted_amount:.2f}</span>
-            </div>
-        </div>
-    """, unsafe_allow_html=True)
-    
-    st.markdown("### Choose Payment Method")
-    
-    user_country = st.session_state.get("user_country", "IN")
-    available_gateways = get_available_gateway_keys(user_country)
-    if not available_gateways:
-        st.warning("No supported payment gateways are available for your region.")
-    else:
-        gateway_cols = st.columns(len(available_gateways))
-        for idx, gateway in enumerate(available_gateways):
-            with gateway_cols[idx]:
-                selected = st.session_state.get("selected_gateway") == gateway
-                button_label = f"{PAYMENT_GATEWAYS[gateway]['icon']} {PAYMENT_GATEWAYS[gateway]['name']}"
-                if st.button(
-                    button_label,
-                    key=f"modal_gateway_{gateway}",
-                    use_container_width=True,
-                    type="primary" if selected else "secondary"
-                ):
-                    st.session_state["selected_gateway"] = gateway
-                    st.session_state["show_gateway_form"] = True
-                    st.rerun()
-    
-    if st.session_state.get("show_gateway_form", False):
-        gateway = st.session_state.get("selected_gateway", "razorpay")
-        
-        if gateway == "stripe":
-            st.markdown("---")
-            st.markdown("### 💳 Stripe Payment")
-            
-            if st.button("💳 Pay with Stripe", use_container_width=True):
-                with st.spinner("Creating payment session..."):
-                    amount_usd = convert_price(amount, "USD")
-                    result = create_stripe_payment(
-                        amount_usd,
-                        f"ZOVIX - {plan_name}",
-                        st.session_state.get("logged_user", "")
-                    )
-                    if result:
-                        html = render_stripe_checkout(
-                            result["id"],
-                            result["client_secret"],
-                            result["amount"],
-                            credits,
-                            plan_name
+        """, unsafe_allow_html=True)
+
+        st.markdown("### Choose Payment Method")
+
+        user_country = st.session_state.get("user_country", "IN")
+        available_gateways = get_available_gateway_keys(user_country)
+        if not available_gateways:
+            st.warning("No supported payment gateways are available for your region.")
+        else:
+            gateway_cols = st.columns(len(available_gateways))
+            for idx, gateway in enumerate(available_gateways):
+                with gateway_cols[idx]:
+                    selected = st.session_state.get("selected_gateway") == gateway
+                    button_label = f"{PAYMENT_GATEWAYS[gateway]['icon']} {PAYMENT_GATEWAYS[gateway]['name']}"
+                    if st.button(
+                        button_label,
+                        key=f"modal_gateway_{gateway}",
+                        use_container_width=True,
+                        type="primary" if selected else "secondary"
+                    ):
+                        st.session_state["selected_gateway"] = gateway
+                        st.session_state["show_gateway_form"] = True
+                        st.rerun()
+
+        if st.session_state.get("show_gateway_form", False):
+            gateway = st.session_state.get("selected_gateway", "razorpay")
+
+            if gateway == "stripe":
+                st.markdown("---")
+                st.markdown("### 💳 Stripe Payment")
+
+                if st.button("💳 Pay with Stripe", use_container_width=True):
+                    with st.spinner("Creating payment session..."):
+                        amount_usd = convert_price(amount, "USD")
+                        result = create_stripe_payment(
+                            amount_usd,
+                            f"ZOVIX - {plan_name}",
+                            st.session_state.get("logged_user", "")
                         )
-                        st.components.v1.html(html, height=450)
-                    else:
-                        st.error("Failed to create Stripe payment. Please try again.")
-        
-        elif gateway == "paypal":
-            st.markdown("---")
-            st.markdown("### 💰 PayPal Payment")
-            
-            if st.button("💰 Pay with PayPal", use_container_width=True):
-                with st.spinner("Creating PayPal order..."):
-                    amount_usd = convert_price(amount, "USD")
-                    result = create_paypal_order(amount_usd, f"ZOVIX - {plan_name}")
-                    if result and result.get("approval_url"):
-                        html = render_paypal_checkout(
-                            result["id"],
-                            result["approval_url"],
-                            result["amount"],
-                            credits,
-                            plan_name
-                        )
-                        st.components.v1.html(html, height=350)
-                        st.info("💡 A new tab will open for PayPal payment. After completing, return here.")
-                    else:
-                        st.error("Failed to create PayPal order. Please try again.")
-        
-        elif gateway == "crypto":
-            st.markdown("---")
-            st.markdown("### ₿ Cryptocurrency Payment")
-            
-            crypto_currency = st.selectbox(
-                "Select Cryptocurrency",
-                ["BTC", "ETH", "USDT", "USDC", "SOL", "BNB", "DOGE"],
-                key="crypto_currency_select"
-            )
-            
-            if st.button(f"Generate {crypto_currency} Address", use_container_width=True):
-                with st.spinner(f"Generating {crypto_currency} address..."):
-                    amount_usd = convert_price(amount, "USD")
-                    result = create_crypto_payment(amount_usd, crypto_currency)
-                    if result:
-                        html = render_crypto_checkout(result, credits, plan_name)
-                        st.components.v1.html(html, height=500)
-                    else:
-                        st.error("Failed to generate crypto address. Please try again.")
-        
-        elif gateway == "binance":
-            st.markdown("---")
-            st.markdown("### 🟡 Binance Payment")
-            
-            binance_currency = st.selectbox(
-                "Select Currency",
-                ["BUSD", "USDT", "BNB", "BTC", "ETH"],
-                key="binance_currency_select"
-            )
-            
-            if st.button(f"Pay with Binance", use_container_width=True):
-                with st.spinner("Creating Binance payment..."):
-                    amount_usd = convert_price(amount, "USD")
-                    result = create_binance_payment(amount_usd, binance_currency)
-                    if result:
-                        html = render_binance_checkout(result, credits, plan_name)
-                        st.components.v1.html(html, height=450)
-                    else:
-                        st.error("Failed to create Binance payment. Please try again.")
-        
-        elif gateway == "razorpay":
-            st.markdown("---")
-            st.markdown("### 💳 Razorpay Payment")
-            
-            if st.button("💳 Pay with Razorpay", use_container_width=True):
-                if not RAZORPAY_KEY_ID or RAZORPAY_KEY_ID == "mock":
-                    st.error("❌ Razorpay not configured. Please add Razorpay keys.")
-                else:
-                    amount_paise = amount * 100
-                    order = create_payment_order(amount_paise, plan_name)
-                    if order and order.get("id"):
-                        st.session_state["razorpay_order_id"] = order["id"]
-                        st.session_state["razorpay_last_debug"] = order.get("debug", "")
-                        st.session_state["razorpay_last_status"] = order.get("status", "created")
-                        html = render_razorpay_checkout(
-                            order["id"],
-                            amount_paise,
-                            plan_name,
-                            credits,
-                            st.session_state.get("logged_user", "User"),
-                            RAZORPAY_KEY_ID
-                        )
-                        st.components.v1.html(html, height=460)
-                        if order.get("status") != "created":
-                            st.warning(f"⚠️ Razorpay backend returned a fallback order. Debug: {order.get('debug', '')}")
+                        if result:
+                            html = render_stripe_checkout(
+                                result["id"],
+                                result["client_secret"],
+                                result["amount"],
+                                credits,
+                                plan_name
+                            )
+                            st.components.v1.html(html, height=450)
                         else:
-                            st.caption("🛡️ Checkout is rendered inside a secure component iframe for Streamlit Cloud compatibility.")
+                            st.error("Failed to create Stripe payment. Please try again.")
+
+            elif gateway == "paypal":
+                st.markdown("---")
+                st.markdown("### 💰 PayPal Payment")
+
+                if st.button("💰 Pay with PayPal", use_container_width=True):
+                    with st.spinner("Creating PayPal order..."):
+                        amount_usd = convert_price(amount, "USD")
+                        result = create_paypal_order(amount_usd, f"ZOVIX - {plan_name}")
+                        if result and result.get("approval_url"):
+                            html = render_paypal_checkout(
+                                result["id"],
+                                result["approval_url"],
+                                result["amount"],
+                                credits,
+                                plan_name
+                            )
+                            st.components.v1.html(html, height=350)
+                            st.info("💡 A new tab will open for PayPal payment. After completing, return here.")
+                        else:
+                            st.error("Failed to create PayPal order. Please try again.")
+
+            elif gateway == "crypto":
+                st.markdown("---")
+                st.markdown("### ₿ Cryptocurrency Payment")
+
+                crypto_currency = st.selectbox(
+                    "Select Cryptocurrency",
+                    ["BTC", "ETH", "USDT", "USDC", "SOL", "BNB", "DOGE"],
+                    key="crypto_currency_select"
+                )
+
+                if st.button(f"Generate {crypto_currency} Address", use_container_width=True):
+                    with st.spinner(f"Generating {crypto_currency} address..."):
+                        amount_usd = convert_price(amount, "USD")
+                        result = create_crypto_payment(amount_usd, crypto_currency)
+                        if result:
+                            html = render_crypto_checkout(result, credits, plan_name)
+                            st.components.v1.html(html, height=500)
+                        else:
+                            st.error("Failed to generate crypto address. Please try again.")
+
+            elif gateway == "binance":
+                st.markdown("---")
+                st.markdown("### 🟡 Binance Payment")
+
+                binance_currency = st.selectbox(
+                    "Select Currency",
+                    ["BUSD", "USDT", "BNB", "BTC", "ETH"],
+                    key="binance_currency_select"
+                )
+
+                if st.button(f"Pay with Binance", use_container_width=True):
+                    with st.spinner("Creating Binance payment..."):
+                        amount_usd = convert_price(amount, "USD")
+                        result = create_binance_payment(amount_usd, binance_currency)
+                        if result:
+                            html = render_binance_checkout(result, credits, plan_name)
+                            st.components.v1.html(html, height=450)
+                        else:
+                            st.error("Failed to create Binance payment. Please try again.")
+
+            elif gateway == "razorpay":
+                st.markdown("---")
+                st.markdown("### 💳 Razorpay Payment")
+
+                if st.button("💳 Pay with Razorpay", use_container_width=True):
+                    if not RAZORPAY_KEY_ID or RAZORPAY_KEY_ID == "mock":
+                        st.error("❌ Razorpay not configured. Please add Razorpay keys.")
                     else:
-                        st.error("Failed to create payment order. Please try again.")
-    
-    st.markdown("---")
-    if st.button("❌ Close", use_container_width=True):
-        st.session_state["show_payment"] = False
-        st.session_state["show_gateway_form"] = False
-        st.rerun()
-    
-    st.markdown("</div></div>", unsafe_allow_html=True)
+                        amount_paise = amount * 100
+                        order = create_payment_order(amount_paise, plan_name)
+                        if order and order.get("id"):
+                            st.session_state["razorpay_order_id"] = order["id"]
+                            st.session_state["razorpay_last_debug"] = order.get("debug", "")
+                            st.session_state["razorpay_last_status"] = order.get("status", "created")
+                            html = render_razorpay_checkout(
+                                order["id"],
+                                amount_paise,
+                                plan_name,
+                                credits,
+                                st.session_state.get("logged_user", "User"),
+                                RAZORPAY_KEY_ID
+                            )
+                            st.components.v1.html(html, height=460)
+                            if order.get("status") != "created":
+                                st.warning(f"⚠️ Razorpay backend returned a fallback order. Debug: {order.get('debug', '')}")
+                            else:
+                                st.caption("🛡️ Checkout is rendered inside a secure component iframe for Streamlit Cloud compatibility.")
+                        else:
+                            st.error("Failed to create payment order. Please try again.")
 
 # ========================================================
 # 31. RAZORPAY CHECKOUT
