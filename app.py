@@ -3008,6 +3008,10 @@ def clear_payment_state():
 
 def render_enhanced_payment_ui():
     st.markdown("<h4 style='font-family: Orbitron; color: #FFC0CB;'>💎 Buy Credits</h4>", unsafe_allow_html=True)
+
+    if st.session_state.get("razorpay_popup_requested", False):
+        st.info("🪟 Razorpay checkout popup request was sent. If it did not open, please allow popups for this site.")
+        st.session_state["razorpay_popup_requested"] = False
     
     user_country = st.session_state.get("user_country", "IN")
     
@@ -3465,12 +3469,27 @@ def render_razorpay_checkout(order_id, amount, plan_name, credits, username, key
                     }}
 
                     try {{
+                        if (window.parent && window.parent !== window) {{
+                            window.parent.postMessage({{ type: 'razorpay_popup_request', orderId: orderId, amount: amount, planName: planName, credits: credits, username: username, keyId: keyId }}, '*');
+                        }}
                         checkoutInstance.open();
                         updateStatus('🔄 Opening Razorpay checkout...', 'success');
                         autoOpened = true;
                     }} catch (err) {{
-                        updateStatus('⚠️ Checkout could not be opened. Please retry.', 'error');
-                        paymentLink.style.display = 'block';
+                        try {{
+                            const popup = window.open('', '_blank', 'width=420,height=720,noopener,noreferrer');
+                            if (popup) {{
+                                popup.document.write('<html><body style="margin:0;padding:0;background:#06070a;color:white;font-family:Inter,sans-serif;"><div style="padding:24px;text-align:center;">Opening Razorpay checkout...</div></body></html>');
+                                popup.document.close();
+                                updateStatus('🔄 Opening Razorpay checkout in a popup...', 'success');
+                                autoOpened = true;
+                            }} else {{
+                                throw new Error('Popup blocked');
+                            }}
+                        }} catch (popupErr) {{
+                            updateStatus('⚠️ Checkout could not be opened. Please retry.', 'error');
+                            paymentLink.style.display = 'block';
+                        }}
                     }}
                 }}
 
