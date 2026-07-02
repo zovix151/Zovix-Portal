@@ -9,3 +9,13 @@ pydantic
 huggingface_hub
 requests
 razorpay
+opencv-python
+numpy
+psutil
+cryptography
+redis
+celery
+stripe
+paypalrestsdk
+pyotp
+qrcode
