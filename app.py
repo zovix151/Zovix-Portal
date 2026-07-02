@@ -3402,17 +3402,23 @@ def render_razorpay_checkout(order_id, amount, plan_name, credits, username, key
                 const paymentStatus = document.getElementById('paymentStatus');
                 const paymentLink = document.getElementById('paymentLink');
                 const rzpButton = document.getElementById('rzp-button');
+                let checkoutReady = false;
+                let checkoutInstance = null;
+                let autoOpened = false;
 
                 function updateStatus(message, type) {{
                     paymentStatus.className = 'payment-status ' + type;
                     paymentStatus.innerHTML = message;
                 }}
 
-                function openCheckout() {{
+                function initCheckout() {{
                     if (typeof Razorpay === 'undefined') {{
-                        updateStatus('⚠️ Razorpay script did not load. Please retry or use the fallback link.', 'error');
-                        paymentLink.style.display = 'block';
-                        return;
+                        updateStatus('⚠️ Razorpay SDK is still loading. Please wait a moment...', 'error');
+                        return false;
+                    }}
+
+                    if (checkoutReady && checkoutInstance) {{
+                        return true;
                     }}
 
                     const options = {{
@@ -3443,8 +3449,25 @@ def render_razorpay_checkout(order_id, amount, plan_name, credits, username, key
                     }};
 
                     try {{
-                        const rzp = new Razorpay(options);
-                        rzp.open();
+                        checkoutInstance = new Razorpay(options);
+                        checkoutReady = true;
+                        return true;
+                    }} catch (err) {{
+                        updateStatus('⚠️ Checkout could not be initialized. Please retry.', 'error');
+                        paymentLink.style.display = 'block';
+                        return false;
+                    }}
+                }}
+
+                function openCheckout() {{
+                    if (!checkoutReady && !initCheckout()) {{
+                        return;
+                    }}
+
+                    try {{
+                        checkoutInstance.open();
+                        updateStatus('🔄 Opening Razorpay checkout...', 'success');
+                        autoOpened = true;
                     }} catch (err) {{
                         updateStatus('⚠️ Checkout could not be opened. Please retry.', 'error');
                         paymentLink.style.display = 'block';
@@ -3453,10 +3476,23 @@ def render_razorpay_checkout(order_id, amount, plan_name, credits, username, key
 
                 rzpButton.addEventListener('click', function(e) {{
                     e.preventDefault();
+                    e.stopPropagation();
                     openCheckout();
                 }});
 
-                setTimeout(openCheckout, 500);
+                rzpButton.addEventListener('touchend', function(e) {{
+                    e.preventDefault();
+                    e.stopPropagation();
+                    openCheckout();
+                }});
+
+                window.addEventListener('load', function() {{
+                    setTimeout(function() {{
+                        if (!autoOpened) {{
+                            openCheckout();
+                        }}
+                    }}, 800);
+                }});
             }})();
         </script>
     </body>
