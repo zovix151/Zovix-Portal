@@ -3316,6 +3316,24 @@ def render_payment_modal():
                                 RAZORPAY_KEY_ID
                             )
                             st.components.v1.html(html, height=520)
+
+                            st.markdown("---")
+                            st.caption("If the Razorpay window completed successfully inside the iframe, click below to sync your credits.")
+                            if st.button("🔄 Sync & Verify Credits", use_container_width=True, type="primary"):
+                                with st.spinner("Checking payment status..."):
+                                    verified, message = verify_razorpay_payment_fallback(
+                                        st.session_state.get("razorpay_order_id"),
+                                        st.session_state.get("logged_user", ""),
+                                        credits,
+                                        plan_name,
+                                        amount_paise,
+                                    )
+                                if verified:
+                                    st.success(message)
+                                    st.rerun()
+                                else:
+                                    st.info(message)
+
                             if order.get("status") != "created":
                                 st.warning(f"⚠️ Razorpay backend returned a fallback order. Debug: {order.get('debug', '')}")
                             else:
@@ -3326,6 +3344,67 @@ def render_payment_modal():
 # ========================================================
 # 31. RAZORPAY CHECKOUT
 # ========================================================
+
+def verify_razorpay_payment_fallback(order_id, username, credits_to_add, pack_name, amount):
+    if not order_id:
+        return False, "No Razorpay order is available to verify yet."
+
+    if not username or not st.session_state.get("is_logged_in", False):
+        return False, "Please log in before verifying your payment."
+
+    st.session_state["payment_verifying"] = True
+    resolved_pack_name = pack_name
+
+    try:
+        conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT payment_id, status, credits_added, pack_name FROM payment_history WHERE username = ? AND order_id = ? ORDER BY timestamp DESC LIMIT 1",
+            (username, order_id)
+        )
+        row = cursor.fetchone()
+        conn.close()
+
+        if row:
+            payment_id, status, saved_credits, saved_pack_name = row
+            resolved_pack_name = saved_pack_name or pack_name
+            if status == "success":
+                expected_credits = int(saved_credits or credits_to_add or 0)
+                current_credits = get_user_credits_db(username)
+                if current_credits < expected_credits:
+                    add_credits(username, expected_credits - current_credits)
+                st.session_state["payment_verified"] = True
+                st.session_state["razorpay_payment_id"] = payment_id
+                st.session_state["razorpay_signature"] = ""
+                st.session_state["pending_credits"] = 0
+                st.session_state["pending_pack_name"] = ""
+                st.session_state["pending_amount"] = 0
+                st.session_state["user_credits"] = get_user_credits_db(username)
+                return True, f"✅ Payment verified. Added {expected_credits} credits."
+
+        if razorpay is not None and RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET and RAZORPAY_KEY_ID != "mock" and RAZORPAY_KEY_SECRET != "mock":
+            try:
+                client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
+                order_data = client.order.fetch(order_id)
+                if isinstance(order_data, dict) and str(order_data.get("status", "")).lower() in {"paid", "authorized"}:
+                    success, message = process_payment_success(
+                        username,
+                        order_id,
+                        "",
+                        "",
+                        amount,
+                        credits_to_add,
+                        resolved_pack_name,
+                    )
+                    st.session_state["payment_verified"] = success
+                    return success, message
+            except Exception as api_error:
+                logger.warning(f"Razorpay fallback fetch error: {api_error}")
+
+        return False, "Payment is still pending or the verification did not return a confirmed status. Please wait a moment and try again."
+    finally:
+        st.session_state["payment_verifying"] = False
+
 
 def render_razorpay_checkout(order_id, amount, plan_name, credits, username, key_id):
     import json
