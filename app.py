@@ -2193,14 +2193,48 @@ def get_support_tier(username):
 # 24. PAYMENT FUNCTIONS
 # ========================================================
 
-def create_payment_order(amount_paise):
-    if razorpay_client and RAZORPAY_KEY_ID != "mock":
-        try:
-            data = {"amount": amount_paise, "currency": "INR", "receipt": f"receipt_{int(time.time())}"}
-            return razorpay_client.order.create(data=data)
-        except Exception as e:
-            logger.error(f"Razorpay order error: {e}")
-    return {"id": f"order_mock_{uuid.uuid4().hex[:8]}", "amount": amount_paise}
+def create_payment_order(amount_paise, plan_name=""):
+    if not RAZORPAY_KEY_ID or not RAZORPAY_KEY_SECRET or RAZORPAY_KEY_ID == "mock" or RAZORPAY_KEY_SECRET == "mock":
+        logger.warning("Razorpay test keys are missing or still mocked. Falling back to a local mock order.")
+        return {
+            "id": f"order_mock_{uuid.uuid4().hex[:8]}",
+            "amount": int(amount_paise),
+            "status": "mock",
+            "debug": "Missing Razorpay test keys."
+        }
+
+    try:
+        if razorpay is None:
+            raise ImportError("Razorpay Python package is not installed.")
+
+        client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
+        data = {
+            "amount": int(amount_paise),
+            "currency": "INR",
+            "receipt": f"receipt_{int(time.time())}",
+            "notes": {
+                "plan": str(plan_name or "Zovix Credits"),
+                "user": st.session_state.get("logged_user", "guest")
+            }
+        }
+        order = client.order.create(data=data)
+        if isinstance(order, dict) and order.get("id"):
+            return {
+                "id": order["id"],
+                "amount": order.get("amount", int(amount_paise)),
+                "status": "created",
+                "raw": order,
+                "debug": "Razorpay order created successfully."
+            }
+        raise ValueError(f"Unexpected Razorpay payload: {order}")
+    except Exception as e:
+        logger.error(f"Razorpay order error: {e}")
+        return {
+            "id": f"order_mock_{uuid.uuid4().hex[:8]}",
+            "amount": int(amount_paise),
+            "status": "error",
+            "debug": str(e)
+        }
 
 def verify_payment_signature(order_id, payment_id, signature):
     if not RAZORPAY_KEY_SECRET or RAZORPAY_KEY_SECRET == "mock":
@@ -3254,8 +3288,11 @@ def render_payment_modal():
                     st.error("❌ Razorpay not configured. Please add Razorpay keys.")
                 else:
                     amount_paise = amount * 100
-                    order = create_payment_order(amount_paise)
+                    order = create_payment_order(amount_paise, plan_name)
                     if order and order.get("id"):
+                        st.session_state["razorpay_order_id"] = order["id"]
+                        st.session_state["razorpay_last_debug"] = order.get("debug", "")
+                        st.session_state["razorpay_last_status"] = order.get("status", "created")
                         html = render_razorpay_checkout(
                             order["id"],
                             amount_paise,
@@ -3264,7 +3301,11 @@ def render_payment_modal():
                             st.session_state.get("logged_user", "User"),
                             RAZORPAY_KEY_ID
                         )
-                        st.components.v1.html(html, height=400)
+                        st.components.v1.html(html, height=460)
+                        if order.get("status") != "created":
+                            st.warning(f"⚠️ Razorpay backend returned a fallback order. Debug: {order.get('debug', '')}")
+                        else:
+                            st.caption("🛡️ Checkout is rendered inside a secure component iframe for Streamlit Cloud compatibility.")
                     else:
                         st.error("Failed to create payment order. Please try again.")
     
@@ -3284,7 +3325,8 @@ def render_razorpay_checkout(order_id, amount, plan_name, credits, username, key
     amount_inr = amount / 100
     safe_plan_name = str(plan_name).replace("'", "\\'").replace("\n", " ")
     safe_username = str(username).replace("'", "\\'").replace("\n", " ")
-    html_code = f"""
+
+    checkout_html = f"""
     <!DOCTYPE html>
     <html>
     <head>
@@ -3349,12 +3391,12 @@ def render_razorpay_checkout(order_id, amount, plan_name, credits, username, key
         <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
         <script>
             (function() {{
-                const orderId = '{order_id}';
+                const orderId = {json.dumps(order_id)};
                 const amount = {amount};
-                const username = '{safe_username}';
+                const username = {json.dumps(safe_username)};
                 const credits = {credits};
-                const planName = '{safe_plan_name}';
-                const keyId = '{key_id}';
+                const planName = {json.dumps(safe_plan_name)};
+                const keyId = {json.dumps(key_id)};
                 const paymentStatus = document.getElementById('paymentStatus');
                 const paymentLink = document.getElementById('paymentLink');
                 const rzpButton = document.getElementById('rzp-button');
@@ -3418,7 +3460,32 @@ def render_razorpay_checkout(order_id, amount, plan_name, credits, username, key
     </body>
     </html>
     """
-    return html_code
+
+    wrapper_html = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+            body {{ margin: 0; padding: 0; background: transparent; }}
+            .razorpay-frame-wrap {{ padding: 4px; background: transparent; }}
+            iframe {{ width: 100%; min-height: 380px; border: none; border-radius: 16px; background: transparent; }}
+        </style>
+    </head>
+    <body>
+        <div class="razorpay-frame-wrap">
+            <iframe id="razorpay-iframe" title="Razorpay Checkout" sandbox="allow-scripts allow-same-origin allow-popups allow-forms"></iframe>
+        </div>
+        <script>
+            (function() {{
+                const iframe = document.getElementById('razorpay-iframe');
+                iframe.srcdoc = {json.dumps(checkout_html)};
+            }})();
+        </script>
+    </body>
+    </html>
+    """
+    return wrapper_html
 
 def handle_payment_response():
     query_params = st.query_params
