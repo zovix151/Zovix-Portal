@@ -3315,7 +3315,7 @@ def render_payment_modal():
                                 st.session_state.get("logged_user", "User"),
                                 RAZORPAY_KEY_ID
                             )
-                            st.components.v1.html(html, height=460)
+                            st.components.v1.html(html, height=520)
                             if order.get("status") != "created":
                                 st.warning(f"⚠️ Razorpay backend returned a fallback order. Debug: {order.get('debug', '')}")
                             else:
@@ -3387,8 +3387,8 @@ def render_razorpay_checkout(order_id, amount, plan_name, credits, username, key
                     <div class="row"><span class="label">⚡ Credits</span><span class="value">+{credits} Credits</span></div>
                     <div class="row"><span class="label">👤 User</span><span class="value">{safe_username}</span></div>
                 </div>
-                <button class="payment-btn" id="rzp-button">💳 Pay ₹{amount_inr:.0f}</button>
-                <div class="payment-status" id="paymentStatus">🔒 Secure payment via Razorpay</div>
+                <button class="payment-btn" id="pay-btn" type="button">💳 Pay Now</button>
+                <div class="payment-status" id="paymentStatus">🔒 Secure payment via Razorpay. Click Pay Now to continue.</div>
                 <div class="payment-link" id="paymentLink">
                     <a href="https://razorpay.com/" target="_blank" rel="noopener">Open Razorpay Checkout</a>
                 </div>
@@ -3405,10 +3405,9 @@ def render_razorpay_checkout(order_id, amount, plan_name, credits, username, key
                 const keyId = {json.dumps(key_id)};
                 const paymentStatus = document.getElementById('paymentStatus');
                 const paymentLink = document.getElementById('paymentLink');
-                const rzpButton = document.getElementById('rzp-button');
+                const payButton = document.getElementById('pay-btn');
                 let checkoutReady = false;
                 let checkoutInstance = null;
-                let autoOpened = false;
 
                 function updateStatus(message, type) {{
                     paymentStatus.className = 'payment-status ' + type;
@@ -3437,18 +3436,12 @@ def render_razorpay_checkout(order_id, amount, plan_name, credits, username, key
                         modal: {{
                             ondismiss: function() {{
                                 updateStatus('❌ Payment cancelled.', 'error');
-                                window.parent.postMessage({{ type: 'payment_cancelled', orderId: orderId }}, '*');
                             }}
                         }},
                         handler: function(response) {{
                             updateStatus('✅ Processing payment...', 'success');
-                            rzpButton.disabled = true;
-                            rzpButton.innerHTML = '⏳ Processing...';
-                            window.parent.postMessage({{
-                                type: 'payment_success', orderId: orderId, paymentId: response.razorpay_payment_id,
-                                signature: response.razorpay_signature, amount: amount, credits: credits,
-                                planName: planName, username: username
-                            }}, '*');
+                            payButton.disabled = true;
+                            payButton.innerHTML = '⏳ Processing...';
                         }}
                     }};
 
@@ -3469,48 +3462,24 @@ def render_razorpay_checkout(order_id, amount, plan_name, credits, username, key
                     }}
 
                     try {{
-                        if (window.parent && window.parent !== window) {{
-                            window.parent.postMessage({{ type: 'razorpay_popup_request', orderId: orderId, amount: amount, planName: planName, credits: credits, username: username, keyId: keyId }}, '*');
-                        }}
                         checkoutInstance.open();
                         updateStatus('🔄 Opening Razorpay checkout...', 'success');
-                        autoOpened = true;
                     }} catch (err) {{
-                        try {{
-                            const popup = window.open('', '_blank', 'width=420,height=720,noopener,noreferrer');
-                            if (popup) {{
-                                popup.document.write('<html><body style="margin:0;padding:0;background:#06070a;color:white;font-family:Inter,sans-serif;"><div style="padding:24px;text-align:center;">Opening Razorpay checkout...</div></body></html>');
-                                popup.document.close();
-                                updateStatus('🔄 Opening Razorpay checkout in a popup...', 'success');
-                                autoOpened = true;
-                            }} else {{
-                                throw new Error('Popup blocked');
-                            }}
-                        }} catch (popupErr) {{
-                            updateStatus('⚠️ Checkout could not be opened. Please retry.', 'error');
-                            paymentLink.style.display = 'block';
-                        }}
+                        updateStatus('⚠️ Checkout could not be opened. Please retry.', 'error');
+                        paymentLink.style.display = 'block';
                     }}
                 }}
 
-                rzpButton.addEventListener('click', function(e) {{
+                payButton.addEventListener('click', function(e) {{
                     e.preventDefault();
                     e.stopPropagation();
                     openCheckout();
                 }});
 
-                rzpButton.addEventListener('touchend', function(e) {{
+                payButton.addEventListener('touchend', function(e) {{
                     e.preventDefault();
                     e.stopPropagation();
                     openCheckout();
-                }});
-
-                window.addEventListener('load', function() {{
-                    setTimeout(function() {{
-                        if (!autoOpened) {{
-                            openCheckout();
-                        }}
-                    }}, 800);
                 }});
             }})();
         </script>
@@ -3526,7 +3495,7 @@ def render_razorpay_checkout(order_id, amount, plan_name, credits, username, key
         <style>
             body {{ margin: 0; padding: 0; background: transparent; }}
             .razorpay-frame-wrap {{ padding: 4px; background: transparent; }}
-            iframe {{ width: 100%; min-height: 380px; border: none; border-radius: 16px; background: transparent; }}
+            iframe {{ width: 100%; min-height: 500px; border: none; border-radius: 16px; background: transparent; }}
         </style>
     </head>
     <body>
