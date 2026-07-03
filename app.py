@@ -3333,10 +3333,11 @@ def render_payment_modal():
 
                                             if status in {"paid", "authorized"}:
                                                 already_synced = st.session_state.get("razorpay_verified_order_id") == order_id
+                                                credits_to_add = int(credits)
+
                                                 if already_synced:
                                                     st.info("✅ Payment already synced. Your credits are already updated.")
                                                 else:
-                                                    credits_to_add = int(credits)
                                                     conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
                                                     cursor = conn.cursor()
                                                     cursor.execute(
@@ -3360,16 +3361,16 @@ def render_payment_modal():
                                                             "razorpay",
                                                         )
 
-                                                    st.session_state["payment_verified"] = True
-                                                    st.session_state["razorpay_payment_id"] = order_data.get("id", "")
-                                                    st.session_state["razorpay_signature"] = ""
-                                                    st.session_state["pending_credits"] = 0
-                                                    st.session_state["pending_pack_name"] = ""
-                                                    st.session_state["pending_amount"] = 0
-                                                    st.session_state["user_credits"] = get_user_credits_db(username)
-                                                    st.session_state["razorpay_verified_order_id"] = order_id
-                                                    st.success(f"✅ Payment confirmed by Razorpay. {credits_to_add} credits added.")
-                                                    st.rerun()
+                                                st.session_state["payment_status"] = "success"
+                                                st.session_state["razorpay_payment_id"] = order_data.get("id", "")
+                                                st.session_state["razorpay_signature"] = ""
+                                                st.session_state["pending_credits"] = 0
+                                                st.session_state["pending_pack_name"] = ""
+                                                st.session_state["pending_amount"] = 0
+                                                st.session_state["user_credits"] = get_user_credits_db(username)
+                                                st.session_state["razorpay_verified_order_id"] = order_id
+                                                st.success(f"✅ Payment confirmed by Razorpay. {credits_to_add} credits added.")
+                                                st.rerun()
                                             else:
                                                 st.info(f"⏳ Current Razorpay status: {status or 'unknown'}")
                                         except Exception as e:
@@ -6012,50 +6013,50 @@ def run_flow_state_mode():
                 success, required_tokens, message = validate_and_deduct_tokens("Flow State", fs_quality)
                 if not success:
                     st.error(message)
+                elif not flow_prompt.strip():
+                    st.error("Please enter a flow description.")
                 else:
-                    st.success(message)
-                    if not flow_prompt.strip():
-                        st.error("Please enter a flow description.")
-                    else:
-                        with st.spinner("Generating flow animation with particle dynamics..."):
-                            animation_path = generate_flow_animation(flow_prompt, duration_sec, fps)
-                            if animation_path and os.path.exists(animation_path):
-                                st.session_state["active_flow_animation"] = animation_path
-                                st.toast("Flow animation generated successfully!")
-                                st.rerun()
-                            else:
-                                st.error("Flow animation generation failed. Please try a different prompt.")
+                    with st.spinner("Generating flow animation from your prompt..."):
+                        animation_path = generate_flow_animation(flow_prompt, duration_sec, fps)
+                        if animation_path:
+                            st.session_state["active_flow_animation"] = animation_path
+                            st.session_state["active_flow_prompt"] = flow_prompt
+                            st.toast("Flow animation generated successfully!")
+                            st.rerun()
+                        else:
+                            st.error("Flow animation generation failed. Please try a different prompt.")
     with fs_col2:
         with st.container(border=True):
             st.markdown("<h3 style='font-family: Orbitron; font-size: 15px; color: #FFC0CB; margin-bottom: 15px; letter-spacing: 0.5px;'>🌊 FLOW ANIMATION VIEWER</h3>", unsafe_allow_html=True)
             active_flow = st.session_state.get("active_flow_animation")
             if active_flow and os.path.exists(active_flow):
-                ext = os.path.splitext(active_flow)[1].lower()
-                if ext in ['.gif']:
-                    st.image(active_flow, use_container_width=True)
-                elif ext in ['.png', '.jpg', '.jpeg', '.webp']:
-                    st.image(active_flow, use_container_width=True)
-                else:
+                if active_flow.lower().endswith('.mp4'):
                     st.video(active_flow, format="video/mp4", autoplay=True, loop=True, muted=True)
+                else:
+                    st.image(active_flow, use_container_width=True)
                 st.markdown("<br>", unsafe_allow_html=True)
                 col_dl, col_clr = st.columns(2)
                 with col_dl:
                     with open(active_flow, "rb") as f:
                         flow_bytes = f.read()
-                    st.download_button(label=f"📥 Download Animation ({ext.upper()})", data=flow_bytes, file_name=f"zovix_flow{ext}", mime="video/mp4" if ext != '.gif' else "image/gif", use_container_width=True, key="fs_download_btn")
+                    ext = os.path.splitext(active_flow)[1].lower()
+                    st.download_button(
+                        label=f"📥 Download Animation ({ext.upper()})",
+                        data=flow_bytes,
+                        file_name=f"zovix_flow{ext}",
+                        mime="video/mp4" if ext != '.gif' else "image/gif",
+                        use_container_width=True,
+                        key="fs_download_btn"
+                    )
                 with col_clr:
                     if st.button("🧹 Clear Animation", key="fs_clear_btn", use_container_width=True):
                         safe_remove_file(active_flow)
                         st.session_state["active_flow_animation"] = None
                         st.rerun()
+            elif active_flow:
+                st.error("❌ Generation pipeline returned an invalid path or missing file. Check API balance or backend logs.")
             else:
-                st.markdown("""
-                    <div class="canvas-container-box" style="height: 380px; min-height: 380px; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #64748b; text-align: center; padding: 12px; overflow: hidden;">
-                        <span style="font-size: 50px; margin-bottom: 12px; filter: drop-shadow(0 0 10px rgba(236, 72, 153, 0.3));">🌊</span>
-                        <p style="font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 500; color: #FFC0CB; margin: 0;">Flow animation will render here</p>
-                        <p style="font-size: 11px; color: #a0a0a0; max-width:400px; text-align:center; margin-top: 5px; line-height: 1.4;">Dynamic fluid simulations with particle systems.</p>
-                    </div>
-                """, unsafe_allow_html=True)
+                st.info("Flow animation will render here once generation completes.")
 
 def generate_flow_animation(prompt, duration=5, fps=24):
     animation_path = None
