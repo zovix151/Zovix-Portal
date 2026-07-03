@@ -6059,14 +6059,18 @@ def run_flow_state_mode():
 
 def generate_flow_animation(prompt, duration=5, fps=24):
     animation_path = None
+    os.makedirs("flow_animations", exist_ok=True)
     width, height = 1920, 1080
+    full_prompt = f"Fluid flow, particle system, dynamic motion, {prompt}, vibrant colors, smooth animation, cinematic"
+
+    # 1) First try the model pipeline that returns a generated image or video.
     if STABILITY_API_KEY:
         try:
             url = "https://api.stability.ai/v2beta/stable-image/generate/core"
             headers = {"authorization": f"Bearer {STABILITY_API_KEY}", "accept": "image/*"}
-            data = {"prompt": f"Fluid flow, particle system, dynamic motion, {prompt}, vibrant colors, smooth animation, cinematic", "output_format": "png", "aspect_ratio": "16:9", "negative_prompt": "static, blurry, low quality"}
+            data = {"prompt": full_prompt, "output_format": "png", "aspect_ratio": "16:9", "negative_prompt": "static, blurry, low quality"}
             files = {k: (None, str(v)) for k, v in data.items()}
-            response = requests.post(url, headers=headers, files=files, timeout=30)
+            response = requests.post(url, headers=headers, files=files, timeout=45)
             if response.status_code == 200 and len(response.content) > 10000:
                 image_path = f"flow_animations/flow_{uuid.uuid4().hex[:8]}.png"
                 with open(image_path, "wb") as f:
@@ -6075,42 +6079,34 @@ def generate_flow_animation(prompt, duration=5, fps=24):
                 if VisualEngine.convert_image_to_video(image_path, output_video_path, duration, width, height):
                     safe_remove_file(image_path)
                     return output_video_path
-                safe_remove_file(image_path)
-        except Exception:
-            pass
+                return image_path
+        except Exception as e:
+            logger.warning(f"Flow State generation via Stability API failed: {e}")
+
+    # 2) If direct image generation is unavailable, try our general AI video pipeline.
     try:
-        frames = []
-        num_particles = 100
-        width, height = 800, 600
-        for frame_num in range(duration * fps):
-            img = Image.new("RGB", (width, height), color=(6, 7, 10))
-            draw = ImageDraw.Draw(img)
-            for i in range(num_particles):
-                t = frame_num / fps
-                x = width/2 + 200 * np.sin(t * 0.5 + i * 0.1)
-                y = height/2 + 150 * np.cos(t * 0.3 + i * 0.15)
-                size = 3 + 5 * np.sin(t * 0.2 + i * 0.05) + 2
-                r = int(236 + 19 * np.sin(t * 0.1 + i * 0.02))
-                g = int(72 + 183 * np.cos(t * 0.15 + i * 0.03))
-                b = int(153 + 102 * np.sin(t * 0.08 + i * 0.04))
-                r = min(255, max(0, r))
-                g = min(255, max(0, g))
-                b = min(255, max(0, b))
-                draw.ellipse([(x-size, y-size), (x+size, y+size)], fill=(r, g, b))
-            for i in range(20):
-                t = frame_num / fps
-                x1 = width * 0.1 + i * 30
-                y1 = height * 0.5 + 100 * np.sin(t * 0.2 + i * 0.3)
-                x2 = x1 + 50
-                y2 = y1 + 30 * np.cos(t * 0.25 + i * 0.2)
-                draw.line([(x1, y1), (x2, y2)], fill=(255, 192, 203, 50), width=2)
-            frames.append(img)
-        if frames:
-            animation_path = f"flow_animations/flow_{uuid.uuid4().hex[:8]}.gif"
-            frames[0].save(animation_path, save_all=True, append_images=frames[1:], duration=1000//fps, loop=0)
-            return animation_path
-    except Exception:
-        pass
+        ai_video_url = generate_ai_video(full_prompt)
+        if ai_video_url:
+            output_video_path = f"flow_animations/flow_{uuid.uuid4().hex[:8]}.mp4"
+            with requests.get(ai_video_url, stream=True, timeout=45) as r:
+                if r.status_code == 200:
+                    with open(output_video_path, "wb") as f:
+                        for chunk in r.iter_content(chunk_size=8192):
+                            if chunk:
+                                f.write(chunk)
+                    if os.path.exists(output_video_path) and os.path.getsize(output_video_path) > 100000:
+                        return output_video_path
+    except Exception as e:
+        logger.warning(f"Flow State video download failed: {e}")
+
+    # 3) Fallback to our text-to-image drawing model if video generation fails.
+    try:
+        image_path = generate_drawing(prompt, style="realistic", canvas_size=(width, height))
+        if image_path and os.path.exists(image_path) and os.path.getsize(image_path) > 10000:
+            return image_path
+    except Exception as e:
+        logger.warning(f"Flow State fallback drawing failed: {e}")
+
     return None
 
 def run_upscaler_mode():
