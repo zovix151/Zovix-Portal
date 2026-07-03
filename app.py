@@ -3320,19 +3320,63 @@ def render_payment_modal():
                             st.markdown("---")
                             st.caption("If the Razorpay window completed successfully inside the iframe, click below to sync your credits.")
                             if st.button("🔄 Sync & Verify Credits", use_container_width=True, type="primary"):
-                                with st.spinner("Checking payment status..."):
-                                    verified, message = verify_razorpay_payment_fallback(
-                                        st.session_state.get("razorpay_order_id"),
-                                        st.session_state.get("logged_user", ""),
-                                        credits,
-                                        plan_name,
-                                        amount_paise,
-                                    )
-                                if verified:
-                                    st.success(message)
-                                    st.rerun()
-                                else:
-                                    st.info(message)
+                                with st.spinner("Checking Razorpay order status..."):
+                                    order_id = st.session_state.get("razorpay_order_id")
+                                    username = st.session_state.get("logged_user", "")
+
+                                    if order_id and username and st.session_state.get("is_logged_in", False):
+                                        try:
+                                            client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
+                                            order_data = client.order.fetch(order_id)
+                                            status = str(order_data.get("status", "")).lower()
+                                            st.session_state["razorpay_last_status"] = status
+
+                                            if status in {"paid", "authorized"}:
+                                                already_synced = st.session_state.get("razorpay_verified_order_id") == order_id
+                                                if already_synced:
+                                                    st.info("✅ Payment already synced. Your credits are already updated.")
+                                                else:
+                                                    credits_to_add = int(credits)
+                                                    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+                                                    cursor = conn.cursor()
+                                                    cursor.execute(
+                                                        "SELECT 1 FROM payment_history WHERE username = ? AND order_id = ? AND status = 'success' LIMIT 1",
+                                                        (username, order_id),
+                                                    )
+                                                    existing = cursor.fetchone()
+                                                    conn.close()
+
+                                                    if not existing:
+                                                        add_credits(username, credits_to_add)
+                                                        save_payment_history(
+                                                            username,
+                                                            order_id,
+                                                            order_data.get("id", ""),
+                                                            round(amount_paise / 100, 2),
+                                                            credits_to_add,
+                                                            plan_name,
+                                                            "success",
+                                                            "one_time",
+                                                            "razorpay",
+                                                        )
+
+                                                    st.session_state["payment_verified"] = True
+                                                    st.session_state["razorpay_payment_id"] = order_data.get("id", "")
+                                                    st.session_state["razorpay_signature"] = ""
+                                                    st.session_state["pending_credits"] = 0
+                                                    st.session_state["pending_pack_name"] = ""
+                                                    st.session_state["pending_amount"] = 0
+                                                    st.session_state["user_credits"] = get_user_credits_db(username)
+                                                    st.session_state["razorpay_verified_order_id"] = order_id
+                                                    st.success(f"✅ Payment confirmed by Razorpay. {credits_to_add} credits added.")
+                                                    st.rerun()
+                                            else:
+                                                st.info(f"⏳ Current Razorpay status: {status or 'unknown'}")
+                                        except Exception as e:
+                                            logger.warning(f"Razorpay sync failed: {e}")
+                                            st.info("⚠️ Could not verify payment yet. Please wait a moment and try again.")
+                                    else:
+                                        st.info("⚠️ Please log in and create a Razorpay order before syncing.")
 
                             if order.get("status") != "created":
                                 st.warning(f"⚠️ Razorpay backend returned a fallback order. Debug: {order.get('debug', '')}")
@@ -4206,8 +4250,8 @@ def get_scene_asset(description, output_filename, scene_text=None, idx=None, sta
             if status_dict is not None and idx is not None:
                 status_dict[idx] = f"✅ Cached: '{refined_query}'"
             return True
-        if st.session_state.get("quick_template_mode", True):
-            return False
+        # Quick template mode should not skip stock retrieval.
+        # Always attempt premium stock sourcing from Pexels or Pixabay before falling back to AI generation.
         if status_dict is not None and idx is not None:
             status_dict[idx] = f"📹 Sourcing Pexels: '{refined_query}'"
         if VisualEngine.fetch_pexels_clip(refined_query, output_filename):
@@ -4681,7 +4725,45 @@ def generate_elevenlabs_audio_for_face(text, output_path, voice_id="21m00Tcm4Tlv
         pass
     return False
 
-def generate_face_video_real(image_path, audio_path=None, output_width=512, output_height=512, duration=10, quality="Standard"):
+def run_lip_sync_pipeline(face_image_path, audio_path, output_video_path, width, height, duration=10, emotion="neutral", camera_angle="front"):
+    safe_remove_file(output_video_path)
+    try:
+        import importlib
+        if importlib.util.find_spec("wav2lip") or importlib.util.find_spec("Wav2Lip"):
+            try:
+                from wav2lip import inference as wav2lip_inference
+                logger.info("Attempting Wav2Lip audio-driven lip sync")
+                wav2lip_inference.sync(face=face_image_path, audio=audio_path, output=output_video_path, size=(width, height), fps=24)
+                if os.path.exists(output_video_path) and os.path.getsize(output_video_path) > 1000:
+                    return True
+            except Exception as e:
+                logger.warning(f"Wav2Lip sync failed: {e}")
+        if importlib.util.find_spec("sadtalker") or importlib.util.find_spec("SadTalker"):
+            try:
+                from sadtalker import SadTalker
+                logger.info("Attempting SadTalker audio-driven lip sync")
+                model = SadTalker()
+                model.generate(source_image=face_image_path, driving_audio=audio_path, output_path=output_video_path, size=(width, height), emotion=emotion, camera_angle=camera_angle)
+                if os.path.exists(output_video_path) and os.path.getsize(output_video_path) > 1000:
+                    return True
+            except Exception as e:
+                logger.warning(f"SadTalker sync failed: {e}")
+        if importlib.util.find_spec("liveportrait") or importlib.util.find_spec("LivePortrait"):
+            try:
+                from liveportrait import LivePortrait
+                logger.info("Attempting LivePortrait audio-driven lip sync")
+                portrait = LivePortrait()
+                portrait.generate(source_image=face_image_path, driving_audio=audio_path, output_video=output_video_path, resolution=(width, height), emotion=emotion, camera_angle=camera_angle)
+                if os.path.exists(output_video_path) and os.path.getsize(output_video_path) > 1000:
+                    return True
+            except Exception as e:
+                logger.warning(f"LivePortrait sync failed: {e}")
+    except Exception as e:
+        logger.warning(f"Lip sync pipeline error: {e}")
+    return False
+
+
+def generate_face_video_real(image_path, audio_path=None, output_width=512, output_height=512, duration=10, quality="Standard", emotion="neutral", camera_angle="front"):
     if not image_path or not os.path.exists(image_path):
         return None
     quality_settings = {"Standard": {"crf": 23, "preset": "medium", "bitrate": "1M"}, "HD": {"crf": 18, "preset": "slow", "bitrate": "4M"}, "4K": {"crf": 15, "preset": "veryslow", "bitrate": "10M", "scale": 2.0}}
@@ -4702,6 +4784,11 @@ def generate_face_video_real(image_path, audio_path=None, output_width=512, outp
         padded_img = cv2.copyMakeBorder(img, pad_y, pad_y, pad_x, pad_x, borderType=cv2.BORDER_CONSTANT, value=[0, 0, 0])
         final_rect_img = cv2.resize(padded_img, (out_w, out_h), interpolation=cv2.INTER_AREA)
         cv2.imwrite(temp_processed_img, final_rect_img)
+        if audio_path and os.path.exists(audio_path):
+            if run_lip_sync_pipeline(temp_processed_img, audio_path, output_video_path, out_w, out_h, duration=duration, emotion=emotion, camera_angle=camera_angle):
+                if os.path.exists(temp_processed_img):
+                    os.remove(temp_processed_img)
+                return output_video_path
         cmd = ['ffmpeg', '-y', '-loop', '1', '-i', temp_processed_img, '-t', str(duration), '-vf', f"zoompan=z='min(zoom+0.0015,1.3)':d={duration*24}:s={out_w}x{out_h},fade=t=in:st=0:d=0.5,fade=t=out:st={duration-0.5}:d=0.5", '-pix_fmt', 'yuv420p', '-c:v', 'libx264', '-preset', q_settings["preset"], '-crf', str(q_settings["crf"]), '-b:v', q_settings["bitrate"], '-r', '24', output_video_path]
         subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
         if audio_path and os.path.exists(audio_path):
@@ -4743,7 +4830,7 @@ def generate_face_video(prompt, face_image_path, duration=30, emotion="neutral",
             audio_success = False
     if not audio_success:
         create_emergency_silent_audio(audio_path, duration)
-    output_path = generate_face_video_real(face_image_path, audio_path, 512, 512, duration, quality=quality)
+    output_path = generate_face_video_real(face_image_path, audio_path, 512, 512, duration, quality=quality, emotion=emotion, camera_angle=camera_angle)
     if os.path.exists(audio_path):
         try:
             os.remove(audio_path)
@@ -5572,7 +5659,6 @@ def render_live_emotion_voice():
                             if output_path and os.path.exists(output_path) and os.path.getsize(output_path) > 0:
                                 st.session_state["emotion_voice_output"] = output_path
                                 st.session_state["emotion_voice_text"] = voice_text
-                                st.session_state["emotion_voice_language"] = selected_language
                                 conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
                                 cursor = conn.cursor()
                                 try:
@@ -5947,6 +6033,8 @@ def run_flow_state_mode():
                 ext = os.path.splitext(active_flow)[1].lower()
                 if ext in ['.gif']:
                     st.image(active_flow, use_container_width=True)
+                elif ext in ['.png', '.jpg', '.jpeg', '.webp']:
+                    st.image(active_flow, use_container_width=True)
                 else:
                     st.video(active_flow, format="video/mp4", autoplay=True, loop=True, muted=True)
                 st.markdown("<br>", unsafe_allow_html=True)
@@ -5971,6 +6059,7 @@ def run_flow_state_mode():
 
 def generate_flow_animation(prompt, duration=5, fps=24):
     animation_path = None
+    width, height = 1920, 1080
     if STABILITY_API_KEY:
         try:
             url = "https://api.stability.ai/v2beta/stable-image/generate/core"
@@ -5979,10 +6068,14 @@ def generate_flow_animation(prompt, duration=5, fps=24):
             files = {k: (None, str(v)) for k, v in data.items()}
             response = requests.post(url, headers=headers, files=files, timeout=30)
             if response.status_code == 200 and len(response.content) > 10000:
-                animation_path = f"flow_animations/flow_{uuid.uuid4().hex[:8]}.png"
-                with open(animation_path, "wb") as f:
+                image_path = f"flow_animations/flow_{uuid.uuid4().hex[:8]}.png"
+                with open(image_path, "wb") as f:
                     f.write(response.content)
-                return animation_path
+                output_video_path = image_path.replace('.png', '.mp4')
+                if VisualEngine.convert_image_to_video(image_path, output_video_path, duration, width, height):
+                    safe_remove_file(image_path)
+                    return output_video_path
+                safe_remove_file(image_path)
         except Exception:
             pass
     try:
