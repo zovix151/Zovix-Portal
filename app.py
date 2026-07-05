@@ -23,6 +23,7 @@ import re
 import sys
 import logging
 import pickle
+import math
 from dotenv import load_dotenv
 from PIL import Image, ImageDraw, ImageEnhance, ImageFilter
 import streamlit as st
@@ -3706,7 +3707,7 @@ def add_showcase_item(username, prompt, thumbnail_path):
     finally:
         conn.close()
 
-def process_video_billing(username, duration_minutes, total_scenes, stock_scenes_count):
+def process_video_billing(username, duration_minutes, total_scenes, stock_scenes_count, prepaid_credits=0):
     conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
     cursor = conn.cursor()
     try:
@@ -3717,6 +3718,11 @@ def process_video_billing(username, duration_minutes, total_scenes, stock_scenes
         current_credits = row[0]
         scenes_ai = max(0, total_scenes - stock_scenes_count)
         actual_api_cost = (scenes_ai * 0.50) + 0.15
+        if prepaid_credits and prepaid_credits > 0:
+            cursor.execute('''INSERT INTO admin_logs (username, video_duration_min, scenes_stock, scenes_ai, calculated_cost, credits_deducted) VALUES (?, ?, ?, ?, ?, ?)''',
+                           (username, duration_minutes, stock_scenes_count, scenes_ai, actual_api_cost, prepaid_credits))
+            conn.commit()
+            return {"status": "success", "deducted": prepaid_credits, "remaining": get_user_credits_db(username), "api_cost_incurred": actual_api_cost, "prepaid": True}
         if scenes_ai > 0:
             required_credits = 3.0 * duration_minutes
         else:
@@ -3978,6 +3984,14 @@ def get_video_resolution(video_path):
     except Exception:
         pass
     return None, None
+
+def get_media_duration(media_path):
+    try:
+        cmd = ['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'default=noprint_wrappers=1:nokey=1', media_path]
+        result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=True)
+        return float(result.stdout.strip())
+    except Exception:
+        return 0.0
 
 def parse_tagged_script(script_text):
     if "\n\n" in script_text.strip():
@@ -4583,25 +4597,25 @@ class StitcherEngine:
             if not os.path.exists(raw_video_path) or os.path.getsize(raw_video_path) < 1000:
                 create_emergency_solid_clip(raw_video_path, dur, res_width, res_height)
             segment_mux_path = os.path.join(workspace_dir, f"temp_seg_mux_{idx}.mp4")
-            safe_text = text.replace('\\', '').replace("'", "").replace('"', '').replace(':', ' ').strip()
+            safe_text = text.replace('\\', '').replace("'", "").replace('"', '').replace(':', ' ').replace('%', ' percent ').strip()[:220]
             fontsize = int(res_width * 0.045)
             y_pos = int(res_height * 0.75)
             drawtext_filter = f"drawtext=text='{safe_text}':fontcolor=yellow:fontsize={fontsize}:box=1:boxcolor=black@0.6:boxborderw=10:x=(w-text_w)/2:y={y_pos}"
             fade_out_start = max(0.0, dur - 0.4)
             v_w, v_h = get_video_resolution(raw_video_path)
             if v_w == res_width and v_h == res_height:
-                vf_filter_with_text = f"tpad=stop_mode=clone:stop_duration=10,eq=saturation=1.15:contrast=1.05,{drawtext_filter},fade=t=in:st=0:d=0.4,fade=t=out:st={fade_out_start:.2f}:d=0.4"
-                vf_filter_no_text = f"tpad=stop_mode=clone:stop_duration=10,eq=saturation=1.15:contrast=1.05,fade=t=in:st=0:d=0.4,fade=t=out:st={fade_out_start:.2f}:d=0.4"
+                vf_filter_with_text = f"fps=24,eq=saturation=1.15:contrast=1.05,{drawtext_filter},fade=t=in:st=0:d=0.4,fade=t=out:st={fade_out_start:.2f}:d=0.4"
+                vf_filter_no_text = f"fps=24,eq=saturation=1.15:contrast=1.05,fade=t=in:st=0:d=0.4,fade=t=out:st={fade_out_start:.2f}:d=0.4"
             else:
-                vf_filter_with_text = f'scale={res_width}:{res_height}:force_original_aspect_ratio=increase,crop={res_width}:{res_height},setsar=1,tpad=stop_mode=clone:stop_duration=10,eq=saturation=1.15:contrast=1.05,{drawtext_filter},fade=t=in:st=0:d=0.4,fade=t=out:st={fade_out_start:.2f}:d=0.4'
-                vf_filter_no_text = f'scale={res_width}:{res_height}:force_original_aspect_ratio=increase,crop={res_width}:{res_height},setsar=1,tpad=stop_mode=clone:stop_duration=10,eq=saturation=1.15:contrast=1.05,fade=t=in:st=0:d=0.4,fade=t=out:st={fade_out_start:.2f}:d=0.4'
-            ff_cmd = ['ffmpeg', *get_hwaccel_args(), '-y', '-i', raw_video_path, '-i', audio_segment_path, '-t', f"{dur:.2f}", '-vf', vf_filter_with_text, '-af', f'afade=t=in:ss=0:d=0.4,afade=t=out:st={fade_out_start:.2f}:d=0.4,aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo', '-r', '24', '-pix_fmt', 'yuv420p', '-c:v', 'libx264', '-crf', '28', '-preset', 'ultrafast', '-tune', 'fastdecode', '-c:a', 'aac', '-ac', '2', '-ar', '44100', '-map', '0:v:0', '-map', '1:a:0', '-shortest', segment_mux_path]
+                vf_filter_with_text = f'scale={res_width}:{res_height}:force_original_aspect_ratio=increase,crop={res_width}:{res_height},fps=24,setsar=1,eq=saturation=1.15:contrast=1.05,{drawtext_filter},fade=t=in:st=0:d=0.4,fade=t=out:st={fade_out_start:.2f}:d=0.4'
+                vf_filter_no_text = f'scale={res_width}:{res_height}:force_original_aspect_ratio=increase,crop={res_width}:{res_height},fps=24,setsar=1,eq=saturation=1.15:contrast=1.05,fade=t=in:st=0:d=0.4,fade=t=out:st={fade_out_start:.2f}:d=0.4'
+            ff_cmd = ['ffmpeg', *get_hwaccel_args(), '-y', '-stream_loop', '-1', '-i', raw_video_path, '-i', audio_segment_path, '-t', f"{dur:.2f}", '-vf', vf_filter_with_text, '-af', f'afade=t=in:ss=0:d=0.4,afade=t=out:st={fade_out_start:.2f}:d=0.4,aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo', '-r', '24', '-pix_fmt', 'yuv420p', '-c:v', 'libx264', '-crf', '28', '-preset', 'ultrafast', '-tune', 'fastdecode', '-c:a', 'aac', '-ac', '2', '-ar', '44100', '-map', '0:v:0', '-map', '1:a:0', '-movflags', '+faststart', segment_mux_path]
             try:
                 subprocess.run(ff_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
                 if os.path.exists(segment_mux_path) and os.path.getsize(segment_mux_path) > 0:
                     return segment_mux_path
             except Exception:
-                fallback_cmd = ['ffmpeg', *get_hwaccel_args(), '-y', '-i', raw_video_path, '-i', audio_segment_path, '-t', f"{dur:.2f}", '-vf', f'scale={res_width}:{res_height}:force_original_aspect_ratio=increase,crop={res_width}:{res_height},setsar=1,tpad=stop_mode=clone:stop_duration=10,eq=saturation=1.15:contrast=1.05,fade=t=in:st=0:d=0.4,fade=t=out:st={fade_out_start:.2f}:d=0.4', '-af', 'aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo', '-r', '24', '-pix_fmt', 'yuv420p', '-c:v', 'libx264', '-preset', 'ultrafast', '-tune', 'fastdecode', '-c:a', 'aac', '-ac', '2', '-ar', '44100', '-map', '0:v:0', '-map', '1:a:0', '-shortest', segment_mux_path]
+                fallback_cmd = ['ffmpeg', *get_hwaccel_args(), '-y', '-stream_loop', '-1', '-i', raw_video_path, '-i', audio_segment_path, '-t', f"{dur:.2f}", '-vf', vf_filter_no_text, '-af', 'aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo', '-r', '24', '-pix_fmt', 'yuv420p', '-c:v', 'libx264', '-preset', 'ultrafast', '-tune', 'fastdecode', '-c:a', 'aac', '-ac', '2', '-ar', '44100', '-map', '0:v:0', '-map', '1:a:0', '-movflags', '+faststart', segment_mux_path]
                 try:
                     subprocess.run(fallback_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
                     if os.path.exists(segment_mux_path) and os.path.getsize(segment_mux_path) > 0:
@@ -4610,7 +4624,7 @@ class StitcherEngine:
                     pass
             return None
         try:
-            max_workers = min(len(scenes_data), max(1, os.cpu_count() or 1))
+            max_workers = max(1, min(len(scenes_data), 2))
             segment_results = {}
             def context_safe_worker(idx, scene):
                 return process_scene_segment(idx, scene)
@@ -4647,10 +4661,10 @@ class StitcherEngine:
                     clean_path = os.path.abspath(path).replace("\\", "/")
                     f.write(f"file '{clean_path}'\n")
             temp_stitched_output = os.path.join(workspace_dir, "temp_voice_stitched.mp4")
-            concat_cmd = ['ffmpeg', *get_hwaccel_args(), '-y', '-f', 'concat', '-safe', '0', '-i', manifest_file, '-c:v', 'copy', '-c:a', 'copy', temp_stitched_output]
+            concat_cmd = ['ffmpeg', *get_hwaccel_args(), '-y', '-f', 'concat', '-safe', '0', '-i', manifest_file, '-c:v', 'libx264', '-crf', '27', '-preset', 'ultrafast', '-pix_fmt', 'yuv420p', '-r', '24', '-c:a', 'aac', '-b:a', '192k', '-ac', '2', '-ar', '44100', '-movflags', '+faststart', temp_stitched_output]
             subprocess.run(concat_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
             if bgm_path and os.path.exists(bgm_path):
-                mix_cmd = ['ffmpeg', *get_hwaccel_args(), '-y', '-i', temp_stitched_output, '-stream_loop', '-1', '-i', bgm_path, '-filter_complex', f'[0:a]volume=1.0[a0];[1:a]volume={bgm_volume:.2f}[a1];[a0][a1]amix=inputs=2:duration=first[aout]', '-map', '0:v:0', '-map', '[aout]', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', video_output]
+                mix_cmd = ['ffmpeg', *get_hwaccel_args(), '-y', '-i', temp_stitched_output, '-stream_loop', '-1', '-i', bgm_path, '-filter_complex', f'[0:a]volume=1.0[a0];[1:a]volume={bgm_volume:.2f}[a1];[a0][a1]amix=inputs=2:duration=first[aout]', '-map', '0:v:0', '-map', '[aout]', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-shortest', '-movflags', '+faststart', video_output]
                 try:
                     subprocess.run(mix_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
                 except Exception:
@@ -5092,7 +5106,7 @@ def generate_video_blueprint_with_deepseek(user_prompt, aspect_ratio="16:9"):
 # 36. MODE FUNCTIONS - AI Agent, AI Sales, Dynamic UI, Live Emotion
 # ========================================================
 
-def validate_and_deduct_tokens(mode_name: str, quality: str):
+def validate_and_deduct_tokens(mode_name: str, quality: str, deduct: bool = True):
     if not st.session_state.get("is_logged_in"):
         return False, 0, "Please log in first."
     
@@ -5102,8 +5116,11 @@ def validate_and_deduct_tokens(mode_name: str, quality: str):
     if user_credits < required_tokens:
         return False, required_tokens, f"Insufficient credits! Required: {required_tokens}, Available: {user_credits}"
     
-    deduct_credits_db(st.session_state["logged_user"], required_tokens)
-    st.session_state['user_credits'] = get_user_credits_db(st.session_state["logged_user"])
+    if deduct:
+        deduct_credits_db(st.session_state["logged_user"], required_tokens)
+        st.session_state['user_credits'] = get_user_credits_db(st.session_state["logged_user"])
+    else:
+        return True, required_tokens, f"OK Reserved {required_tokens} credits for {mode_name}"
     
     return True, required_tokens, f"✅ Deducted {required_tokens} credits for {mode_name}"
 
@@ -5992,45 +6009,136 @@ def analyze_blueprint(blueprint_path):
     except Exception:
         return None
 
+def generate_flow_animation(prompt, flow_style="liquid", color_theme="neon", speed="medium", duration_sec=4, output_path=None):
+    os.makedirs("flow_animations", exist_ok=True)
+    if not output_path:
+        output_path = f"flow_animations/flow_{uuid.uuid4().hex[:8]}.mp4"
+
+    width, height = 960, 540
+    fps = 18
+    frame_count = max(24, int(duration_sec * fps))
+    style_amp = {
+        "liquid": 42,
+        "smoke": 30,
+        "energy": 58,
+        "ocean": 36,
+        "plasma": 52,
+    }.get(flow_style, 42)
+    speed_mul = {"slow": 0.65, "medium": 1.0, "fast": 1.45}.get(speed, 1.0)
+    palettes = {
+        "neon": [(69, 243, 255), (236, 72, 153), (255, 192, 203)],
+        "aurora": [(78, 201, 176), (139, 92, 246), (251, 191, 36)],
+        "ember": [(251, 146, 60), (239, 68, 68), (250, 204, 21)],
+        "mono": [(226, 232, 240), (148, 163, 184), (71, 85, 105)],
+    }
+    colors = palettes.get(color_theme, palettes["neon"])
+    prompt_seed = sum(ord(ch) for ch in (prompt or "flow")) % 997
+
+    frames = []
+    for idx in range(frame_count):
+        phase = (idx / frame_count) * 2 * math.pi * speed_mul
+        img = Image.new("RGB", (width, height), (8, 10, 18))
+        draw = ImageDraw.Draw(img, "RGBA")
+
+        for y in range(0, height, 18):
+            ratio = y / height
+            base_color = colors[(y // 18) % len(colors)]
+            points = []
+            for x in range(-40, width + 41, 24):
+                wave_a = style_amp * math.sin((x * 0.014) + phase + ratio * 5.0 + prompt_seed * 0.01)
+                wave_b = (style_amp * 0.45) * math.sin((x * 0.031) - phase * 1.4 + ratio * 8.0)
+                points.append((x, y + wave_a + wave_b))
+            alpha = int(42 + 90 * (1 - abs(ratio - 0.5)))
+            draw.line(points, fill=(*base_color, alpha), width=3 if flow_style != "smoke" else 2)
+
+        for particle in range(42):
+            px = (particle * 83 + idx * 7 * speed_mul + prompt_seed) % width
+            py = (particle * 47 + int(34 * math.sin(phase + particle))) % height
+            radius = 2 + (particle % 4)
+            color = colors[particle % len(colors)]
+            draw.ellipse((px - radius, py - radius, px + radius, py + radius), fill=(*color, 95))
+
+        title = (prompt or "Flow simulation").strip()[:48]
+        if title:
+            draw.rectangle((24, height - 56, min(width - 24, 56 + len(title) * 9), height - 22), fill=(0, 0, 0, 80))
+            draw.text((36, height - 48), title, fill=(226, 232, 240, 210))
+
+        blur_radius = 0.35 if flow_style != "energy" else 0
+        frames.append(img.filter(ImageFilter.GaussianBlur(radius=blur_radius)))
+
+    if cv2 is not None and np is not None:
+        try:
+            writer = cv2.VideoWriter(output_path, cv2.VideoWriter_fourcc(*"mp4v"), fps, (width, height))
+            if writer.isOpened():
+                for frame in frames:
+                    writer.write(cv2.cvtColor(np.array(frame), cv2.COLOR_RGB2BGR))
+                writer.release()
+                if os.path.exists(output_path) and os.path.getsize(output_path) > 0:
+                    return output_path
+            writer.release()
+        except Exception as e:
+            logger.warning(f"Flow MP4 generation failed: {e}")
+
+    gif_path = output_path.replace(".mp4", ".gif")
+    try:
+        frames[0].save(gif_path, save_all=True, append_images=frames[1:], duration=int(1000 / fps), loop=0)
+        return gif_path if os.path.exists(gif_path) else None
+    except Exception as e:
+        logger.error(f"Flow GIF generation failed: {e}")
+        return None
+
 def run_flow_state_mode():
     st.markdown("""
         <div style="background: rgba(18, 19, 26, 0.85); border-radius: 12px; border: 1px solid rgba(255,192,203,0.15); padding: 20px; margin-bottom: 20px;">
-            <h3 style="font-family: 'Orbitron'; font-size: 16px; color: #FFC0CB; margin: 0 0 5px 0;">🌊 Flow State Engine</h3>
-            <p style="color: #94a3b8; font-size: 12px; margin: 0;"> Generate fluid dynamics simulations and particle animations </p>
+            <h3 style="font-family: 'Orbitron'; font-size: 16px; color: #FFC0CB; margin: 0 0 5px 0;">Flow State Engine</h3>
+            <p style="color: #94a3b8; font-size: 12px; margin: 0;">Generate abstract motion loops and fluid visual simulations.</p>
         </div>
     """, unsafe_allow_html=True)
-    fs_col1, fs_col2 = st.columns([1.1, 1.4], gap="medium")
-    with fs_col1:
+
+    flow_col1, flow_col2 = st.columns([1.1, 1.4], gap="medium")
+    with flow_col1:
         with st.container(border=True):
-            st.markdown("<h4 style='font-family: Orbitron; font-size: 13px; color: #FFC0CB; margin-bottom: 15px;'>⚙️ FLOW PARAMETERS</h4>", unsafe_allow_html=True)
-            flow_prompt = st.text_area("Flow Description", placeholder="E.g. Lava flowing down a volcano, ocean waves, smoke particles, water ripples, fire particles...", height=100, key="fs_prompt")
-            duration_sec = st.slider("Animation Duration (seconds)", min_value=2, max_value=10, value=5, key="fs_duration")
-            fps = st.select_slider("Frames Per Second", options=[12, 24, 30, 60], value=24, key="fs_fps")
-            st.markdown("<div class='compact-label'>📊 Animation Quality</div>", unsafe_allow_html=True)
-            fs_quality = st.selectbox("Select Quality", ["Standard", "HD"], key="fs_quality")
+            st.markdown("<h4 style='font-family: Orbitron; font-size: 13px; color: #FFC0CB; margin-bottom: 15px;'>FLOW PARAMETERS</h4>", unsafe_allow_html=True)
+            flow_prompt = st.text_area("Flow Prompt", placeholder="Example: cosmic river of pink neon light through a dark void", height=100, key="flow_prompt")
+            flow_style = st.selectbox("Flow Style", ["liquid", "smoke", "energy", "ocean", "plasma"], key="flow_style")
+            color_theme = st.selectbox("Color Theme", ["neon", "aurora", "ember", "mono"], key="flow_color_theme")
+            speed = st.selectbox("Motion Speed", ["slow", "medium", "fast"], index=1, key="flow_speed")
+            duration_sec = st.slider("Duration", min_value=2, max_value=8, value=4, key="flow_duration")
+            flow_quality = st.selectbox("Select Quality", ["Standard", "HD"], key="flow_quality")
             st.write("")
-            if st.button("🌊 Generate Flow Animation", key="fs_generate_btn", use_container_width=True):
-                success, required_tokens, message = validate_and_deduct_tokens("Flow State", fs_quality)
-                if not success:
-                    st.error(message)
-                elif not flow_prompt.strip():
-                    st.error("Please enter a flow description.")
+            if st.button("Generate Flow Animation", key="flow_generate_btn", use_container_width=True):
+                if not flow_prompt.strip():
+                    st.error("Please enter a flow prompt.")
                 else:
-                    with st.spinner("Generating flow animation from your prompt..."):
-                        animation_path = generate_flow_animation(flow_prompt, duration_sec, fps)
-                        if animation_path:
-                            st.session_state["active_flow_animation"] = animation_path
-                            st.session_state["active_flow_prompt"] = flow_prompt
-                            st.toast("Flow animation generated successfully!")
-                            st.rerun()
-                        else:
-                            st.error("Flow animation generation failed. Please try a different prompt.")
-    with fs_col2:
+                    success, required_tokens, message = validate_and_deduct_tokens("Flow State", flow_quality)
+                    if not success:
+                        st.error(message)
+                    else:
+                        st.success(message)
+                        with st.spinner("Generating flow simulation..."):
+                            flow_path = generate_flow_animation(flow_prompt, flow_style, color_theme, speed, duration_sec)
+                            if flow_path and os.path.exists(flow_path):
+                                st.session_state["active_flow_animation"] = flow_path
+                                saved_flow_name = f"flow_state_{int(time.time())}{os.path.splitext(flow_path)[1]}"
+                                saved_flow_path = os.path.join("saved_renders", saved_flow_name)
+                                os.makedirs("saved_renders", exist_ok=True)
+                                shutil.copy(flow_path, saved_flow_path)
+                                save_render_to_db(st.session_state.get("logged_user"), saved_flow_name, flow_prompt, saved_flow_path)
+                                save_to_json_history(st.session_state.get("logged_user"), saved_flow_name, flow_prompt, saved_flow_path)
+                                st.session_state["history_renders"] = load_renders_history_db(st.session_state.get("logged_user"))
+                                st.toast("Flow animation generated successfully!")
+                                st.rerun()
+                            else:
+                                add_credits(st.session_state.get("logged_user"), required_tokens, "standard")
+                                st.error("Flow animation generation failed.")
+
+    with flow_col2:
         with st.container(border=True):
-            st.markdown("<h3 style='font-family: Orbitron; font-size: 15px; color: #FFC0CB; margin-bottom: 15px; letter-spacing: 0.5px;'>🌊 FLOW ANIMATION VIEWER</h3>", unsafe_allow_html=True)
+            st.markdown("<h3 style='font-family: Orbitron; font-size: 15px; color: #FFC0CB; margin-bottom: 15px; letter-spacing: 0.5px;'>FLOW OUTPUT</h3>", unsafe_allow_html=True)
             active_flow = st.session_state.get("active_flow_animation")
             if active_flow and os.path.exists(active_flow):
-                if active_flow.lower().endswith('.mp4'):
+                ext = os.path.splitext(active_flow)[1].lower()
+                if ext == ".mp4":
                     st.video(active_flow, format="video/mp4", autoplay=True, loop=True, muted=True)
                 else:
                     st.image(active_flow, use_container_width=True)
@@ -6039,76 +6147,20 @@ def run_flow_state_mode():
                 with col_dl:
                     with open(active_flow, "rb") as f:
                         flow_bytes = f.read()
-                    ext = os.path.splitext(active_flow)[1].lower()
-                    st.download_button(
-                        label=f"📥 Download Animation ({ext.upper()})",
-                        data=flow_bytes,
-                        file_name=f"zovix_flow{ext}",
-                        mime="video/mp4" if ext != '.gif' else "image/gif",
-                        use_container_width=True,
-                        key="fs_download_btn"
-                    )
+                    mime = "video/mp4" if ext == ".mp4" else "image/gif"
+                    st.download_button(label="Download Flow", data=flow_bytes, file_name=os.path.basename(active_flow), mime=mime, use_container_width=True, key="flow_download_btn")
                 with col_clr:
-                    if st.button("🧹 Clear Animation", key="fs_clear_btn", use_container_width=True):
-                        safe_remove_file(active_flow)
+                    if st.button("Clear Flow", key="flow_clear_btn", use_container_width=True):
                         st.session_state["active_flow_animation"] = None
                         st.rerun()
-            elif active_flow:
-                st.error("❌ Generation pipeline returned an invalid path or missing file. Check API balance or backend logs.")
             else:
-                st.info("Flow animation will render here once generation completes.")
-
-def generate_flow_animation(prompt, duration=5, fps=24):
-    animation_path = None
-    os.makedirs("flow_animations", exist_ok=True)
-    width, height = 1920, 1080
-    full_prompt = f"Fluid flow, particle system, dynamic motion, {prompt}, vibrant colors, smooth animation, cinematic"
-
-    # 1) First try the model pipeline that returns a generated image or video.
-    if STABILITY_API_KEY:
-        try:
-            url = "https://api.stability.ai/v2beta/stable-image/generate/core"
-            headers = {"authorization": f"Bearer {STABILITY_API_KEY}", "accept": "image/*"}
-            data = {"prompt": full_prompt, "output_format": "png", "aspect_ratio": "16:9", "negative_prompt": "static, blurry, low quality"}
-            files = {k: (None, str(v)) for k, v in data.items()}
-            response = requests.post(url, headers=headers, files=files, timeout=45)
-            if response.status_code == 200 and len(response.content) > 10000:
-                image_path = f"flow_animations/flow_{uuid.uuid4().hex[:8]}.png"
-                with open(image_path, "wb") as f:
-                    f.write(response.content)
-                output_video_path = image_path.replace('.png', '.mp4')
-                if VisualEngine.convert_image_to_video(image_path, output_video_path, duration, width, height):
-                    safe_remove_file(image_path)
-                    return output_video_path
-                return image_path
-        except Exception as e:
-            logger.warning(f"Flow State generation via Stability API failed: {e}")
-
-    # 2) If direct image generation is unavailable, try our general AI video pipeline.
-    try:
-        ai_video_url = generate_ai_video(full_prompt)
-        if ai_video_url:
-            output_video_path = f"flow_animations/flow_{uuid.uuid4().hex[:8]}.mp4"
-            with requests.get(ai_video_url, stream=True, timeout=45) as r:
-                if r.status_code == 200:
-                    with open(output_video_path, "wb") as f:
-                        for chunk in r.iter_content(chunk_size=8192):
-                            if chunk:
-                                f.write(chunk)
-                    if os.path.exists(output_video_path) and os.path.getsize(output_video_path) > 100000:
-                        return output_video_path
-    except Exception as e:
-        logger.warning(f"Flow State video download failed: {e}")
-
-    # 3) Fallback to our text-to-image drawing model if video generation fails.
-    try:
-        image_path = generate_drawing(prompt, style="realistic", canvas_size=(width, height))
-        if image_path and os.path.exists(image_path) and os.path.getsize(image_path) > 10000:
-            return image_path
-    except Exception as e:
-        logger.warning(f"Flow State fallback drawing failed: {e}")
-
-    return None
+                st.markdown("""
+                    <div class="canvas-container-box" style="height: 380px; min-height: 380px; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #64748b; text-align: center; padding: 12px; overflow: hidden;">
+                        <span style="font-size: 50px; margin-bottom: 12px;">~</span>
+                        <p style="font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 500; color: #FFC0CB; margin: 0;">Flow animation will render here</p>
+                        <p style="font-size: 11px; color: #a0a0a0; max-width:400px; text-align:center; margin-top: 5px; line-height: 1.4;">Create motion loops for backgrounds, reels, and abstract visuals.</p>
+                    </div>
+                """, unsafe_allow_html=True)
 
 def run_upscaler_mode():
     st.markdown("""
@@ -6771,20 +6823,17 @@ def run_cinematic_engine():
         with p_cols[1]:
             st.markdown("<div class='generate-btn-wrapper'>", unsafe_allow_html=True)
             if st.button("Generate", key="studio_generate_action_btn", use_container_width=True):
-                success, required_tokens, message = validate_and_deduct_tokens("Cinematic Engine", cinematic_quality)
+                success, required_tokens, message = validate_and_deduct_tokens("Cinematic Engine", cinematic_quality, deduct=False)
                 if not success:
                     st.error(message)
                 else:
                     st.success(message)
-                    user_credits = get_user_credits_db(st.session_state["logged_user"])
-                    required_credits = 1 if "720p" in st.session_state["res_choice"] else 2
                     if not user_input.strip():
                         st.error("Provide prompt parameters to begin rendering.")
-                    elif not credit_check(st.session_state["logged_user"], required_credits):
-                        st.error(f"Low Credit Error! Required: {required_credits}, Available: {user_credits}")
                     else:
                         st.session_state["studio_prompt_value"] = user_input
                         st.session_state["studio_prompt_mode"] = input_mode
+                        st.session_state["cinematic_reserved_tokens"] = required_tokens
                         st.session_state["trigger_render"] = True
                         st.session_state["render_failed"] = False
                         st.rerun()
@@ -8562,7 +8611,11 @@ elif st.session_state["current_page"] == "studio":
                             """, unsafe_allow_html=True)
                         if os.path.exists(file_path):
                             try:
-                                st.video(file_path, format="video/mp4", autoplay=False, loop=True, muted=False)
+                                preview_ext = os.path.splitext(file_path)[1].lower()
+                                if preview_ext in [".gif", ".png", ".jpg", ".jpeg", ".webp"]:
+                                    st.image(file_path, use_container_width=True)
+                                else:
+                                    st.video(file_path, format="video/mp4", autoplay=False, loop=True, muted=False)
                             except:
                                 st.markdown("""
                                     <div style="height: 120px; width: 100%; border-radius: 6px; overflow: hidden; border: 1px solid rgba(255,192,203,0.2); display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle, #1e1b29 0%, #0a0a0f 100%); margin-bottom: 10px;">

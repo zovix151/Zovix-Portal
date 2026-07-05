@@ -1923,3 +1923,731 @@
 2026-07-02 17:35:58,266 - Zovix - INFO - Started 4 threaded workers
 2026-07-02 17:35:58,266 - Zovix - INFO - Load balancer initialized with 4 workers
 2026-07-02 17:35:58,273 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:29:48,750 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:29:48,756 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:29:48,758 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:29:48,760 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:29:48,777 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:29:48,792 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:29:48,796 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:29:50,037 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:29:57,507 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:29:57,508 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:29:57,509 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:29:57,511 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:29:57,512 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:29:57,516 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:29:57,516 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:29:57,524 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:29:59,909 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:29:59,910 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:29:59,911 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:29:59,912 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:29:59,914 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:29:59,919 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:29:59,920 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:29:59,936 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:30:09,384 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:30:09,386 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:30:09,386 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:30:09,388 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:30:09,388 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:30:09,390 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:30:09,396 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:30:09,407 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:30:09,622 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:30:09,625 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:30:09,628 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:30:09,638 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:30:09,640 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:30:09,643 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:30:09,643 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:30:09,652 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:30:21,793 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:30:21,794 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:30:21,795 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:30:21,796 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:30:21,797 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:30:21,800 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:30:21,800 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:30:21,808 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:30:21,998 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:30:22,003 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:30:22,004 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:30:22,005 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:30:22,007 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:30:22,014 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:30:22,015 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:30:22,023 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:30:33,611 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:30:33,612 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:30:33,614 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:30:33,615 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:30:33,616 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:30:33,621 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:30:33,621 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:30:33,629 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:31:30,764 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:31:30,765 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:31:30,767 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:31:30,768 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:31:30,769 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:31:30,771 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:31:30,771 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:31:30,779 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:32:34,349 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:32:34,349 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:32:34,350 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:32:34,350 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:32:34,350 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:32:34,351 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:32:34,351 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:32:34,353 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:32:34,614 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:32:34,615 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:32:34,617 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:32:34,618 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:32:34,619 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:32:34,623 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:32:34,625 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:32:34,634 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:32:35,565 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:32:35,567 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:32:35,568 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:32:35,569 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:32:35,570 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:32:35,573 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:32:35,574 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:32:35,582 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:32:43,602 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:32:43,603 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:32:43,604 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:32:43,605 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:32:43,606 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:32:43,611 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:32:43,612 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:32:43,623 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:32:49,123 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:32:49,124 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:32:49,125 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:32:49,126 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:32:49,127 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:32:49,130 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:32:49,130 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:32:49,139 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:32:53,643 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:32:53,645 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:32:53,648 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:32:53,652 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:32:53,654 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:32:53,658 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:32:53,659 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:32:53,675 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:34:03,614 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:34:03,616 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:34:03,618 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:34:03,619 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:34:03,622 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:34:03,625 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:34:03,626 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:34:03,639 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:34:03,876 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:34:03,877 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:34:03,878 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:34:03,879 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:34:03,881 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:34:03,883 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:34:03,884 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:34:03,895 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:34:53,938 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:34:53,939 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:34:53,941 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:34:53,942 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:34:53,944 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:34:53,949 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:34:53,949 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:34:53,961 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:34:55,042 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:34:55,043 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:34:55,044 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:34:55,045 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:34:55,046 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:34:55,048 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:34:55,048 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:34:55,056 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:34:57,609 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:34:57,610 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:34:57,611 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:34:57,612 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:34:57,613 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:34:57,615 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:34:57,615 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:34:57,625 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:34:59,552 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:34:59,553 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:34:59,553 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:34:59,555 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:34:59,556 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:34:59,559 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:34:59,559 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:34:59,566 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:35:01,821 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:35:01,822 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:35:01,822 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:35:01,823 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:35:01,824 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:35:01,826 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:35:01,826 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:35:01,835 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:35:03,910 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:35:03,911 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:35:03,912 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:35:03,913 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:35:03,915 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:35:03,919 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:35:03,920 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:35:03,928 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:35:27,773 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:35:27,775 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:35:27,776 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:35:27,777 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:35:27,778 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:35:27,781 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:35:27,782 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:35:27,790 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:35:32,924 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:35:32,926 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:35:32,927 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:35:32,929 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:35:32,930 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:35:32,933 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:35:32,934 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:35:32,940 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:35:47,686 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:35:47,687 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:35:47,688 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:35:47,689 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:35:47,690 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:35:47,692 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:35:47,692 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:35:47,701 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:35:53,358 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:35:53,359 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:35:53,360 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:35:53,361 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:35:53,362 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:35:53,364 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:35:53,364 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:35:53,374 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:35:55,058 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:35:55,060 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:35:55,061 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:35:55,062 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:35:55,064 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:35:55,073 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:35:55,073 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:35:55,084 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:36:10,357 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:36:10,358 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:36:10,359 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:36:10,361 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:36:10,362 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:36:10,364 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:36:10,365 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:36:10,376 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:36:12,395 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:36:12,397 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:36:12,398 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:36:12,399 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:36:12,401 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:36:12,404 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:36:12,405 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:36:12,413 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:36:13,699 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:36:13,701 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:36:13,703 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:36:13,705 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:36:13,706 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:36:13,708 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:36:13,709 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:36:13,719 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:37:20,850 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:37:20,851 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:37:20,852 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:37:20,853 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:37:20,855 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:37:20,860 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:37:20,860 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:37:20,872 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:37:21,123 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:37:21,125 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:37:21,127 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:37:21,129 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:37:21,135 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:37:21,137 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:37:21,138 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:37:21,155 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:37:55,495 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:37:55,496 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:37:55,498 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:37:55,499 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:37:55,500 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:37:55,502 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:37:55,503 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:37:55,510 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:38:00,325 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:38:00,326 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:38:00,327 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:38:00,328 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:38:00,329 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:38:00,331 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:38:00,332 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:38:00,344 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:38:02,582 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:38:02,583 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:38:02,584 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:38:02,585 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:38:02,586 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:38:02,588 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:38:02,589 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:38:02,599 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:38:59,572 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:38:59,574 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:38:59,575 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:38:59,577 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:38:59,584 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:38:59,587 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:38:59,588 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:38:59,601 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:38:59,838 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:38:59,840 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:38:59,841 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:38:59,842 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:38:59,844 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:38:59,857 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:38:59,857 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:38:59,870 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:39:01,832 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:39:01,833 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:39:01,834 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:39:01,835 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:39:01,836 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:39:01,838 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:39:01,838 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:39:01,847 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:39:03,720 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:39:03,722 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:39:03,724 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:39:03,726 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:39:03,729 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:39:03,733 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:39:03,734 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:39:03,751 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:40:16,219 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:40:16,220 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:40:16,221 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:40:16,222 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:40:16,223 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:40:16,226 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:40:16,226 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:40:16,235 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:40:16,464 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:40:16,469 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:40:16,471 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:40:16,472 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:40:16,473 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:40:16,481 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:40:16,481 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:40:16,492 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:40:17,411 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:40:17,412 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:40:17,412 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:40:17,413 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:40:17,414 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:40:17,416 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:40:17,416 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:40:17,425 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:40:17,650 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:40:17,652 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:40:17,654 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:40:17,655 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:40:17,656 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:40:17,659 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:40:17,660 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:40:17,668 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:41:31,393 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:41:31,394 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:41:31,395 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:41:31,396 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:41:31,397 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:41:31,399 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:41:31,417 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:41:31,428 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:41:31,684 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:41:31,686 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:41:31,689 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:41:31,692 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:41:31,694 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:41:31,698 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:41:31,699 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:41:31,707 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:41:31,968 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:41:31,971 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:41:31,973 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:41:31,979 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:41:31,981 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:41:31,985 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:41:31,985 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:41:31,995 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:41:34,785 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:41:34,786 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:41:34,787 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:41:34,788 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:41:34,789 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:41:34,791 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:41:34,792 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:41:34,800 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:41:35,120 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:41:35,122 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:41:35,123 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:41:35,124 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:41:35,125 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:41:35,126 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:41:35,128 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:41:35,138 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:41:38,122 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:41:38,123 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:41:38,124 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:41:38,125 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:41:38,126 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:41:38,128 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:41:38,128 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:41:38,141 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:41:38,438 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:41:38,441 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:41:38,442 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:41:38,443 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:41:38,445 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:41:38,453 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:41:38,454 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:41:38,465 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:41:59,732 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:41:59,733 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:41:59,734 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:41:59,735 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:41:59,737 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:41:59,738 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:41:59,739 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:41:59,750 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:42:01,288 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:42:01,289 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:42:01,290 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:42:01,291 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:42:01,292 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:42:01,295 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:42:01,295 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:42:01,304 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:42:01,600 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:42:01,603 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:42:01,606 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:42:01,607 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:42:01,616 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:42:01,620 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:42:01,621 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:42:01,630 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:42:08,711 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:42:08,712 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:42:08,712 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:42:08,712 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:42:08,713 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:42:08,714 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:42:08,715 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:42:08,723 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:42:09,716 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:42:09,717 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:42:09,718 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:42:09,719 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:42:09,720 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:42:09,723 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:42:09,723 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:42:09,730 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:42:11,143 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:42:11,144 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:42:11,145 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:42:11,147 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:42:11,148 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:42:11,154 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:42:11,155 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:42:11,169 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:42:20,001 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:42:20,002 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:42:20,003 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:42:20,004 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:42:20,005 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:42:20,007 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:42:20,007 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:42:20,019 - Zovix - INFO - Database initialized successfully
+2026-07-03 12:42:20,304 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-03 12:42:20,304 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-03 12:42:20,305 - Zovix - WARNING - stripe not installed.
+2026-07-03 12:42:20,305 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-03 12:42:20,306 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-03 12:42:20,309 - Zovix - INFO - Started 4 threaded workers
+2026-07-03 12:42:20,319 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-03 12:42:20,332 - Zovix - INFO - Database initialized successfully
+2026-07-04 15:00:04,544 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-04 15:00:04,545 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-04 15:00:04,546 - Zovix - WARNING - stripe not installed.
+2026-07-04 15:00:04,547 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-04 15:00:04,553 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-04 15:00:04,561 - Zovix - INFO - Started 4 threaded workers
+2026-07-04 15:00:04,562 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-04 15:00:05,760 - Zovix - INFO - Database initialized successfully
+2026-07-04 15:00:09,162 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-04 15:00:09,164 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-04 15:00:09,166 - Zovix - WARNING - stripe not installed.
+2026-07-04 15:00:09,168 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-04 15:00:09,169 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-04 15:00:09,172 - Zovix - INFO - Started 4 threaded workers
+2026-07-04 15:00:09,176 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-04 15:00:09,201 - Zovix - INFO - Database initialized successfully
+2026-07-04 15:00:12,761 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-04 15:00:12,763 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-04 15:00:12,765 - Zovix - WARNING - stripe not installed.
+2026-07-04 15:00:12,767 - Zovix - WARNING - paypalrestsdk not installed.
+2026-07-04 15:00:12,769 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-04 15:00:12,772 - Zovix - INFO - Started 4 threaded workers
+2026-07-04 15:00:12,773 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-04 15:00:12,785 - Zovix - INFO - Database initialized successfully
+2026-07-04 18:16:18,954 - Zovix - WARNING - google-genai not installed. Using fallback script generation.
+2026-07-04 18:16:27,648 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:16:27,711 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-04 18:16:31,805 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:16:32,778 - Zovix - INFO - Database initialized successfully
+2026-07-04 18:16:36,731 - Zovix - WARNING - google-genai not installed. Using fallback script generation.
+2026-07-04 18:16:40,803 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:16:40,805 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-04 18:16:44,921 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:16:44,935 - Zovix - INFO - Database initialized successfully
+2026-07-04 18:16:48,330 - Zovix - WARNING - google-genai not installed. Using fallback script generation.
+2026-07-04 18:16:52,437 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:16:52,441 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-04 18:16:56,559 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:16:56,572 - Zovix - INFO - Database initialized successfully
+2026-07-04 18:17:05,565 - Zovix - WARNING - google-genai not installed. Using fallback script generation.
+2026-07-04 18:17:09,674 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:17:09,677 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-04 18:17:13,759 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:17:13,769 - Zovix - INFO - Database initialized successfully
+2026-07-04 18:17:17,927 - Zovix - WARNING - google-genai not installed. Using fallback script generation.
+2026-07-04 18:17:22,019 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:17:22,020 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-04 18:17:26,078 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:17:26,085 - Zovix - INFO - Database initialized successfully
+2026-07-04 18:18:19,578 - Zovix - WARNING - google-genai not installed. Using fallback script generation.
+2026-07-04 18:18:23,655 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:18:23,659 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-04 18:18:27,738 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:18:27,756 - Zovix - INFO - Database initialized successfully
+2026-07-04 18:18:30,123 - Zovix - WARNING - google-genai not installed. Using fallback script generation.
+2026-07-04 18:18:34,203 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:18:34,206 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-04 18:18:38,300 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:18:38,311 - Zovix - INFO - Database initialized successfully
+2026-07-04 18:18:50,860 - Zovix - WARNING - google-genai not installed. Using fallback script generation.
+2026-07-04 18:18:54,970 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:18:54,972 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-04 18:18:59,070 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:18:59,079 - Zovix - INFO - Database initialized successfully
+2026-07-04 18:19:07,724 - Zovix - WARNING - google-genai not installed. Using fallback script generation.
+2026-07-04 18:19:11,819 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:19:11,822 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-04 18:19:15,892 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:19:15,904 - Zovix - INFO - Database initialized successfully
+2026-07-04 18:19:20,172 - Zovix - WARNING - google-genai not installed. Using fallback script generation.
+2026-07-04 18:19:24,271 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:19:24,272 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-04 18:19:28,347 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:19:28,353 - Zovix - INFO - Database initialized successfully
+2026-07-04 18:22:42,807 - Zovix - WARNING - google-genai not installed. Using fallback script generation.
+2026-07-04 18:22:46,886 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:22:46,890 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-04 18:22:50,960 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:22:50,979 - Zovix - INFO - Database initialized successfully
+2026-07-04 18:22:53,582 - Zovix - WARNING - google-genai not installed. Using fallback script generation.
+2026-07-04 18:22:57,686 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:22:57,689 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-04 18:23:01,774 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:23:01,784 - Zovix - INFO - Database initialized successfully
+2026-07-04 18:23:04,409 - Zovix - WARNING - google-genai not installed. Using fallback script generation.
+2026-07-04 18:23:08,535 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:23:08,539 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-04 18:23:12,640 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:23:12,649 - Zovix - INFO - Database initialized successfully
+2026-07-04 18:23:15,041 - Zovix - WARNING - google-genai not installed. Using fallback script generation.
+2026-07-04 18:23:19,113 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:23:19,115 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-04 18:23:23,177 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:23:23,186 - Zovix - INFO - Database initialized successfully
+2026-07-04 18:23:25,346 - Zovix - WARNING - google-genai not installed. Using fallback script generation.
+2026-07-04 18:23:29,421 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:23:29,424 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-04 18:23:33,531 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:28:05,617 - Zovix - WARNING - google-genai not installed. Using fallback script generation.
+2026-07-04 18:28:10,218 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:28:10,237 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-04 18:28:14,362 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:28:15,117 - Zovix - INFO - Database initialized successfully
+2026-07-04 18:28:17,598 - Zovix - WARNING - google-genai not installed. Using fallback script generation.
+2026-07-04 18:28:21,689 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:28:21,693 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-04 18:28:25,742 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:28:25,744 - Zovix - INFO - Database initialized successfully
+2026-07-04 18:28:45,202 - Zovix - WARNING - google-genai not installed. Using fallback script generation.
+2026-07-04 18:28:49,307 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:28:49,308 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-04 18:28:53,412 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:28:53,423 - Zovix - INFO - Database initialized successfully
+2026-07-04 18:29:41,589 - Zovix - WARNING - google-genai not installed. Using fallback script generation.
+2026-07-04 18:29:45,681 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:29:45,684 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-04 18:29:49,770 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:29:49,786 - Zovix - INFO - Database initialized successfully
+2026-07-04 18:29:51,580 - Zovix - WARNING - google-genai not installed. Using fallback script generation.
+2026-07-04 18:29:55,646 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:29:55,650 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-04 18:29:59,719 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:29:59,730 - Zovix - INFO - Database initialized successfully
+2026-07-04 18:30:02,626 - Zovix - WARNING - google-genai not installed. Using fallback script generation.
+2026-07-04 18:30:06,750 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:30:06,753 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-04 18:30:10,837 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:30:10,848 - Zovix - INFO - Database initialized successfully
+2026-07-04 18:30:19,093 - Zovix - WARNING - google-genai not installed. Using fallback script generation.
+2026-07-04 18:30:23,207 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:30:23,209 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-04 18:30:27,321 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:30:27,333 - Zovix - INFO - Database initialized successfully
+2026-07-04 18:30:31,608 - Zovix - WARNING - google-genai not installed. Using fallback script generation.
+2026-07-04 18:30:35,682 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:30:35,686 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-04 18:30:39,758 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:30:39,769 - Zovix - INFO - Database initialized successfully
+2026-07-04 18:36:16,874 - Zovix - WARNING - google-genai not installed. Using fallback script generation.
+2026-07-04 18:36:16,955 - Zovix - WARNING - google-genai not installed. Using fallback script generation.
+2026-07-04 18:36:20,994 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:36:20,995 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-04 18:36:21,025 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:36:21,026 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-04 18:36:25,067 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:36:25,178 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:36:25,189 - Zovix - INFO - Database initialized successfully
+2026-07-04 18:36:29,604 - Zovix - WARNING - google-genai not installed. Using fallback script generation.
+2026-07-04 18:36:33,664 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:36:33,666 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-04 18:36:37,741 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:36:37,747 - Zovix - INFO - Database initialized successfully
+2026-07-04 18:38:38,803 - Zovix - WARNING - google-genai not installed. Using fallback script generation.
+2026-07-04 18:38:43,429 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:38:43,447 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-04 18:38:47,496 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:38:48,391 - Zovix - INFO - Database initialized successfully
+2026-07-04 18:38:50,368 - Zovix - WARNING - google-genai not installed. Using fallback script generation.
+2026-07-04 18:38:54,452 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:38:54,452 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-04 18:38:58,558 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:38:58,569 - Zovix - INFO - Database initialized successfully
+2026-07-04 18:39:01,226 - Zovix - WARNING - google-genai not installed. Using fallback script generation.
+2026-07-04 18:39:05,305 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:39:05,306 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-04 18:39:09,398 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:39:09,404 - Zovix - INFO - Database initialized successfully
+2026-07-04 18:39:19,556 - Zovix - WARNING - google-genai not installed. Using fallback script generation.
+2026-07-04 18:39:23,627 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:39:23,628 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-04 18:39:27,722 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:39:27,729 - Zovix - INFO - Database initialized successfully
+2026-07-04 18:39:31,874 - Zovix - WARNING - google-genai not installed. Using fallback script generation.
+2026-07-04 18:39:35,960 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:39:35,962 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-04 18:39:40,037 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:39:40,048 - Zovix - INFO - Database initialized successfully
+2026-07-04 18:40:45,414 - Zovix - WARNING - google-genai not installed. Using fallback script generation.
+2026-07-04 18:40:49,549 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:40:49,554 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-04 18:40:53,643 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:40:53,661 - Zovix - INFO - Database initialized successfully
+2026-07-04 18:41:04,550 - Zovix - WARNING - google-genai not installed. Using fallback script generation.
+2026-07-04 18:41:08,648 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:41:08,651 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-04 18:41:12,778 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:41:12,792 - Zovix - INFO - Database initialized successfully
+2026-07-04 18:41:15,647 - Zovix - WARNING - google-genai not installed. Using fallback script generation.
+2026-07-04 18:41:19,748 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:41:19,749 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-04 18:41:23,840 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 18:41:23,847 - Zovix - INFO - Database initialized successfully
+2026-07-04 19:08:49,939 - Zovix - WARNING - google-genai not installed. Using fallback script generation.
+2026-07-04 19:08:55,247 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 19:08:55,278 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-04 19:08:59,338 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 19:09:00,401 - Zovix - INFO - Database initialized successfully
+2026-07-04 19:09:03,062 - Zovix - WARNING - google-genai not installed. Using fallback script generation.
+2026-07-04 19:09:07,133 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 19:09:07,135 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-04 19:09:11,199 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-04 19:09:11,208 - Zovix - INFO - Database initialized successfully
+2026-07-05 16:33:27,980 - Zovix - WARNING - google-genai not installed. Using fallback script generation.
+2026-07-05 16:33:34,351 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-05 16:33:34,401 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-05 16:33:38,457 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-05 16:33:39,451 - Zovix - INFO - Database initialized successfully
+2026-07-05 16:33:41,663 - Zovix - WARNING - google-genai not installed. Using fallback script generation.
+2026-07-05 16:33:45,731 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-05 16:33:45,734 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-05 16:33:49,807 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-05 16:33:49,819 - Zovix - INFO - Database initialized successfully
+2026-07-05 16:33:52,286 - Zovix - WARNING - google-genai not installed. Using fallback script generation.
+2026-07-05 16:33:56,366 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-05 16:33:56,368 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-05 16:34:00,456 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-05 16:34:00,468 - Zovix - INFO - Database initialized successfully
+2026-07-05 16:34:08,370 - Zovix - WARNING - google-genai not installed. Using fallback script generation.
+2026-07-05 16:34:12,458 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-05 16:34:12,462 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-05 16:34:16,542 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-05 16:34:16,551 - Zovix - INFO - Database initialized successfully
+2026-07-05 16:34:20,836 - Zovix - WARNING - google-genai not installed. Using fallback script generation.
+2026-07-05 16:34:24,935 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-05 16:34:24,938 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-05 16:34:29,024 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-05 16:34:29,035 - Zovix - INFO - Database initialized successfully
+2026-07-05 16:35:48,553 - Zovix - WARNING - google-genai not installed. Using fallback script generation.
+2026-07-05 16:35:48,656 - Zovix - WARNING - google-genai not installed. Using fallback script generation.
+2026-07-05 16:35:52,619 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-05 16:35:52,622 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-05 16:35:52,743 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-05 16:35:52,747 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-05 16:35:56,719 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-05 16:35:56,843 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-05 16:35:56,854 - Zovix - INFO - Database initialized successfully
+2026-07-05 16:36:01,256 - Zovix - WARNING - google-genai not installed. Using fallback script generation.
+2026-07-05 16:36:05,362 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-05 16:36:05,366 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-05 16:36:09,475 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-05 16:36:09,485 - Zovix - INFO - Database initialized successfully
+2026-07-05 16:38:23,841 - Zovix - WARNING - google-genai not installed. Using fallback script generation.
+2026-07-05 16:38:28,440 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-05 16:38:28,453 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-05 16:38:32,571 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-05 16:38:33,367 - Zovix - INFO - Database initialized successfully
+2026-07-05 16:38:35,075 - Zovix - WARNING - google-genai not installed. Using fallback script generation.
+2026-07-05 16:38:39,162 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-05 16:38:39,165 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-05 16:38:43,234 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-05 16:38:43,244 - Zovix - INFO - Database initialized successfully
+2026-07-05 16:38:45,672 - Zovix - WARNING - google-genai not installed. Using fallback script generation.
+2026-07-05 16:38:49,773 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-05 16:38:49,777 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-05 16:38:53,882 - Zovix - WARNING - Redis not available: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+2026-07-05 16:38:53,892 - Zovix - INFO - Database initialized successfully
