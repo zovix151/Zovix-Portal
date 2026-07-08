@@ -93,12 +93,8 @@ RUNWAY_API_KEY = get_system_secret("RUNWAY_API_KEY")
 HUGGINGFACE_API_KEY = get_system_secret("HUGGINGFACE_API_KEY")
 DEEPSEEK_API_KEY = get_system_secret("DEEPSEEK_API_KEY")
 REPLICATE_API_KEY = get_system_secret("REPLICATE_API_KEY")
-STRIPE_PUBLISHABLE_KEY = get_system_secret("STRIPE_PUBLISHABLE_KEY")
-STRIPE_SECRET_KEY = get_system_secret("STRIPE_SECRET_KEY")
-PAYPAL_CLIENT_ID = get_system_secret("PAYPAL_CLIENT_ID")
-PAYPAL_SECRET = get_system_secret("PAYPAL_SECRET")
-BINANCE_API_KEY = get_system_secret("BINANCE_API_KEY")
-BINANCE_API_SECRET = get_system_secret("BINANCE_API_SECRET")
+AZURE_SPEECH_KEY = get_system_secret("AZURE_SPEECH_KEY")
+AZURE_SPEECH_REGION = get_system_secret("AZURE_SPEECH_REGION", "eastus")
 CLOUDFLARE_ZONE_ID = get_system_secret("CLOUDFLARE_ZONE_ID")
 CLOUDFLARE_API_KEY = get_system_secret("CLOUDFLARE_API_KEY")
 CDN_DOMAIN = get_system_secret("CDN_DOMAIN", "")
@@ -114,15 +110,6 @@ try:
 except ImportError:
     has_genai = False
     logger.warning("google-genai not installed. Using fallback script generation.")
-
-try:
-    from streamlit.runtime.scriptrunner import add_script_run_context
-except ImportError:
-    try:
-        from streamlit.runtime.scriptrunner.script_run_context import add_script_run_context
-    except ImportError:
-        def add_script_run_context(thread):
-            pass
 
 try:
     from huggingface_hub import InferenceClient
@@ -162,20 +149,6 @@ try:
 except ImportError:
     HAS_CELERY = False
     logger.warning("celery not installed. Using threaded queue.")
-
-try:
-    import stripe
-    HAS_STRIPE = True
-except ImportError:
-    HAS_STRIPE = False
-    logger.warning("stripe not installed.")
-
-try:
-    import paypalrestsdk
-    HAS_PAYPAL = True
-except ImportError:
-    HAS_PAYPAL = False
-    logger.warning("paypalrestsdk not installed.")
 
 try:
     from cryptography.fernet import Fernet
@@ -859,7 +832,7 @@ if "studio_active_mode" not in st.session_state:
 if "active_node" not in st.session_state:
     st.session_state["active_node"] = "setup"
 if "sidebar_tab" not in st.session_state:
-    st.session_state["sidebar_tab"] = "⚙️ Setup Config"
+    st.session_state["sidebar_tab"] = "🚀 Zovix Mass Factory"
 if "quick_template_mode" not in st.session_state:
     st.session_state["quick_template_mode"] = True
 if "model_choice" not in st.session_state:
@@ -894,8 +867,6 @@ if "active_svd_video" not in st.session_state:
     st.session_state["active_svd_video"] = None
 if "active_blueprint" not in st.session_state:
     st.session_state["active_blueprint"] = None
-if "active_flow_animation" not in st.session_state:
-    st.session_state["active_flow_animation"] = None
 if "active_upscaled_image" not in st.session_state:
     st.session_state["active_upscaled_image"] = None
 if "active_drawing" not in st.session_state:
@@ -954,6 +925,8 @@ if "2fa_enabled" not in st.session_state:
     st.session_state["2fa_enabled"] = False
 if "2fa_verified" not in st.session_state:
     st.session_state["2fa_verified"] = False
+if "mass_factory_visible" not in st.session_state:
+    st.session_state["mass_factory_visible"] = False
 
 # Payment related
 if "razorpay_order_id" not in st.session_state:
@@ -981,24 +954,15 @@ if "payment_currency" not in st.session_state:
 if "user_country" not in st.session_state:
     st.session_state["user_country"] = "IN"
 
-# Inject global CSS to constrain app width and prevent horizontal overflow
-st.markdown("""
-    <style>
-        /* Poore block container ko center align karne ke liye */
-        [data-testid="stMainBlockContainer"] {
-            max-width: 90% !important;
-            padding-left: 3rem !important;
-            padding-right: 3rem !important;
-            margin: 0 auto !important;
-        }
-        
-        /* Buttons waale row ko laptop screen par stretch hone se rokne ke liye */
-        [data-testid="stHorizontalBlock"] {
-            flex-wrap: wrap !important;
-            gap: 10px !important;
-        }
-    </style>
-""", unsafe_allow_html=True)
+# DeepSeek Blueprint state
+if "deepseek_blueprint_data" not in st.session_state:
+    st.session_state["deepseek_blueprint_data"] = None
+if "deepseek_blueprint_visible" not in st.session_state:
+    st.session_state["deepseek_blueprint_visible"] = False
+if "deepseek_scenes" not in st.session_state:
+    st.session_state["deepseek_scenes"] = []
+if "deepseek_music_mood" not in st.session_state:
+    st.session_state["deepseek_music_mood"] = "cinematic"
 
 # Dynamic UI
 if "dynamic_ui_profile_mode" not in st.session_state:
@@ -1056,11 +1020,8 @@ try:
 except Exception:
     razorpay_client = None
 
-if HAS_STRIPE and STRIPE_SECRET_KEY:
-    stripe.api_key = STRIPE_SECRET_KEY
-
 # ========================================================
-# 10. ELEVENLABS VOICE OPTIONS
+# 10. ELEVENLABS VOICE OPTIONS (EXPANDED)
 # ========================================================
 
 ELEVENLABS_VOICES = {
@@ -1083,11 +1044,14 @@ ELEVENLABS_VOICES = {
     "Sophie (French Female)": {"id": "mB3Pv8Dq5rRw1tT9bX5yE", "gender": "female", "accent": "French", "language": "French"},
     "Kenji (Japanese Male)": {"id": "nC4Qw9Er6sSx2uU0cY6zF", "gender": "male", "accent": "Japanese", "language": "Japanese"},
     "Yuki (Japanese Female)": {"id": "oD5Rx0Fs7tTy3vV1dZ7aG", "gender": "female", "accent": "Japanese", "language": "Japanese"},
+    "Anjura (Expressive Hindi Female)": {"id": "tX7Pq5Zn3yMs8rR2uB9vC", "gender": "female", "accent": "Indian", "language": "Hindi"},
+    "Adit (Youthful Hindi Male)": {"id": "uY8Qr6Ao4zNt9sS3vC0wD", "gender": "male", "accent": "Indian", "language": "Hindi"},
+    "Anvi (Soft Hindi Female)": {"id": "vZ9Rs7Bp5aOu0tT4wD1xE", "gender": "female", "accent": "Indian", "language": "Hindi"},
 }
 
 LANGUAGE_VOICE_MAP = {
     "English": ["Adam (Premium Male)", "Rachel (Premium Female)", "Drew (Professional Male)", "Bella (Warm Female)", "Antoni (Deep Male)", "Charlotte (Elegant Female)", "Josh (Young Male)", "Emily (Professional Female)", "James (Narrator Male)", "Sarah (Soothing Female)"],
-    "Hindi": ["Arjun (Hindi Male)", "Priya (Hindi Female)", "Ravi (Hindi Professional Male)"],
+    "Hindi": ["Arjun (Hindi Male)", "Priya (Hindi Female)", "Ravi (Hindi Professional Male)", "Anjura (Expressive Hindi Female)", "Adit (Youthful Hindi Male)", "Anvi (Soft Hindi Female)"],
     "Bhojpuri": ["Vikram (Bhojpuri Male)", "Sita (Bhojpuri Female)"],
     "French": ["Pierre (French Male)", "Sophie (French Female)"],
     "Japanese": ["Kenji (Japanese Male)", "Yuki (Japanese Female)"],
@@ -1098,7 +1062,7 @@ LANGUAGE_VOICE_MAP = {
 # ========================================================
 
 BASE_BURN_RATE = {
-    "Face Video Generator": 3,
+    "Face Video Generator": 4,  # Changed from 3 to 4 tokens
     "Cinematic Engine": 2,
     "Creative Workshop": 2,
     "AI Agent": 2,
@@ -1106,7 +1070,6 @@ BASE_BURN_RATE = {
     "Dynamic UI": 2,
     "Live Emotion": 3,
     "Blueprints": 1,
-    "Flow State": 1,
     "Upscaler": 1,
     "Draw": 1,
     "Video Editor": 2
@@ -1237,7 +1200,7 @@ PAYMENT_GATEWAYS = {
     }
 }
 
-DISPLAYED_PAYMENT_GATEWAYS = ["razorpay", "crypto"]
+DISPLAYED_PAYMENT_GATEWAYS = ["razorpay", "crypto", "binance"]
 
 
 def get_available_gateway_keys(user_country: str) -> list:
@@ -1675,67 +1638,6 @@ def init_database():
         """)
         
         conn.commit()
-
-        try:
-            cursor.execute("PRAGMA table_info(users)")
-            existing_cols = [r[1] for r in cursor.fetchall()]
-            required_cols = {
-                "twofa_secret": "TEXT DEFAULT ''",
-                "gdpr_consent": "INTEGER DEFAULT 0",
-                "gdpr_version": "TEXT DEFAULT ''",
-                "language": "TEXT DEFAULT 'en'",
-                "last_login": "TEXT DEFAULT ''",
-                # created_at must be added without using CURRENT_TIMESTAMP as a default
-                # because ALTER TABLE ADD COLUMN in SQLite requires a constant default.
-                "created_at": "DATETIME"
-            }
-            for col, definition in required_cols.items():
-                if col not in existing_cols:
-                    try:
-                        # For created_at we add the column without a non-constant default
-                        cursor.execute(f"ALTER TABLE users ADD COLUMN {col} {definition}")
-                        logger.info(f"Migrated DB: added column '{col}' to users table")
-                        if col == 'created_at':
-                            try:
-                                cursor.execute("UPDATE users SET created_at = CURRENT_TIMESTAMP WHERE created_at IS NULL OR created_at = ''")
-                                logger.info("Migrated DB: populated 'created_at' for existing users")
-                            except Exception as ume:
-                                logger.warning(f"Could not populate created_at values: {ume}")
-                    except Exception as me:
-                        logger.warning(f"Could not add column {col}: {me}")
-            conn.commit()
-        except Exception as me:
-            logger.warning(f"User table migration check failed: {me}")
-
-        try:
-            cursor.execute("PRAGMA table_info(face_video_history)")
-            fcols = [r[1] for r in cursor.fetchall()]
-            if 'quality' not in fcols:
-                try:
-                    cursor.execute("ALTER TABLE face_video_history ADD COLUMN quality TEXT DEFAULT 'Standard'")
-                    logger.info("Migrated DB: added column 'quality' to face_video_history")
-                except Exception as me:
-                    logger.warning(f"Could not add column quality to face_video_history: {me}")
-
-            cursor.execute("PRAGMA table_info(payment_history)")
-            pcols = [r[1] for r in cursor.fetchall()]
-            if 'plan_type' not in pcols:
-                try:
-                    cursor.execute("ALTER TABLE payment_history ADD COLUMN plan_type TEXT DEFAULT 'one_time'")
-                    logger.info("Migrated DB: added column 'plan_type' to payment_history")
-                except Exception as me:
-                    logger.warning(f"Could not add column plan_type to payment_history: {me}")
-            if 'gateway' not in pcols:
-                try:
-                    cursor.execute("ALTER TABLE payment_history ADD COLUMN gateway TEXT DEFAULT 'razorpay'")
-                    logger.info("Migrated DB: added column 'gateway' to payment_history")
-                except Exception as me:
-                    logger.warning(f"Could not add column gateway to payment_history: {me}")
-
-            conn.commit()
-        except Exception as me:
-            logger.warning(f"Additional table migration failed: {me}")
-
         logger.info("Database initialized successfully")
     except Exception as e:
         logger.error(f"Database init error: {e}")
@@ -2292,382 +2194,577 @@ def process_payment_success(username, order_id, payment_id, signature, amount, c
         return True, f"✅ Payment successful! {credits_to_add} credits will be added when you log in."
 
 # ========================================================
-# 25. STRIPE PAYMENT FUNCTIONS
+# 25. ENHANCED PAYMENT UI
 # ========================================================
 
-def create_stripe_payment(amount_usd: float, description: str = "ZOVIX Credits", customer_email: str = ""):
-    if not HAS_STRIPE or not STRIPE_SECRET_KEY:
-        logger.warning("Stripe not configured")
-        return None
-    
-    try:
-        intent = stripe.PaymentIntent.create(
-            amount=int(amount_usd * 100),
-            currency="usd",
-            description=description,
-            receipt_email=customer_email,
-            metadata={
-                "integration": "zovix",
-                "timestamp": str(int(time.time()))
-            },
-            automatic_payment_methods={
-                "enabled": True,
-                "allow_redirects": "never"
-            }
-        )
-        
-        return {
-            "id": intent.id,
-            "client_secret": intent.client_secret,
-            "amount": intent.amount / 100,
-            "currency": intent.currency
-        }
-    except Exception as e:
-        logger.error(f"Stripe error: {e}")
-        return None
+def clear_payment_state():
+    st.session_state["show_payment"] = False
+    st.session_state["show_gateway_form"] = False
+    st.session_state["selected_gateway"] = None
+    st.session_state["razorpay_order_id"] = None
+    st.session_state["razorpay_payment_id"] = None
+    st.session_state["razorpay_signature"] = None
 
-def render_stripe_checkout(order_id: str, client_secret: str, amount: float, credits: int, plan_name: str):
-    if not STRIPE_PUBLISHABLE_KEY:
-        return "<p>Stripe not configured</p>"
+def render_enhanced_payment_ui():
+    st.markdown("<h4 style='font-family: Orbitron; color: #FFC0CB;'>💎 Buy Credits</h4>", unsafe_allow_html=True)
+
+    if st.session_state.get("razorpay_popup_requested", False):
+        st.info("🪟 Razorpay checkout popup request was sent. If it did not open, please allow popups for this site.")
+        st.session_state["razorpay_popup_requested"] = False
     
-    html = f"""
+    user_country = st.session_state.get("user_country", "IN")
+    
+    available_currencies = ["INR", "USD", "EUR", "GBP", "AED", "SAR", "SGD", "JPY", "CAD", "AUD"]
+    selected_currency = st.selectbox("Select Currency", available_currencies, key="payment_currency")
+    
+    st.markdown("### 🌍 Available Payment Gateways")
+    available_gateways = get_available_gateway_keys(user_country)
+    if not available_gateways:
+        st.info("No payment gateways are available for your region right now.")
+    else:
+        gateway_cols = st.columns(len(available_gateways))
+        for idx, key in enumerate(available_gateways):
+            with gateway_cols[idx]:
+                gateway = PAYMENT_GATEWAYS[key]
+                st.markdown(f"""
+                    <div style="background: rgba(69, 243, 255, 0.08); border: 1px solid rgba(69, 243, 255, 0.25); 
+                                border-radius: 14px; padding: 14px; text-align: center; min-height: 120px;">
+                        <div style="font-size: 28px;">{gateway['icon']}</div>
+                        <h4 style="font-family: Orbitron; font-size: 12px; color: #45f3ff; margin: 6px 0 4px 0;">{gateway['name']}</h4>
+                        <p style="font-size: 10px; color: #94a3b8; margin: 0; line-height: 1.3;">{gateway['description']}</p>
+                    </div>
+                """, unsafe_allow_html=True)
+    
+    st.markdown("---")
+    
+    plan_type = st.radio(
+        "Choose Plan Type",
+        ["📅 Monthly Subscriptions", "🎯 One-Time Top-ups"],
+        horizontal=True,
+        key="enhanced_plan_type"
+    )
+    
+    st.markdown("---")
+
+    if st.session_state.get("show_payment", False):
+        render_payment_modal()
+        return
+    
+    if "Monthly Subscriptions" in plan_type:
+        st.markdown("### 🚀 Monthly Subscription Plans")
+        st.caption("💡 Subscribe and get tokens every month. Cancel anytime.")
+        
+        plans = GLOBAL_PLANS["subscriptions"]
+        cols = st.columns(len(plans))
+        
+        for idx, (plan_key, plan_data) in enumerate(plans.items()):
+            with cols[idx]:
+                with st.container(border=True):
+                    price_inr = plan_data["price"]
+                    converted_price = convert_price(price_inr, selected_currency)
+                    
+                    st.markdown(f"""
+                        <div style="text-align: center; padding: 5px 0;">
+                            <span style="font-size: 32px;">{plan_data['emoji']}</span>
+                            <h4 style="font-family: 'Orbitron'; font-size: 13px; color: #ffffff; margin: 5px 0;">{plan_data['name']}</h4>
+                            <p style="font-size: 9px; color: #94a3b8; margin: 0;">{plan_data.get('description', '')}</p>
+                        </div>
+                    """, unsafe_allow_html=True)
+                    
+                    st.markdown(f"""
+                        <div style="text-align: center; padding: 8px 0;">
+                            <span style="font-size: 18px; font-weight: bold; color: #45f3ff;">
+                                {selected_currency} {converted_price:.2f}
+                            </span>
+                            <span style="font-size: 11px; color: #94a3b8; display: block;">per month</span>
+                        </div>
+                    """, unsafe_allow_html=True)
+                    
+                    st.markdown(f"""
+                        <div style="text-align: center; padding: 5px 0; background: rgba(69, 243, 255, 0.05); border-radius: 6px; margin: 5px 0;">
+                            <span style="font-size: 14px; color: #45f3ff; font-weight: bold;">+{plan_data['tokens']} Tokens</span>
+                        </div>
+                    """, unsafe_allow_html=True)
+                    
+                    if plan_data["price"] == 0:
+                        if st.button("🚀 Get Free Plan", key=f"enhanced_free_{plan_key}", use_container_width=True):
+                            st.session_state['user_credits'] += plan_data['tokens']
+                            st.success(f"✅ Added {plan_data['tokens']} free tokens!")
+                            st.rerun()
+                    else:
+                        if st.button(f"Subscribe {selected_currency} {converted_price:.2f}", key=f"enhanced_sub_{plan_key}", use_container_width=True):
+                            st.session_state["pending_credits"] = plan_data['tokens']
+                            st.session_state["pending_pack_name"] = plan_data['name']
+                            st.session_state["pending_amount"] = price_inr
+                            st.session_state["pending_plan_key"] = plan_key
+                            st.session_state["show_payment"] = True
+                            st.session_state["selected_gateway"] = "razorpay"
+                            st.session_state["show_gateway_form"] = True
+                            st.rerun()
+    
+    else:
+        st.markdown("### 🎯 One-Time Token Top-ups")
+        st.caption("💡 Buy tokens once and use them anytime. No expiry.")
+        
+        plans = GLOBAL_PLANS["one_time"]
+        cols = st.columns(len(plans))
+        
+        for idx, (plan_key, plan_data) in enumerate(plans.items()):
+            with cols[idx]:
+                with st.container(border=True):
+                    price_inr = plan_data["price"]
+                    converted_price = convert_price(price_inr, selected_currency)
+                    
+                    st.markdown(f"""
+                        <div style="text-align: center; padding: 5px 0;">
+                            <span style="font-size: 32px;">{plan_data['emoji']}</span>
+                            <h4 style="font-family: 'Orbitron'; font-size: 13px; color: #ffffff; margin: 5px 0;">{plan_data['name']}</h4>
+                            <p style="font-size: 9px; color: #94a3b8; margin: 0;">{plan_data.get('description', '')}</p>
+                        </div>
+                    """, unsafe_allow_html=True)
+                    
+                    st.markdown(f"""
+                        <div style="text-align: center; padding: 8px 0;">
+                            <span style="font-size: 18px; font-weight: bold; color: #45f3ff;">
+                                {selected_currency} {converted_price:.2f}
+                            </span>
+                        </div>
+                    """, unsafe_allow_html=True)
+                    
+                    st.markdown(f"""
+                        <div style="text-align: center; padding: 5px 0; background: rgba(69, 243, 255, 0.05); border-radius: 6px; margin: 5px 0;">
+                            <span style="font-size: 14px; color: #45f3ff; font-weight: bold;">+{plan_data['tokens']} Tokens</span>
+                        </div>
+                    """, unsafe_allow_html=True)
+                    
+                    if st.button(f"Buy {selected_currency} {converted_price:.2f}", key=f"enhanced_buy_{plan_key}", use_container_width=True):
+                        st.session_state["pending_credits"] = plan_data['tokens']
+                        st.session_state["pending_pack_name"] = plan_data['name']
+                        st.session_state["pending_amount"] = price_inr
+                        st.session_state["pending_plan_key"] = plan_key
+                        st.session_state["show_payment"] = True
+                        st.session_state["selected_gateway"] = "razorpay"
+                        st.session_state["show_gateway_form"] = True
+                        st.rerun()
+
+# ========================================================
+# 26. PAYMENT MODAL
+# ========================================================
+
+def render_payment_modal():
+    credits = st.session_state.get("pending_credits", 0)
+    plan_name = st.session_state.get("pending_pack_name", "")
+    amount = st.session_state.get("pending_amount", 0)
+    selected_currency = st.session_state.get("payment_currency", "INR")
+    converted_amount = convert_price(amount, selected_currency)
+
+    with st.container(border=True):
+        col_title, col_close = st.columns([5, 1])
+        with col_title:
+            st.markdown("<h3 style='font-family: Orbitron; color: #45f3ff; margin: 0;'>💳 Complete Payment</h3>", unsafe_allow_html=True)
+        with col_close:
+            if st.button("❌ Close", key="payment_panel_close_btn", use_container_width=True):
+                clear_payment_state()
+                st.rerun()
+
+        st.markdown(f"""
+            <div style="background: rgba(69,243,255,0.05); border-radius: 12px; padding: 15px; margin: 12px 0 16px 0; 
+                        border: 1px solid rgba(69,243,255,0.1);">
+                <div style="display: flex; justify-content: space-between; padding: 5px 0; color: #c0c0c0;">
+                    <span>📦 Plan</span><span style="color: #45f3ff; font-weight: bold;">{plan_name}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 5px 0; color: #c0c0c0;">
+                    <span>⚡ Credits</span><span style="color: #45f3ff; font-weight: bold;">+{credits}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 5px 0; color: #c0c0c0;">
+                    <span>💰 Amount</span><span style="color: #45f3ff; font-weight: bold;">{selected_currency} {converted_amount:.2f}</span>
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
+
+        st.markdown("### Choose Payment Method")
+
+        user_country = st.session_state.get("user_country", "IN")
+        available_gateways = get_available_gateway_keys(user_country)
+        if not available_gateways:
+            st.warning("No supported payment gateways are available for your region.")
+        else:
+            gateway_cols = st.columns(len(available_gateways))
+            for idx, gateway in enumerate(available_gateways):
+                with gateway_cols[idx]:
+                    selected = st.session_state.get("selected_gateway") == gateway
+                    button_label = f"{PAYMENT_GATEWAYS[gateway]['icon']} {PAYMENT_GATEWAYS[gateway]['name']}"
+                    if st.button(
+                        button_label,
+                        key=f"modal_gateway_{gateway}",
+                        use_container_width=True,
+                        type="primary" if selected else "secondary"
+                    ):
+                        st.session_state["selected_gateway"] = gateway
+                        st.session_state["show_gateway_form"] = True
+                        st.rerun()
+
+        if st.session_state.get("show_gateway_form", False):
+            gateway = st.session_state.get("selected_gateway", "razorpay")
+
+            if gateway == "crypto":
+                st.markdown("---")
+                st.markdown("### ₿ Cryptocurrency Payment")
+
+                crypto_currency = st.selectbox(
+                    "Select Cryptocurrency",
+                    ["BTC", "ETH", "USDT", "USDC", "SOL", "BNB", "DOGE"],
+                    key="crypto_currency_select"
+                )
+
+                if st.button(f"Generate {crypto_currency} Address", use_container_width=True):
+                    with st.spinner(f"Generating {crypto_currency} address..."):
+                        amount_usd = convert_price(amount, "USD")
+                        result = create_crypto_payment(amount_usd, crypto_currency)
+                        if result:
+                            html = render_crypto_checkout(result, credits, plan_name)
+                            st.components.v1.html(html, height=500)
+                        else:
+                            st.error("Failed to generate crypto address. Please try again.")
+
+            elif gateway == "razorpay":
+                st.markdown("---")
+                st.markdown("### 💳 Razorpay Payment")
+
+                if st.button("💳 Pay with Razorpay", use_container_width=True):
+                    if not RAZORPAY_KEY_ID or RAZORPAY_KEY_ID == "mock":
+                        st.error("❌ Razorpay not configured. Please add Razorpay keys.")
+                    else:
+                        amount_paise = amount * 100
+                        order = create_payment_order(amount_paise, plan_name)
+                        if order and order.get("id"):
+                            st.session_state["razorpay_order_id"] = order["id"]
+                            st.session_state["razorpay_last_debug"] = order.get("debug", "")
+                            st.session_state["razorpay_last_status"] = order.get("status", "created")
+                            html = render_razorpay_checkout(
+                                order["id"],
+                                amount_paise,
+                                plan_name,
+                                credits,
+                                st.session_state.get("logged_user", "User"),
+                                RAZORPAY_KEY_ID
+                            )
+                            st.components.v1.html(html, height=520)
+
+                            st.markdown("---")
+                            st.caption("If the Razorpay window completed successfully inside the iframe, click below to sync your credits.")
+                            if st.button("🔄 Sync & Verify Credits", use_container_width=True, type="primary"):
+                                with st.spinner("Checking Razorpay order status..."):
+                                    order_id = st.session_state.get("razorpay_order_id")
+                                    username = st.session_state.get("logged_user", "")
+
+                                    if order_id and username and st.session_state.get("is_logged_in", False):
+                                        try:
+                                            client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
+                                            order_data = client.order.fetch(order_id)
+                                            status = str(order_data.get("status", "")).lower()
+                                            st.session_state["razorpay_last_status"] = status
+
+                                            if status in {"paid", "authorized"}:
+                                                already_synced = st.session_state.get("razorpay_verified_order_id") == order_id
+                                                credits_to_add = int(credits)
+
+                                                if already_synced:
+                                                    st.info("✅ Payment already synced. Your credits are already updated.")
+                                                else:
+                                                    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+                                                    cursor = conn.cursor()
+                                                    cursor.execute(
+                                                        "SELECT 1 FROM payment_history WHERE username = ? AND order_id = ? AND status = 'success' LIMIT 1",
+                                                        (username, order_id),
+                                                    )
+                                                    existing = cursor.fetchone()
+                                                    conn.close()
+
+                                                    if not existing:
+                                                        add_credits(username, credits_to_add)
+                                                        save_payment_history(
+                                                            username,
+                                                            order_id,
+                                                            order_data.get("id", ""),
+                                                            round(amount_paise / 100, 2),
+                                                            credits_to_add,
+                                                            plan_name,
+                                                            "success",
+                                                            "one_time",
+                                                            "razorpay",
+                                                        )
+
+                                                st.session_state["payment_status"] = "success"
+                                                st.session_state["razorpay_payment_id"] = order_data.get("id", "")
+                                                st.session_state["razorpay_signature"] = ""
+                                                st.session_state["pending_credits"] = 0
+                                                st.session_state["pending_pack_name"] = ""
+                                                st.session_state["pending_amount"] = 0
+                                                st.session_state["user_credits"] = get_user_credits_db(username)
+                                                st.session_state["razorpay_verified_order_id"] = order_id
+                                                st.success(f"✅ Payment confirmed by Razorpay. {credits_to_add} credits added.")
+                                                st.rerun()
+                                            else:
+                                                st.info(f"⏳ Current Razorpay status: {status or 'unknown'}")
+                                        except Exception as e:
+                                            logger.warning(f"Razorpay sync failed: {e}")
+                                            st.info("⚠️ Could not verify payment yet. Please wait a moment and try again.")
+                                    else:
+                                        st.info("⚠️ Please log in and create a Razorpay order before syncing.")
+
+                            if order.get("status") != "created":
+                                st.warning(f"⚠️ Razorpay backend returned a fallback order. Debug: {order.get('debug', '')}")
+                            else:
+                                st.caption("🛡️ Checkout is rendered inside a secure component iframe for Streamlit Cloud compatibility.")
+                        else:
+                            st.error("Failed to create payment order. Please try again.")
+
+            elif gateway == "binance":
+                st.markdown("---")
+                st.markdown("### 🟡 Binance Pay")
+                st.info("Binance Pay integration is coming soon. Please use Razorpay or Crypto for now.")
+                if st.button("🔄 Pay with Binance", use_container_width=True):
+                    st.warning("Binance Pay is not yet configured. Please use another payment method.")
+
+# ========================================================
+# 27. RAZORPAY CHECKOUT
+# ========================================================
+
+def verify_razorpay_payment_fallback(order_id, username, credits_to_add, pack_name, amount):
+    if not order_id:
+        return False, "No Razorpay order is available to verify yet."
+
+    if not username or not st.session_state.get("is_logged_in", False):
+        return False, "Please log in before verifying your payment."
+
+    st.session_state["payment_verifying"] = True
+    resolved_pack_name = pack_name
+
+    try:
+        conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT payment_id, status, credits_added, pack_name FROM payment_history WHERE username = ? AND order_id = ? ORDER BY timestamp DESC LIMIT 1",
+            (username, order_id)
+        )
+        row = cursor.fetchone()
+        conn.close()
+
+        if row:
+            payment_id, status, saved_credits, saved_pack_name = row
+            resolved_pack_name = saved_pack_name or pack_name
+            if status == "success":
+                expected_credits = int(saved_credits or credits_to_add or 0)
+                current_credits = get_user_credits_db(username)
+                if current_credits < expected_credits:
+                    add_credits(username, expected_credits - current_credits)
+                st.session_state["payment_verified"] = True
+                st.session_state["razorpay_payment_id"] = payment_id
+                st.session_state["razorpay_signature"] = ""
+                st.session_state["pending_credits"] = 0
+                st.session_state["pending_pack_name"] = ""
+                st.session_state["pending_amount"] = 0
+                st.session_state["user_credits"] = get_user_credits_db(username)
+                return True, f"✅ Payment verified. Added {expected_credits} credits."
+
+        if razorpay is not None and RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET and RAZORPAY_KEY_ID != "mock" and RAZORPAY_KEY_SECRET != "mock":
+            try:
+                client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
+                order_data = client.order.fetch(order_id)
+                if isinstance(order_data, dict) and str(order_data.get("status", "")).lower() in {"paid", "authorized"}:
+                    success, message = process_payment_success(
+                        username,
+                        order_id,
+                        "",
+                        "",
+                        amount,
+                        credits_to_add,
+                        resolved_pack_name,
+                    )
+                    st.session_state["payment_verified"] = success
+                    return success, message
+            except Exception as api_error:
+                logger.warning(f"Razorpay fallback fetch error: {api_error}")
+
+        return False, "Payment is still pending or the verification did not return a confirmed status. Please wait a moment and try again."
+    finally:
+        st.session_state["payment_verifying"] = False
+
+def render_razorpay_checkout(order_id, amount, plan_name, credits, username, key_id):
+    import json
+    amount_inr = amount / 100
+    safe_plan_name = str(plan_name).replace("'", "\\'").replace("\n", " ")
+    safe_username = str(username).replace("'", "\\'").replace("\n", " ")
+
+    checkout_html = f"""
     <!DOCTYPE html>
     <html>
     <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <script src="https://js.stripe.com/v3/"></script>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
         <style>
-            body {{ margin: 0; padding: 0; background: transparent; font-family: 'Inter', sans-serif; }}
-            .stripe-container {{
+            body {{ margin: 0; padding: 0; background: transparent; font-family: 'Inter', 'Segoe UI', sans-serif; }}
+            .checkout-container {{
+                display: flex; justify-content: center; align-items: center; min-height: 480px; padding: 12px;
                 background: linear-gradient(135deg, #0a0a12 0%, #1a1a2e 100%);
-                border-radius: 16px;
-                padding: 30px;
-                border: 1px solid rgba(69, 243, 255, 0.2);
-                max-width: 500px;
-                margin: 0 auto;
+                border-radius: 16px; border: 1px solid rgba(69, 243, 255, 0.2);
             }}
-            .payment-header {{
-                text-align: center;
-                font-family: 'Orbitron', sans-serif;
-                font-size: 20px;
-                color: #45f3ff;
-                margin-bottom: 20px;
+            .payment-card {{
+                background: rgba(18, 19, 26, 0.95); border-radius: 16px; padding: 24px; max-width: 420px;
+                width: 100%; text-align: center; border: 1px solid rgba(255, 192, 203, 0.15);
+                box-shadow: 0 20px 60px rgba(0,0,0,0.8);
             }}
-            .payment-details {{
-                background: rgba(69, 243, 255, 0.05);
-                border-radius: 12px;
-                padding: 15px;
-                margin-bottom: 20px;
-                border: 1px solid rgba(69, 243, 255, 0.1);
+            .payment-icon {{ font-size: 42px; margin-bottom: 8px; }}
+            .payment-title {{ font-family: 'Orbitron', sans-serif; font-size: 17px; color: #45f3ff; margin-bottom: 4px; }}
+            .payment-subtitle {{ font-size: 13px; color: #94a3b8; margin-bottom: 16px; }}
+            .payment-details {{ background: rgba(69, 243, 255, 0.05); border-radius: 12px; padding: 12px; margin-bottom: 16px; border: 1px solid rgba(69, 243, 255, 0.1); }}
+            .payment-details .row {{ display: flex; justify-content: space-between; padding: 4px 0; font-size: 13px; color: #c0c0c0; }}
+            .payment-details .row .label {{ color: #94a3b8; }}
+            .payment-details .row .value {{ color: #45f3ff; font-weight: bold; }}
+            .payment-btn {{
+                width: 100%; padding: 13px; background: linear-gradient(135deg, #45f3ff 0%, #EC4899 100%);
+                color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: bold;
+                font-family: 'Orbitron', sans-serif; cursor: pointer; transition: all 0.15s ease;
+                text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 4px 20px rgba(69, 243, 255, 0.3);
             }}
-            .payment-details .row {{
-                display: flex;
-                justify-content: space-between;
-                padding: 8px 0;
-                color: #c0c0c0;
-                font-size: 14px;
-            }}
-            .payment-details .row .value {{
-                color: #45f3ff;
-                font-weight: bold;
-            }}
-            #payment-element {{
-                margin-bottom: 20px;
-                background: white;
-                padding: 15px;
-                border-radius: 8px;
-            }}
-            .stripe-btn {{
-                width: 100%;
-                padding: 14px;
-                background: linear-gradient(135deg, #45f3ff 0%, #EC4899 100%);
-                color: white;
-                border: none;
-                border-radius: 10px;
-                font-size: 16px;
-                font-weight: bold;
-                font-family: 'Orbitron', sans-serif;
-                cursor: pointer;
-                transition: all 0.3s ease;
-                text-transform: uppercase;
-                letter-spacing: 1px;
-            }}
-            .stripe-btn:hover {{
-                transform: translateY(-2px);
-                box-shadow: 0 8px 30px rgba(69, 243, 255, 0.3);
-            }}
-            .stripe-btn:disabled {{
-                opacity: 0.5;
-                cursor: not-allowed;
-            }}
-            .payment-status {{
-                text-align: center;
-                margin-top: 15px;
-                font-size: 13px;
-                color: #94a3b8;
-            }}
+            .payment-btn:hover {{ transform: translateY(-2px); box-shadow: 0 8px 30px rgba(69, 243, 255, 0.5); }}
+            .payment-btn:active {{ transform: scale(0.98); }}
+            .payment-status {{ margin-top: 12px; font-size: 12px; color: #94a3b8; }}
             .payment-status.success {{ color: #10b981; }}
             .payment-status.error {{ color: #ef4444; }}
             @media (max-width: 600px) {{
-                .stripe-container {{ padding: 15px; }}
-                .payment-header {{ font-size: 16px; }}
+                .payment-card {{ padding: 18px 14px; margin: 0 4px; }}
+                .payment-title {{ font-size: 15px; }}
+                .payment-btn {{ font-size: 13px; padding: 12px; }}
             }}
         </style>
     </head>
     <body>
-        <div class="stripe-container">
-            <div class="payment-header">💳 STRIPE PAYMENT</div>
-            <div class="payment-details">
-                <div class="row"><span>💰 Amount</span><span class="value">${amount:.2f}</span></div>
-                <div class="row"><span>⚡ Credits</span><span class="value">+{credits}</span></div>
-                <div class="row"><span>📦 Plan</span><span class="value">{plan_name}</span></div>
+        <div class="checkout-container">
+            <div class="payment-card" id="paymentCard">
+                <div class="payment-icon">💎</div>
+                <div class="payment-title">ZOVIX CREDITS</div>
+                <div class="payment-subtitle">{safe_plan_name}</div>
+                <div class="payment-details">
+                    <div class="row"><span class="label">💰 Amount</span><span class="value">₹{amount_inr:.0f}</span></div>
+                    <div class="row"><span class="label">⚡ Credits</span><span class="value">+{credits} Credits</span></div>
+                    <div class="row"><span class="label">👤 User</span><span class="value">{safe_username}</span></div>
+                </div>
+                <button class="payment-btn" id="pay-btn" type="button">💳 Pay Now</button>
+                <div class="payment-status" id="paymentStatus">🔒 Click Pay Now to checkout securely.</div>
             </div>
-            <div id="payment-element"></div>
-            <button class="stripe-btn" id="pay-button">💳 Pay ${amount:.2f}</button>
-            <div class="payment-status" id="payment-status">🔒 Secured by Stripe</div>
         </div>
-        
+
+        <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
         <script>
-            const stripe = Stripe('{STRIPE_PUBLISHABLE_KEY}');
-            const clientSecret = '{client_secret}';
-            const orderId = '{order_id}';
-            const credits = {credits};
-            const planName = '{plan_name}';
-            const amount = {amount};
-            
-            let elements;
-            let paymentElement;
-            
-            async function initialize() {{
-                try {{
-                    const appearance = {{
-                        theme: 'stripe',
-                        variables: {{
-                            colorPrimary: '#45f3ff',
-                            colorBackground: '#ffffff',
-                            colorText: '#1F2937',
-                            borderRadius: '8px',
-                        }},
-                    }};
-                    
-                    elements = stripe.elements({{
-                        clientSecret: clientSecret,
-                        appearance: appearance,
-                    }});
-                    
-                    paymentElement = elements.create('payment');
-                    paymentElement.mount('#payment-element');
-                }} catch (error) {{
-                    document.getElementById('payment-status').innerHTML = '❌ ' + error.message;
-                    document.getElementById('payment-status').className = 'payment-status error';
+            (function() {{
+                const orderId = {json.dumps(order_id)};
+                const amount = {amount};
+                const username = {json.dumps(safe_username)};
+                const credits = {credits};
+                const planName = {json.dumps(safe_plan_name)};
+                const keyId = {json.dumps(key_id)};
+                const paymentStatus = document.getElementById('paymentStatus');
+                const payButton = document.getElementById('pay-btn');
+
+                function updateStatus(message, type) {{
+                    paymentStatus.className = 'payment-status ' + type;
+                    paymentStatus.innerHTML = message;
                 }}
-            }}
-            
-            initialize();
-            
-            document.getElementById('pay-button').addEventListener('click', async function() {{
-                const button = this;
-                button.disabled = true;
-                button.innerHTML = '⏳ Processing...';
-                document.getElementById('payment-status').innerHTML = '🔄 Processing payment...';
-                
-                try {{
-                    const {{ error, paymentIntent }} = await stripe.confirmPayment({{
-                        elements: elements,
-                        redirect: 'if_required',
-                        confirmParams: {{
-                            return_url: window.location.origin + '?stripe_success=true',
-                        }},
-                    }});
-                    
-                    if (error) {{
-                        document.getElementById('payment-status').innerHTML = '❌ ' + error.message;
-                        document.getElementById('payment-status').className = 'payment-status error';
-                        button.disabled = false;
-                        button.innerHTML = '💳 Pay ${amount:.2f}';
-                    }} else if (paymentIntent && paymentIntent.status === 'succeeded') {{
-                        document.getElementById('payment-status').innerHTML = '✅ Payment successful! Adding credits...';
-                        document.getElementById('payment-status').className = 'payment-status success';
-                        button.innerHTML = '✅ Done!';
-                        
-                        window.parent.postMessage({{
-                            type: 'stripe_success',
-                            orderId: orderId,
-                            paymentId: paymentIntent.id,
-                            credits: credits,
-                            planName: planName,
-                            amount: amount
-                        }}, '*');
+
+                function openCheckout() {{
+                    if (typeof Razorpay === 'undefined') {{
+                        updateStatus('⚠️ Razorpay SDK missing. Refreshing...', 'error');
+                        return;
                     }}
-                }} catch (error) {{
-                    document.getElementById('payment-status').innerHTML = '❌ ' + error.message;
-                    document.getElementById('payment-status').className = 'payment-status error';
-                    button.disabled = false;
-                    button.innerHTML = '💳 Pay ${amount:.2f}';
+
+                    const options = {{
+                        key: keyId,
+                        amount: amount,
+                        currency: 'INR',
+                        name: 'ZOVIX - AI Studio',
+                        description: planName + ' - ' + credits + ' Credits',
+                        order_id: orderId,
+                        prefill: {{ name: username || 'Zovix User', email: username || 'user@zovix.ai' }},
+                        theme: {{ color: '#EC4899', backdrop_color: '#06070a' }},
+                        modal: {{
+                            ondismiss: function() {{
+                                updateStatus('❌ Payment cancelled.', 'error');
+                            }}
+                        }},
+                        handler: function(response) {{
+                            updateStatus('✅ Processing payment...', 'success');
+                            payButton.disabled = true;
+                            payButton.innerHTML = '⏳ Processing...';
+                            if (window.parent) {{
+                                window.parent.postMessage({{
+                                    type: 'razorpay_success',
+                                    payment_id: response.razorpay_payment_id,
+                                    order_id: response.razorpay_order_id,
+                                    signature: response.razorpay_signature
+                                }}, '*');
+                            }}
+                        }}
+                    }};
+
+                    try {{
+                        const rzp = new Razorpay(options);
+                        rzp.open();
+                        updateStatus('🔄 Razorpay checkout modal active.', 'success');
+                    }} catch (err) {{
+                        updateStatus('⚠️ Error launching checkout window.', 'error');
+                    }}
                 }}
-            }});
+
+                payButton.addEventListener('click', function(e) {{
+                    e.preventDefault();
+                    openCheckout();
+                }});
+            }})();
         </script>
     </body>
     </html>
     """
-    return html
+
+    return checkout_html
+
+def handle_payment_response():
+    query_params = st.query_params
+    if "razorpay_payment_id" in query_params and "razorpay_order_id" in query_params:
+        payment_id = query_params.get("razorpay_payment_id")
+        order_id = query_params.get("razorpay_order_id")
+        signature = query_params.get("razorpay_signature", "")
+        credits_to_add = st.session_state.get("pending_credits", 0)
+        pack_name = st.session_state.get("pending_pack_name", "")
+        if st.session_state.get("is_logged_in") and st.session_state.get("logged_user"):
+            username = st.session_state["logged_user"]
+            success, message = process_payment_success(
+                username, order_id, payment_id, signature,
+                st.session_state.get("pending_amount", 0),
+                credits_to_add, pack_name
+            )
+            if success:
+                st.success(message)
+                st.balloons()
+                st.session_state["razorpay_order_id"] = None
+                st.session_state["razorpay_payment_id"] = None
+                st.session_state["razorpay_signature"] = None
+                st.session_state["pending_credits"] = 0
+                st.session_state["pending_pack_name"] = ""
+                st.session_state["pending_amount"] = 0
+                st.session_state["payment_verified"] = True
+                st.query_params.clear()
+                st.rerun()
+            else:
+                st.error(message)
+        else:
+            st.info("✅ Payment successful! Please log in to claim your credits.")
+            st.session_state["pending_credits"] = credits_to_add
+            st.session_state["pending_pack_name"] = pack_name
+            st.query_params.clear()
 
 # ========================================================
-# 26. PAYPAL PAYMENT FUNCTIONS
-# ========================================================
-
-def create_paypal_order(amount_usd: float, description: str = "ZOVIX Credits"):
-    if not HAS_PAYPAL or not PAYPAL_CLIENT_ID or not PAYPAL_SECRET:
-        logger.warning("PayPal not configured")
-        return None
-    
-    try:
-        paypalrestsdk.configure({
-            "mode": os.getenv("PAYPAL_MODE", "sandbox"),
-            "client_id": PAYPAL_CLIENT_ID,
-            "client_secret": PAYPAL_SECRET
-        })
-        
-        order = paypalrestsdk.Order({
-            "intent": "CAPTURE",
-            "purchase_units": [{
-                "amount": {
-                    "currency_code": "USD",
-                    "value": f"{amount_usd:.2f}"
-                },
-                "description": description,
-                "invoice_number": f"ZOVIX_{int(time.time())}"
-            }],
-            "application_context": {
-                "return_url": f"{os.getenv('APP_URL', 'https://zovix.ai')}/paypal_success",
-                "cancel_url": f"{os.getenv('APP_URL', 'https://zovix.ai')}/paypal_cancel"
-            }
-        })
-        
-        if order.create():
-            for link in order.links:
-                if link.rel == "approval_url":
-                    return {
-                        "id": order.id,
-                        "approval_url": link.href,
-                        "amount": amount_usd,
-                        "status": order.status
-                    }
-        return None
-    except Exception as e:
-        logger.error(f"PayPal error: {e}")
-        return None
-
-def render_paypal_checkout(order_id: str, approval_url: str, amount: float, credits: int, plan_name: str):
-    html = f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <style>
-            body {{ margin: 0; padding: 0; background: transparent; font-family: 'Inter', sans-serif; }}
-            .paypal-container {{
-                background: linear-gradient(135deg, #0a0a12 0%, #1a1a2e 100%);
-                border-radius: 16px;
-                padding: 30px;
-                border: 1px solid rgba(69, 243, 255, 0.2);
-                max-width: 500px;
-                margin: 0 auto;
-            }}
-            .payment-header {{
-                text-align: center;
-                font-family: 'Orbitron', sans-serif;
-                font-size: 20px;
-                color: #45f3ff;
-                margin-bottom: 20px;
-            }}
-            .payment-details {{
-                background: rgba(69, 243, 255, 0.05);
-                border-radius: 12px;
-                padding: 15px;
-                margin-bottom: 20px;
-                border: 1px solid rgba(69, 243, 255, 0.1);
-            }}
-            .payment-details .row {{
-                display: flex;
-                justify-content: space-between;
-                padding: 8px 0;
-                color: #c0c0c0;
-                font-size: 14px;
-            }}
-            .payment-details .row .value {{
-                color: #45f3ff;
-                font-weight: bold;
-            }}
-            .paypal-btn {{
-                width: 100%;
-                padding: 14px;
-                background: #0070ba;
-                color: white;
-                border: none;
-                border-radius: 10px;
-                font-size: 16px;
-                font-weight: bold;
-                font-family: 'Orbitron', sans-serif;
-                cursor: pointer;
-                transition: all 0.3s ease;
-                text-transform: uppercase;
-                letter-spacing: 1px;
-            }}
-            .paypal-btn:hover {{
-                background: #003087;
-                transform: translateY(-2px);
-                box-shadow: 0 8px 30px rgba(0, 112, 186, 0.3);
-            }}
-            .payment-status {{
-                text-align: center;
-                margin-top: 15px;
-                font-size: 13px;
-                color: #94a3b8;
-            }}
-            @media (max-width: 600px) {{
-                .paypal-container {{ padding: 15px; }}
-                .payment-header {{ font-size: 16px; }}
-            }}
-        </style>
-    </head>
-    <body>
-        <div class="paypal-container">
-            <div class="payment-header">💰 PAYPAL PAYMENT</div>
-            <div class="payment-details">
-                <div class="row"><span>💰 Amount</span><span class="value">${amount:.2f}</span></div>
-                <div class="row"><span>⚡ Credits</span><span class="value">+{credits}</span></div>
-                <div class="row"><span>📦 Plan</span><span class="value">{plan_name}</span></div>
-            </div>
-            <button class="paypal-btn" id="paypal-button">💰 Pay with PayPal</button>
-            <div class="payment-status" id="payment-status">🔒 Secured by PayPal</div>
-        </div>
-        
-        <script>
-            document.getElementById('paypal-button').addEventListener('click', function() {{
-                const button = this;
-                button.disabled = true;
-                button.innerHTML = '⏳ Redirecting...';
-                document.getElementById('payment-status').innerHTML = '🔄 Redirecting to PayPal...';
-                
-                window.open('{approval_url}', '_blank');
-                
-                window.parent.postMessage({{
-                    type: 'paypal_redirect',
-                    orderId: '{order_id}',
-                    credits: {credits},
-                    planName: '{plan_name}',
-                    amount: {amount}
-                }}, '*');
-            }});
-        </script>
-    </body>
-    </html>
-    """
-    return html
-
-# ========================================================
-# 27. CRYPTO PAYMENT FUNCTIONS
+# 28. CRYPTO PAYMENT FUNCTIONS
 # ========================================================
 
 def create_crypto_payment(amount_usd: float, currency: str = "BTC"):
@@ -2849,785 +2946,7 @@ def render_crypto_checkout(crypto_data: dict, credits: int, plan_name: str):
     return html
 
 # ========================================================
-# 28. BINANCE PAYMENT FUNCTIONS
-# ========================================================
-
-def create_binance_payment(amount_usd: float, currency: str = "BUSD"):
-    try:
-        if not BINANCE_API_KEY or not BINANCE_API_SECRET:
-            logger.warning("Binance not configured")
-            return None
-        
-        return {
-            "id": f"BNB_{int(time.time())}",
-            "address": "0x" + ''.join(random.choices('abcdef0123456789', k=40)),
-            "amount": amount_usd,
-            "currency": currency,
-            "qr_code": f"https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=binance_pay_{int(time.time())}",
-            "status": "pending"
-        }
-    except Exception as e:
-        logger.error(f"Binance error: {e}")
-        return None
-
-def render_binance_checkout(binance_data: dict, credits: int, plan_name: str):
-    html = f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <style>
-            body {{ margin: 0; padding: 0; background: transparent; font-family: 'Inter', sans-serif; }}
-            .binance-container {{
-                background: linear-gradient(135deg, #0a0a12 0%, #1a1a2e 100%);
-                border-radius: 16px;
-                padding: 30px;
-                border: 1px solid #f0b90b;
-                max-width: 500px;
-                margin: 0 auto;
-            }}
-            .payment-header {{
-                text-align: center;
-                font-family: 'Orbitron', sans-serif;
-                font-size: 20px;
-                color: #f0b90b;
-                margin-bottom: 20px;
-            }}
-            .payment-details {{
-                background: rgba(240, 185, 11, 0.05);
-                border-radius: 12px;
-                padding: 15px;
-                margin-bottom: 20px;
-                border: 1px solid rgba(240, 185, 11, 0.2);
-            }}
-            .payment-details .row {{
-                display: flex;
-                justify-content: space-between;
-                padding: 8px 0;
-                color: #c0c0c0;
-                font-size: 14px;
-            }}
-            .payment-details .row .value {{
-                color: #f0b90b;
-                font-weight: bold;
-            }}
-            .binance-qr {{
-                text-align: center;
-                padding: 15px;
-                background: white;
-                border-radius: 12px;
-                margin: 15px 0;
-            }}
-            .binance-qr img {{
-                max-width: 180px;
-            }}
-            .binance-address {{
-                background: rgba(0,0,0,0.3);
-                padding: 12px;
-                border-radius: 8px;
-                font-family: monospace;
-                font-size: 14px;
-                color: #f0b90b;
-                text-align: center;
-                word-break: break-all;
-                margin: 10px 0;
-                border: 1px solid rgba(240, 185, 11, 0.2);
-            }}
-            .copy-btn {{
-                width: 100%;
-                padding: 10px;
-                background: rgba(240, 185, 11, 0.1);
-                color: #f0b90b;
-                border: 1px solid rgba(240, 185, 11, 0.3);
-                border-radius: 8px;
-                cursor: pointer;
-                font-family: 'Orbitron', sans-serif;
-                font-size: 12px;
-                transition: all 0.3s ease;
-            }}
-            .copy-btn:hover {{
-                background: rgba(240, 185, 11, 0.2);
-            }}
-            .payment-status {{
-                text-align: center;
-                margin-top: 15px;
-                font-size: 13px;
-                color: #94a3b8;
-            }}
-        </style>
-    </head>
-    <body>
-        <div class="binance-container">
-            <div class="payment-header">🟡 BINANCE PAY</div>
-            <div class="payment-details">
-                <div class="row"><span>💰 Amount</span><span class="value">{binance_data['amount']:.2f} USD</span></div>
-                <div class="row"><span>⚡ Credits</span><span class="value">+{credits}</span></div>
-                <div class="row"><span>📦 Plan</span><span class="value">{plan_name}</span></div>
-                <div class="row"><span>🪙 Currency</span><span class="value">{binance_data['currency']}</span></div>
-            </div>
-            <div class="binance-qr">
-                <img src="{binance_data['qr_code']}" alt="QR Code" />
-            </div>
-            <div class="binance-address" id="binance-address">
-                {binance_data['address']}
-            </div>
-            <button class="copy-btn" id="copy-address">📋 Copy Address</button>
-            <div class="payment-status" id="payment-status">
-                💡 Pay with Binance Pay or send {binance_data['currency']} to the address above
-            </div>
-        </div>
-        
-        <script>
-            document.getElementById('copy-address').addEventListener('click', function() {{
-                const address = document.getElementById('binance-address').textContent;
-                navigator.clipboard.writeText(address).then(() => {{
-                    this.textContent = '✅ Copied!';
-                    setTimeout(() => {{
-                        this.textContent = '📋 Copy Address';
-                    }}, 2000);
-                }});
-            }});
-        </script>
-    </body>
-    </html>
-    """
-    return html
-
-# ========================================================
-# 29. ENHANCED PAYMENT UI
-# ========================================================
-
-def clear_payment_state():
-    st.session_state["show_payment"] = False
-    st.session_state["show_gateway_form"] = False
-    st.session_state["selected_gateway"] = None
-    st.session_state["razorpay_order_id"] = None
-    st.session_state["razorpay_payment_id"] = None
-    st.session_state["razorpay_signature"] = None
-
-
-def render_enhanced_payment_ui():
-    st.markdown("<h4 style='font-family: Orbitron; color: #FFC0CB;'>💎 Buy Credits</h4>", unsafe_allow_html=True)
-
-    if st.session_state.get("razorpay_popup_requested", False):
-        st.info("🪟 Razorpay checkout popup request was sent. If it did not open, please allow popups for this site.")
-        st.session_state["razorpay_popup_requested"] = False
-    
-    user_country = st.session_state.get("user_country", "IN")
-    
-    available_currencies = ["INR", "USD", "EUR", "GBP", "AED", "SAR", "SGD", "JPY", "CAD", "AUD"]
-    selected_currency = st.selectbox("Select Currency", available_currencies, key="payment_currency")
-    
-    st.markdown("### 🌍 Available Payment Gateways")
-    available_gateways = get_available_gateway_keys(user_country)
-    if not available_gateways:
-        st.info("No payment gateways are available for your region right now.")
-    else:
-        gateway_cols = st.columns(len(available_gateways))
-        for idx, key in enumerate(available_gateways):
-            with gateway_cols[idx]:
-                gateway = PAYMENT_GATEWAYS[key]
-                st.markdown(f"""
-                    <div style="background: rgba(69, 243, 255, 0.08); border: 1px solid rgba(69, 243, 255, 0.25); 
-                                border-radius: 14px; padding: 14px; text-align: center; min-height: 120px;">
-                        <div style="font-size: 28px;">{gateway['icon']}</div>
-                        <h4 style="font-family: Orbitron; font-size: 12px; color: #45f3ff; margin: 6px 0 4px 0;">{gateway['name']}</h4>
-                        <p style="font-size: 10px; color: #94a3b8; margin: 0; line-height: 1.3;">{gateway['description']}</p>
-                    </div>
-                """, unsafe_allow_html=True)
-    
-    st.markdown("---")
-    
-    plan_type = st.radio(
-        "Choose Plan Type",
-        ["📅 Monthly Subscriptions", "🎯 One-Time Top-ups"],
-        horizontal=True,
-        key="enhanced_plan_type"
-    )
-    
-    st.markdown("---")
-
-    if st.session_state.get("show_payment", False):
-        render_payment_modal()
-        return
-    
-    if "Monthly Subscriptions" in plan_type:
-        st.markdown("### 🚀 Monthly Subscription Plans")
-        st.caption("💡 Subscribe and get tokens every month. Cancel anytime.")
-        
-        plans = GLOBAL_PLANS["subscriptions"]
-        cols = st.columns(len(plans))
-        
-        for idx, (plan_key, plan_data) in enumerate(plans.items()):
-            with cols[idx]:
-                with st.container(border=True):
-                    price_inr = plan_data["price"]
-                    converted_price = convert_price(price_inr, selected_currency)
-                    
-                    st.markdown(f"""
-                        <div style="text-align: center; padding: 5px 0;">
-                            <span style="font-size: 32px;">{plan_data['emoji']}</span>
-                            <h4 style="font-family: 'Orbitron'; font-size: 13px; color: #ffffff; margin: 5px 0;">{plan_data['name']}</h4>
-                            <p style="font-size: 9px; color: #94a3b8; margin: 0;">{plan_data.get('description', '')}</p>
-                        </div>
-                    """, unsafe_allow_html=True)
-                    
-                    st.markdown(f"""
-                        <div style="text-align: center; padding: 8px 0;">
-                            <span style="font-size: 18px; font-weight: bold; color: #45f3ff;">
-                                {selected_currency} {converted_price:.2f}
-                            </span>
-                            <span style="font-size: 11px; color: #94a3b8; display: block;">per month</span>
-                        </div>
-                    """, unsafe_allow_html=True)
-                    
-                    st.markdown(f"""
-                        <div style="text-align: center; padding: 5px 0; background: rgba(69, 243, 255, 0.05); border-radius: 6px; margin: 5px 0;">
-                            <span style="font-size: 14px; color: #45f3ff; font-weight: bold;">+{plan_data['tokens']} Tokens</span>
-                        </div>
-                    """, unsafe_allow_html=True)
-                    
-                    if plan_data["price"] == 0:
-                        if st.button("🚀 Get Free Plan", key=f"enhanced_free_{plan_key}", use_container_width=True):
-                            st.session_state['user_credits'] += plan_data['tokens']
-                            st.success(f"✅ Added {plan_data['tokens']} free tokens!")
-                            st.rerun()
-                    else:
-                        if st.button(f"Subscribe {selected_currency} {converted_price:.2f}", key=f"enhanced_sub_{plan_key}", use_container_width=True):
-                            st.session_state["pending_credits"] = plan_data['tokens']
-                            st.session_state["pending_pack_name"] = plan_data['name']
-                            st.session_state["pending_amount"] = price_inr
-                            st.session_state["pending_plan_key"] = plan_key
-                            st.session_state["show_payment"] = True
-                            st.session_state["selected_gateway"] = "razorpay"
-                            st.session_state["show_gateway_form"] = True
-                            st.rerun()
-    
-    else:
-        st.markdown("### 🎯 One-Time Token Top-ups")
-        st.caption("💡 Buy tokens once and use them anytime. No expiry.")
-        
-        plans = GLOBAL_PLANS["one_time"]
-        cols = st.columns(len(plans))
-        
-        for idx, (plan_key, plan_data) in enumerate(plans.items()):
-            with cols[idx]:
-                with st.container(border=True):
-                    price_inr = plan_data["price"]
-                    converted_price = convert_price(price_inr, selected_currency)
-                    
-                    st.markdown(f"""
-                        <div style="text-align: center; padding: 5px 0;">
-                            <span style="font-size: 32px;">{plan_data['emoji']}</span>
-                            <h4 style="font-family: 'Orbitron'; font-size: 13px; color: #ffffff; margin: 5px 0;">{plan_data['name']}</h4>
-                            <p style="font-size: 9px; color: #94a3b8; margin: 0;">{plan_data.get('description', '')}</p>
-                        </div>
-                    """, unsafe_allow_html=True)
-                    
-                    st.markdown(f"""
-                        <div style="text-align: center; padding: 8px 0;">
-                            <span style="font-size: 18px; font-weight: bold; color: #45f3ff;">
-                                {selected_currency} {converted_price:.2f}
-                            </span>
-                        </div>
-                    """, unsafe_allow_html=True)
-                    
-                    st.markdown(f"""
-                        <div style="text-align: center; padding: 5px 0; background: rgba(69, 243, 255, 0.05); border-radius: 6px; margin: 5px 0;">
-                            <span style="font-size: 14px; color: #45f3ff; font-weight: bold;">+{plan_data['tokens']} Tokens</span>
-                        </div>
-                    """, unsafe_allow_html=True)
-                    
-                    if st.button(f"Buy {selected_currency} {converted_price:.2f}", key=f"enhanced_buy_{plan_key}", use_container_width=True):
-                        st.session_state["pending_credits"] = plan_data['tokens']
-                        st.session_state["pending_pack_name"] = plan_data['name']
-                        st.session_state["pending_amount"] = price_inr
-                        st.session_state["pending_plan_key"] = plan_key
-                        st.session_state["show_payment"] = True
-                        st.session_state["selected_gateway"] = "razorpay"
-                        st.session_state["show_gateway_form"] = True
-                        st.rerun()
-    
-# ========================================================
-# 30. PAYMENT MODAL
-# ========================================================
-
-def render_payment_modal():
-    credits = st.session_state.get("pending_credits", 0)
-    plan_name = st.session_state.get("pending_pack_name", "")
-    amount = st.session_state.get("pending_amount", 0)
-    selected_currency = st.session_state.get("payment_currency", "INR")
-    converted_amount = convert_price(amount, selected_currency)
-
-    with st.container(border=True):
-        col_title, col_close = st.columns([5, 1])
-        with col_title:
-            st.markdown("<h3 style='font-family: Orbitron; color: #45f3ff; margin: 0;'>💳 Complete Payment</h3>", unsafe_allow_html=True)
-        with col_close:
-            if st.button("❌ Close", key="payment_panel_close_btn", use_container_width=True):
-                clear_payment_state()
-                st.rerun()
-
-        st.markdown(f"""
-            <div style="background: rgba(69,243,255,0.05); border-radius: 12px; padding: 15px; margin: 12px 0 16px 0; 
-                        border: 1px solid rgba(69,243,255,0.1);">
-                <div style="display: flex; justify-content: space-between; padding: 5px 0; color: #c0c0c0;">
-                    <span>📦 Plan</span><span style="color: #45f3ff; font-weight: bold;">{plan_name}</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; padding: 5px 0; color: #c0c0c0;">
-                    <span>⚡ Credits</span><span style="color: #45f3ff; font-weight: bold;">+{credits}</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; padding: 5px 0; color: #c0c0c0;">
-                    <span>💰 Amount</span><span style="color: #45f3ff; font-weight: bold;">{selected_currency} {converted_amount:.2f}</span>
-                </div>
-            </div>
-        """, unsafe_allow_html=True)
-
-        st.markdown("### Choose Payment Method")
-
-        user_country = st.session_state.get("user_country", "IN")
-        available_gateways = get_available_gateway_keys(user_country)
-        if not available_gateways:
-            st.warning("No supported payment gateways are available for your region.")
-        else:
-            gateway_cols = st.columns(len(available_gateways))
-            for idx, gateway in enumerate(available_gateways):
-                with gateway_cols[idx]:
-                    selected = st.session_state.get("selected_gateway") == gateway
-                    button_label = f"{PAYMENT_GATEWAYS[gateway]['icon']} {PAYMENT_GATEWAYS[gateway]['name']}"
-                    if st.button(
-                        button_label,
-                        key=f"modal_gateway_{gateway}",
-                        use_container_width=True,
-                        type="primary" if selected else "secondary"
-                    ):
-                        st.session_state["selected_gateway"] = gateway
-                        st.session_state["show_gateway_form"] = True
-                        st.rerun()
-
-        if st.session_state.get("show_gateway_form", False):
-            gateway = st.session_state.get("selected_gateway", "razorpay")
-
-            if gateway == "stripe":
-                st.markdown("---")
-                st.markdown("### 💳 Stripe Payment")
-
-                if st.button("💳 Pay with Stripe", use_container_width=True):
-                    with st.spinner("Creating payment session..."):
-                        amount_usd = convert_price(amount, "USD")
-                        result = create_stripe_payment(
-                            amount_usd,
-                            f"ZOVIX - {plan_name}",
-                            st.session_state.get("logged_user", "")
-                        )
-                        if result:
-                            html = render_stripe_checkout(
-                                result["id"],
-                                result["client_secret"],
-                                result["amount"],
-                                credits,
-                                plan_name
-                            )
-                            st.components.v1.html(html, height=450)
-                        else:
-                            st.error("Failed to create Stripe payment. Please try again.")
-
-            elif gateway == "paypal":
-                st.markdown("---")
-                st.markdown("### 💰 PayPal Payment")
-
-                if st.button("💰 Pay with PayPal", use_container_width=True):
-                    with st.spinner("Creating PayPal order..."):
-                        amount_usd = convert_price(amount, "USD")
-                        result = create_paypal_order(amount_usd, f"ZOVIX - {plan_name}")
-                        if result and result.get("approval_url"):
-                            html = render_paypal_checkout(
-                                result["id"],
-                                result["approval_url"],
-                                result["amount"],
-                                credits,
-                                plan_name
-                            )
-                            st.components.v1.html(html, height=350)
-                            st.info("💡 A new tab will open for PayPal payment. After completing, return here.")
-                        else:
-                            st.error("Failed to create PayPal order. Please try again.")
-
-            elif gateway == "crypto":
-                st.markdown("---")
-                st.markdown("### ₿ Cryptocurrency Payment")
-
-                crypto_currency = st.selectbox(
-                    "Select Cryptocurrency",
-                    ["BTC", "ETH", "USDT", "USDC", "SOL", "BNB", "DOGE"],
-                    key="crypto_currency_select"
-                )
-
-                if st.button(f"Generate {crypto_currency} Address", use_container_width=True):
-                    with st.spinner(f"Generating {crypto_currency} address..."):
-                        amount_usd = convert_price(amount, "USD")
-                        result = create_crypto_payment(amount_usd, crypto_currency)
-                        if result:
-                            html = render_crypto_checkout(result, credits, plan_name)
-                            st.components.v1.html(html, height=500)
-                        else:
-                            st.error("Failed to generate crypto address. Please try again.")
-
-            elif gateway == "binance":
-                st.markdown("---")
-                st.markdown("### 🟡 Binance Payment")
-
-                binance_currency = st.selectbox(
-                    "Select Currency",
-                    ["BUSD", "USDT", "BNB", "BTC", "ETH"],
-                    key="binance_currency_select"
-                )
-
-                if st.button(f"Pay with Binance", use_container_width=True):
-                    with st.spinner("Creating Binance payment..."):
-                        amount_usd = convert_price(amount, "USD")
-                        result = create_binance_payment(amount_usd, binance_currency)
-                        if result:
-                            html = render_binance_checkout(result, credits, plan_name)
-                            st.components.v1.html(html, height=450)
-                        else:
-                            st.error("Failed to create Binance payment. Please try again.")
-
-            elif gateway == "razorpay":
-                st.markdown("---")
-                st.markdown("### 💳 Razorpay Payment")
-
-                if st.button("💳 Pay with Razorpay", use_container_width=True):
-                    if not RAZORPAY_KEY_ID or RAZORPAY_KEY_ID == "mock":
-                        st.error("❌ Razorpay not configured. Please add Razorpay keys.")
-                    else:
-                        amount_paise = amount * 100
-                        order = create_payment_order(amount_paise, plan_name)
-                        if order and order.get("id"):
-                            st.session_state["razorpay_order_id"] = order["id"]
-                            st.session_state["razorpay_last_debug"] = order.get("debug", "")
-                            st.session_state["razorpay_last_status"] = order.get("status", "created")
-                            html = render_razorpay_checkout(
-                                order["id"],
-                                amount_paise,
-                                plan_name,
-                                credits,
-                                st.session_state.get("logged_user", "User"),
-                                RAZORPAY_KEY_ID
-                            )
-                            st.components.v1.html(html, height=520)
-
-                            st.markdown("---")
-                            st.caption("If the Razorpay window completed successfully inside the iframe, click below to sync your credits.")
-                            if st.button("🔄 Sync & Verify Credits", use_container_width=True, type="primary"):
-                                with st.spinner("Checking Razorpay order status..."):
-                                    order_id = st.session_state.get("razorpay_order_id")
-                                    username = st.session_state.get("logged_user", "")
-
-                                    if order_id and username and st.session_state.get("is_logged_in", False):
-                                        try:
-                                            client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
-                                            order_data = client.order.fetch(order_id)
-                                            status = str(order_data.get("status", "")).lower()
-                                            st.session_state["razorpay_last_status"] = status
-
-                                            if status in {"paid", "authorized"}:
-                                                already_synced = st.session_state.get("razorpay_verified_order_id") == order_id
-                                                credits_to_add = int(credits)
-
-                                                if already_synced:
-                                                    st.info("✅ Payment already synced. Your credits are already updated.")
-                                                else:
-                                                    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
-                                                    cursor = conn.cursor()
-                                                    cursor.execute(
-                                                        "SELECT 1 FROM payment_history WHERE username = ? AND order_id = ? AND status = 'success' LIMIT 1",
-                                                        (username, order_id),
-                                                    )
-                                                    existing = cursor.fetchone()
-                                                    conn.close()
-
-                                                    if not existing:
-                                                        add_credits(username, credits_to_add)
-                                                        save_payment_history(
-                                                            username,
-                                                            order_id,
-                                                            order_data.get("id", ""),
-                                                            round(amount_paise / 100, 2),
-                                                            credits_to_add,
-                                                            plan_name,
-                                                            "success",
-                                                            "one_time",
-                                                            "razorpay",
-                                                        )
-
-                                                st.session_state["payment_status"] = "success"
-                                                st.session_state["razorpay_payment_id"] = order_data.get("id", "")
-                                                st.session_state["razorpay_signature"] = ""
-                                                st.session_state["pending_credits"] = 0
-                                                st.session_state["pending_pack_name"] = ""
-                                                st.session_state["pending_amount"] = 0
-                                                st.session_state["user_credits"] = get_user_credits_db(username)
-                                                st.session_state["razorpay_verified_order_id"] = order_id
-                                                st.success(f"✅ Payment confirmed by Razorpay. {credits_to_add} credits added.")
-                                                st.rerun()
-                                            else:
-                                                st.info(f"⏳ Current Razorpay status: {status or 'unknown'}")
-                                        except Exception as e:
-                                            logger.warning(f"Razorpay sync failed: {e}")
-                                            st.info("⚠️ Could not verify payment yet. Please wait a moment and try again.")
-                                    else:
-                                        st.info("⚠️ Please log in and create a Razorpay order before syncing.")
-
-                            if order.get("status") != "created":
-                                st.warning(f"⚠️ Razorpay backend returned a fallback order. Debug: {order.get('debug', '')}")
-                            else:
-                                st.caption("🛡️ Checkout is rendered inside a secure component iframe for Streamlit Cloud compatibility.")
-                        else:
-                            st.error("Failed to create payment order. Please try again.")
-
-# ========================================================
-# 31. RAZORPAY CHECKOUT
-# ========================================================
-
-def verify_razorpay_payment_fallback(order_id, username, credits_to_add, pack_name, amount):
-    if not order_id:
-        return False, "No Razorpay order is available to verify yet."
-
-    if not username or not st.session_state.get("is_logged_in", False):
-        return False, "Please log in before verifying your payment."
-
-    st.session_state["payment_verifying"] = True
-    resolved_pack_name = pack_name
-
-    try:
-        conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
-        cursor = conn.cursor()
-        cursor.execute(
-            "SELECT payment_id, status, credits_added, pack_name FROM payment_history WHERE username = ? AND order_id = ? ORDER BY timestamp DESC LIMIT 1",
-            (username, order_id)
-        )
-        row = cursor.fetchone()
-        conn.close()
-
-        if row:
-            payment_id, status, saved_credits, saved_pack_name = row
-            resolved_pack_name = saved_pack_name or pack_name
-            if status == "success":
-                expected_credits = int(saved_credits or credits_to_add or 0)
-                current_credits = get_user_credits_db(username)
-                if current_credits < expected_credits:
-                    add_credits(username, expected_credits - current_credits)
-                st.session_state["payment_verified"] = True
-                st.session_state["razorpay_payment_id"] = payment_id
-                st.session_state["razorpay_signature"] = ""
-                st.session_state["pending_credits"] = 0
-                st.session_state["pending_pack_name"] = ""
-                st.session_state["pending_amount"] = 0
-                st.session_state["user_credits"] = get_user_credits_db(username)
-                return True, f"✅ Payment verified. Added {expected_credits} credits."
-
-        if razorpay is not None and RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET and RAZORPAY_KEY_ID != "mock" and RAZORPAY_KEY_SECRET != "mock":
-            try:
-                client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
-                order_data = client.order.fetch(order_id)
-                if isinstance(order_data, dict) and str(order_data.get("status", "")).lower() in {"paid", "authorized"}:
-                    success, message = process_payment_success(
-                        username,
-                        order_id,
-                        "",
-                        "",
-                        amount,
-                        credits_to_add,
-                        resolved_pack_name,
-                    )
-                    st.session_state["payment_verified"] = success
-                    return success, message
-            except Exception as api_error:
-                logger.warning(f"Razorpay fallback fetch error: {api_error}")
-
-        return False, "Payment is still pending or the verification did not return a confirmed status. Please wait a moment and try again."
-    finally:
-        st.session_state["payment_verifying"] = False
-
-
-def render_razorpay_checkout(order_id, amount, plan_name, credits, username, key_id):
-    import json
-    amount_inr = amount / 100
-    safe_plan_name = str(plan_name).replace("'", "\\'").replace("\n", " ")
-    safe_username = str(username).replace("'", "\\'").replace("\n", " ")
-
-    checkout_html = f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-        <style>
-            body {{ margin: 0; padding: 0; background: transparent; font-family: 'Inter', 'Segoe UI', sans-serif; }}
-            .checkout-container {{
-                display: flex; justify-content: center; align-items: center; min-height: 480px; padding: 12px;
-                background: linear-gradient(135deg, #0a0a12 0%, #1a1a2e 100%);
-                border-radius: 16px; border: 1px solid rgba(69, 243, 255, 0.2);
-            }}
-            .payment-card {{
-                background: rgba(18, 19, 26, 0.95); border-radius: 16px; padding: 24px; max-width: 420px;
-                width: 100%; text-align: center; border: 1px solid rgba(255, 192, 203, 0.15);
-                box-shadow: 0 20px 60px rgba(0,0,0,0.8);
-            }}
-            .payment-icon {{ font-size: 42px; margin-bottom: 8px; }}
-            .payment-title {{ font-family: 'Orbitron', sans-serif; font-size: 17px; color: #45f3ff; margin-bottom: 4px; }}
-            .payment-subtitle {{ font-size: 13px; color: #94a3b8; margin-bottom: 16px; }}
-            .payment-details {{ background: rgba(69, 243, 255, 0.05); border-radius: 12px; padding: 12px; margin-bottom: 16px; border: 1px solid rgba(69, 243, 255, 0.1); }}
-            .payment-details .row {{ display: flex; justify-content: space-between; padding: 4px 0; font-size: 13px; color: #c0c0c0; }}
-            .payment-details .row .label {{ color: #94a3b8; }}
-            .payment-details .row .value {{ color: #45f3ff; font-weight: bold; }}
-            .payment-btn {{
-                width: 100%; padding: 13px; background: linear-gradient(135deg, #45f3ff 0%, #EC4899 100%);
-                color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: bold;
-                font-family: 'Orbitron', sans-serif; cursor: pointer; transition: all 0.15s ease;
-                text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 4px 20px rgba(69, 243, 255, 0.3);
-            }}
-            .payment-btn:hover {{ transform: translateY(-2px); box-shadow: 0 8px 30px rgba(69, 243, 255, 0.5); }}
-            .payment-btn:active {{ transform: scale(0.98); }}
-            .payment-status {{ margin-top: 12px; font-size: 12px; color: #94a3b8; }}
-            .payment-status.success {{ color: #10b981; }}
-            .payment-status.error {{ color: #ef4444; }}
-            @media (max-width: 600px) {{
-                .payment-card {{ padding: 18px 14px; margin: 0 4px; }}
-                .payment-title {{ font-size: 15px; }}
-                .payment-btn {{ font-size: 13px; padding: 12px; }}
-            }}
-        </style>
-    </head>
-    <body>
-        <div class="checkout-container">
-            <div class="payment-card" id="paymentCard">
-                <div class="payment-icon">💎</div>
-                <div class="payment-title">ZOVIX CREDITS</div>
-                <div class="payment-subtitle">{safe_plan_name}</div>
-                <div class="payment-details">
-                    <div class="row"><span class="label">💰 Amount</span><span class="value">₹{amount_inr:.0f}</span></div>
-                    <div class="row"><span class="label">⚡ Credits</span><span class="value">+{credits} Credits</span></div>
-                    <div class="row"><span class="label">👤 User</span><span class="value">{safe_username}</span></div>
-                </div>
-                <button class="payment-btn" id="pay-btn" type="button">💳 Pay Now</button>
-                <div class="payment-status" id="paymentStatus">🔒 Click Pay Now to checkout securely.</div>
-            </div>
-        </div>
-
-        <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-        <script>
-            (function() {{
-                const orderId = {json.dumps(order_id)};
-                const amount = {amount};
-                const username = {json.dumps(safe_username)};
-                const credits = {credits};
-                const planName = {json.dumps(safe_plan_name)};
-                const keyId = {json.dumps(key_id)};
-                const paymentStatus = document.getElementById('paymentStatus');
-                const payButton = document.getElementById('pay-btn');
-
-                function updateStatus(message, type) {{
-                    paymentStatus.className = 'payment-status ' + type;
-                    paymentStatus.innerHTML = message;
-                }}
-
-                function openCheckout() {{
-                    if (typeof Razorpay === 'undefined') {{
-                        updateStatus('⚠️ Razorpay SDK missing. Refreshing...', 'error');
-                        return;
-                    }}
-
-                    const options = {{
-                        key: keyId,
-                        amount: amount,
-                        currency: 'INR',
-                        name: 'ZOVIX - AI Studio',
-                        description: planName + ' - ' + credits + ' Credits',
-                        order_id: orderId,
-                        prefill: {{ name: username || 'Zovix User', email: username || 'user@zovix.ai' }},
-                        theme: {{ color: '#EC4899', backdrop_color: '#06070a' }},
-                        modal: {{
-                            ondismiss: function() {{
-                                updateStatus('❌ Payment cancelled.', 'error');
-                            }}
-                        }},
-                        handler: function(response) {{
-                            updateStatus('✅ Processing payment...', 'success');
-                            payButton.disabled = true;
-                            payButton.innerHTML = '⏳ Processing...';
-                            // Streamlit window to parent data mechanism fallback
-                            if (window.parent) {{
-                                window.parent.postMessage({{
-                                    type: 'razorpay_success',
-                                    payment_id: response.razorpay_payment_id,
-                                    order_id: response.razorpay_order_id,
-                                    signature: response.razorpay_signature
-                                }}, '*');
-                            }}
-                        }}
-                    }};
-
-                    try {{
-                        const rzp = new Razorpay(options);
-                        rzp.open();
-                        updateStatus('🔄 Razorpay checkout modal active.', 'success');
-                    }} catch (err) {{
-                        updateStatus('⚠️ Error launching checkout window.', 'error');
-                    }}
-                }}
-
-                payButton.addEventListener('click', function(e) {{
-                    e.preventDefault();
-                    openCheckout();
-                }});
-            }})();
-        </script>
-    </body>
-    </html>
-    """
-
-    # Yahan hum double nested wrapper_html hata kar clean inline srcdoc bana rahe hain 
-    # Jo seedhe Streamlit components.v1.html ko pas hoga, no CORS block anymore!
-    return checkout_html
-
-def handle_payment_response():
-    query_params = st.query_params
-    if "razorpay_payment_id" in query_params and "razorpay_order_id" in query_params:
-        payment_id = query_params.get("razorpay_payment_id")
-        order_id = query_params.get("razorpay_order_id")
-        signature = query_params.get("razorpay_signature", "")
-        credits_to_add = st.session_state.get("pending_credits", 0)
-        pack_name = st.session_state.get("pending_pack_name", "")
-        if st.session_state.get("is_logged_in") and st.session_state.get("logged_user"):
-            username = st.session_state["logged_user"]
-            success, message = process_payment_success(
-                username, order_id, payment_id, signature,
-                st.session_state.get("pending_amount", 0),
-                credits_to_add, pack_name
-            )
-            if success:
-                st.success(message)
-                st.balloons()
-                st.session_state["razorpay_order_id"] = None
-                st.session_state["razorpay_payment_id"] = None
-                st.session_state["razorpay_signature"] = None
-                st.session_state["pending_credits"] = 0
-                st.session_state["pending_pack_name"] = ""
-                st.session_state["pending_amount"] = 0
-                st.session_state["payment_verified"] = True
-                st.query_params.clear()
-                st.rerun()
-            else:
-                st.error(message)
-        else:
-            st.info("✅ Payment successful! Please log in to claim your credits.")
-            st.session_state["pending_credits"] = credits_to_add
-            st.session_state["pending_pack_name"] = pack_name
-            st.query_params.clear()
-
-# ========================================================
-# 32. HELPER FUNCTIONS
+# 29. HELPER FUNCTIONS
 # ========================================================
 
 def get_sub_users(parent):
@@ -3865,7 +3184,7 @@ def get_base64_img_raw(path):
         return None
 
 # ========================================================
-# 33. SCRIPTING, VISUAL, AUDIO, STITCHER ENGINES
+# 30. SCRIPTING, VISUAL, AUDIO, STITCHER ENGINES
 # ========================================================
 
 class FactoryProgress:
@@ -4251,8 +3570,6 @@ def get_scene_asset(description, output_filename, scene_text=None, idx=None, sta
             if status_dict is not None and idx is not None:
                 status_dict[idx] = f"✅ Cached: '{refined_query}'"
             return True
-        # Quick template mode should not skip stock retrieval.
-        # Always attempt premium stock sourcing from Pexels or Pixabay before falling back to AI generation.
         if status_dict is not None and idx is not None:
             status_dict[idx] = f"📹 Sourcing Pexels: '{refined_query}'"
         if VisualEngine.fetch_pexels_clip(refined_query, output_filename):
@@ -4708,62 +4025,6 @@ def convert_mp4_to_webm(mp4_path, webm_path):
         except Exception:
             return False
 
-def generate_elevenlabs_audio_for_face(text, output_path, voice_id="21m00Tcm4TlvDq8ikWAM"):
-    eleven_key = os.getenv("ELEVENLABS_API_KEY") or get_system_secret("ELEVENLABS_API_KEY")
-    if not eleven_key:
-        return False
-    safe_remove_file(output_path)
-    url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
-    headers = {"Accept": "audio/mpeg", "Content-Type": "application/json", "xi-api-key": eleven_key}
-    data = {"text": text, "model_id": "eleven_multilingual_v2", "voice_settings": {"stability": 0.5, "similarity_boost": 0.75}}
-    try:
-        response = requests.post(url, json=data, headers=headers, timeout=30)
-        if response.status_code == 200:
-            with open(output_path, "wb") as f:
-                f.write(response.content)
-            return True
-    except Exception:
-        pass
-    return False
-
-def run_lip_sync_pipeline(face_image_path, audio_path, output_video_path, width, height, duration=10, emotion="neutral", camera_angle="front"):
-    safe_remove_file(output_video_path)
-    try:
-        import importlib
-        if importlib.util.find_spec("wav2lip") or importlib.util.find_spec("Wav2Lip"):
-            try:
-                from wav2lip import inference as wav2lip_inference
-                logger.info("Attempting Wav2Lip audio-driven lip sync")
-                wav2lip_inference.sync(face=face_image_path, audio=audio_path, output=output_video_path, size=(width, height), fps=24)
-                if os.path.exists(output_video_path) and os.path.getsize(output_video_path) > 1000:
-                    return True
-            except Exception as e:
-                logger.warning(f"Wav2Lip sync failed: {e}")
-        if importlib.util.find_spec("sadtalker") or importlib.util.find_spec("SadTalker"):
-            try:
-                from sadtalker import SadTalker
-                logger.info("Attempting SadTalker audio-driven lip sync")
-                model = SadTalker()
-                model.generate(source_image=face_image_path, driving_audio=audio_path, output_path=output_video_path, size=(width, height), emotion=emotion, camera_angle=camera_angle)
-                if os.path.exists(output_video_path) and os.path.getsize(output_video_path) > 1000:
-                    return True
-            except Exception as e:
-                logger.warning(f"SadTalker sync failed: {e}")
-        if importlib.util.find_spec("liveportrait") or importlib.util.find_spec("LivePortrait"):
-            try:
-                from liveportrait import LivePortrait
-                logger.info("Attempting LivePortrait audio-driven lip sync")
-                portrait = LivePortrait()
-                portrait.generate(source_image=face_image_path, driving_audio=audio_path, output_video=output_video_path, resolution=(width, height), emotion=emotion, camera_angle=camera_angle)
-                if os.path.exists(output_video_path) and os.path.getsize(output_video_path) > 1000:
-                    return True
-            except Exception as e:
-                logger.warning(f"LivePortrait sync failed: {e}")
-    except Exception as e:
-        logger.warning(f"Lip sync pipeline error: {e}")
-    return False
-
-
 def generate_face_video_real(image_path, audio_path=None, output_width=512, output_height=512, duration=10, quality="Standard", emotion="neutral", camera_angle="front"):
     if not image_path or not os.path.exists(image_path):
         return None
@@ -4817,6 +4078,43 @@ def generate_face_video_real(image_path, audio_path=None, output_width=512, outp
                 pass
         return None
 
+def run_lip_sync_pipeline(face_image_path, audio_path, output_video_path, width, height, duration=10, emotion="neutral", camera_angle="front"):
+    safe_remove_file(output_video_path)
+    try:
+        import importlib
+        if importlib.util.find_spec("wav2lip") or importlib.util.find_spec("Wav2Lip"):
+            try:
+                from wav2lip import inference as wav2lip_inference
+                logger.info("Attempting Wav2Lip audio-driven lip sync")
+                wav2lip_inference.sync(face=face_image_path, audio=audio_path, output=output_video_path, size=(width, height), fps=24)
+                if os.path.exists(output_video_path) and os.path.getsize(output_video_path) > 1000:
+                    return True
+            except Exception as e:
+                logger.warning(f"Wav2Lip sync failed: {e}")
+        if importlib.util.find_spec("sadtalker") or importlib.util.find_spec("SadTalker"):
+            try:
+                from sadtalker import SadTalker
+                logger.info("Attempting SadTalker audio-driven lip sync")
+                model = SadTalker()
+                model.generate(source_image=face_image_path, driving_audio=audio_path, output_path=output_video_path, size=(width, height), emotion=emotion, camera_angle=camera_angle)
+                if os.path.exists(output_video_path) and os.path.getsize(output_video_path) > 1000:
+                    return True
+            except Exception as e:
+                logger.warning(f"SadTalker sync failed: {e}")
+        if importlib.util.find_spec("liveportrait") or importlib.util.find_spec("LivePortrait"):
+            try:
+                from liveportrait import LivePortrait
+                logger.info("Attempting LivePortrait audio-driven lip sync")
+                portrait = LivePortrait()
+                portrait.generate(source_image=face_image_path, driving_audio=audio_path, output_video=output_video_path, resolution=(width, height), emotion=emotion, camera_angle=camera_angle)
+                if os.path.exists(output_video_path) and os.path.getsize(output_video_path) > 1000:
+                    return True
+            except Exception as e:
+                logger.warning(f"LivePortrait sync failed: {e}")
+    except Exception as e:
+        logger.warning(f"Lip sync pipeline error: {e}")
+    return False
+
 def generate_face_video(prompt, face_image_path, duration=30, emotion="neutral", camera_angle="front", quality="Standard"):
     if not face_image_path or not os.path.exists(face_image_path):
         return None
@@ -4839,80 +4137,25 @@ def generate_face_video(prompt, face_image_path, duration=30, emotion="neutral",
             pass
     if output_path:
         return output_path
-    try:
-        from PIL import Image, ImageDraw, ImageFilter, ImageEnhance    
-        face_img = Image.open(face_image_path).convert("RGB")
-        quality_settings = {"Standard": {"scale": 1.0, "crf": 23, "preset": "medium"}, "HD": {"scale": 1.5, "crf": 18, "preset": "slow"}, "4K": {"scale": 2.0, "crf": 15, "preset": "veryslow"}}
-        q_fallback = quality_settings.get(quality, quality_settings["Standard"])
-        scale_fallback = q_fallback["scale"]
-        video_width = int(512 * scale_fallback)
-        video_height = int(512 * scale_fallback)
-        fps = 24
-        total_frames = duration * fps
-        temp_dir = "face_videos/temp_frames"
-        os.makedirs(temp_dir, exist_ok=True)
-        frames = []
-        for frame_num in range(total_frames):
-            if frame_num == 0:
-                base_frame = Image.new("RGB", (video_width, video_height), color=(10, 10, 20))
-                draw = ImageDraw.Draw(base_frame)
-                for i in range(5):
-                    radius = 50 + i * 60
-                    alpha = 30 - i * 5
-                    if alpha > 0:
-                        x = int(video_width/2 + 100 * np.sin(i * 0.5))
-                        y = int(video_height/2 + 80 * np.cos(i * 0.3))
-                        draw.ellipse([(x-radius, y-radius), (x+radius, y+radius)], fill=(20 + i*10, 20 + i*5, 40 + i*8))
-                base_frame = base_frame.filter(ImageFilter.GaussianBlur(radius=2))
-            else:
-                base_frame = frames[-1].copy()
-            face_copy = face_img.copy()
-            progress = frame_num / total_frames
-            center_x = int(video_width/2 + 80 * np.sin(progress * 2 * np.pi * 1.5))
-            center_y = int(video_height/2 + 60 * np.cos(progress * 2 * np.pi * 1.2))
-            scale = (0.5 + 0.08 * np.sin(progress * 2 * np.pi * 0.5)) * scale_fallback
-            face_size = int(min(video_width, video_height) * scale)
-            face_resized = face_copy.resize((face_size, face_size), Image.Resampling.LANCZOS)
-            mask = Image.new("L", face_resized.size, 0)
-            mask_draw = ImageDraw.Draw(mask)
-            margin = int(face_size * 0.15)
-            mask_draw.ellipse([(margin, margin), (face_size - margin, face_size - margin)], fill=255)
-            mask = mask.filter(ImageFilter.GaussianBlur(radius=8))
-            paste_x = center_x - face_resized.width // 2
-            paste_y = center_y - face_resized.height // 2
-            base_frame.paste(face_resized, (paste_x, paste_y), mask)
-            draw = ImageDraw.Draw(base_frame)
-            char_count = len(prompt)
-            chars_to_show = int(char_count * min(1.0, progress * 1.2))
-            current_text = prompt[:chars_to_show]
-            words = current_text.split()
-            lines = []
-            current_line = ""
-            for word in words:
-                if len(current_line + " " + word) < 30:
-                    current_line += " " + word if current_line else word
-                else:
-                    lines.append(current_line)
-                    current_line = word
-            if current_line:
-                lines.append(current_line)
-            subtitle_y = video_height - 60
-            for line in lines[:2]:
-                draw.text((video_width//2 - len(line)*4, subtitle_y), line, fill=(255, 255, 255, 200))
-                subtitle_y += 20
-            frames.append(base_frame)
-        for i, frame in enumerate(frames):
-            frame_path = os.path.join(temp_dir, f"frame_{i:04d}.png")
-            frame.save(frame_path)
-        output_path = f"face_videos/face_video_{quality.lower()}_{uuid.uuid4().hex[:8]}.mp4"
-        cmd = ['ffmpeg', '-y', '-framerate', str(fps), '-i', os.path.join(temp_dir, 'frame_%04d.png'), '-c:v', 'libx264', '-preset', q_fallback.get("preset", "medium"), '-crf', str(q_fallback["crf"]), '-pix_fmt', 'yuv420p', '-movflags', '+faststart', output_path]
-        subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
-        shutil.rmtree(temp_dir, ignore_errors=True)
-        if os.path.exists(output_path) and os.path.getsize(output_path) > 1000:
-            return output_path
-    except Exception as e:
-        logger.error(f"Face video fallback error: {e}")
     return None
+
+def generate_elevenlabs_audio_for_face(text, output_path, voice_id="21m00Tcm4TlvDq8ikWAM"):
+    eleven_key = os.getenv("ELEVENLABS_API_KEY") or get_system_secret("ELEVENLABS_API_KEY")
+    if not eleven_key:
+        return False
+    safe_remove_file(output_path)
+    url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
+    headers = {"Accept": "audio/mpeg", "Content-Type": "application/json", "xi-api-key": eleven_key}
+    data = {"text": text, "model_id": "eleven_multilingual_v2", "voice_settings": {"stability": 0.5, "similarity_boost": 0.75}}
+    try:
+        response = requests.post(url, json=data, headers=headers, timeout=30)
+        if response.status_code == 200:
+            with open(output_path, "wb") as f:
+                f.write(response.content)
+            return True
+    except Exception:
+        pass
+    return False
 
 def process_editor_video(uploaded_files, output_path, effect="none", transition="fade", resolution="1080p", custom_bgm=None, bgm_volume=0.3):
     if not uploaded_files:
@@ -5054,12 +4297,14 @@ def generate_hook_variations(topic_or_intro):
     return [hook_1_txt, hook_2_txt, hook_3_txt]
 
 # ========================================================
-# 35. GENERATE VIDEO BLUEPRINT
+# 35. GENERATE VIDEO BLUEPRINT WITH DEEPSEEK
 # ========================================================
 
 def generate_video_blueprint_with_deepseek(user_prompt, aspect_ratio="16:9"):
+    """Generate a structured video blueprint using DeepSeek API"""
     url = "https://api.deepseek.com/v1/chat/completions"
     headers = {"Content-Type": "application/json", "Authorization": f"Bearer {DEEPSEEK_API_KEY}"}
+    
     system_instruction = (
         "You are the core AI director for Zovix Portal. Your job is to convert user topics into a structured video creation blueprint. "
         "You must respond ONLY with a valid JSON object. Do not include markdown blocks like ```json ... ```, just raw JSON text. "
@@ -5072,12 +4317,17 @@ def generate_video_blueprint_with_deepseek(user_prompt, aspect_ratio="16:9"):
         "  ]\n"
         "}"
     )
+    
     payload = {
         "model": "deepseek-chat",
-        "messages": [{"role": "system", "content": system_instruction}, {"role": "user", "content": f"Create a high-fidelity video blueprint for topic: '{user_prompt}' with aspect ratio {aspect_ratio}"}],
+        "messages": [
+            {"role": "system", "content": system_instruction},
+            {"role": "user", "content": f"Create a high-fidelity video blueprint for topic: '{user_prompt}' with aspect ratio {aspect_ratio}"}
+        ],
         "temperature": 0.4,
         "response_format": {"type": "json_object"}
     }
+    
     try:
         response = requests.post(url, headers=headers, json=payload, timeout=30)
         if response.status_code == 200:
@@ -5459,7 +4709,7 @@ def generate_dynamic_ui():
             if st.button("⚡ Quick Render", key="ui_quick_render", use_container_width=True):
                 if st.session_state.get("dynamic_ui_uploaded_file"):
                     st.toast("🔄 Rendering project...")
-                    time.sleep(1)
+                    time.sleep(0.1)
                     st.success("✅ Quick render completed!")
                 else:
                     st.warning("⚠️ No project loaded. Please open a project first.")
@@ -5736,6 +4986,35 @@ def generate_emotion_voice(text, emotion="neutral", voice_type="male", output_pa
         output_path = f"emotion_voice_outputs/emotion_{uuid.uuid4().hex[:8]}.mp3"
     os.makedirs("emotion_voice_outputs", exist_ok=True)
     safe_remove_file(output_path)
+    
+    # 1. Try Azure TTS if available
+    azure_key = os.getenv("AZURE_SPEECH_KEY") or get_system_secret("AZURE_SPEECH_KEY")
+    azure_region = os.getenv("AZURE_SPEECH_REGION") or get_system_secret("AZURE_SPEECH_REGION", "eastus")
+    if azure_key and azure_region:
+        try:
+            voice_name = "en-US-GuyNeural" if voice_type == "male" else "en-US-JennyNeural"
+            style_map = {"neutral": "neutral", "happy": "cheerful", "sad": "sad", "angry": "angry", "excited": "excited", "serious": "serious", "mysterious": "neutral"}
+            style = style_map.get(emotion, "neutral")
+            url = f"https://{azure_region}.tts.speech.microsoft.com/cognitiveservices/v1"
+            headers = {"Ocp-Apim-Subscription-Key": azure_key, "Content-Type": "application/ssml+xml", "X-Microsoft-OutputFormat": "audio-24khz-96kbitrate-mono-mp3"}
+            ssml = f"""<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="en-US">
+                        <voice name="{voice_name}">
+                            <mstts:express-as style="{style}">
+                                {text}
+                            </mstts:express-as>
+                        </voice>
+                    </speak>"""
+            response = requests.post(url, headers=headers, data=ssml, timeout=30)
+            if response.status_code == 200 and len(response.content) > 1000:
+                with open(output_path, "wb") as f:
+                    f.write(response.content)
+                if os.path.exists(output_path) and os.path.getsize(output_path) > 0:
+                    logger.info(f"Azure TTS generated successfully for {text[:30]}...")
+                    return output_path
+        except Exception as e:
+            logger.warning(f"Azure TTS failed: {e}")
+    
+    # 2. Try ElevenLabs
     eleven_key = os.getenv("ELEVENLABS_API_KEY") or get_system_secret("ELEVENLABS_API_KEY")
     if eleven_key and elevenlabs_voice_id:
         try:
@@ -5743,22 +5022,29 @@ def generate_emotion_voice(text, emotion="neutral", voice_type="male", output_pa
             modified_text = emotion_modifiers.get(emotion, "") + text
             if AudioEngine.generate_elevenlabs_speech(modified_text, output_path, elevenlabs_voice_id):
                 return output_path
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"ElevenLabs TTS failed: {e}")
+    
+    # 3. Fallback to edge_tts
     try:
         voice_map = {"neutral": {"male": "en-US-GuyNeural", "female": "en-US-AriaNeural"}, "happy": {"male": "en-US-GuyNeural", "female": "en-US-AriaNeural"}, "sad": {"male": "en-US-GuyNeural", "female": "en-US-AriaNeural"}, "angry": {"male": "en-US-GuyNeural", "female": "en-US-AriaNeural"}, "excited": {"male": "en-US-GuyNeural", "female": "en-US-AriaNeural"}, "serious": {"male": "en-US-GuyNeural", "female": "en-US-AriaNeural"}, "mysterious": {"male": "en-US-GuyNeural", "female": "en-US-AriaNeural"}}
-        voice_name = voice_map.get(emotion, {}).get(voice_type, "en-US-GuyNeural")
+        if voice_type == "male":
+            voice_name = "hi-IN-MadhurNeural"
+        else:
+            voice_name = "hi-IN-SwaraNeural"
         if edge_tts is not None:
             run_async_in_thread(edge_tts.Communicate(text, voice_name).save(output_path))
             if os.path.exists(output_path) and os.path.getsize(output_path) > 0:
                 return output_path
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning(f"Fallback TTS failed: {e}")
+    
+    # 4. Emergency silent audio
     create_emergency_silent_audio(output_path, len(text.split()) * 0.5 + 1)
     return output_path if os.path.exists(output_path) else None
 
 # ========================================================
-# 37. MODE FUNCTIONS - Creative Workshop, Blueprints, Flow State, Upscaler, Draw, Video Editor, Face Video
+# 37. MODE FUNCTIONS - Creative Workshop, Blueprints, Upscaler, Draw, Video Editor, Face Video
 # ========================================================
 
 def run_creative_workshop():
@@ -5991,124 +5277,6 @@ def analyze_blueprint(blueprint_path):
         return {"width": width, "height": height, "format": img.format, "mode": img.mode, "estimated_rooms": 4, "total_area": f"{width * height / 10000:.2f} sq ft", "structure_type": "Residential", "confidence_score": 0.85}
     except Exception:
         return None
-
-def run_flow_state_mode():
-    st.markdown("""
-        <div style="background: rgba(18, 19, 26, 0.85); border-radius: 12px; border: 1px solid rgba(255,192,203,0.15); padding: 20px; margin-bottom: 20px;">
-            <h3 style="font-family: 'Orbitron'; font-size: 16px; color: #FFC0CB; margin: 0 0 5px 0;">🌊 Flow State Engine</h3>
-            <p style="color: #94a3b8; font-size: 12px; margin: 0;"> Generate fluid dynamics simulations and particle animations </p>
-        </div>
-    """, unsafe_allow_html=True)
-    fs_col1, fs_col2 = st.columns([1.1, 1.4], gap="medium")
-    with fs_col1:
-        with st.container(border=True):
-            st.markdown("<h4 style='font-family: Orbitron; font-size: 13px; color: #FFC0CB; margin-bottom: 15px;'>⚙️ FLOW PARAMETERS</h4>", unsafe_allow_html=True)
-            flow_prompt = st.text_area("Flow Description", placeholder="E.g. Lava flowing down a volcano, ocean waves, smoke particles, water ripples, fire particles...", height=100, key="fs_prompt")
-            duration_sec = st.slider("Animation Duration (seconds)", min_value=2, max_value=10, value=5, key="fs_duration")
-            fps = st.select_slider("Frames Per Second", options=[12, 24, 30, 60], value=24, key="fs_fps")
-            st.markdown("<div class='compact-label'>📊 Animation Quality</div>", unsafe_allow_html=True)
-            fs_quality = st.selectbox("Select Quality", ["Standard", "HD"], key="fs_quality")
-            st.write("")
-            if st.button("🌊 Generate Flow Animation", key="fs_generate_btn", use_container_width=True):
-                success, required_tokens, message = validate_and_deduct_tokens("Flow State", fs_quality)
-                if not success:
-                    st.error(message)
-                elif not flow_prompt.strip():
-                    st.error("Please enter a flow description.")
-                else:
-                    with st.spinner("Generating flow animation from your prompt..."):
-                        animation_path = generate_flow_animation(flow_prompt, duration_sec, fps)
-                        if animation_path:
-                            st.session_state["active_flow_animation"] = animation_path
-                            st.session_state["active_flow_prompt"] = flow_prompt
-                            st.toast("Flow animation generated successfully!")
-                            st.rerun()
-                        else:
-                            st.error("Flow animation generation failed. Please try a different prompt.")
-    with fs_col2:
-        with st.container(border=True):
-            st.markdown("<h3 style='font-family: Orbitron; font-size: 15px; color: #FFC0CB; margin-bottom: 15px; letter-spacing: 0.5px;'>🌊 FLOW ANIMATION VIEWER</h3>", unsafe_allow_html=True)
-            active_flow = st.session_state.get("active_flow_animation")
-            if active_flow and os.path.exists(active_flow):
-                if active_flow.lower().endswith('.mp4'):
-                    st.video(active_flow, format="video/mp4", autoplay=True, loop=True, muted=True)
-                else:
-                    st.image(active_flow, use_container_width=True)
-                st.markdown("<br>", unsafe_allow_html=True)
-                col_dl, col_clr = st.columns(2)
-                with col_dl:
-                    with open(active_flow, "rb") as f:
-                        flow_bytes = f.read()
-                    ext = os.path.splitext(active_flow)[1].lower()
-                    st.download_button(
-                        label=f"📥 Download Animation ({ext.upper()})",
-                        data=flow_bytes,
-                        file_name=f"zovix_flow{ext}",
-                        mime="video/mp4" if ext != '.gif' else "image/gif",
-                        use_container_width=True,
-                        key="fs_download_btn"
-                    )
-                with col_clr:
-                    if st.button("🧹 Clear Animation", key="fs_clear_btn", use_container_width=True):
-                        safe_remove_file(active_flow)
-                        st.session_state["active_flow_animation"] = None
-                        st.rerun()
-            elif active_flow:
-                st.error("❌ Generation pipeline returned an invalid path or missing file. Check API balance or backend logs.")
-            else:
-                st.info("Flow animation will render here once generation completes.")
-
-def generate_flow_animation(prompt, duration=5, fps=24):
-    animation_path = None
-    os.makedirs("flow_animations", exist_ok=True)
-    width, height = 1920, 1080
-    full_prompt = f"Fluid flow, particle system, dynamic motion, {prompt}, vibrant colors, smooth animation, cinematic"
-
-    # 1) First try the model pipeline that returns a generated image or video.
-    if STABILITY_API_KEY:
-        try:
-            url = "https://api.stability.ai/v2beta/stable-image/generate/core"
-            headers = {"authorization": f"Bearer {STABILITY_API_KEY}", "accept": "image/*"}
-            data = {"prompt": full_prompt, "output_format": "png", "aspect_ratio": "16:9", "negative_prompt": "static, blurry, low quality"}
-            files = {k: (None, str(v)) for k, v in data.items()}
-            response = requests.post(url, headers=headers, files=files, timeout=45)
-            if response.status_code == 200 and len(response.content) > 10000:
-                image_path = f"flow_animations/flow_{uuid.uuid4().hex[:8]}.png"
-                with open(image_path, "wb") as f:
-                    f.write(response.content)
-                output_video_path = image_path.replace('.png', '.mp4')
-                if VisualEngine.convert_image_to_video(image_path, output_video_path, duration, width, height):
-                    safe_remove_file(image_path)
-                    return output_video_path
-                return image_path
-        except Exception as e:
-            logger.warning(f"Flow State generation via Stability API failed: {e}")
-
-    # 2) If direct image generation is unavailable, try our general AI video pipeline.
-    try:
-        ai_video_url = generate_ai_video(full_prompt)
-        if ai_video_url:
-            output_video_path = f"flow_animations/flow_{uuid.uuid4().hex[:8]}.mp4"
-            with requests.get(ai_video_url, stream=True, timeout=45) as r:
-                if r.status_code == 200:
-                    with open(output_video_path, "wb") as f:
-                        for chunk in r.iter_content(chunk_size=8192):
-                            if chunk:
-                                f.write(chunk)
-                    if os.path.exists(output_video_path) and os.path.getsize(output_video_path) > 100000:
-                        return output_video_path
-    except Exception as e:
-        logger.warning(f"Flow State video download failed: {e}")
-
-    # 3) Fallback to our text-to-image drawing model if video generation fails.
-    try:
-        image_path = generate_drawing(prompt, style="realistic", canvas_size=(width, height))
-        if image_path and os.path.exists(image_path) and os.path.getsize(image_path) > 10000:
-            return image_path
-    except Exception as e:
-        logger.warning(f"Flow State fallback drawing failed: {e}")
-
-    return None
 
 def run_upscaler_mode():
     st.markdown("""
@@ -6414,7 +5582,7 @@ def run_video_editor_mode():
                                 file_name = f"zovix_editor_video_{timestamp}.mp4"
                                 save_render_to_db(st.session_state["logged_user"], file_name, movie_concept or "Editor Project", output_path)
                                 st.session_state["history_renders"] = load_renders_history_db(st.session_state["logged_user"])
-                                time.sleep(0.3)
+                                time.sleep(0.1)
                                 st.rerun()
                             else:
                                 st.error("❌ Video processing failed. Please check your media files and try again.")
@@ -6506,9 +5674,7 @@ def run_face_video_mode():
             with col_qual:
                 quality = st.selectbox("Video Quality:", ["Standard", "HD", "4K"], key="fv_quality")
             st.markdown("---")
-            quality_costs = {"Standard": 45, "HD": 60, "4K": 80}
-            cost = quality_costs.get(quality, 45)
-            st.info(f"💳 This will cost **{cost} credits** for {quality} quality")
+            # Fixed: No cost display, uses token system automatically via validate_and_deduct_tokens
             face_prompt = st.text_area("Video Description / Script (for lip sync):", placeholder="Describe what the person should say: e.g. Hello everyone! Welcome to my channel. Today we're going to explore the mysteries of the universe...", height=100, key="fv_prompt")
             st.write("")
             if st.button("👤 Generate Face Video", key="fv_generate_btn", use_container_width=True):
@@ -6749,20 +5915,96 @@ def run_cinematic_engine():
     with t_col2:
         st.session_state["language_choice"] = st.selectbox("🌐 Subtitles & Voice Layer Language:", ["🇮🇳 Hinglish (Fluent Hindi Mix)", "🇬🇧 English (US Standard)", "🇫🇷 French (Parisian Neural)", "🇯🇵 Japanese (Formal Tokyo)"], key="studio_language_selector_layer")
     with t_col3:
-        user_api_input = st.text_input("Google Gemini API Key (Optional Override):", value=st.session_state.get("user_gemini_api_key", ""), type="password", key="user_gemini_api_key_override_input")
-        if user_api_input != st.session_state["user_gemini_api_key"]:
-            st.session_state["user_gemini_api_key"] = user_api_input.strip()
-            st.toast("Personal API Key Overrides Active!")
+        st.text(" ")
     st.write("")
     with st.container(border=True):
         st.markdown("<div class='compact-label'>💡 Prompt Interface</div>", unsafe_allow_html=True)
         input_mode = st.radio("Prompt Select Option Mode:", ["💡 Autonomous AI Topic", "✍️ Manual Custom Script", "🧠 DeepSeek AI Blueprint"], horizontal=True, key="studio_mode_radio")
         initial_topic_val = st.session_state.get("studio_prompt_value", "")
+        
+        # ============================================================
+        # DEEPSEEK BLUEPRINT SECTION
+        # ============================================================
         if input_mode == "🧠 DeepSeek AI Blueprint":
             user_input = st.text_area("Prompt Input", value=initial_topic_val, placeholder="Explain video concept: e.g. Ek kisan ke paas do beej the...", height=110, label_visibility="collapsed", key="studio_prompt_deepseek_input")
             aspect_choice = st.selectbox("Aspect Scaling Rules for Blueprint:", ["16:9 LANDSCAPE (YOUTUBE)", "9:16 VERTICAL (SHORTS/REELS)"], key="studio_deepseek_aspect")
+            
+            # Step 1 Button - Generate Blueprint only (not video)
+            if st.button("📐 Generate Blueprint", key="deepseek_generate_blueprint_btn", use_container_width=True):
+                if not user_input.strip():
+                    st.error("Please enter a video concept.")
+                else:
+                    with st.spinner("🧠 DeepSeek AI is generating your video blueprint..."):
+                        aspect_for_deepseek = "9:16" if "VERTICAL" in st.session_state.get("studio_deepseek_aspect", "9:16 VERTICAL") else "16:9"
+                        blueprint = generate_video_blueprint_with_deepseek(user_input, aspect_for_deepseek)
+                        if "error" in blueprint:
+                            st.error(f"❌ DeepSeek Error: {blueprint['error']}")
+                        else:
+                            st.session_state["deepseek_blueprint_data"] = blueprint
+                            st.session_state["deepseek_blueprint_visible"] = True
+                            st.session_state["studio_prompt_value"] = user_input
+                            st.toast("✅ Blueprint generated successfully!")
+                            st.rerun()
+            
+            # Step 2 - Show Blueprint Preview
+            if st.session_state.get("deepseek_blueprint_visible") and st.session_state.get("deepseek_blueprint_data"):
+                blueprint_data = st.session_state["deepseek_blueprint_data"]
+                
+                st.markdown("---")
+                st.markdown(f"""
+                    <div style="background: rgba(255, 192, 203, 0.05); border: 1px solid rgba(255, 192, 203, 0.2); border-radius: 12px; padding: 15px; margin: 10px 0;">
+                        <h4 style="font-family: Orbitron; font-size: 14px; color: #FFC0CB; margin: 0 0 8px 0;">📋 BLUEPRINT: {blueprint_data.get('video_title', 'Untitled')}</h4>
+                        <p style="font-size: 12px; color: #94a3b8;">Total Scenes: {blueprint_data.get('total_scenes', 0)}</p>
+                    </div>
+                """, unsafe_allow_html=True)
+                
+                # Show all scenes
+                for scene in blueprint_data.get("scenes", []):
+                    with st.container(border=True):
+                        st.markdown(f"""
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-weight: bold; color: #45f3ff;">Scene {scene.get('scene_no', 0)}</span>
+                                <span style="font-size: 11px; color: #94a3b8;">⏱️ {scene.get('duration_sec', 5)}s</span>
+                            </div>
+                            <p style="font-size: 13px; color: #ffffff; margin: 4px 0;"><strong>Narration:</strong> {scene.get('narration_text', '')[:150]}</p>
+                            <p style="font-size: 11px; color: #94a3b8; margin: 0;"><strong>Visual:</strong> {scene.get('visual_prompt', '')[:100]}</p>
+                            <div style="margin-top: 4px;">
+                                <span style="font-size: 9px; color: #10b981; background: rgba(16,185,129,0.15); padding: 2px 8px; border-radius: 10px;">✅ Ready</span>
+                            </div>
+                        """, unsafe_allow_html=True)
+                
+                # Step 3 - Final Render Button
+                st.markdown("---")
+                if st.button("🎬 Compile & Render Video via Gemini Core", key="deepseek_final_render_btn", use_container_width=True):
+                    # Convert blueprint to scenes format
+                    scenes = []
+                    for scene in blueprint_data.get("scenes", []):
+                        scenes.append({
+                            "scene_text": scene.get("narration_text", ""),
+                            "search_keyword": scene.get("visual_prompt", "").split(",")[0].strip()[:30],
+                            "duration": scene.get("duration_sec", 5)
+                        })
+                    
+                    if scenes:
+                        # Trigger the render with these scenes
+                        st.session_state["studio_prompt_value"] = user_input
+                        st.session_state["studio_prompt_mode"] = "🧠 DeepSeek AI Blueprint"
+                        
+                        # Store scenes for rendering
+                        st.session_state["deepseek_scenes"] = scenes
+                        st.session_state["deepseek_music_mood"] = "cinematic"
+                        st.session_state["trigger_render"] = True
+                        st.rerun()
+                    else:
+                        st.error("No scenes found in blueprint. Please regenerate.")
+        
         else:
-            user_input = st.text_area("Prompt Input", value=initial_topic_val, placeholder="Explain video concept: e.g. Bermuda triangle ka ansuljha rahasya jo kisi ko nahi pata tha." if input_mode == "💡 Autonomous AI Topic" else "Write a custom script separated by paragraph breaks. E.g:\n[Scene 1: ocean] Paragraph text...\n\n[Scene 2: storm] Next text...", height=110, label_visibility="collapsed", key="studio_prompt_standard_input")
+            # Standard input for Autonomous AI Topic or Manual Custom Script
+            user_input = st.text_area("Prompt Input", value=initial_topic_val, 
+                placeholder="Explain video concept: e.g. Bermuda triangle ka ansuljha rahasya jo kisi ko nahi pata tha." if input_mode == "💡 Autonomous AI Topic" 
+                else "Write a custom script separated by paragraph breaks. E.g:\n[Scene 1: ocean] Paragraph text...\n\n[Scene 2: storm] Next text...", 
+                height=110, label_visibility="collapsed", key="studio_prompt_standard_input")
+        
         st.markdown("<div class='compact-label'>📊 Render Quality</div>", unsafe_allow_html=True)
         cinematic_quality = st.selectbox("Select Quality", ["Standard", "HD", "Pro"], key="cinematic_quality")
         p_cols = st.columns([15, 2], gap="small")
@@ -6866,11 +6108,19 @@ def run_cinematic_engine():
                         status_indicator = st.empty()
                         progress_pulse = st.empty().progress(0, text="Initiating transcription nodes...")
                         status_indicator.write("🎬 **Executing Generation Sequence...**")
-                        time.sleep(0.2)
+                        time.sleep(0.1)
                         progress_pulse.progress(20, text="Interpreting prompt syntax...")
                         music_mood = "cinematic"
-                        if pipeline_prompt_mode == "🧠 DeepSeek AI Blueprint":
-                            status_indicator.write("🧠 **DeepSeek AI is generating structured video blueprint...**")
+                        
+                        # Check if this is a DeepSeek blueprint render
+                        if pipeline_prompt_mode == "🧠 DeepSeek AI Blueprint" and st.session_state.get("deepseek_scenes"):
+                            scenes = st.session_state["deepseek_scenes"]
+                            music_mood = st.session_state.get("deepseek_music_mood", "cinematic")
+                            status_indicator.write("✅ **Using DeepSeek AI Blueprint scenes...**")
+                            st.success(f"🎬 Video Title: {st.session_state.get('deepseek_blueprint_data', {}).get('video_title', 'Untitled Production')}")
+                        elif pipeline_prompt_mode == "🧠 DeepSeek AI Blueprint":
+                            # Fallback: generate blueprint if not already generated
+                            status_indicator.write("🧠 **DeepSeek AI is generating video blueprint...**")
                             progress_pulse.progress(25, text="Calling DeepSeek API for blueprint generation...")
                             aspect_for_deepseek = "9:16" if "VERTICAL" in st.session_state.get("studio_deepseek_aspect", "9:16 VERTICAL") else "16:9"
                             blueprint = generate_video_blueprint_with_deepseek(pipeline_prompt_input, aspect_for_deepseek)
@@ -6892,11 +6142,12 @@ def run_cinematic_engine():
                             else:
                                 scenes = parse_tagged_script(pipeline_prompt_input)
                                 music_mood = "cinematic"
+                        
                         if scenes:
                             st.session_state["hook_variations"] = generate_hook_variations(scenes[0]["scene_text"])
                         progress_pulse.progress(40, text="Synthesizing storyboards...")
                         status_indicator.write("🌐 **Step 2: Fetching Assets & Sourcing Visuals...**")
-                        time.sleep(0.2)
+                        time.sleep(0.1)
                         progress_pulse.progress(60, text="Extracting contextual database items...")
                         status_indicator.write("🧵 **Step 3: Stitching Scenes & Mixing Audio...**")
                         progress_pulse.progress(80, text="Merging multi-scene elements and overlaying audio arrays...")
@@ -6961,7 +6212,7 @@ def run_cinematic_engine():
                         if thread_success:
                             status_indicator.write("🔄 **Step 4: Transcoding & Validating Output Streams...**")
                             progress_pulse.progress(95, text="Transcoding parameters...")
-                            time.sleep(0.3)
+                            time.sleep(0.1)
                             progress_pulse.progress(100, text="Compilation successful!")
                             status_indicator.write("✨ Video successfully compiled!")
                             duration_min = 1.0 if "1 Minute" in st.session_state["duration_choice"] else 0.25
@@ -7113,29 +6364,89 @@ def run_cinematic_engine():
 
 def show_privacy_policy():
     st.markdown("---")
-    with st.expander("Legal & Privacy Policy"):
+    with st.expander("📜 Privacy Policy & Legal Terms"):
         st.markdown("""
         ### Privacy Policy
         **Last updated: June 21, 2026**
-        At Zovix, we prioritize your privacy. This policy outlines how we handle your data.
-        **1. Information Collection:** We collect minimal information (like email) to provide our services.
-        **2. Data Usage:** Information is used solely to maintain and improve the platform.
-        **3. Data Storage:** All data is encrypted and stored securely. You can request data deletion anytime.
-        **4. GDPR Compliance:** We are fully GDPR compliant. You have the right to access, modify, or delete your data.
-        **5. Payments:** We use Razorpay, Stripe, PayPal, and Crypto for secure transactions. 
-        **6. Contact:** Reach out to us at **zovixenterprises@gmail.com**.
+        
+        At Zovix, we take your privacy seriously. This policy outlines how we collect, use, and protect your personal information.
+        
+        #### 1. Information We Collect
+        - **Account Information**: Username, email address, and authentication credentials
+        - **Usage Data**: Generated content history, preferences, and interaction patterns
+        - **Payment Data**: Transaction history (handled securely via Razorpay and Crypto gateways)
+        - **Technical Data**: IP address, browser type, device information
+        
+        #### 2. How We Use Your Data
+        - To provide and improve our AI video generation services
+        - To process payments and manage your account
+        - To personalize your experience and recommend content
+        - To communicate important updates and security notices
+        
+        #### 3. Data Security
+        - All sensitive data is encrypted using industry-standard encryption (AES-256)
+        - Payments are processed through PCI-DSS compliant gateways (Razorpay, Crypto)
+        - We employ rate limiting, 2FA, and access controls to protect your account
+        
+        #### 4. Data Retention
+        - We retain your data as long as your account is active
+        - You can request permanent data deletion at any time
+        - Payment records are kept for 7 years as per regulatory requirements
+        
+        #### 5. Your Rights (GDPR & CCPA Compliance)
+        - **Right to Access**: View all data we hold about you
+        - **Right to Rectification**: Correct inaccurate data
+        - **Right to Erasure**: Request complete deletion of your data
+        - **Right to Data Portability**: Export your data in a machine-readable format
+        - **Right to Object**: Opt-out of non-essential data processing
+        
+        #### 6. Cookies
+        - We use essential cookies for authentication and session management
+        - No third-party tracking cookies are used without explicit consent
+        - You can manage cookie preferences in your browser settings
+        
+        #### 7. Third-Party Services
+        - **Razorpay**: Secure payment processing
+        - **Crypto Payment Gateways**: Cryptocurrency transactions
+        - **Google Gemini**: AI content generation (API usage is anonymized)
+        - **ElevenLabs**: Voice synthesis (prompts are processed securely)
+        
+        #### 8. Contact Information
+        - **Email**: zovixenterprises@gmail.com
+        - **Response Time**: Within 48 hours for privacy-related inquiries
+        
+        #### 9. Changes to This Policy
+        - We will notify you of any material changes via email or in-app notification
+        - Continued use of the platform constitutes acceptance of the updated policy
+        
+        #### 10. Consent
+        By using Zovix, you consent to this Privacy Policy. You may withdraw consent at any time by deleting your account.
         """)
         
         if st.session_state.get("is_logged_in"):
-            if st.button("🗑️ Request Data Deletion (GDPR)", use_container_width=True):
-                if st.button("⚠️ Confirm Delete All Data", use_container_width=True):
-                    if gdpr_manager.delete_user_data(st.session_state["logged_user"]):
-                        st.success("All your data has been deleted. You will be logged out.")
-                        st.session_state["is_logged_in"] = False
-                        st.session_state["current_page"] = "landing"
-                        st.rerun()
-                    else:
-                        st.error("Failed to delete data. Please contact support.")
+            st.markdown("---")
+            st.markdown("### 🗑️ Data Management")
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("🗑️ Request Data Deletion", use_container_width=True):
+                    with st.dialog("⚠️ Confirm Data Deletion", width="small"):
+                        st.markdown("""
+                            ### ⚠️ Warning!
+                            This action will permanently delete:
+                            - All your generated content
+                            - Account history and preferences
+                            - Personal data and settings
+                            
+                            **This action cannot be undone.**
+                        """)
+                        if st.button("✅ Yes, Delete All My Data", use_container_width=True):
+                            if gdpr_manager.delete_user_data(st.session_state["logged_user"]):
+                                st.success("All your data has been deleted. You will be logged out.")
+                                st.session_state["is_logged_in"] = False
+                                st.session_state["current_page"] = "landing"
+                                st.rerun()
+                            else:
+                                st.error("Failed to delete data. Please contact support.")
 
 # ========================================================
 # 41. GET PREMIUM THEME CSS
@@ -7853,7 +7164,6 @@ if st.session_state["current_page"] == "landing":
             <div class="leonardo-icon-tab"><span>🖼️</span><p>Image</p></div>
             <div class="leonardo-icon-tab"><span>📹</span><p>Video</p></div>
             <div class="leonardo-icon-tab"><span>📐</span><p>Blueprints</p></div>
-            <div class="leonardo-icon-tab"><span>🌊</span><p>Flow State</p></div>
             <div class="leonardo-icon-tab"><span>⚡</span><p>Upscaler</p></div>
             <div class="leonardo-icon-tab"><span>🎨</span><p>Draw</p></div>
             <div class="leonardo-icon-tab"><span>🎬</span><p>Video Editor</p></div>
@@ -7949,20 +7259,12 @@ if st.session_state["current_page"] == "landing":
     with col_tech2:
         st.markdown("""
             <div style="background: rgba(18, 19, 26, 0.85); border: 1px solid rgba(255, 192, 203, 0.12); border-radius: 12px; padding: 14px; text-align: center; height: 100%;">
-                <div style="font-size: 24px; margin-bottom: 8px;">🌊</div>
-                <h4 style="color: #ffffff; font-family: Orbitron; font-size: 13px; margin-bottom: 6px;">Flow State</h4>
-                <p style="color: #94a3b8; font-size: 11px; line-height: 1.4;">Fluid dynamics simulator controlling movement, vectors and physics arrays.</p>
-            </div>
-        """, unsafe_allow_html=True)
-    with col_tech3:
-        st.markdown("""
-            <div style="background: rgba(18, 19, 26, 0.85); border: 1px solid rgba(255, 192, 203, 0.12); border-radius: 12px; padding: 14px; text-align: center; height: 100%;">
                 <div style="font-size: 24px; margin-bottom: 8px;">⚡</div>
                 <h4 style="color: #ffffff; font-family: Orbitron; font-size: 13px; margin-bottom: 6px;">Upscaler</h4>
                 <p style="color: #94a3b8; font-size: 11px; line-height: 1.4;">Brings resolution profiles into cinematic 4K clarity mapping pixel fidelity.</p>
             </div>
         """, unsafe_allow_html=True)
-    with col_tech4:
+    with col_tech3:
         st.markdown("""
             <div style="background: rgba(18, 19, 26, 0.85); border: 1px solid rgba(255, 192, 203, 0.12); border-radius: 12px; padding: 14px; text-align: center; height: 100%;">
                 <div style="font-size: 24px; margin-bottom: 8px;">🎨</div>
@@ -7970,7 +7272,7 @@ if st.session_state["current_page"] == "landing":
                 <p style="color: #94a3b8; font-size: 11px; line-height: 1.4;">Dynamic canvas overlay system supporting guided spatial drawing sketches.</p>
             </div>
         """, unsafe_allow_html=True)
-    with col_tech5:
+    with col_tech4:
         st.markdown("""
             <div style="background: rgba(18, 19, 26, 0.85); border: 1px solid rgba(255, 192, 203, 0.12); border-radius: 12px; padding: 14px; text-align: center; height: 100%;">
                 <div style="font-size: 24px; margin-bottom: 8px;">👤</div>
@@ -7978,12 +7280,20 @@ if st.session_state["current_page"] == "landing":
                 <p style="color: #94a3b8; font-size: 11px; line-height: 1.4;">AI-powered face animation with lip sync, emotion control, and camera angles.</p>
             </div>
         """, unsafe_allow_html=True)
+    with col_tech5:
+        st.markdown("""
+            <div style="background: rgba(18, 19, 26, 0.85); border: 1px solid rgba(255, 192, 203, 0.12); border-radius: 12px; padding: 14px; text-align: center; height: 100%;">
+                <div style="font-size: 24px; margin-bottom: 8px;">🤖</div>
+                <h4 style="color: #ffffff; font-family: Orbitron; font-size: 13px; margin-bottom: 6px;">AI Agent</h4>
+                <p style="color: #94a3b8; font-size: 11px; line-height: 1.4;">Auto-pilot your business with AI - Generate content, manage orders, collect payments.</p>
+            </div>
+        """, unsafe_allow_html=True)
     with col_tech6:
         st.markdown("""
             <div style="background: rgba(18, 19, 26, 0.85); border: 1px solid rgba(255, 192, 203, 0.12); border-radius: 12px; padding: 14px; text-align: center; height: 100%;">
-                <div style="font-size: 24px; margin-bottom: 8px;">🧠</div>
-                <h4 style="color: #ffffff; font-family: Orbitron; font-size: 13px; margin-bottom: 6px;">Dynamic UI</h4>
-                <p style="color: #94a3b8; font-size: 11px; line-height: 1.4;">Real-time interface adaptation based on user behavior and usage patterns.</p>
+                <div style="font-size: 24px; margin-bottom: 8px;">🎤</div>
+                <h4 style="color: #ffffff; font-family: Orbitron; font-size: 13px; margin-bottom: 6px;">Live Emotion</h4>
+                <p style="color: #94a3b8; font-size: 11px; line-height: 1.4;">Hyper-realistic voice with real human emotional dynamics.</p>
             </div>
         """, unsafe_allow_html=True)
     st.markdown("<hr style='border-color: rgba(255,255,255,0.08); margin: 40px 0 20px 0;'>", unsafe_allow_html=True)
@@ -8052,81 +7362,37 @@ elif st.session_state["current_page"] == "studio":
             <div class="panel-header">⚡ QUICK ACCESS NODES</div>
         </div>
         """, unsafe_allow_html=True)
-        tab_cols = st.columns(7)
+        # 6 buttons in one line
+        tab_cols = st.columns(6)
         with tab_cols[0]:
-            if st.button("⚙️ Setup", key="quick_tab_setup", use_container_width=True):
-                st.session_state["sidebar_tab"] = "⚙️ Setup Config"
-                st.rerun()
-        with tab_cols[1]:
             if st.button("🚀 Factory", key="quick_tab_factory", use_container_width=True):
                 st.session_state["sidebar_tab"] = "🚀 Zovix Mass Factory"
                 st.rerun()
-        with tab_cols[2]:
+        with tab_cols[1]:
             if st.button("💎 Credits", key="quick_tab_credits", use_container_width=True):
                 st.session_state["sidebar_tab"] = "💎 Buy Credits"
                 st.rerun()
-        with tab_cols[3]:
+        with tab_cols[2]:
             if st.button("📂 Portfolio", key="quick_tab_portfolio", use_container_width=True):
                 st.session_state["sidebar_tab"] = "📂 My Portfolio"
                 st.rerun()
-        with tab_cols[4]:
+        with tab_cols[3]:
             if st.button("👤 Profile", key="quick_tab_profile", use_container_width=True):
                 st.session_state["sidebar_tab"] = "👤 My Premium Profile"
                 st.rerun()
-        with tab_cols[5]:
+        with tab_cols[4]:
             if st.button("👥 Sub-Users", key="quick_tab_subusers", use_container_width=True):
                 st.session_state["sidebar_tab"] = "👥 SUB-USER ACCESS MANAGEMENT"
                 st.rerun()
-        with tab_cols[6]:
+        with tab_cols[5]:
             if st.button("📅 Scheduler", key="quick_tab_scheduler", use_container_width=True):
                 st.session_state["sidebar_tab"] = "📅 ADVANCED AI CONTENT SCHEDULER"
                 st.rerun()
         st.markdown("<hr style='border-color: rgba(255,255,255,0.08); margin: 15px 0 20px 0;'>", unsafe_allow_html=True)
     
-    if st.session_state["sidebar_tab"] == "⚙️ Setup Config":
-        st.markdown("<h4 style='font-family: Orbitron; color: #FFC0CB;'>⚙️ Setup Configuration Panel</h4>", unsafe_allow_html=True)
-        col_api, col_default = st.columns(2, gap="small")
-        with col_api:
-            with st.container(border=True):
-                st.markdown("<h5 style='font-family: Orbitron; font-size: 12px; color: #FFC0CB; margin-bottom: 10px;'>🔑 API Key Configuration</h5>", unsafe_allow_html=True)
-                st.text_input("Gemini API Key (Override)", value=st.session_state.get("user_gemini_api_key", ""), type="password", key="config_gemini_key", placeholder="Enter Gemini API Key...")
-                st.text_input("Stability AI API Key", type="password", key="config_stability_key", placeholder="Enter Stability API Key...")
-                st.text_input("ElevenLabs API Key", type="password", key="config_elevenlabs_key", placeholder="Enter ElevenLabs API Key...")
-                st.text_input("Hugging Face API Key", type="password", key="config_hf_key", placeholder="Enter Hugging Face API Key...")
-                if st.button("💾 Save API Keys", use_container_width=True):
-                    st.session_state["user_gemini_api_key"] = st.session_state.get("config_gemini_key", "")
-                    st.success("✅ API keys saved successfully!")
-        with col_default:
-            with st.container(border=True):
-                st.markdown("<h5 style='font-family: Orbitron; font-size: 12px; color: #FFC0CB; margin-bottom: 10px;'>⚙️ Default Settings</h5>", unsafe_allow_html=True)
-                st.selectbox("Default Language", ["🇮🇳 Hinglish", "🇬🇧 English", "🇫🇷 French", "🇯🇵 Japanese"], key="config_default_lang")
-                st.selectbox("Default Voice Profile", ["Drew (Premium Male Voice)", "Rachel (Premium Female Voice)"], key="config_default_voice")
-                st.selectbox("Default Aspect Ratio", ["📐 9:16 Vertical", "📐 16:9 Landscape", "📐 1:1 Square"], key="config_default_aspect")
-                st.slider("Default BGM Volume", 0.0, 1.0, 0.30, key="config_default_bgm_vol")
-    
-    elif st.session_state["sidebar_tab"] == "🚀 Zovix Mass Factory":
-        st.markdown("<h4 style='font-family: Orbitron; color: #FFC0CB;'>🚀 Zovix Mass Factory</h4>", unsafe_allow_html=True)
-        st.info("Generate multiple videos in bulk using AI automation.")
-        if st.button("🚀 Start Mass Production Run", key="mass_prod_start_btn", use_container_width=True):
-            if FactoryProgress.get("is_running"):
-                st.warning("⚠️ A mass production run is already in progress!")
-            else:
-                st.toast("Mass Production Started!")
-                st.rerun()
-        if FactoryProgress.get("is_running") or FactoryProgress.get("logs"):
-            with st.container(border=True):
-                st.markdown("### 📊 Production Progress")
-                total_items = FactoryProgress.get("total_items", 18)
-                current_index = FactoryProgress.get("current_index", 0)
-                progress_pct = min(100, int((current_index / total_items) * 100)) if total_items > 0 else 0
-                st.progress(progress_pct / 100, text=f"Progress: {progress_pct}%")
-                st.markdown(f"**Current Category:** {FactoryProgress.get('current_category', 'N/A')}")
-                st.markdown(f"**Current Topic:** {FactoryProgress.get('current_topic', 'N/A')}")
-                logs = FactoryProgress.get("logs", [])
-                if logs:
-                    with st.expander("📋 View Logs", expanded=False):
-                        for log in logs[-20:]:
-                            st.text(log)
+    # ============================================================
+    # MASS FACTORY - Only visible when "Start Mass Production Run" is clicked
+    # ============================================================
     
     elif st.session_state["sidebar_tab"] == "💎 Buy Credits":
         render_enhanced_payment_ui()
@@ -8244,7 +7510,7 @@ elif st.session_state["current_page"] == "studio":
                         succ, msg = add_sub_user_db(st.session_state["logged_user"], new_sub_user_id)
                         if succ:
                             st.success(msg)
-                            time.sleep(0.5)
+                            time.sleep(0.1)
                             st.rerun()
                         else:
                             st.error(msg)
@@ -8263,7 +7529,7 @@ elif st.session_state["current_page"] == "studio":
                             if st.button("Unlink Account", key=f"unlink_{s_u}", use_container_width=True):
                                 remove_sub_user_db(st.session_state["logged_user"], s_u)
                                 st.toast("Sub-User node link dissolved.")
-                                time.sleep(0.5)
+                                time.sleep(0.1)
                                 st.rerun()
     
     elif st.session_state["sidebar_tab"] == "📅 ADVANCED AI CONTENT SCHEDULER":
@@ -8313,31 +7579,59 @@ elif st.session_state["current_page"] == "studio":
                         """, unsafe_allow_html=True)
     
     st.markdown("<div class='compact-label' style='margin-bottom: 8px;'>Active Studio Workspace Mode</div>", unsafe_allow_html=True)
-    col_m1, col_m2, col_m3, col_m4, col_m5, col_m6, col_m7, col_m8, col_m9, col_m10, col_m11, col_m12 = st.columns(12)
+    
+    # MODE BUTTONS - All 11 modes in a SINGLE LINE
+    st.markdown("""
+        <div class="mode-buttons-container">
+    """, unsafe_allow_html=True)
+    
+    mode_buttons = ["👤 Face Video", "🎬 Cinematic", "🎨 Creative", "🎬 Editor", "📐 Blueprints", "⚡ Upscaler", "🎨 Draw", "🤖 AI Agent", "🎙️ Sales", "🧠 Dynamic UI", "🎤 Live Voice"]
+    
     mode_mapping = {
-        "👤 Face Video Generator": "Face Video Mode",
-        "🎬 Cinematic Engine ": "Cinematic Engine",
-        "🎨 Creative Workshop ": "Creative Workshop Mode",
-        "🎬 Video Editor ": "Video Editor Mode",
-        "📐 Blueprints": "Blueprints Mode",
-        "🌊 Flow State": "Flow State Mode",
-        "⚡ Upscaler": "Upscaler Mode",
-        "🎨 Draw": "Draw Mode",
-        "🤖 AI Agent": "AI Agent Mode",
-        "🎙️ AI Sales": "AI Sales Mode",
-        "🧠 Dynamic UI": "Dynamic UI Mode",
-        "🎤 Live Emotion": "Live Emotion Mode"
+        "Face Video": "Face Video Mode",
+        "Cinematic": "Cinematic Engine",
+        "Creative": "Creative Workshop Mode",
+        "Editor": "Video Editor Mode",
+        "Blueprints": "Blueprints Mode",
+        "Upscaler": "Upscaler Mode",
+        "Draw": "Draw Mode",
+        "AI Agent": "AI Agent Mode",
+        "Sales": "AI Sales Mode",
+        "Dynamic UI": "Dynamic UI Mode",
+        "Live Voice": "Live Emotion Mode"
     }
-    modes_list = list(mode_mapping.items())
-    columns = [col_m1, col_m2, col_m3, col_m4, col_m5, col_m6, col_m7, col_m8, col_m9, col_m10, col_m11, col_m12]
-    for idx, (btn_label, mode_value) in enumerate(modes_list):
-        with columns[idx]:
-            is_selected = (st.session_state["studio_active_mode"] == mode_value)
-            wrapper_class = "selected-opt-wrap" if is_selected else "unselected-opt-wrap"
-            st.markdown(f"<div class='{wrapper_class}'>", unsafe_allow_html=True)
-            if st.button(btn_label, key=f"switch_to_{mode_value.replace(' ', '_')}_btn", use_container_width=True):
-                handle_engine_access_request(mode_value)
-            st.markdown("</div>", unsafe_allow_html=True)
+    
+    mode_cols = st.columns(len(mode_buttons), gap="small")
+    
+    for idx, btn_label in enumerate(mode_buttons):
+        with mode_cols[idx]:
+            for display_name, mode_value in mode_mapping.items():
+                if display_name in btn_label:
+                    actual_mode = mode_value
+                    break
+            else:
+                actual_mode = btn_label.replace("👤 ", "").replace("🎬 ", "").replace("🎨 ", "").replace("📐 ", "").replace("⚡ ", "").replace("🤖 ", "").replace("🎙️ ", "").replace("🧠 ", "").replace("🎤 ", "")
+            
+            clean_label = btn_label.replace("👤 ", "").replace("🎬 ", "").replace("🎨 ", "").replace("📐 ", "").replace("⚡ ", "").replace("🤖 ", "").replace("🎙️ ", "").replace("🧠 ", "").replace("🎤 ", "")
+            
+            is_selected = (st.session_state["studio_active_mode"] == actual_mode)
+            
+            if is_selected:
+                st.markdown(f"""
+                    <div style="background: #EC4899; border-radius: 6px; padding: 2px; box-shadow: 0 0 12px rgba(236,72,153,0.4);">
+                        <div style="background: #EC4899; border-radius: 5px; padding: 4px 6px; text-align: center;">
+                            <span style="color: #FFFFFF; font-family: 'Orbitron'; font-size: 11px; font-weight: 700; white-space: nowrap;">{clean_label}</span>
+                        </div>
+                    </div>
+                """, unsafe_allow_html=True)
+            else:
+                if st.button(clean_label, key=f"mode_btn_{idx}_{actual_mode.replace(' ', '_')}", use_container_width=True):
+                    handle_engine_access_request(actual_mode)
+    
+    st.markdown("""
+        </div>
+    """, unsafe_allow_html=True)
+    
     st.markdown("<br>", unsafe_allow_html=True)
     
     if st.session_state["studio_active_mode"] == "Cinematic Engine":
@@ -8346,8 +7640,6 @@ elif st.session_state["current_page"] == "studio":
         run_creative_workshop()
     elif st.session_state["studio_active_mode"] == "Blueprints Mode":
         run_blueprints_mode()
-    elif st.session_state["studio_active_mode"] == "Flow State Mode":
-        run_flow_state_mode()
     elif st.session_state["studio_active_mode"] == "Upscaler Mode":
         run_upscaler_mode()
     elif st.session_state["studio_active_mode"] == "Draw Mode":
@@ -8420,15 +7712,6 @@ elif st.session_state["current_page"] == "studio":
             gallery_title = "📐 BLUEPRINT GENERATIONS"
             no_items_msg = "No blueprints created yet. Generate your first architectural blueprint!"
             display_type = "image"
-        elif current_mode == "Flow State Mode":
-            for item in portfolio_renders_list:
-                file_path = item.get("path", "")
-                file_name = item.get("file_name", "")
-                if os.path.exists(file_path) and "flow" in file_name.lower():
-                    valid_items.append(item)
-            gallery_title = "🌊 FLOW STATE ANIMATIONS"
-            no_items_msg = "No flow animations created yet. Generate your first flow simulation!"
-            display_type = "video"
         elif current_mode == "Upscaler Mode":
             for item in portfolio_renders_list:
                 file_path = item.get("path", "")
@@ -8762,6 +8045,8 @@ elif st.session_state["current_page"] == "studio":
                     <p style="color: #94a3b8; font-size: 11.5px; line-height: 1.6;">Access to processing nodes requires active credits. Standard 720p generations consume 1 credit.</p>
                 </div>
             """, unsafe_allow_html=True)
+    
+    show_privacy_policy()
     
     st.markdown("<hr style='border-color: rgba(255,255,255,0.08); margin: 40px 0 20px 0;'>", unsafe_allow_html=True)
     st.markdown("""
