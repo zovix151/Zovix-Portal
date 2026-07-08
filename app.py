@@ -7394,7 +7394,7 @@ elif st.session_state["current_page"] == "studio":
     # MASS FACTORY - Only visible when "Start Mass Production Run" is clicked
     # ============================================================
     
-    elif st.session_state["sidebar_tab"] == "💎 Buy Credits":
+    if st.session_state["sidebar_tab"] == "💎 Buy Credits":
         render_enhanced_payment_ui()
     
     elif st.session_state["sidebar_tab"] == "📂 My Portfolio":
@@ -7445,57 +7445,9 @@ elif st.session_state["current_page"] == "studio":
                         st.rerun()
                     finally:
                         conn.close()
-            else:
-                st.info("2FA is not enabled for your account")
-                if st.button("Setup 2FA", use_container_width=True):
-                    secret = twofa.setup_2fa(st.session_state["logged_user"])
-                    if secret:
-                        qr_code = twofa.render_qr_code(st.session_state["logged_user"], secret)
-                        if qr_code:
-                            st.markdown(f"""
-                                <div style="text-align: center; padding: 20px;">
-                                    <h4>Scan QR Code with Google Authenticator</h4>
-                                    <img src="data:image/png;base64,{qr_code}" style="max-width: 200px;" />
-                                    <p style="font-size: 12px; color: #94a3b8; margin-top: 10px;">
-                                        Or enter this secret manually: <code>{secret}</code>
-                                    </p>
-                                </div>
-                            """, unsafe_allow_html=True)
-                        else:
-                            st.info(f"Secret: `{secret}`")
-                        
-                        code = st.text_input("Enter 6-digit code from authenticator", max_chars=6, type="password")
-                        if st.button("Verify 2FA"):
-                            if twofa.verify_code(st.session_state["logged_user"], code):
-                                st.session_state["2fa_enabled"] = True
-                                st.success("✅ 2FA enabled successfully!")
-                                st.rerun()
-                            else:
-                                st.error("❌ Invalid code. Please try again.")
-                    else:
-                        st.error("Failed to setup 2FA. Please try again.")
-            
-            st.markdown("---")
-            if st.button("🔄 Claim Daily Reward", key="claim_daily_reward_btn", use_container_width=True):
-                result, streak, msg = enhanced_daily_reward(st.session_state["logged_user"])
-                if result:
-                    st.success(msg)
-                    st.session_state["xp_points"] = get_user_xp_db(st.session_state["logged_user"])
-                    st.session_state["creator_level"] = 1 + (st.session_state["xp_points"] // 100)
-                    st.session_state["user_credits"] = get_user_credits_db(st.session_state["logged_user"])
-                    st.rerun()
-                else:
-                    st.warning(msg)
-            st.markdown("---")
-            render_referral_system()
-            st.markdown("---")
-            render_leaderboard()
-            st.markdown("---")
-            render_competitive_features()
-        else:
-            st.warning("Please log in to view your profile.")
+
     
-    elif st.session_state["sidebar_tab"] == "👥 SUB-USER ACCESS MANAGEMENT":
+    if st.session_state["sidebar_tab"] == "👥 SUB-USER ACCESS MANAGEMENT":
         st.markdown("<h4 style='font-family: Orbitron; color: #FFC0CB;'>👥 SUB-USER ACCESS MANAGEMENT</h4>", unsafe_allow_html=True)
         sub_col1, sub_col2 = st.columns([1.1, 1.4], gap="medium")
         with sub_col1:
