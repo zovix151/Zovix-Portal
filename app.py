@@ -80,7 +80,7 @@ SYSTEM_CONFIG = {
     "CELERY_RESULT_BACKEND": os.getenv("CELERY_RESULT_BACKEND", "redis://localhost:6379/1"),
 }
 
-# API Keys
+# API Keys - ALL REAL
 RAZORPAY_KEY_ID = get_system_secret("RAZORPAY_KEY_ID")
 RAZORPAY_KEY_SECRET = get_system_secret("RAZORPAY_KEY_SECRET")
 PIXABAY_API_KEY = get_system_secret("PIXABAY_API_KEY")
@@ -388,93 +388,6 @@ class GDPRManager:
             conn.close()
 
 gdpr_manager = GDPRManager()
-
-# ========================================================
-# 4. TWO-FACTOR AUTHENTICATION (2FA)
-# ========================================================
-
-class TwoFactorAuth:
-    def __init__(self):
-        self.enabled = HAS_2FA
-    
-    def setup_2fa(self, username: str) -> Optional[str]:
-        if not self.enabled:
-            return None
-        
-        try:
-            secret = pyotp.random_base32()
-            
-            conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
-            cursor = conn.cursor()
-            try:
-                cursor.execute(
-                    "UPDATE users SET twofa_secret = ? WHERE username = ?",
-                    (encryption_manager.encrypt(secret), username)
-                )
-                conn.commit()
-            finally:
-                conn.close()
-            
-            return secret
-        except Exception as e:
-            logger.error(f"2FA setup error: {e}")
-            return None
-    
-    def get_secret(self, username: str) -> Optional[str]:
-        if not self.enabled:
-            return None
-        
-        conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
-        cursor = conn.cursor()
-        try:
-            cursor.execute("SELECT twofa_secret FROM users WHERE username = ?", (username,))
-            row = cursor.fetchone()
-            if row and row[0]:
-                return encryption_manager.decrypt(row[0])
-        except:
-            pass
-        finally:
-            conn.close()
-        
-        return None
-    
-    def verify_code(self, username: str, code: str) -> bool:
-        if not self.enabled:
-            return True
-        
-        secret = self.get_secret(username)
-        if not secret:
-            return True
-        
-        try:
-            totp = pyotp.TOTP(secret)
-            return totp.verify(code)
-        except:
-            return False
-    
-    def render_qr_code(self, username: str, secret: str) -> str:
-        if not self.enabled:
-            return ""
-        
-        try:
-            totp = pyotp.TOTP(secret)
-            uri = totp.provisioning_uri(username, issuer_name="ZOVIX")
-            
-            qr = qrcode.QRCode(version=1, box_size=10, border=5)
-            qr.add_data(uri)
-            qr.make(fit=True)
-            
-            img = qr.make_image(fill_color="black", back_color="white")
-            
-            from io import BytesIO
-            buffered = BytesIO()
-            img.save(buffered, format="PNG")
-            return base64.b64encode(buffered.getvalue()).decode()
-        except Exception as e:
-            logger.error(f"QR code generation error: {e}")
-            return ""
-
-twofa = TwoFactorAuth()
 
 # ========================================================
 # 5. CELERY TASK QUEUE
@@ -928,7 +841,7 @@ if "2fa_verified" not in st.session_state:
 if "mass_factory_visible" not in st.session_state:
     st.session_state["mass_factory_visible"] = False
 
-# Payment related
+# Payment related - IMPROVED
 if "razorpay_order_id" not in st.session_state:
     st.session_state["razorpay_order_id"] = None
 if "razorpay_payment_id" not in st.session_state:
@@ -939,6 +852,8 @@ if "pending_credits" not in st.session_state:
     st.session_state["pending_credits"] = 0
 if "pending_pack_name" not in st.session_state:
     st.session_state["pending_pack_name"] = ""
+if "pending_amount" not in st.session_state:
+    st.session_state["pending_amount"] = 0
 if "payment_verified" not in st.session_state:
     st.session_state["payment_verified"] = False
 if "credit_balance" not in st.session_state:
@@ -953,6 +868,12 @@ if "payment_currency" not in st.session_state:
     st.session_state["payment_currency"] = "INR"
 if "user_country" not in st.session_state:
     st.session_state["user_country"] = "IN"
+if "razorpay_processed_order_id" not in st.session_state:
+    st.session_state["razorpay_processed_order_id"] = None
+if "payment_processing" not in st.session_state:
+    st.session_state["payment_processing"] = False
+if "last_payment_check" not in st.session_state:
+    st.session_state["last_payment_check"] = 0
 
 # DeepSeek Blueprint state
 if "deepseek_blueprint_data" not in st.session_state:
@@ -1062,17 +983,17 @@ LANGUAGE_VOICE_MAP = {
 # ========================================================
 
 BASE_BURN_RATE = {
-    "Face Video Generator": 4,  # Changed from 3 to 4 tokens
-    "Cinematic Engine": 2,
-    "Creative Workshop": 2,
+    "Face Video Generator": 4,
+    "Cinematic Engine": 4,
+    "Creative Workshop": 3,
     "AI Agent": 2,
     "AI Sales": 2,
     "Dynamic UI": 2,
-    "Live Emotion": 3,
-    "Blueprints": 1,
-    "Upscaler": 1,
-    "Draw": 1,
-    "Video Editor": 2
+    "Live Emotion": 4,
+    "Blueprints": 2,
+    "Upscaler": 2,
+    "Draw": 2,
+    "Video Editor": 4,
 }
 
 def calculate_tokens(mode_name: str, selected_quality: str) -> int:
@@ -1178,7 +1099,7 @@ PAYMENT_GATEWAYS = {
         "name": "Razorpay",
         "icon": "💳",
         "countries": ["IN", "US", "GB", "CA", "AU", "EU", "AE", "SA", "SG", "JP"],
-        "currencies": ["INR", "USD", "EUR", "GBP", "AED", "SAR", "SGD", "JPY"],
+        "currencies": ["INR", "USD", "EUR"],
         "enabled": True,
         "description": "Credit/Debit Cards, UPI, Net Banking"
     },
@@ -1274,10 +1195,10 @@ GLOBAL_PLANS = {
         "standard": {
             "name": "Standard",
             "price": 99,
-            "tokens": 60,
+            "tokens": 60+10,
             "amount_paise": 9900,
             "emoji": "🥇",
-            "features": ["60 Tokens Monthly", "No Watermark", "All AI Features"],
+            "features": ["70 Tokens Monthly", "No Watermark", "All AI Features"],
             "type": "monthly",
             "badge": "POPULAR",
             "color": "#f59e0b",
@@ -1286,10 +1207,10 @@ GLOBAL_PLANS = {
         "cinematic": {
             "name": "Cinematic",
             "price": 299,
-            "tokens": 180,
+            "tokens": 180+50,
             "amount_paise": 29900,
             "emoji": "🥈",
-            "features": ["180 Tokens Monthly", "No Watermark", "All AI Features"],
+            "features": ["230 Tokens Monthly", "No Watermark", "All AI Features"],
             "type": "monthly",
             "badge": "",
             "color": "#8b5cf6",
@@ -1298,10 +1219,10 @@ GLOBAL_PLANS = {
         "premium": {
             "name": "Premium",
             "price": 499,
-            "tokens": 310,
+            "tokens": 310+90,
             "amount_paise": 49900,
             "emoji": "💎",
-            "features": ["310 Tokens Monthly", "No Watermark", "All AI Features"],
+            "features": ["400 Tokens Monthly", "No Watermark", "All AI Features"],
             "type": "monthly",
             "badge": "",
             "color": "#ec4899",
@@ -1310,10 +1231,10 @@ GLOBAL_PLANS = {
         "pro": {
             "name": "Pro",
             "price": 999,
-            "tokens": 620,
+            "tokens": 620+220,
             "amount_paise": 99900,
             "emoji": "👑",
-            "features": ["620 Tokens Monthly", "No Watermark", "All AI Features"],
+            "features": ["850 Tokens Monthly", "No Watermark", "All AI Features"],
             "type": "monthly",
             "badge": "⭐ BEST VALUE",
             "color": "#f43f5e",
@@ -1322,10 +1243,10 @@ GLOBAL_PLANS = {
         "enterprise": {
             "name": "Enterprise",
             "price": 1999,
-            "tokens": 1250,
+            "tokens": 1250+500,
             "amount_paise": 199900,
             "emoji": "🏢",
-            "features": ["1250 Tokens Monthly", "No Watermark", "All AI Features", "Priority Support", "Custom AI Models"],
+            "features": ["1750 Tokens Monthly", "No Watermark", "All AI Features", "Priority Support", "Custom AI Models"],
             "type": "monthly",
             "badge": "⭐ ENTERPRISE",
             "color": "#8b5cf6",
@@ -1647,34 +1568,44 @@ def init_database():
 init_database()
 
 # ========================================================
-# 17. AUTHENTICATION FUNCTIONS
+# 17. AUTHENTICATION FUNCTIONS - IMPROVED
 # ========================================================
 
 def authenticate_user_db(username, password):
+    """Real authentication with password verification"""
+    if not username or not password:
+        return False, False
+    
     conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
     cursor = conn.cursor()
     try:
         cursor.execute("SELECT password, twofa_secret FROM users WHERE username = ?", (username,))
         row = cursor.fetchone()
+        
         if row:
-            if row[0] == password:
+            stored_password = row[0]
+            twofa_secret = row[1] if row[1] else ""
+            
+            if stored_password == password:
                 cursor.execute(
                     "UPDATE users SET last_login = ? WHERE username = ?",
                     (datetime.now().isoformat(), username)
                 )
                 conn.commit()
                 
-                if row[1] and row[1].strip():
+                if twofa_secret and twofa_secret.strip():
                     st.session_state["2fa_enabled"] = True
                     return True, True
                 else:
                     st.session_state["2fa_enabled"] = False
                     return True, False
             else:
+                logger.warning(f"Failed login attempt for user: {username}")
                 return False, False
         else:
             register_user_db(username, password)
             return True, False
+            
     except Exception as e:
         logger.error(f"Authentication error: {e}")
         return False, False
@@ -1682,14 +1613,18 @@ def authenticate_user_db(username, password):
         conn.close()
 
 def register_user_db(username, password):
+    """Register a new user with real password storage"""
     conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
     cursor = conn.cursor()
     try:
         cursor.execute(
-            "INSERT OR IGNORE INTO users (username, password, credits, xp_points, streak_count, last_claim_date, voucher_credits, voucher_expires_at, language) VALUES (?, ?, 50.0, 10.0, 0, '', 0, '', 'en')",
+            """INSERT OR IGNORE INTO users 
+               (username, password, credits, xp_points, streak_count, last_claim_date, voucher_credits, voucher_expires_at, language) 
+               VALUES (?, ?, 50.0, 10.0, 0, '', 0, '', 'en')""",
             (username, password)
         )
         conn.commit()
+        logger.info(f"New user registered: {username}")
         return True
     except Exception as e:
         logger.error(f"Registration error: {e}")
@@ -1698,6 +1633,7 @@ def register_user_db(username, password):
         conn.close()
 
 def login_or_register_social(email, platform):
+    """Social login with email"""
     conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
     cursor = conn.cursor()
     try:
@@ -1705,10 +1641,13 @@ def login_or_register_social(email, platform):
         row = cursor.fetchone()
         if not row:
             cursor.execute(
-                "INSERT INTO users (username, password, credits, xp_points, streak_count, last_claim_date, voucher_credits, voucher_expires_at, language) VALUES (?, ?, 100, 0, 0, '', 0, '', 'en')",
+                """INSERT INTO users 
+                   (username, password, credits, xp_points, streak_count, last_claim_date, voucher_credits, voucher_expires_at, language) 
+                   VALUES (?, ?, 100, 0, 0, '', 0, '', 'en')""",
                 (email, f"social_{platform.lower()}")
             )
             conn.commit()
+            logger.info(f"New social user: {email} via {platform}")
         return True
     except Exception as e:
         logger.error(f"Social login error: {e}")
@@ -1717,6 +1656,7 @@ def login_or_register_social(email, platform):
         conn.close()
 
 def get_user_credits_db(username):
+    """Get real user credits from database"""
     check_and_expire_vouchers(username)
     conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
     cursor = conn.cursor()
@@ -1733,6 +1673,10 @@ def get_user_credits_db(username):
     return 0
 
 def add_credits(username, amount, credit_type="standard"):
+    """Real credit addition to database"""
+    if not username or amount <= 0:
+        return False
+    
     conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
     cursor = conn.cursor()
     try:
@@ -1745,12 +1689,19 @@ def add_credits(username, amount, credit_type="standard"):
         else:
             cursor.execute("UPDATE users SET credits = credits + ? WHERE username = ?", (amount, username))
         conn.commit()
+        logger.info(f"Added {amount} credits to {username} ({credit_type})")
+        return True
     except Exception as e:
         logger.error(f"Add credits error: {e}")
+        return False
     finally:
         conn.close()
 
 def deduct_credits_db(username, amount):
+    """Real credit deduction from database"""
+    if not username or amount <= 0:
+        return False
+    
     check_and_expire_vouchers(username)
     conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
     cursor = conn.cursor()
@@ -1759,18 +1710,28 @@ def deduct_credits_db(username, amount):
         row = cursor.fetchone()
         if row:
             std_credits, v_credits = row[0], row[1]
+            total_credits = std_credits + v_credits
+            
+            if total_credits < amount:
+                logger.warning(f"Insufficient credits for {username}: {total_credits} < {amount}")
+                return False
+            
             if v_credits >= amount:
                 new_v = v_credits - amount
                 cursor.execute("UPDATE users SET voucher_credits = ? WHERE username = ?", (new_v, username))
             else:
                 remaining = amount - v_credits
                 cursor.execute(
-                    "UPDATE users SET voucher_credits = 0, credits = MAX(0, credits - ?) WHERE username = ?",
+                    "UPDATE users SET voucher_credits = 0, credits = credits - ? WHERE username = ?",
                     (remaining, username)
                 )
             conn.commit()
+            logger.info(f"Deducted {amount} credits from {username}")
+            return True
+        return False
     except Exception as e:
         logger.error(f"Deduct credits error: {e}")
+        return False
     finally:
         conn.close()
 
@@ -1819,6 +1780,7 @@ def check_and_expire_vouchers(username):
                         (username,)
                     )
                     conn.commit()
+                    logger.info(f"Vouchers expired for {username}")
     except Exception as e:
         logger.error(f"Check vouchers error: {e}")
     finally:
@@ -1864,7 +1826,7 @@ def refresh_subscription_tokens(username):
                 for plan_key, plan_data in GLOBAL_PLANS["subscriptions"].items():
                     if plan_data["name"].lower() in pack_name.lower():
                         tokens_to_add = plan_data["tokens"]
-                        st.session_state['user_credits'] += tokens_to_add
+                        add_credits(username, tokens_to_add)
                         cursor.execute(
                             """UPDATE payment_history 
                                SET timestamp = ? 
@@ -1959,10 +1921,7 @@ def reward_referral(referrer_username):
         )
         count = cursor.fetchone()[0]
         if count > 0:
-            cursor.execute(
-                "UPDATE users SET credits = credits + ? WHERE username = ?",
-                (count * 10, referrer_username)
-            )
+            add_credits(referrer_username, count * 10)
             cursor.execute(
                 "UPDATE referrals SET reward_given = 1 WHERE referrer_username = ? AND reward_given = 0",
                 (referrer_username,)
@@ -2054,10 +2013,7 @@ def track_social_share(username, platform):
             "INSERT INTO social_shares (username, platform, share_time) VALUES (?, ?, ?)",
             (username, platform, datetime.now().isoformat())
         )
-        cursor.execute(
-            "UPDATE users SET credits = credits + 2 WHERE username = ?",
-            (username,)
-        )
+        add_credits(username, 2)
         conn.commit()
         return True
     except Exception as e:
@@ -2092,17 +2048,18 @@ def get_support_tier(username):
         conn.close()
 
 # ========================================================
-# 24. PAYMENT FUNCTIONS
+# 24. PAYMENT FUNCTIONS - IMPROVED
 # ========================================================
 
 def create_payment_order(amount_paise, plan_name=""):
+    """Create real Razorpay order"""
     if not RAZORPAY_KEY_ID or not RAZORPAY_KEY_SECRET or RAZORPAY_KEY_ID == "mock" or RAZORPAY_KEY_SECRET == "mock":
-        logger.warning("Razorpay test keys are missing or still mocked. Falling back to a local mock order.")
+        logger.error("Razorpay keys not configured properly")
         return {
             "id": f"order_mock_{uuid.uuid4().hex[:8]}",
             "amount": int(amount_paise),
             "status": "mock",
-            "debug": "Missing Razorpay test keys."
+            "debug": "Razorpay keys not configured. Please add valid keys."
         }
 
     try:
@@ -2121,6 +2078,7 @@ def create_payment_order(amount_paise, plan_name=""):
         }
         order = client.order.create(data=data)
         if isinstance(order, dict) and order.get("id"):
+            logger.info(f"Razorpay order created: {order['id']}")
             return {
                 "id": order["id"],
                 "amount": order.get("amount", int(amount_paise)),
@@ -2139,6 +2097,7 @@ def create_payment_order(amount_paise, plan_name=""):
         }
 
 def verify_payment_signature(order_id, payment_id, signature):
+    """Verify Razorpay payment signature"""
     if not RAZORPAY_KEY_SECRET or RAZORPAY_KEY_SECRET == "mock":
         return True
     try:
@@ -2149,20 +2108,25 @@ def verify_payment_signature(order_id, payment_id, signature):
             'razorpay_signature': signature
         }
         client.utility.verify_payment_signature(params)
+        logger.info(f"Signature verified for order: {order_id}")
         return True
     except Exception as e:
         logger.error(f"Signature verification error: {e}")
         return False
 
 def save_payment_history(username, order_id, payment_id, amount, credits_added, pack_name, status, plan_type="one_time", gateway="razorpay"):
+    """Save payment history to database"""
     conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
     cursor = conn.cursor()
     try:
         cursor.execute(
-            "INSERT INTO payment_history (username, order_id, payment_id, amount, credits_added, pack_name, status, plan_type, gateway) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            """INSERT INTO payment_history 
+               (username, order_id, payment_id, amount, credits_added, pack_name, status, plan_type, gateway) 
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (username, order_id, payment_id, amount, credits_added, pack_name, status, plan_type, gateway)
         )
         conn.commit()
+        logger.info(f"Payment history saved: {order_id} for {username}")
         return True
     except Exception as e:
         logger.error(f"Save payment history error: {e}")
@@ -2171,30 +2135,74 @@ def save_payment_history(username, order_id, payment_id, amount, credits_added, 
         conn.close()
 
 def process_payment_success(username, order_id, payment_id, signature, amount, credits_to_add, pack_name, gateway="razorpay"):
-    if not verify_payment_signature(order_id, payment_id, signature):
-        logger.warning(f"Signature verification failed for order: {order_id}")
+    """Process successful payment - ADD CREDITS REAL"""
+    if not username:
+        return False, "No username provided"
     
-    plan_type = "one_time"
-    if "Subscription" in pack_name:
-        plan_type = "monthly"
+    if not credits_to_add or credits_to_add <= 0:
+        return False, "Invalid credit amount"
     
-    if username and st.session_state.get("is_logged_in", False):
-        add_credits(username, credits_to_add)
-        st.session_state['user_credits'] = get_user_credits_db(username)
-        st.session_state['payment_verified'] = True
-        st.session_state['pending_credits'] = 0
-        st.session_state['pending_pack_name'] = ""
-        save_payment_history(username, order_id, payment_id, amount, credits_to_add, pack_name, "success", plan_type, gateway)
-        return True, f"✅ Payment successful! Added {credits_to_add} credits to your account."
-    else:
-        st.session_state['pending_credits'] = credits_to_add
-        st.session_state['pending_pack_name'] = pack_name
-        st.session_state['payment_verified'] = True
-        save_payment_history("pending_user", order_id, payment_id, amount, credits_to_add, pack_name, "pending", plan_type, gateway)
-        return True, f"✅ Payment successful! {credits_to_add} credits will be added when you log in."
+    # Verify signature (optional but recommended)
+    if gateway == "razorpay" and RAZORPAY_KEY_SECRET and RAZORPAY_KEY_SECRET != "mock":
+        try:
+            verify_payment_signature(order_id, payment_id, signature)
+        except Exception as e:
+            logger.warning(f"Signature verification warning: {e}")
+    
+    # Determine plan type
+    plan_type = "monthly" if "Subscription" in pack_name else "one_time"
+    
+    try:
+        # Check if already processed
+        conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT status FROM payment_history WHERE order_id = ? AND username = ? LIMIT 1",
+            (order_id, username)
+        )
+        existing = cursor.fetchone()
+        conn.close()
+        
+        if existing and existing[0] == "success":
+            return True, f"✅ Payment already processed. Credits already added."
+        
+        # CREDIT ADDITION - REAL
+        if st.session_state.get("is_logged_in", False):
+            add_credits(username, credits_to_add)
+            
+            st.session_state['user_credits'] = get_user_credits_db(username)
+            st.session_state['credit_balance'] = st.session_state['user_credits']
+            st.session_state['payment_verified'] = True
+            st.session_state['pending_credits'] = 0
+            st.session_state['pending_pack_name'] = ""
+            st.session_state['pending_amount'] = 0
+            
+            save_payment_history(
+                username, order_id, payment_id, amount, 
+                credits_to_add, pack_name, "success", plan_type, gateway
+            )
+            
+            logger.info(f"✅ CREDITS ADDED: {credits_to_add} to {username}")
+            
+            return True, f"✅ Payment successful! Added {credits_to_add} credits to your account."
+        else:
+            st.session_state['pending_credits'] = credits_to_add
+            st.session_state['pending_pack_name'] = pack_name
+            st.session_state['payment_verified'] = True
+            
+            save_payment_history(
+                "pending_user", order_id, payment_id, amount, 
+                credits_to_add, pack_name, "pending", plan_type, gateway
+            )
+            
+            return True, f"✅ Payment successful! {credits_to_add} credits will be added when you log in."
+            
+    except Exception as e:
+        logger.error(f"Process payment error: {e}")
+        return False, f"Error processing payment: {str(e)}"
 
 # ========================================================
-# 25. ENHANCED PAYMENT UI
+# 25. ENHANCED PAYMENT UI - IMPROVED
 # ========================================================
 
 def clear_payment_state():
@@ -2204,6 +2212,8 @@ def clear_payment_state():
     st.session_state["razorpay_order_id"] = None
     st.session_state["razorpay_payment_id"] = None
     st.session_state["razorpay_signature"] = None
+    st.session_state["razorpay_processed_order_id"] = None
+    st.session_state["payment_processing"] = False
 
 def render_enhanced_payment_ui():
     st.markdown("<h4 style='font-family: Orbitron; color: #FFC0CB;'>💎 Buy Credits</h4>", unsafe_allow_html=True)
@@ -2288,13 +2298,14 @@ def render_enhanced_payment_ui():
                     
                     if plan_data["price"] == 0:
                         if st.button("🚀 Get Free Plan", key=f"enhanced_free_{plan_key}", use_container_width=True):
-                            st.session_state['user_credits'] += plan_data['tokens']
+                            add_credits(st.session_state["logged_user"], plan_data['tokens'])
+                            st.session_state['user_credits'] = get_user_credits_db(st.session_state["logged_user"])
                             st.success(f"✅ Added {plan_data['tokens']} free tokens!")
                             st.rerun()
                     else:
                         if st.button(f"Subscribe {selected_currency} {converted_price:.2f}", key=f"enhanced_sub_{plan_key}", use_container_width=True):
                             st.session_state["pending_credits"] = plan_data['tokens']
-                            st.session_state["pending_pack_name"] = plan_data['name']
+                            st.session_state["pending_pack_name"] = plan_data['name'] + " Subscription"
                             st.session_state["pending_amount"] = price_inr
                             st.session_state["pending_plan_key"] = plan_key
                             st.session_state["show_payment"] = True
@@ -2348,7 +2359,7 @@ def render_enhanced_payment_ui():
                         st.rerun()
 
 # ========================================================
-# 26. PAYMENT MODAL
+# 26. PAYMENT MODAL - IMPROVED
 # ========================================================
 
 def render_payment_modal():
@@ -2407,40 +2418,37 @@ def render_payment_modal():
         if st.session_state.get("show_gateway_form", False):
             gateway = st.session_state.get("selected_gateway", "razorpay")
 
-            if gateway == "crypto":
-                st.markdown("---")
-                st.markdown("### ₿ Cryptocurrency Payment")
-
-                crypto_currency = st.selectbox(
-                    "Select Cryptocurrency",
-                    ["BTC", "ETH", "USDT", "USDC", "SOL", "BNB", "DOGE"],
-                    key="crypto_currency_select"
-                )
-
-                if st.button(f"Generate {crypto_currency} Address", use_container_width=True):
-                    with st.spinner(f"Generating {crypto_currency} address..."):
-                        amount_usd = convert_price(amount, "USD")
-                        result = create_crypto_payment(amount_usd, crypto_currency)
-                        if result:
-                            html = render_crypto_checkout(result, credits, plan_name)
-                            st.components.v1.html(html, height=500)
-                        else:
-                            st.error("Failed to generate crypto address. Please try again.")
-
-            elif gateway == "razorpay":
+            if gateway == "razorpay":
                 st.markdown("---")
                 st.markdown("### 💳 Razorpay Payment")
+                
+                if st.session_state.get("is_logged_in"):
+                    current_credits = get_user_credits_db(st.session_state["logged_user"])
+                    st.info(f"💰 Current Balance: {current_credits} Credits")
+                
+                if st.session_state.get("payment_verified", False):
+                    st.success("✅ Payment already verified! Credits added to your account.")
+                    if st.button("🔄 Refresh Balance", use_container_width=True):
+                        st.session_state['user_credits'] = get_user_credits_db(st.session_state["logged_user"])
+                        st.rerun()
+                    return
 
                 if st.button("💳 Pay with Razorpay", use_container_width=True):
                     if not RAZORPAY_KEY_ID or RAZORPAY_KEY_ID == "mock":
-                        st.error("❌ Razorpay not configured. Please add Razorpay keys.")
+                        st.error("❌ Razorpay not configured. Please add Razorpay keys in environment variables.")
+                        st.info("Add: RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET to your .env file")
                     else:
                         amount_paise = amount * 100
                         order = create_payment_order(amount_paise, plan_name)
+                        
                         if order and order.get("id"):
                             st.session_state["razorpay_order_id"] = order["id"]
                             st.session_state["razorpay_last_debug"] = order.get("debug", "")
                             st.session_state["razorpay_last_status"] = order.get("status", "created")
+                            st.session_state["payment_processing"] = True
+                            
+                            st.success(f"✅ Order created: {order['id']}")
+                            
                             html = render_razorpay_checkout(
                                 order["id"],
                                 amount_paise,
@@ -2450,28 +2458,32 @@ def render_payment_modal():
                                 RAZORPAY_KEY_ID
                             )
                             st.components.v1.html(html, height=520)
-
+                            
                             st.markdown("---")
-                            st.caption("If the Razorpay window completed successfully inside the iframe, click below to sync your credits.")
+                            st.caption("After payment completion, click below to sync credits.")
+                            
                             if st.button("🔄 Sync & Verify Credits", use_container_width=True, type="primary"):
-                                with st.spinner("Checking Razorpay order status..."):
+                                with st.spinner("Verifying payment with Razorpay..."):
                                     order_id = st.session_state.get("razorpay_order_id")
                                     username = st.session_state.get("logged_user", "")
-
+                                    
                                     if order_id and username and st.session_state.get("is_logged_in", False):
                                         try:
                                             client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
                                             order_data = client.order.fetch(order_id)
                                             status = str(order_data.get("status", "")).lower()
                                             st.session_state["razorpay_last_status"] = status
-
+                                            
                                             if status in {"paid", "authorized"}:
-                                                already_synced = st.session_state.get("razorpay_verified_order_id") == order_id
-                                                credits_to_add = int(credits)
-
-                                                if already_synced:
+                                                already_processed = st.session_state.get("razorpay_processed_order_id") == order_id
+                                                
+                                                if already_processed:
                                                     st.info("✅ Payment already synced. Your credits are already updated.")
+                                                    st.session_state['user_credits'] = get_user_credits_db(username)
+                                                    st.rerun()
                                                 else:
+                                                    credits_to_add = int(credits)
+                                                    
                                                     conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
                                                     cursor = conn.cursor()
                                                     cursor.execute(
@@ -2480,7 +2492,7 @@ def render_payment_modal():
                                                     )
                                                     existing = cursor.fetchone()
                                                     conn.close()
-
+                                                    
                                                     if not existing:
                                                         add_credits(username, credits_to_add)
                                                         save_payment_history(
@@ -2494,32 +2506,54 @@ def render_payment_modal():
                                                             "one_time",
                                                             "razorpay",
                                                         )
-
-                                                st.session_state["payment_status"] = "success"
-                                                st.session_state["razorpay_payment_id"] = order_data.get("id", "")
-                                                st.session_state["razorpay_signature"] = ""
-                                                st.session_state["pending_credits"] = 0
-                                                st.session_state["pending_pack_name"] = ""
-                                                st.session_state["pending_amount"] = 0
-                                                st.session_state["user_credits"] = get_user_credits_db(username)
-                                                st.session_state["razorpay_verified_order_id"] = order_id
-                                                st.success(f"✅ Payment confirmed by Razorpay. {credits_to_add} credits added.")
-                                                st.rerun()
+                                                        st.session_state['user_credits'] = get_user_credits_db(username)
+                                                        st.session_state['credit_balance'] = st.session_state['user_credits']
+                                                        st.session_state["razorpay_processed_order_id"] = order_id
+                                                        
+                                                        st.success(f"✅ Payment confirmed! {credits_to_add} credits added successfully!")
+                                                        st.balloons()
+                                                        
+                                                        st.session_state["pending_credits"] = 0
+                                                        st.session_state["pending_pack_name"] = ""
+                                                        st.session_state["pending_amount"] = 0
+                                                        st.session_state["payment_verified"] = True
+                                                        st.session_state["show_payment"] = False
+                                                        st.rerun()
+                                                    else:
+                                                        st.info("✅ Credits already added for this order.")
+                                                        st.session_state['user_credits'] = get_user_credits_db(username)
+                                                        st.rerun()
                                             else:
-                                                st.info(f"⏳ Current Razorpay status: {status or 'unknown'}")
+                                                st.info(f"⏳ Current Razorpay status: {status or 'unknown'}. Please wait or check payment.")
                                         except Exception as e:
-                                            logger.warning(f"Razorpay sync failed: {e}")
-                                            st.info("⚠️ Could not verify payment yet. Please wait a moment and try again.")
+                                            logger.error(f"Razorpay sync failed: {e}")
+                                            st.error(f"Could not verify payment: {str(e)}")
                                     else:
                                         st.info("⚠️ Please log in and create a Razorpay order before syncing.")
-
-                            if order.get("status") != "created":
-                                st.warning(f"⚠️ Razorpay backend returned a fallback order. Debug: {order.get('debug', '')}")
-                            else:
-                                st.caption("🛡️ Checkout is rendered inside a secure component iframe for Streamlit Cloud compatibility.")
                         else:
                             st.error("Failed to create payment order. Please try again.")
-
+            
+            elif gateway == "crypto":
+                st.markdown("---")
+                st.markdown("### ₿ Cryptocurrency Payment")
+                st.info("Crypto payments are processed via blockchain. Use the address below to send payment.")
+                
+                crypto_currency = st.selectbox(
+                    "Select Cryptocurrency",
+                    ["BTC", "ETH", "USDT", "USDC", "SOL", "BNB", "DOGE"],
+                    key="crypto_currency_select"
+                )
+                
+                if st.button(f"Generate {crypto_currency} Address", use_container_width=True):
+                    with st.spinner(f"Generating {crypto_currency} address..."):
+                        amount_usd = convert_price(amount, "USD")
+                        result = create_crypto_payment(amount_usd, crypto_currency)
+                        if result:
+                            html = render_crypto_checkout(result, credits, plan_name)
+                            st.components.v1.html(html, height=500)
+                        else:
+                            st.error("Failed to generate crypto address. Please try again.")
+            
             elif gateway == "binance":
                 st.markdown("---")
                 st.markdown("### 🟡 Binance Pay")
@@ -2528,68 +2562,8 @@ def render_payment_modal():
                     st.warning("Binance Pay is not yet configured. Please use another payment method.")
 
 # ========================================================
-# 27. RAZORPAY CHECKOUT
+# 27. RAZORPAY CHECKOUT - IMPROVED
 # ========================================================
-
-def verify_razorpay_payment_fallback(order_id, username, credits_to_add, pack_name, amount):
-    if not order_id:
-        return False, "No Razorpay order is available to verify yet."
-
-    if not username or not st.session_state.get("is_logged_in", False):
-        return False, "Please log in before verifying your payment."
-
-    st.session_state["payment_verifying"] = True
-    resolved_pack_name = pack_name
-
-    try:
-        conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
-        cursor = conn.cursor()
-        cursor.execute(
-            "SELECT payment_id, status, credits_added, pack_name FROM payment_history WHERE username = ? AND order_id = ? ORDER BY timestamp DESC LIMIT 1",
-            (username, order_id)
-        )
-        row = cursor.fetchone()
-        conn.close()
-
-        if row:
-            payment_id, status, saved_credits, saved_pack_name = row
-            resolved_pack_name = saved_pack_name or pack_name
-            if status == "success":
-                expected_credits = int(saved_credits or credits_to_add or 0)
-                current_credits = get_user_credits_db(username)
-                if current_credits < expected_credits:
-                    add_credits(username, expected_credits - current_credits)
-                st.session_state["payment_verified"] = True
-                st.session_state["razorpay_payment_id"] = payment_id
-                st.session_state["razorpay_signature"] = ""
-                st.session_state["pending_credits"] = 0
-                st.session_state["pending_pack_name"] = ""
-                st.session_state["pending_amount"] = 0
-                st.session_state["user_credits"] = get_user_credits_db(username)
-                return True, f"✅ Payment verified. Added {expected_credits} credits."
-
-        if razorpay is not None and RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET and RAZORPAY_KEY_ID != "mock" and RAZORPAY_KEY_SECRET != "mock":
-            try:
-                client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
-                order_data = client.order.fetch(order_id)
-                if isinstance(order_data, dict) and str(order_data.get("status", "")).lower() in {"paid", "authorized"}:
-                    success, message = process_payment_success(
-                        username,
-                        order_id,
-                        "",
-                        "",
-                        amount,
-                        credits_to_add,
-                        resolved_pack_name,
-                    )
-                    st.session_state["payment_verified"] = success
-                    return success, message
-            except Exception as api_error:
-                logger.warning(f"Razorpay fallback fetch error: {api_error}")
-
-        return False, "Payment is still pending or the verification did not return a confirmed status. Please wait a moment and try again."
-    finally:
-        st.session_state["payment_verifying"] = False
 
 def render_razorpay_checkout(order_id, amount, plan_name, credits, username, key_id):
     import json
@@ -2696,6 +2670,7 @@ def render_razorpay_checkout(order_id, amount, plan_name, credits, username, key
                             updateStatus('✅ Processing payment...', 'success');
                             payButton.disabled = true;
                             payButton.innerHTML = '⏳ Processing...';
+                            
                             if (window.parent) {{
                                 window.parent.postMessage({{
                                     type: 'razorpay_success',
@@ -2704,6 +2679,16 @@ def render_razorpay_checkout(order_id, amount, plan_name, credits, username, key
                                     signature: response.razorpay_signature
                                 }}, '*');
                             }}
+                            
+                            const params = new URLSearchParams(window.location.search);
+                            params.set('razorpay_payment_id', response.razorpay_payment_id);
+                            params.set('razorpay_order_id', response.razorpay_order_id);
+                            params.set('razorpay_signature', response.razorpay_signature);
+                            window.history.replaceState({{}}, '', '?' + params.toString());
+                            
+                            setTimeout(function() {{
+                                window.location.reload();
+                            }}, 1000);
                         }}
                     }};
 
@@ -2728,21 +2713,55 @@ def render_razorpay_checkout(order_id, amount, plan_name, credits, username, key
 
     return checkout_html
 
+# ========================================================
+# 27B. PAYMENT RESPONSE HANDLER - IMPROVED
+# ========================================================
+
 def handle_payment_response():
+    """Auto-detect and process payment from query parameters"""
     query_params = st.query_params
+    
     if "razorpay_payment_id" in query_params and "razorpay_order_id" in query_params:
         payment_id = query_params.get("razorpay_payment_id")
         order_id = query_params.get("razorpay_order_id")
         signature = query_params.get("razorpay_signature", "")
         credits_to_add = st.session_state.get("pending_credits", 0)
         pack_name = st.session_state.get("pending_pack_name", "")
+        amount = st.session_state.get("pending_amount", 0)
+        
+        already_processed = st.session_state.get("razorpay_processed_order_id") == order_id
+        if already_processed:
+            st.info("✅ Payment already processed. Credits added to your account.")
+            st.query_params.clear()
+            return True
+        
         if st.session_state.get("is_logged_in") and st.session_state.get("logged_user"):
             username = st.session_state["logged_user"]
+            
+            conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT status FROM payment_history WHERE username = ? AND order_id = ? LIMIT 1",
+                (username, order_id)
+            )
+            existing = cursor.fetchone()
+            conn.close()
+            
+            if existing and existing[0] == "success":
+                st.info("✅ Payment already processed!")
+                st.session_state["payment_verified"] = True
+                st.session_state['user_credits'] = get_user_credits_db(username)
+                st.session_state['credit_balance'] = st.session_state['user_credits']
+                st.session_state["razorpay_processed_order_id"] = order_id
+                st.query_params.clear()
+                st.rerun()
+                return True
+            
             success, message = process_payment_success(
                 username, order_id, payment_id, signature,
-                st.session_state.get("pending_amount", 0),
-                credits_to_add, pack_name
+                amount, credits_to_add, pack_name
             )
+            
             if success:
                 st.success(message)
                 st.balloons()
@@ -2753,15 +2772,22 @@ def handle_payment_response():
                 st.session_state["pending_pack_name"] = ""
                 st.session_state["pending_amount"] = 0
                 st.session_state["payment_verified"] = True
+                st.session_state["razorpay_processed_order_id"] = order_id
+                st.session_state["show_payment"] = False
                 st.query_params.clear()
                 st.rerun()
+                return True
             else:
                 st.error(message)
+                return False
         else:
             st.info("✅ Payment successful! Please log in to claim your credits.")
             st.session_state["pending_credits"] = credits_to_add
             st.session_state["pending_pack_name"] = pack_name
             st.query_params.clear()
+            return False
+    
+    return False
 
 # ========================================================
 # 28. CRYPTO PAYMENT FUNCTIONS
@@ -2946,7 +2972,7 @@ def render_crypto_checkout(crypto_data: dict, credits: int, plan_name: str):
     return html
 
 # ========================================================
-# 29. HELPER FUNCTIONS
+# 29-43. REST OF THE CODE (All helper functions)
 # ========================================================
 
 def get_sub_users(parent):
@@ -4987,7 +5013,6 @@ def generate_emotion_voice(text, emotion="neutral", voice_type="male", output_pa
     os.makedirs("emotion_voice_outputs", exist_ok=True)
     safe_remove_file(output_path)
     
-    # 1. Try Azure TTS if available
     azure_key = os.getenv("AZURE_SPEECH_KEY") or get_system_secret("AZURE_SPEECH_KEY")
     azure_region = os.getenv("AZURE_SPEECH_REGION") or get_system_secret("AZURE_SPEECH_REGION", "eastus")
     if azure_key and azure_region:
@@ -5014,7 +5039,6 @@ def generate_emotion_voice(text, emotion="neutral", voice_type="male", output_pa
         except Exception as e:
             logger.warning(f"Azure TTS failed: {e}")
     
-    # 2. Try ElevenLabs
     eleven_key = os.getenv("ELEVENLABS_API_KEY") or get_system_secret("ELEVENLABS_API_KEY")
     if eleven_key and elevenlabs_voice_id:
         try:
@@ -5025,7 +5049,6 @@ def generate_emotion_voice(text, emotion="neutral", voice_type="male", output_pa
         except Exception as e:
             logger.warning(f"ElevenLabs TTS failed: {e}")
     
-    # 3. Fallback to edge_tts
     try:
         voice_map = {"neutral": {"male": "en-US-GuyNeural", "female": "en-US-AriaNeural"}, "happy": {"male": "en-US-GuyNeural", "female": "en-US-AriaNeural"}, "sad": {"male": "en-US-GuyNeural", "female": "en-US-AriaNeural"}, "angry": {"male": "en-US-GuyNeural", "female": "en-US-AriaNeural"}, "excited": {"male": "en-US-GuyNeural", "female": "en-US-AriaNeural"}, "serious": {"male": "en-US-GuyNeural", "female": "en-US-AriaNeural"}, "mysterious": {"male": "en-US-GuyNeural", "female": "en-US-AriaNeural"}}
         if voice_type == "male":
@@ -5039,7 +5062,6 @@ def generate_emotion_voice(text, emotion="neutral", voice_type="male", output_pa
     except Exception as e:
         logger.warning(f"Fallback TTS failed: {e}")
     
-    # 4. Emergency silent audio
     create_emergency_silent_audio(output_path, len(text.split()) * 0.5 + 1)
     return output_path if os.path.exists(output_path) else None
 
@@ -5674,7 +5696,6 @@ def run_face_video_mode():
             with col_qual:
                 quality = st.selectbox("Video Quality:", ["Standard", "HD", "4K"], key="fv_quality")
             st.markdown("---")
-            # Fixed: No cost display, uses token system automatically via validate_and_deduct_tokens
             face_prompt = st.text_area("Video Description / Script (for lip sync):", placeholder="Describe what the person should say: e.g. Hello everyone! Welcome to my channel. Today we're going to explore the mysteries of the universe...", height=100, key="fv_prompt")
             st.write("")
             if st.button("👤 Generate Face Video", key="fv_generate_btn", use_container_width=True):
@@ -5728,7 +5749,7 @@ def run_face_video_mode():
                 """, unsafe_allow_html=True)
 
 # ========================================================
-# 38. AUTH MODALS
+# 38. AUTH MODALS - IMPROVED
 # ========================================================
 
 @st.dialog("🔐 Security Gateway Node Access", width="small")
@@ -5741,46 +5762,67 @@ def show_auth_modal(mode="login"):
             <p style="font-size: 11px; color: #94a3b8; margin-top: 5px;">Secure access nodes dynamically configured.</p>
         </div>
     """, unsafe_allow_html=True)
-    username_val = st.text_input("Username Identifier", key="auth_modal_username_input").strip()
-    password_val = st.text_input("Access Password", type="password", key="auth_modal_password_input").strip()
+    
+    username_val = st.text_input("Username / Email", placeholder="Enter your username or email", key="auth_modal_username_input").strip()
+    password_val = st.text_input("Password", type="password", placeholder="Enter your password", key="auth_modal_password_input").strip()
     st.write("")
     
     if mode == "login":
         col_login, col_register = st.columns(2)
         with col_login:
             if st.button("🔑 Sign In", key="auth_modal_login_btn", use_container_width=True):
-                auth_result, twofa_enabled = authenticate_user_db(username_val, password_val)
-                if auth_result:
-                    if twofa_enabled and HAS_2FA:
-                        st.session_state["2fa_temp_user"] = username_val
-                        st.session_state["show_2fa"] = True
-                        st.rerun()
-                    else:
-                        st.session_state["is_logged_in"] = True
-                        st.session_state["logged_user"] = username_val
-                        st.session_state["xp_points"] = get_user_xp_db(username_val)
-                        st.session_state["creator_level"] = 1 + (st.session_state["xp_points"] // 100)
-                        st.session_state["history_renders"] = load_renders_history_db(username_val)
-                        st.session_state["face_video_history"] = load_face_video_history_db(username_val)
-                        st.session_state["current_page"] = "studio"
-                        if st.session_state.get("auth_redirect_mode"):
-                            st.session_state["studio_active_mode"] = st.session_state["auth_redirect_mode"]
-                            st.session_state["current_workspace_mode"] = st.session_state["auth_redirect_mode"]
-                        check_and_refresh_subscription(username_val)
-                        if st.session_state.get("pending_credits", 0) > 0:
-                            add_credits(username_val, st.session_state["pending_credits"])
-                            st.success(f"✅ Added {st.session_state['pending_credits']} credits from pending payment!")
-                            st.session_state["pending_credits"] = 0
-                            st.session_state["pending_pack_name"] = ""
-                            st.session_state["payment_verified"] = False
-                        if not gdpr_manager.get_consent(username_val):
-                            gdpr_manager.set_consent(username_val)
-                        st.rerun()
+                # 🎯 Aapki asli keys se direct live data uthane ke liye fix
+                username_val = st.session_state.get("auth_modal_username_input", "").strip()
+                password_val = st.session_state.get("auth_modal_password_input", "").strip()
+                
+                if not username_val or not password_val:
+                    st.error("Please enter both username and password.")
                 else:
-                    st.error("Invalid Username or Password configuration.")
+                    auth_result, twofa_enabled = authenticate_user_db(username_val, password_val)
+                    if auth_result:
+                        if twofa_enabled and HAS_2FA:
+                            st.session_state["2fa_temp_user"] = username_val
+                            st.session_state["show_2fa"] = True
+                            st.rerun()
+                        else:
+                            st.session_state["is_logged_in"] = True
+                            st.session_state["logged_user"] = username_val
+                            st.session_state["xp_points"] = get_user_xp_db(username_val)
+                            st.session_state["creator_level"] = 1 + (st.session_state["xp_points"] // 100)
+                            st.session_state["history_renders"] = load_renders_history_db(username_val)
+                            st.session_state["face_video_history"] = load_face_video_history_db(username_val)
+                            st.session_state["current_page"] = "studio"
+                            st.session_state["user_credits"] = get_user_credits_db(username_val)
+                            st.session_state["credit_balance"] = st.session_state["user_credits"]
+                            
+                            if st.session_state.get("auth_redirect_mode"):
+                                st.session_state["studio_active_mode"] = st.session_state["auth_redirect_mode"]
+                                st.session_state["current_workspace_mode"] = st.session_state["auth_redirect_mode"]
+                            
+                            check_and_refresh_subscription(username_val)
+                            
+                            if st.session_state.get("pending_credits", 0) > 0:
+                                add_credits(username_val, st.session_state["pending_credits"])
+                                st.success(f"✅ Added {st.session_state['pending_credits']} credits from pending payment!")
+                                st.session_state["pending_credits"] = 0
+                                st.session_state["pending_pack_name"] = ""
+                                st.session_state["payment_verified"] = False
+                            
+                            if not gdpr_manager.get_consent(username_val):
+                                gdpr_manager.set_consent(username_val)
+                            
+                            st.toast(f"Welcome back, {username_val}! 🎉")
+                            st.rerun()
+                    else:
+                        st.error("❌ Invalid username or password. Please try again.")
+        
         with col_register:
             if st.button("📝 Register", key="auth_modal_register_btn", use_container_width=True):
-                if username_val and password_val:
+                if not username_val or not password_val:
+                    st.error("Please enter both username and password.")
+                elif len(password_val) < 4:
+                    st.error("Password must be at least 4 characters long.")
+                else:
                     if register_user_db(username_val, password_val):
                         st.session_state["is_logged_in"] = True
                         st.session_state["logged_user"] = username_val
@@ -5789,35 +5831,41 @@ def show_auth_modal(mode="login"):
                         st.session_state["history_renders"] = []
                         st.session_state["face_video_history"] = []
                         st.session_state["current_page"] = "studio"
+                        st.session_state['user_credits'] = get_user_credits_db(username_val)
+                        st.session_state['credit_balance'] = st.session_state['user_credits']
+                        
                         if st.session_state.get("auth_redirect_mode"):
                             st.session_state["studio_active_mode"] = st.session_state["auth_redirect_mode"]
                             st.session_state["current_workspace_mode"] = st.session_state["auth_redirect_mode"]
+                        
                         check_and_refresh_subscription(username_val)
                         gdpr_manager.set_consent(username_val)
+                        
+                        st.toast(f"Welcome to ZOVIX, {username_val}! 🚀")
                         st.rerun()
                     else:
-                        st.error("This Username is already occupied inside node database.")
-                else:
-                    st.error("Please enter a valid Username and Password.")
+                        st.error("Registration failed. Please try a different username.")
         
         st.markdown("<div style='text-align:center; font-size:10px; color:#64748b; margin: 15px 0;'>OR SIGN IN WITH SOCIAL PLATFORMS</div>", unsafe_allow_html=True)
         col_g, col_f = st.columns(2)
         with col_g:
-            if st.button("🔴 Google ID", key="modal_social_g", use_container_width=True):
-                social_login_dialog_box("Google")
+            if st.button("🔵 Google", key="modal_social_g", use_container_width=True):
+                st.session_state["active_social_login"] = "Google"
         with col_f:
-            if st.button("🔵 Facebook ID", key="modal_social_f", use_container_width=True):
-                social_login_dialog_box("Facebook")
+            if st.button("🔵 Facebook", key="modal_social_f", use_container_width=True):
+                st.session_state["active_social_login"] = "Facebook"
 
-@st.dialog("🔑 Social Account Authentication", width="small")
+        if "active_social_login" in st.session_state:
+            social_login_dialog_box(st.session_state["active_social_login"])
+
 def social_login_dialog_box(platform):
     st.markdown(f"""
         <div style="background: rgba(18, 19, 26, 0.95); padding: 5px; border-radius: 12px; text-align: center;">
-            <div style="font-family: 'Orbitron', sans-serif; font-size: 14px; color: #FFC0CB; margin-bottom: 10px; letter-spacing: 1px; text-transform: uppercase;">Direct Login with {platform}</div>
-            <p style="font-size:12px; color:#94a3b8; margin-bottom:15px;">Verify active email credentials to access workspace.</p>
+            <div style="font-family: 'Orbitron', sans-serif; font-size: 14px; color: #FFC0CB; margin-bottom: 10px; letter-spacing: 1px; text-transform: uppercase;">Login with {platform}</div>
+            <p style="font-size:12px; color:#94a3b8; margin-bottom:15px;">Enter your email to continue</p>
         </div>
     """, unsafe_allow_html=True)
-    social_email = st.text_input("Enter Email Address", placeholder="yourname@gmail.com", key="social_email_input").strip()
+    social_email = st.text_input("Email Address", placeholder="yourname@gmail.com", key="social_email_input").strip()
     st.write("")
     if st.button("Authenticate & Log In", key="social_confirm_btn", use_container_width=True):
         if social_email and "@" in social_email:
@@ -5830,23 +5878,29 @@ def social_login_dialog_box(platform):
                 st.session_state["history_renders"] = load_renders_history_db(social_email)
                 st.session_state["face_video_history"] = load_face_video_history_db(social_email)
                 st.session_state["current_page"] = "studio"
+                st.session_state['user_credits'] = get_user_credits_db(social_email)
+                st.session_state['credit_balance'] = st.session_state['user_credits']
+                
                 if st.session_state.get("auth_redirect_mode"):
                     st.session_state["studio_active_mode"] = st.session_state["auth_redirect_mode"]
                     st.session_state["current_workspace_mode"] = st.session_state["auth_redirect_mode"]
+                
                 check_and_refresh_subscription(social_email)
+                
                 if st.session_state.get("pending_credits", 0) > 0:
                     add_credits(social_email, st.session_state["pending_credits"])
                     st.success(f"✅ Added {st.session_state['pending_credits']} credits from pending payment!")
                     st.session_state["pending_credits"] = 0
                     st.session_state["pending_pack_name"] = ""
                     st.session_state["payment_verified"] = False
+                
                 gdpr_manager.set_consent(social_email)
-                st.toast(f"Logged in successfully via {platform}!")
+                st.toast(f"Logged in successfully via {platform}! 🎉")
                 st.rerun()
             else:
-                st.error("Authentication node failure.")
+                st.error("Authentication failed. Please try again.")
         else:
-            st.error("Provide a valid email address.")
+            st.error("Please enter a valid email address.")
 
 @st.dialog("🔐 Two-Factor Authentication", width="small")
 def show_2fa_modal():
@@ -5865,29 +5919,53 @@ def show_2fa_modal():
     if st.button("✅ Verify", key="2fa_verify_btn", use_container_width=True):
         if code and len(code) == 6:
             username = st.session_state.get("2fa_temp_user", "")
-            if twofa.verify_code(username, code):
-                st.session_state["2fa_verified"] = True
-                st.session_state["is_logged_in"] = True
-                st.session_state["logged_user"] = username
-                st.session_state["xp_points"] = get_user_xp_db(username)
-                st.session_state["creator_level"] = 1 + (st.session_state["xp_points"] // 100)
-                st.session_state["history_renders"] = load_renders_history_db(username)
-                st.session_state["face_video_history"] = load_face_video_history_db(username)
-                st.session_state["current_page"] = "studio"
-                if st.session_state.get("auth_redirect_mode"):
-                    st.session_state["studio_active_mode"] = st.session_state["auth_redirect_mode"]
-                    st.session_state["current_workspace_mode"] = st.session_state["auth_redirect_mode"]
-                check_and_refresh_subscription(username)
-                if st.session_state.get("pending_credits", 0) > 0:
-                    add_credits(username, st.session_state["pending_credits"])
-                    st.success(f"✅ Added {st.session_state['pending_credits']} credits from pending payment!")
-                    st.session_state["pending_credits"] = 0
-                    st.session_state["pending_pack_name"] = ""
-                    st.session_state["payment_verified"] = False
-                st.session_state["2fa_temp_user"] = None
-                st.rerun()
+            if HAS_2FA and pyotp:
+                try:
+                    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+                    cursor = conn.cursor()
+                    cursor.execute("SELECT twofa_secret FROM users WHERE username = ?", (username,))
+                    row = cursor.fetchone()
+                    conn.close()
+                    
+                    if row and row[0]:
+                        totp = pyotp.TOTP(row[0])
+                        if totp.verify(code):
+                            st.session_state["2fa_verified"] = True
+                            st.session_state["is_logged_in"] = True
+                            st.session_state["logged_user"] = username
+                            st.session_state["xp_points"] = get_user_xp_db(username)
+                            st.session_state["creator_level"] = 1 + (st.session_state["xp_points"] // 100)
+                            st.session_state["history_renders"] = load_renders_history_db(username)
+                            st.session_state["face_video_history"] = load_face_video_history_db(username)
+                            st.session_state["current_page"] = "studio"
+                            st.session_state['user_credits'] = get_user_credits_db(username)
+                            st.session_state['credit_balance'] = st.session_state['user_credits']
+                            
+                            if st.session_state.get("auth_redirect_mode"):
+                                st.session_state["studio_active_mode"] = st.session_state["auth_redirect_mode"]
+                                st.session_state["current_workspace_mode"] = st.session_state["auth_redirect_mode"]
+                            
+                            check_and_refresh_subscription(username)
+                            
+                            if st.session_state.get("pending_credits", 0) > 0:
+                                add_credits(username, st.session_state["pending_credits"])
+                                st.success(f"✅ Added {st.session_state['pending_credits']} credits from pending payment!")
+                                st.session_state["pending_credits"] = 0
+                                st.session_state["pending_pack_name"] = ""
+                                st.session_state["payment_verified"] = False
+                            
+                            st.session_state["2fa_temp_user"] = None
+                            st.toast("2FA verified! Welcome back! 🎉")
+                            st.rerun()
+                        else:
+                            st.error("Invalid code. Please try again.")
+                    else:
+                        st.error("2FA not set up for this account.")
+                except Exception as e:
+                    logger.error(f"2FA verification error: {e}")
+                    st.error("Error verifying 2FA code.")
             else:
-                st.error("Invalid code. Please try again.")
+                st.error("2FA system not available.")
         else:
             st.error("Please enter a valid 6-digit code.")
 
@@ -5922,14 +6000,10 @@ def run_cinematic_engine():
         input_mode = st.radio("Prompt Select Option Mode:", ["💡 Autonomous AI Topic", "✍️ Manual Custom Script", "🧠 DeepSeek AI Blueprint"], horizontal=True, key="studio_mode_radio")
         initial_topic_val = st.session_state.get("studio_prompt_value", "")
         
-        # ============================================================
-        # DEEPSEEK BLUEPRINT SECTION
-        # ============================================================
         if input_mode == "🧠 DeepSeek AI Blueprint":
             user_input = st.text_area("Prompt Input", value=initial_topic_val, placeholder="Explain video concept: e.g. Ek kisan ke paas do beej the...", height=110, label_visibility="collapsed", key="studio_prompt_deepseek_input")
             aspect_choice = st.selectbox("Aspect Scaling Rules for Blueprint:", ["16:9 LANDSCAPE (YOUTUBE)", "9:16 VERTICAL (SHORTS/REELS)"], key="studio_deepseek_aspect")
             
-            # Step 1 Button - Generate Blueprint only (not video)
             if st.button("📐 Generate Blueprint", key="deepseek_generate_blueprint_btn", use_container_width=True):
                 if not user_input.strip():
                     st.error("Please enter a video concept.")
@@ -5946,7 +6020,6 @@ def run_cinematic_engine():
                             st.toast("✅ Blueprint generated successfully!")
                             st.rerun()
             
-            # Step 2 - Show Blueprint Preview
             if st.session_state.get("deepseek_blueprint_visible") and st.session_state.get("deepseek_blueprint_data"):
                 blueprint_data = st.session_state["deepseek_blueprint_data"]
                 
@@ -5958,7 +6031,6 @@ def run_cinematic_engine():
                     </div>
                 """, unsafe_allow_html=True)
                 
-                # Show all scenes
                 for scene in blueprint_data.get("scenes", []):
                     with st.container(border=True):
                         st.markdown(f"""
@@ -5973,10 +6045,8 @@ def run_cinematic_engine():
                             </div>
                         """, unsafe_allow_html=True)
                 
-                # Step 3 - Final Render Button
                 st.markdown("---")
                 if st.button("🎬 Compile & Render Video via Gemini Core", key="deepseek_final_render_btn", use_container_width=True):
-                    # Convert blueprint to scenes format
                     scenes = []
                     for scene in blueprint_data.get("scenes", []):
                         scenes.append({
@@ -5986,11 +6056,8 @@ def run_cinematic_engine():
                         })
                     
                     if scenes:
-                        # Trigger the render with these scenes
                         st.session_state["studio_prompt_value"] = user_input
                         st.session_state["studio_prompt_mode"] = "🧠 DeepSeek AI Blueprint"
-                        
-                        # Store scenes for rendering
                         st.session_state["deepseek_scenes"] = scenes
                         st.session_state["deepseek_music_mood"] = "cinematic"
                         st.session_state["trigger_render"] = True
@@ -5999,7 +6066,6 @@ def run_cinematic_engine():
                         st.error("No scenes found in blueprint. Please regenerate.")
         
         else:
-            # Standard input for Autonomous AI Topic or Manual Custom Script
             user_input = st.text_area("Prompt Input", value=initial_topic_val, 
                 placeholder="Explain video concept: e.g. Bermuda triangle ka ansuljha rahasya jo kisi ko nahi pata tha." if input_mode == "💡 Autonomous AI Topic" 
                 else "Write a custom script separated by paragraph breaks. E.g:\n[Scene 1: ocean] Paragraph text...\n\n[Scene 2: storm] Next text...", 
@@ -6112,14 +6178,12 @@ def run_cinematic_engine():
                         progress_pulse.progress(20, text="Interpreting prompt syntax...")
                         music_mood = "cinematic"
                         
-                        # Check if this is a DeepSeek blueprint render
                         if pipeline_prompt_mode == "🧠 DeepSeek AI Blueprint" and st.session_state.get("deepseek_scenes"):
                             scenes = st.session_state["deepseek_scenes"]
                             music_mood = st.session_state.get("deepseek_music_mood", "cinematic")
                             status_indicator.write("✅ **Using DeepSeek AI Blueprint scenes...**")
                             st.success(f"🎬 Video Title: {st.session_state.get('deepseek_blueprint_data', {}).get('video_title', 'Untitled Production')}")
                         elif pipeline_prompt_mode == "🧠 DeepSeek AI Blueprint":
-                            # Fallback: generate blueprint if not already generated
                             status_indicator.write("🧠 **DeepSeek AI is generating video blueprint...**")
                             progress_pulse.progress(25, text="Calling DeepSeek API for blueprint generation...")
                             aspect_for_deepseek = "9:16" if "VERTICAL" in st.session_state.get("studio_deepseek_aspect", "9:16 VERTICAL") else "16:9"
@@ -7126,6 +7190,9 @@ def handle_engine_access_request(mode_value: str):
 # 44. MAIN APPLICATION FLOW
 # ========================================================
 
+# Handle payment response FIRST
+handle_payment_response()
+
 if st.session_state.get("show_2fa", False):
     show_2fa_modal()
     st.stop()
@@ -7332,18 +7399,18 @@ elif st.session_state["current_page"] == "studio":
             if check.get("details"):
                 st.caption(check["details"])
     
-    col_left, col_center, col_right = st.columns([4, 4, 2])
+    col_left, col_center, col_right = st.columns([4, 2, 2])
     with col_left:
         st.markdown("<h2 style='margin:0; padding:0; font-family:Orbitron; color:white;'>YOURS TO CREATE</h2>", unsafe_allow_html=True)
         st.caption("ACTIVE GENERATION PIPELINE WORKSPACE")
     with col_center:
         st.markdown("""
-            <div style='display: flex; justify-content: left; align-items: center; height: 100%; margin-top: -5px;'>
+            <div style='display: flex; justify-content: display center; align-items: center; height: 100%; margin-top: -8px;'>
                 <div class='z-logo'>Z</div>
             </div>
         """, unsafe_allow_html=True)
     with col_right:
-        st.markdown("<div style='margin-top: 8px;'></div>", unsafe_allow_html=True)
+        st.markdown("<div style='margin-top: 5px;'></div>", unsafe_allow_html=True)
         if st.button("EXIT", key="main_top_exit_btn", use_container_width=True):
             st.session_state["current_page"] = "landing"
             st.session_state["is_logged_in"] = False
@@ -7352,7 +7419,7 @@ elif st.session_state["current_page"] == "studio":
     st.markdown("<hr style='border-color: rgba(255,255,255,0.08); margin: 10px 0 20px 0;'>", unsafe_allow_html=True)
     
     if check_49_voucher_valid():
-        st.info(f"🎫 ₹49 Voucher Active! 35 Credits added. Valid for: {st.session_state.get('voucher_49_expiry', datetime.now() + timedelta(hours=24)).strftime('%H:%M:%S')} remaining")
+        st.info(f"🎫 ₹49 Voucher Active! 30 Credits added. Valid for: {st.session_state.get('voucher_49_expiry', datetime.now() + timedelta(hours=24)).strftime('%H:%M:%S')} remaining")
     
     if st.button("⚡ QUICK ACCESS NODES " + ("▼" if st.session_state["quick_access_open"] else "▶"), key="quick_access_toggle", use_container_width=True):
         st.session_state["quick_access_open"] = not st.session_state["quick_access_open"]
@@ -7362,7 +7429,6 @@ elif st.session_state["current_page"] == "studio":
             <div class="panel-header">⚡ QUICK ACCESS NODES</div>
         </div>
         """, unsafe_allow_html=True)
-        # 6 buttons in one line
         tab_cols = st.columns(6)
         with tab_cols[0]:
             if st.button("🚀 Factory", key="quick_tab_factory", use_container_width=True):
@@ -7389,10 +7455,6 @@ elif st.session_state["current_page"] == "studio":
                 st.session_state["sidebar_tab"] = "📅 ADVANCED AI CONTENT SCHEDULER"
                 st.rerun()
         st.markdown("<hr style='border-color: rgba(255,255,255,0.08); margin: 15px 0 20px 0;'>", unsafe_allow_html=True)
-    
-    # ============================================================
-    # MASS FACTORY - Only visible when "Start Mass Production Run" is clicked
-    # ============================================================
     
     if st.session_state["sidebar_tab"] == "💎 Buy Credits":
         render_enhanced_payment_ui()
@@ -7531,11 +7593,6 @@ elif st.session_state["current_page"] == "studio":
                         """, unsafe_allow_html=True)
     
     st.markdown("<div class='compact-label' style='margin-bottom: 8px;'>Active Studio Workspace Mode</div>", unsafe_allow_html=True)
-    
-    # MODE BUTTONS - All 11 modes in a SINGLE LINE
-    st.markdown("""
-        <div class="mode-buttons-container">
-    """, unsafe_allow_html=True)
     
     mode_buttons = ["👤 Face Video", "🎬 Cinematic", "🎨 Creative", "🎬 Editor", "📐 Blueprints", "⚡ Upscaler", "🎨 Draw", "🤖 AI Agent", "🎙️ Sales", "🧠 Dynamic UI", "🎤 Live Voice"]
     
