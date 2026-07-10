@@ -2456,15 +2456,21 @@ def render_payment_modal():
                 if st.session_state.get("payment_processing", False) and st.session_state.get("razorpay_order_id"):
                     st.markdown("---")
                     st.caption("Payment completion is automatic. Once Razorpay confirms success, your credits will be added instantly.")
+                    try:
+                        app_return_url = str(st.context.url).split("?")[0]
+                    except Exception:
+                        app_return_url = ""
                     html = render_razorpay_checkout(
                         st.session_state.get("razorpay_order_id"),
                         int(amount * 100),
                         plan_name,
                         int(credits),
                         st.session_state.get("logged_user", "User"),
-                        RAZORPAY_KEY_ID
+                        RAZORPAY_KEY_ID,
+                        app_return_url
                     )
                     st.components.v1.html(html, height=520)
+                    razorpay_processing_watcher()
             
             elif gateway == "crypto":
                 st.markdown("---")
@@ -2498,7 +2504,7 @@ def render_payment_modal():
 # 27. RAZORPAY CHECKOUT - IMPROVED
 # ========================================================
 
-def render_razorpay_checkout(order_id, amount, plan_name, credits, username, key_id):
+def render_razorpay_checkout(order_id, amount, plan_name, credits, username, key_id, return_url=""):
     import json
     amount_inr = amount / 100
     safe_plan_name = str(plan_name).replace("'", "\\'").replace("\n", " ")
@@ -2571,6 +2577,7 @@ def render_razorpay_checkout(order_id, amount, plan_name, credits, username, key
                 const credits = {credits};
                 const planName = {json.dumps(safe_plan_name)};
                 const keyId = {json.dumps(key_id)};
+                const returnUrl = {json.dumps(return_url)};
                 const paymentStatus = document.getElementById('paymentStatus');
                 const payButton = document.getElementById('pay-btn');
 
@@ -2606,7 +2613,7 @@ def render_razorpay_checkout(order_id, amount, plan_name, credits, username, key
 
                             var form = document.createElement("form");
                             form.method = "GET";
-                            form.action = window.top.location.origin + window.top.location.pathname;
+                            form.action = returnUrl || (window.location.origin + window.location.pathname);
                             form.target = "_top";
 
                             var params = {{
@@ -2614,8 +2621,8 @@ def render_razorpay_checkout(order_id, amount, plan_name, credits, username, key
                                 "razorpay_payment_id": response.razorpay_payment_id,
                                 "razorpay_order_id": response.razorpay_order_id,
                                 "razorpay_signature": response.razorpay_signature,
-                                "razorpay_credits": "30",
-                                "razorpay_plan_name": "Starter"
+                                "razorpay_credits": String(credits),
+                                "razorpay_plan_name": planName
                             }};
 
                             for (var key in params) {{
@@ -2656,21 +2663,27 @@ def render_razorpay_checkout(order_id, amount, plan_name, credits, username, key
 # 27B. PAYMENT RESPONSE HANDLER - IMPROVED
 # ========================================================
 
+def qp_value(params, key, default=""):
+    value = params.get(key, default)
+    if isinstance(value, list):
+        return value[0] if value else default
+    return value
+
 def handle_payment_response():
     """Process payment success passed via query params from Razorpay form submit."""
     query_params = st.query_params
-    payment_status = query_params.get("payment", "")
+    payment_status = qp_value(query_params, "payment", "")
 
     if str(payment_status).lower() != "success":
         return False
 
-    payment_id = query_params.get("razorpay_payment_id", "")
-    order_id = query_params.get("razorpay_order_id", "")
-    signature = query_params.get("razorpay_signature", "")
-    pack_name = query_params.get("razorpay_plan_name", st.session_state.get("pending_pack_name", "Starter"))
+    payment_id = qp_value(query_params, "razorpay_payment_id", "")
+    order_id = qp_value(query_params, "razorpay_order_id", "")
+    signature = qp_value(query_params, "razorpay_signature", "")
+    pack_name = qp_value(query_params, "razorpay_plan_name", st.session_state.get("pending_pack_name", "Starter"))
 
     try:
-        credits_to_add = int(query_params.get("razorpay_credits", st.session_state.get("pending_credits", 0)))
+        credits_to_add = int(qp_value(query_params, "razorpay_credits", st.session_state.get("pending_credits", 0)))
     except Exception:
         credits_to_add = st.session_state.get("pending_credits", 0)
 
@@ -2793,6 +2806,80 @@ def finalize_razorpay_payment(username, order_id, payment_id, signature, amount,
             conn.close()
         except Exception:
             pass
+
+
+def try_auto_finalize_razorpay_payment():
+    """Fallback finalizer: poll Razorpay order status and credit user automatically."""
+    if not st.session_state.get("payment_processing", False):
+        return
+
+    order_id = st.session_state.get("razorpay_order_id")
+    username = st.session_state.get("logged_user", "")
+    credits_to_add = int(st.session_state.get("pending_credits", 0) or 0)
+    pack_name = st.session_state.get("pending_pack_name", "")
+    amount = st.session_state.get("pending_amount", 0)
+
+    if not order_id or not username or credits_to_add <= 0:
+        return
+
+    if not RAZORPAY_KEY_ID or not RAZORPAY_KEY_SECRET or RAZORPAY_KEY_ID == "mock" or RAZORPAY_KEY_SECRET == "mock":
+        return
+
+    if razorpay is None:
+        return
+
+    try:
+        client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
+        order_data = client.order.fetch(order_id)
+        status = str(order_data.get("status", "")).lower()
+        st.session_state["razorpay_last_status"] = status
+
+        if status in {"paid", "authorized", "captured"}:
+            payment_id = ""
+            try:
+                payments_data = client.order.payments(order_id)
+                items = payments_data.get("items", []) if isinstance(payments_data, dict) else []
+                if items:
+                    preferred = next((p for p in items if str(p.get("status", "")).lower() in {"captured", "authorized"}), items[0])
+                    payment_id = str(preferred.get("id", ""))
+            except Exception:
+                payment_id = ""
+
+            success, message = finalize_razorpay_payment(
+                username,
+                order_id,
+                payment_id,
+                "",
+                amount,
+                credits_to_add,
+                pack_name,
+                "razorpay"
+            )
+
+            if success:
+                st.toast("Credits added successfully")
+                st.success(message)
+                st.balloons()
+                st.rerun()
+            else:
+                st.error(message)
+                st.session_state["payment_processing"] = False
+
+        elif status in {"failed", "cancelled"}:
+            st.session_state["payment_processing"] = False
+            st.error("Payment failed or cancelled. Please try again.")
+
+    except Exception as e:
+        logger.warning(f"Auto finalize check skipped: {e}")
+
+
+if hasattr(st, "fragment"):
+    @st.fragment(run_every="3s")
+    def razorpay_processing_watcher():
+        try_auto_finalize_razorpay_payment()
+else:
+    def razorpay_processing_watcher():
+        try_auto_finalize_razorpay_payment()
 
 # ========================================================
 # 28. CRYPTO PAYMENT FUNCTIONS
