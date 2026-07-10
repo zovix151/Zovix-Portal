@@ -2458,78 +2458,9 @@ def render_payment_modal():
                                 RAZORPAY_KEY_ID
                             )
                             st.components.v1.html(html, height=520)
-                            
+
                             st.markdown("---")
-                            st.caption("After payment completion, click below to sync credits.")
-                            
-                            if st.button("🔄 Sync & Verify Credits", use_container_width=True, type="primary"):
-                                with st.spinner("Verifying payment with Razorpay..."):
-                                    order_id = st.session_state.get("razorpay_order_id")
-                                    username = st.session_state.get("logged_user", "")
-                                    
-                                    if order_id and username and st.session_state.get("is_logged_in", False):
-                                        try:
-                                            client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
-                                            order_data = client.order.fetch(order_id)
-                                            status = str(order_data.get("status", "")).lower()
-                                            st.session_state["razorpay_last_status"] = status
-                                            
-                                            if status in {"paid", "authorized"}:
-                                                already_processed = st.session_state.get("razorpay_processed_order_id") == order_id
-                                                
-                                                if already_processed:
-                                                    st.info("✅ Payment already synced. Your credits are already updated.")
-                                                    st.session_state['user_credits'] = get_user_credits_db(username)
-                                                    st.rerun()
-                                                else:
-                                                    credits_to_add = int(credits)
-                                                    
-                                                    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
-                                                    cursor = conn.cursor()
-                                                    cursor.execute(
-                                                        "SELECT 1 FROM payment_history WHERE username = ? AND order_id = ? AND status = 'success' LIMIT 1",
-                                                        (username, order_id),
-                                                    )
-                                                    existing = cursor.fetchone()
-                                                    conn.close()
-                                                    
-                                                    if not existing:
-                                                        add_credits(username, credits_to_add)
-                                                        save_payment_history(
-                                                            username,
-                                                            order_id,
-                                                            order_data.get("id", ""),
-                                                            round(amount_paise / 100, 2),
-                                                            credits_to_add,
-                                                            plan_name,
-                                                            "success",
-                                                            "one_time",
-                                                            "razorpay",
-                                                        )
-                                                        st.session_state['user_credits'] = get_user_credits_db(username)
-                                                        st.session_state['credit_balance'] = st.session_state['user_credits']
-                                                        st.session_state["razorpay_processed_order_id"] = order_id
-                                                        
-                                                        st.success(f"✅ Payment confirmed! {credits_to_add} credits added successfully!")
-                                                        st.balloons()
-                                                        
-                                                        st.session_state["pending_credits"] = 0
-                                                        st.session_state["pending_pack_name"] = ""
-                                                        st.session_state["pending_amount"] = 0
-                                                        st.session_state["payment_verified"] = True
-                                                        st.session_state["show_payment"] = False
-                                                        st.rerun()
-                                                    else:
-                                                        st.info("✅ Credits already added for this order.")
-                                                        st.session_state['user_credits'] = get_user_credits_db(username)
-                                                        st.rerun()
-                                            else:
-                                                st.info(f"⏳ Current Razorpay status: {status or 'unknown'}. Please wait or check payment.")
-                                        except Exception as e:
-                                            logger.error(f"Razorpay sync failed: {e}")
-                                            st.error(f"Could not verify payment: {str(e)}")
-                                    else:
-                                        st.info("⚠️ Please log in and create a Razorpay order before syncing.")
+                            st.caption("Payment completion is automatic. Once Razorpay confirms success, your credits will be added instantly.")
                         else:
                             st.error("Failed to create payment order. Please try again.")
             
@@ -2667,28 +2598,22 @@ def render_razorpay_checkout(order_id, amount, plan_name, credits, username, key
                             }}
                         }},
                         handler: function(response) {{
-                            updateStatus('✅ Processing payment...', 'success');
+                            updateStatus('✅ Payment successful! Finalizing your credits...', 'success');
                             payButton.disabled = true;
-                            payButton.innerHTML = '⏳ Processing...';
-                            
-                            if (window.parent) {{
-                                window.parent.postMessage({{
-                                    type: 'razorpay_success',
-                                    payment_id: response.razorpay_payment_id,
-                                    order_id: response.razorpay_order_id,
-                                    signature: response.razorpay_signature
-                                }}, '*');
+                            payButton.innerHTML = '⏳ Finalizing...';
+
+                            const paymentUrl = new URL(window.location.href);
+                            paymentUrl.searchParams.set('razorpay_payment_id', response.razorpay_payment_id || '');
+                            paymentUrl.searchParams.set('razorpay_order_id', response.razorpay_order_id || '');
+                            paymentUrl.searchParams.set('razorpay_signature', response.razorpay_signature || '');
+                            paymentUrl.searchParams.set('razorpay_status', 'success');
+
+                            const redirectTarget = paymentUrl.toString();
+                            if (window.parent && window.parent !== window) {{
+                                window.parent.location.replace(redirectTarget);
+                            }} else {{
+                                window.location.replace(redirectTarget);
                             }}
-                            
-                            const params = new URLSearchParams(window.location.search);
-                            params.set('razorpay_payment_id', response.razorpay_payment_id);
-                            params.set('razorpay_order_id', response.razorpay_order_id);
-                            params.set('razorpay_signature', response.razorpay_signature);
-                            window.history.replaceState({{}}, '', '?' + params.toString());
-                            
-                            setTimeout(function() {{
-                                window.location.reload();
-                            }}, 1000);
                         }}
                     }};
 
@@ -2717,10 +2642,63 @@ def render_razorpay_checkout(order_id, amount, plan_name, credits, username, key
 # 27B. PAYMENT RESPONSE HANDLER - IMPROVED
 # ========================================================
 
+def finalize_razorpay_payment(username, order_id, payment_id, signature, amount, credits_to_add, pack_name, gateway="razorpay"):
+    """Apply credits once and only once for a successful Razorpay payment."""
+    if not username:
+        return False, "Please log in to claim your credits."
+
+    if st.session_state.get("razorpay_processed_order_id") == order_id:
+        return True, "✅ Payment already processed. Credits already added."
+
+    try:
+        conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT status FROM payment_history WHERE username = ? AND order_id = ? LIMIT 1",
+            (username, order_id)
+        )
+        existing = cursor.fetchone()
+        conn.close()
+    except Exception as db_error:
+        logger.error(f"Payment history lookup failed: {db_error}")
+        existing = None
+
+    if existing and existing[0] == "success":
+        st.session_state["payment_verified"] = True
+        st.session_state["razorpay_processed_order_id"] = order_id
+        st.session_state["payment_processing"] = False
+        st.session_state["show_payment"] = False
+        st.session_state['user_credits'] = get_user_credits_db(username)
+        st.session_state['credit_balance'] = st.session_state['user_credits']
+        return True, "✅ Payment already processed. Credits already added."
+
+    success, message = process_payment_success(
+        username, order_id, payment_id, signature,
+        amount, credits_to_add, pack_name, gateway
+    )
+
+    if success:
+        st.session_state["razorpay_order_id"] = None
+        st.session_state["razorpay_payment_id"] = None
+        st.session_state["razorpay_signature"] = None
+        st.session_state["pending_credits"] = 0
+        st.session_state["pending_pack_name"] = ""
+        st.session_state["pending_amount"] = 0
+        st.session_state["payment_verified"] = True
+        st.session_state["razorpay_processed_order_id"] = order_id
+        st.session_state["payment_processing"] = False
+        st.session_state["show_payment"] = False
+        st.session_state['user_credits'] = get_user_credits_db(username)
+        st.session_state['credit_balance'] = st.session_state['user_credits']
+        return True, message
+
+    return False, message
+
+
 def handle_payment_response():
     """Auto-detect and process payment from query parameters"""
     query_params = st.query_params
-    
+
     if "razorpay_payment_id" in query_params and "razorpay_order_id" in query_params:
         payment_id = query_params.get("razorpay_payment_id")
         order_id = query_params.get("razorpay_order_id")
@@ -2728,65 +2706,32 @@ def handle_payment_response():
         credits_to_add = st.session_state.get("pending_credits", 0)
         pack_name = st.session_state.get("pending_pack_name", "")
         amount = st.session_state.get("pending_amount", 0)
-        
-        already_processed = st.session_state.get("razorpay_processed_order_id") == order_id
-        if already_processed:
-            st.info("✅ Payment already processed. Credits added to your account.")
-            st.query_params.clear()
-            return True
-        
+
         if st.session_state.get("is_logged_in") and st.session_state.get("logged_user"):
             username = st.session_state["logged_user"]
-            
-            conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
-            cursor = conn.cursor()
-            cursor.execute(
-                "SELECT status FROM payment_history WHERE username = ? AND order_id = ? LIMIT 1",
-                (username, order_id)
-            )
-            existing = cursor.fetchone()
-            conn.close()
-            
-            if existing and existing[0] == "success":
-                st.info("✅ Payment already processed!")
-                st.session_state["payment_verified"] = True
-                st.session_state['user_credits'] = get_user_credits_db(username)
-                st.session_state['credit_balance'] = st.session_state['user_credits']
-                st.session_state["razorpay_processed_order_id"] = order_id
-                st.query_params.clear()
-                st.rerun()
-                return True
-            
-            success, message = process_payment_success(
+            success, message = finalize_razorpay_payment(
                 username, order_id, payment_id, signature,
                 amount, credits_to_add, pack_name
             )
-            
+
             if success:
                 st.success(message)
                 st.balloons()
-                st.session_state["razorpay_order_id"] = None
-                st.session_state["razorpay_payment_id"] = None
-                st.session_state["razorpay_signature"] = None
-                st.session_state["pending_credits"] = 0
-                st.session_state["pending_pack_name"] = ""
-                st.session_state["pending_amount"] = 0
-                st.session_state["payment_verified"] = True
-                st.session_state["razorpay_processed_order_id"] = order_id
-                st.session_state["show_payment"] = False
                 st.query_params.clear()
                 st.rerun()
                 return True
-            else:
-                st.error(message)
-                return False
-        else:
-            st.info("✅ Payment successful! Please log in to claim your credits.")
-            st.session_state["pending_credits"] = credits_to_add
-            st.session_state["pending_pack_name"] = pack_name
+
+            st.error(message)
             st.query_params.clear()
             return False
-    
+
+        st.info("✅ Payment successful! Please log in to claim your credits.")
+        st.session_state["pending_credits"] = credits_to_add
+        st.session_state["pending_pack_name"] = pack_name
+        st.session_state["pending_amount"] = amount
+        st.query_params.clear()
+        return False
+
     return False
 
 # ========================================================
