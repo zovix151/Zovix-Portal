@@ -2135,6 +2135,55 @@ def save_payment_history(username, order_id, payment_id, amount, credits_added, 
     finally:
         conn.close()
 
+
+def register_pending_payment(username, order_id, amount, credits_added, pack_name, gateway="razorpay"):
+    """Persist newly created order so refresh/login can reconcile credits later."""
+    if not username or not order_id:
+        return False
+
+    plan_type = "monthly" if "Subscription" in str(pack_name) else "one_time"
+    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            "SELECT id, status FROM payment_history WHERE username = ? AND order_id = ? ORDER BY id DESC LIMIT 1",
+            (username, order_id)
+        )
+        existing = cursor.fetchone()
+        if existing:
+            existing_id, existing_status = existing
+            if str(existing_status).lower() != "success":
+                cursor.execute(
+                    """UPDATE payment_history
+                       SET amount = ?, credits_added = ?, pack_name = ?, status = ?, plan_type = ?, gateway = ?
+                       WHERE id = ?""",
+                    (int(round(float(amount or 0))), int(credits_added), str(pack_name), "created", plan_type, gateway, existing_id)
+                )
+        else:
+            cursor.execute(
+                """INSERT INTO payment_history
+                   (username, order_id, payment_id, amount, credits_added, pack_name, status, plan_type, gateway)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                (
+                    username,
+                    order_id,
+                    "",
+                    int(round(float(amount or 0))),
+                    int(credits_added),
+                    str(pack_name),
+                    "created",
+                    plan_type,
+                    gateway,
+                )
+            )
+        conn.commit()
+        return True
+    except Exception as e:
+        logger.error(f"Register pending payment error: {e}")
+        return False
+    finally:
+        conn.close()
+
 def process_payment_success(username, order_id, payment_id, signature, amount, credits_to_add, pack_name, gateway="razorpay"):
     """Process successful payment - ADD CREDITS REAL"""
     if not username:
@@ -2447,6 +2496,14 @@ def render_payment_modal():
                             st.session_state["razorpay_last_debug"] = order.get("debug", "")
                             st.session_state["razorpay_last_status"] = order.get("status", "created")
                             st.session_state["payment_processing"] = True
+                            register_pending_payment(
+                                st.session_state.get("logged_user", ""),
+                                order["id"],
+                                amount,
+                                int(credits),
+                                plan_name,
+                                "razorpay"
+                            )
                             
                             st.success(f"✅ Order created: {order['id']}")
                             st.rerun()
@@ -2687,6 +2744,29 @@ def handle_payment_response():
     except Exception:
         credits_to_add = st.session_state.get("pending_credits", 0)
 
+    amount_for_finalize = st.session_state.get("pending_amount", 0)
+
+    if not credits_to_add or not pack_name or not amount_for_finalize:
+        conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+        cursor = conn.cursor()
+        try:
+            cursor.execute(
+                "SELECT credits_added, pack_name, amount FROM payment_history WHERE username = ? AND order_id = ? ORDER BY id DESC LIMIT 1",
+                (st.session_state.get("logged_user", ""), order_id)
+            )
+            row = cursor.fetchone()
+            if row:
+                if not credits_to_add:
+                    credits_to_add = int(row[0] or 0)
+                if not pack_name:
+                    pack_name = str(row[1] or "Starter")
+                if not amount_for_finalize:
+                    amount_for_finalize = float(row[2] or 0)
+        except Exception:
+            pass
+        finally:
+            conn.close()
+
     if not (payment_id and order_id and signature):
         st.query_params.clear()
         st.error("Payment response was incomplete. Please try again.")
@@ -2707,7 +2787,7 @@ def handle_payment_response():
         order_id,
         payment_id,
         signature,
-        st.session_state.get("pending_amount", 0),
+        amount_for_finalize,
         credits_to_add,
         pack_name,
         "razorpay"
@@ -2743,11 +2823,13 @@ def finalize_razorpay_payment(username, order_id, payment_id, signature, amount,
         conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT status FROM payment_history WHERE username = ? AND order_id = ? LIMIT 1",
+            "SELECT id, status, credits_added, pack_name, amount FROM payment_history WHERE username = ? AND order_id = ? ORDER BY id DESC LIMIT 1",
             (username, order_id)
         )
         existing = cursor.fetchone()
-        if existing and existing[0] == "success":
+        existing_id = existing[0] if existing else None
+        existing_status = str(existing[1]).lower() if existing else ""
+        if existing and existing_status == "success":
             conn.close()
             st.session_state["payment_verified"] = True
             st.session_state["razorpay_processed_order_id"] = order_id
@@ -2757,6 +2839,18 @@ def finalize_razorpay_payment(username, order_id, payment_id, signature, amount,
             st.session_state['credit_balance'] = st.session_state['user_credits']
             return True, "✅ Payment already processed. Credits already added."
 
+        if existing:
+            if (not credits_to_add or credits_to_add <= 0) and existing[2]:
+                credits_to_add = int(existing[2])
+            if not pack_name and existing[3]:
+                pack_name = str(existing[3])
+            if (not amount or float(amount) <= 0) and existing[4]:
+                amount = float(existing[4])
+
+        if not credits_to_add or int(credits_to_add) <= 0:
+            conn.close()
+            return False, "Invalid credit amount for this payment."
+
         cursor.execute(
             "UPDATE users SET credits = credits + ? WHERE username = ?",
             (int(credits_to_add), username)
@@ -2765,22 +2859,39 @@ def finalize_razorpay_payment(username, order_id, payment_id, signature, amount,
             conn.close()
             return False, "User account not found for credit update."
 
-        cursor.execute(
-            """INSERT INTO payment_history
-               (username, order_id, payment_id, amount, credits_added, pack_name, status, plan_type, gateway)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-            (
-                username,
-                order_id,
-                payment_id,
-                amount_value,
-                int(credits_to_add),
-                pack_name,
-                "success",
-                plan_type,
-                gateway,
+        if existing_id:
+            cursor.execute(
+                """UPDATE payment_history
+                   SET payment_id = ?, amount = ?, credits_added = ?, pack_name = ?, status = ?, plan_type = ?, gateway = ?
+                   WHERE id = ?""",
+                (
+                    payment_id,
+                    amount_value,
+                    int(credits_to_add),
+                    pack_name,
+                    "success",
+                    plan_type,
+                    gateway,
+                    existing_id,
+                )
             )
-        )
+        else:
+            cursor.execute(
+                """INSERT INTO payment_history
+                   (username, order_id, payment_id, amount, credits_added, pack_name, status, plan_type, gateway)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                (
+                    username,
+                    order_id,
+                    payment_id,
+                    amount_value,
+                    int(credits_to_add),
+                    pack_name,
+                    "success",
+                    plan_type,
+                    gateway,
+                )
+            )
         conn.commit()
         conn.close()
 
@@ -2871,6 +2982,84 @@ def try_auto_finalize_razorpay_payment():
 
     except Exception as e:
         logger.warning(f"Auto finalize check skipped: {e}")
+
+
+def reconcile_pending_razorpay_payments(username):
+    """On refresh/login: sync pending Razorpay orders and auto-add credits if paid."""
+    if not username:
+        return
+
+    if not RAZORPAY_KEY_ID or not RAZORPAY_KEY_SECRET or RAZORPAY_KEY_ID == "mock" or RAZORPAY_KEY_SECRET == "mock":
+        return
+
+    if razorpay is None:
+        return
+
+    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            """SELECT order_id, amount, credits_added, pack_name
+               FROM payment_history
+               WHERE username = ? AND gateway = 'razorpay' AND status IN ('created', 'pending', 'authorized')
+               ORDER BY timestamp DESC
+               LIMIT 5""",
+            (username,)
+        )
+        pending_rows = cursor.fetchall()
+    except Exception as e:
+        logger.warning(f"Pending payment lookup failed: {e}")
+        pending_rows = []
+    finally:
+        conn.close()
+
+    if not pending_rows:
+        return
+
+    client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
+    synced_any = False
+
+    for row in pending_rows:
+        order_id = str(row[0] or "")
+        amount = float(row[1] or 0)
+        credits = int(row[2] or 0)
+        pack_name = str(row[3] or "")
+        if not order_id or credits <= 0:
+            continue
+        try:
+            order_data = client.order.fetch(order_id)
+            status = str(order_data.get("status", "")).lower()
+            if status not in {"paid", "authorized", "captured"}:
+                continue
+
+            payment_id = ""
+            try:
+                payments_data = client.order.payments(order_id)
+                items = payments_data.get("items", []) if isinstance(payments_data, dict) else []
+                if items:
+                    preferred = next((p for p in items if str(p.get("status", "")).lower() in {"captured", "authorized"}), items[0])
+                    payment_id = str(preferred.get("id", ""))
+            except Exception:
+                payment_id = ""
+
+            success, _ = finalize_razorpay_payment(
+                username,
+                order_id,
+                payment_id,
+                "",
+                amount,
+                credits,
+                pack_name,
+                "razorpay"
+            )
+            if success:
+                synced_any = True
+        except Exception as e:
+            logger.warning(f"Pending Razorpay reconcile failed for {order_id}: {e}")
+
+    if synced_any:
+        st.toast("Previous payment synced. Credits added.")
+        st.rerun()
 
 
 if hasattr(st, "fragment"):
@@ -7290,6 +7479,11 @@ if st.session_state.get("show_2fa", False):
     st.stop()
 
 if st.session_state.get("is_logged_in"):
+    now_ts = time.time()
+    if now_ts - float(st.session_state.get("last_payment_check", 0)) > 8:
+        st.session_state["last_payment_check"] = now_ts
+        reconcile_pending_razorpay_payments(st.session_state.get("logged_user", ""))
+
     if not gdpr_manager.get_consent(st.session_state["logged_user"]):
         if not gdpr_manager.request_consent(st.session_state["logged_user"]):
             st.stop()
