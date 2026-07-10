@@ -2114,6 +2114,14 @@ def verify_payment_signature(order_id, payment_id, signature):
         logger.error(f"Signature verification error: {e}")
         return False
 
+
+def get_query_param_value(query_params, key, default=""):
+    """Return a single query param value from Streamlit's query param mapping."""
+    value = query_params.get(key, default)
+    if isinstance(value, list):
+        return value[0] if value else default
+    return value
+
 def save_payment_history(username, order_id, payment_id, amount, credits_added, pack_name, status, plan_type="one_time", gateway="razorpay"):
     """Save payment history to database"""
     conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
@@ -2602,28 +2610,21 @@ def render_razorpay_checkout(order_id, amount, plan_name, credits, username, key
                             payButton.disabled = true;
                             payButton.innerHTML = '⏳ Finalizing...';
 
-                            const paymentUrl = new URL(window.location.href);
-                            paymentUrl.searchParams.set('razorpay_payment_id', response.razorpay_payment_id || '');
-                            paymentUrl.searchParams.set('razorpay_order_id', response.razorpay_order_id || '');
-                            paymentUrl.searchParams.set('razorpay_signature', response.razorpay_signature || '');
-                            paymentUrl.searchParams.set('razorpay_status', 'success');
+                            const redirectTarget =
+                                window.top.location.origin +
+                                window.top.location.pathname +
+                                '?razorpay_payment_id=' + encodeURIComponent(response.razorpay_payment_id || '') +
+                                '&razorpay_order_id=' + encodeURIComponent(response.razorpay_order_id || '') +
+                                '&razorpay_signature=' + encodeURIComponent(response.razorpay_signature || '') +
+                                '&razorpay_credits=' + encodeURIComponent(String(credits)) +
+                                '&razorpay_plan_name=' + encodeURIComponent(planName) +
+                                '&razorpay_amount=' + encodeURIComponent(String(amount / 100));
 
-                            const redirectTarget = paymentUrl.toString();
-                            const targetWindow = window.top || window.parent || window;
                             try {{
-                                targetWindow.location.replace(redirectTarget);
+                                window.top.location.href = redirectTarget;
                             }} catch (error) {{
-                                console.warn('Redirect blocked, retrying with parent fallback:', error);
-                                try {{
-                                    if (window.parent && window.parent !== window) {{
-                                        window.parent.location.replace(redirectTarget);
-                                    }} else {{
-                                        window.location.replace(redirectTarget);
-                                    }}
-                                }} catch (fallbackError) {{
-                                    console.error('Final redirect failed:', fallbackError);
-                                    updateStatus('⚠️ Redirect failed. Please reload the page to complete payment.', 'error');
-                                }}
+                                console.error('Top window redirect failed:', error);
+                                updateStatus('⚠️ Redirect failed. Please reload the page to complete payment.', 'error');
                             }}
                         }}
                     }};
@@ -2658,8 +2659,14 @@ def finalize_razorpay_payment(username, order_id, payment_id, signature, amount,
     if not username:
         return False, "Please log in to claim your credits."
 
+    if not credits_to_add or credits_to_add <= 0:
+        return False, "Invalid credit amount for this payment."
+
     if st.session_state.get("razorpay_processed_order_id") == order_id:
         return True, "✅ Payment already processed. Credits already added."
+
+    plan_type = "monthly" if "Subscription" in str(pack_name) else "one_time"
+    amount_value = int(round(float(amount or 0)))
 
     try:
         conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
@@ -2669,26 +2676,43 @@ def finalize_razorpay_payment(username, order_id, payment_id, signature, amount,
             (username, order_id)
         )
         existing = cursor.fetchone()
+        if existing and existing[0] == "success":
+            conn.close()
+            st.session_state["payment_verified"] = True
+            st.session_state["razorpay_processed_order_id"] = order_id
+            st.session_state["payment_processing"] = False
+            st.session_state["show_payment"] = False
+            st.session_state['user_credits'] = get_user_credits_db(username)
+            st.session_state['credit_balance'] = st.session_state['user_credits']
+            return True, "✅ Payment already processed. Credits already added."
+
+        cursor.execute(
+            "UPDATE users SET credits = credits + ? WHERE username = ?",
+            (int(credits_to_add), username)
+        )
+        if cursor.rowcount == 0:
+            conn.close()
+            return False, "User account not found for credit update."
+
+        cursor.execute(
+            """INSERT INTO payment_history
+               (username, order_id, payment_id, amount, credits_added, pack_name, status, plan_type, gateway)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (
+                username,
+                order_id,
+                payment_id,
+                amount_value,
+                int(credits_to_add),
+                pack_name,
+                "success",
+                plan_type,
+                gateway,
+            )
+        )
+        conn.commit()
         conn.close()
-    except Exception as db_error:
-        logger.error(f"Payment history lookup failed: {db_error}")
-        existing = None
 
-    if existing and existing[0] == "success":
-        st.session_state["payment_verified"] = True
-        st.session_state["razorpay_processed_order_id"] = order_id
-        st.session_state["payment_processing"] = False
-        st.session_state["show_payment"] = False
-        st.session_state['user_credits'] = get_user_credits_db(username)
-        st.session_state['credit_balance'] = st.session_state['user_credits']
-        return True, "✅ Payment already processed. Credits already added."
-
-    success, message = process_payment_success(
-        username, order_id, payment_id, signature,
-        amount, credits_to_add, pack_name, gateway
-    )
-
-    if success:
         st.session_state["razorpay_order_id"] = None
         st.session_state["razorpay_payment_id"] = None
         st.session_state["razorpay_signature"] = None
@@ -2701,9 +2725,16 @@ def finalize_razorpay_payment(username, order_id, payment_id, signature, amount,
         st.session_state["show_payment"] = False
         st.session_state['user_credits'] = get_user_credits_db(username)
         st.session_state['credit_balance'] = st.session_state['user_credits']
-        return True, message
-
-    return False, message
+        logger.info(f"✅ CREDITS ADDED: {credits_to_add} to {username} for order {order_id}")
+        return True, f"✅ Payment successful! Added {credits_to_add} credits to your account."
+    except Exception as db_error:
+        logger.error(f"Finalize Razorpay payment failed: {db_error}")
+        return False, f"Error processing payment: {str(db_error)}"
+    finally:
+        try:
+            conn.close()
+        except Exception:
+            pass
 
 
 def handle_payment_response():
@@ -2711,21 +2742,43 @@ def handle_payment_response():
     query_params = st.query_params
 
     if "razorpay_payment_id" in query_params and "razorpay_order_id" in query_params:
-        payment_id = query_params.get("razorpay_payment_id")
-        order_id = query_params.get("razorpay_order_id")
-        signature = query_params.get("razorpay_signature", "")
+        payment_id = get_query_param_value(query_params, "razorpay_payment_id", "")
+        order_id = get_query_param_value(query_params, "razorpay_order_id", "")
+        signature = get_query_param_value(query_params, "razorpay_signature", "")
         credits_to_add = st.session_state.get("pending_credits", 0)
         pack_name = st.session_state.get("pending_pack_name", "")
         amount = st.session_state.get("pending_amount", 0)
 
+        if credits_to_add <= 0:
+            try:
+                credits_to_add = int(get_query_param_value(query_params, "razorpay_credits", 0))
+            except Exception:
+                credits_to_add = 0
+
+        if not pack_name:
+            pack_name = get_query_param_value(query_params, "razorpay_plan_name", "")
+
+        if not amount:
+            try:
+                amount = float(get_query_param_value(query_params, "razorpay_amount", 0))
+            except Exception:
+                amount = 0
+
         if st.session_state.get("is_logged_in") and st.session_state.get("logged_user"):
             username = st.session_state["logged_user"]
+
+            if not verify_payment_signature(order_id, payment_id, signature):
+                st.query_params.clear()
+                st.error("Payment verification failed. Credits were not added.")
+                return False
+
             success, message = finalize_razorpay_payment(
                 username, order_id, payment_id, signature,
                 amount, credits_to_add, pack_name
             )
 
             if success:
+                st.toast("Credits added successfully")
                 st.success(message)
                 st.balloons()
                 st.query_params.clear()
@@ -7159,7 +7212,6 @@ if st.session_state.get("is_logged_in"):
             st.stop()
 
 if st.session_state["current_page"] == "landing":
-    handle_payment_response()
     st.markdown(get_premium_theme_css(), unsafe_allow_html=True)
     st.markdown("""
         <div class="header-nav-container" style="padding-top: 20px; margin-bottom: 10px;">
@@ -7342,7 +7394,6 @@ elif st.session_state["current_page"] == "studio":
         show_2fa_modal()
         st.stop()
     
-    handle_payment_response()
     st.markdown(get_premium_theme_css(), unsafe_allow_html=True)
     
     get_language_selector()
