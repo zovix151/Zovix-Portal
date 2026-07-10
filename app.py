@@ -2609,10 +2609,21 @@ def render_razorpay_checkout(order_id, amount, plan_name, credits, username, key
                             paymentUrl.searchParams.set('razorpay_status', 'success');
 
                             const redirectTarget = paymentUrl.toString();
-                            if (window.parent && window.parent !== window) {{
-                                window.parent.location.replace(redirectTarget);
-                            }} else {{
-                                window.location.replace(redirectTarget);
+                            const targetWindow = window.top || window.parent || window;
+                            try {{
+                                targetWindow.location.replace(redirectTarget);
+                            }} catch (error) {{
+                                console.warn('Redirect blocked, retrying with parent fallback:', error);
+                                try {{
+                                    if (window.parent && window.parent !== window) {{
+                                        window.parent.location.replace(redirectTarget);
+                                    }} else {{
+                                        window.location.replace(redirectTarget);
+                                    }}
+                                }} catch (fallbackError) {{
+                                    console.error('Final redirect failed:', fallbackError);
+                                    updateStatus('⚠️ Redirect failed. Please reload the page to complete payment.', 'error');
+                                }}
                             }}
                         }}
                     }};
