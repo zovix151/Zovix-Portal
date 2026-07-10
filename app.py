@@ -38,6 +38,16 @@ import psutil
 import socket
 import platform
 
+RAZORPAY_COMPONENT_DIR = os.path.join(
+    os.path.dirname(__file__),
+    "streamlit_components",
+    "razorpay_checkout"
+)
+razorpay_checkout_component = components.declare_component(
+    "razorpay_checkout",
+    path=RAZORPAY_COMPONENT_DIR
+)
+
 # ========================================================
 # LOGGING SETUP
 # ========================================================
@@ -874,6 +884,8 @@ if "payment_processing" not in st.session_state:
     st.session_state["payment_processing"] = False
 if "last_payment_check" not in st.session_state:
     st.session_state["last_payment_check"] = 0
+if "razorpay_checkout_payload" not in st.session_state:
+    st.session_state["razorpay_checkout_payload"] = None
 
 # DeepSeek Blueprint state
 if "deepseek_blueprint_data" not in st.session_state:
@@ -2115,13 +2127,6 @@ def verify_payment_signature(order_id, payment_id, signature):
         return False
 
 
-def get_query_param_value(query_params, key, default=""):
-    """Return a single query param value from Streamlit's query param mapping."""
-    value = query_params.get(key, default)
-    if isinstance(value, list):
-        return value[0] if value else default
-    return value
-
 def save_payment_history(username, order_id, payment_id, amount, credits_added, pack_name, status, plan_type="one_time", gateway="razorpay"):
     """Save payment history to database"""
     conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
@@ -2222,6 +2227,7 @@ def clear_payment_state():
     st.session_state["razorpay_signature"] = None
     st.session_state["razorpay_processed_order_id"] = None
     st.session_state["payment_processing"] = False
+    st.session_state["razorpay_checkout_payload"] = None
 
 def render_enhanced_payment_ui():
     st.markdown("<h4 style='font-family: Orbitron; color: #FFC0CB;'>💎 Buy Credits</h4>", unsafe_allow_html=True)
@@ -2454,23 +2460,78 @@ def render_payment_modal():
                             st.session_state["razorpay_last_debug"] = order.get("debug", "")
                             st.session_state["razorpay_last_status"] = order.get("status", "created")
                             st.session_state["payment_processing"] = True
+                            st.session_state["razorpay_checkout_payload"] = {
+                                "order_id": order["id"],
+                                "amount_paise": amount_paise,
+                                "plan_name": plan_name,
+                                "credits": int(credits),
+                                "username": st.session_state.get("logged_user", "User"),
+                            }
                             
                             st.success(f"✅ Order created: {order['id']}")
-                            
-                            html = render_razorpay_checkout(
-                                order["id"],
-                                amount_paise,
-                                plan_name,
-                                credits,
-                                st.session_state.get("logged_user", "User"),
-                                RAZORPAY_KEY_ID
-                            )
-                            st.components.v1.html(html, height=520)
-
-                            st.markdown("---")
-                            st.caption("Payment completion is automatic. Once Razorpay confirms success, your credits will be added instantly.")
+                            st.rerun()
                         else:
                             st.error("Failed to create payment order. Please try again.")
+
+                checkout_payload = st.session_state.get("razorpay_checkout_payload")
+                if st.session_state.get("payment_processing", False) and checkout_payload:
+                    st.markdown("---")
+                    st.caption("Payment completion is automatic. Once Razorpay confirms success, your credits will be added instantly.")
+                    component_value = razorpay_checkout_component(
+                        order_id=checkout_payload["order_id"],
+                        amount=checkout_payload["amount_paise"],
+                        plan_name=checkout_payload["plan_name"],
+                        credits=checkout_payload["credits"],
+                        username=checkout_payload["username"],
+                        key_id=RAZORPAY_KEY_ID,
+                        key=f"razorpay_checkout_{checkout_payload['order_id']}"
+                    )
+
+                    if isinstance(component_value, dict):
+                        status = str(component_value.get("status", "")).lower()
+                        if status == "success":
+                            payment_id = component_value.get("razorpay_payment_id", "")
+                            order_id = component_value.get("razorpay_order_id", checkout_payload["order_id"])
+                            signature = component_value.get("razorpay_signature", "")
+                            credits_to_add = int(checkout_payload["credits"])
+                            amount_value = float(checkout_payload["amount_paise"]) / 100
+                            pack_name_value = checkout_payload["plan_name"]
+
+                            if not verify_payment_signature(order_id, payment_id, signature):
+                                st.error("Payment verification failed. Credits were not added.")
+                                st.session_state["payment_processing"] = False
+                                st.session_state["razorpay_checkout_payload"] = None
+                                return
+
+                            success, message = finalize_razorpay_payment(
+                                st.session_state.get("logged_user", ""),
+                                order_id,
+                                payment_id,
+                                signature,
+                                amount_value,
+                                credits_to_add,
+                                pack_name_value,
+                                "razorpay"
+                            )
+
+                            if success:
+                                st.toast("Credits added successfully")
+                                st.success(message)
+                                st.balloons()
+                                st.session_state["razorpay_checkout_payload"] = None
+                                st.rerun()
+                            else:
+                                st.error(message)
+                                st.session_state["payment_processing"] = False
+
+                        elif status in {"failed", "dismissed"}:
+                            error_message = component_value.get("message", "Payment failed. Please try again.")
+                            if status == "dismissed":
+                                st.info(error_message)
+                            else:
+                                st.error(error_message)
+                            st.session_state["payment_processing"] = False
+                            st.session_state["razorpay_checkout_payload"] = None
             
             elif gateway == "crypto":
                 st.markdown("---")
@@ -2499,156 +2560,6 @@ def render_payment_modal():
                 st.info("Binance Pay integration is coming soon. Please use Razorpay or Crypto for now.")
                 if st.button("🔄 Pay with Binance", use_container_width=True):
                     st.warning("Binance Pay is not yet configured. Please use another payment method.")
-
-# ========================================================
-# 27. RAZORPAY CHECKOUT - IMPROVED
-# ========================================================
-
-def render_razorpay_checkout(order_id, amount, plan_name, credits, username, key_id):
-    import json
-    amount_inr = amount / 100
-    safe_plan_name = str(plan_name).replace("'", "\\'").replace("\n", " ")
-    safe_username = str(username).replace("'", "\\'").replace("\n", " ")
-
-    checkout_html = f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-        <style>
-            body {{ margin: 0; padding: 0; background: transparent; font-family: 'Inter', 'Segoe UI', sans-serif; }}
-            .checkout-container {{
-                display: flex; justify-content: center; align-items: center; min-height: 480px; padding: 12px;
-                background: linear-gradient(135deg, #0a0a12 0%, #1a1a2e 100%);
-                border-radius: 16px; border: 1px solid rgba(69, 243, 255, 0.2);
-            }}
-            .payment-card {{
-                background: rgba(18, 19, 26, 0.95); border-radius: 16px; padding: 24px; max-width: 420px;
-                width: 100%; text-align: center; border: 1px solid rgba(255, 192, 203, 0.15);
-                box-shadow: 0 20px 60px rgba(0,0,0,0.8);
-            }}
-            .payment-icon {{ font-size: 42px; margin-bottom: 8px; }}
-            .payment-title {{ font-family: 'Orbitron', sans-serif; font-size: 17px; color: #45f3ff; margin-bottom: 4px; }}
-            .payment-subtitle {{ font-size: 13px; color: #94a3b8; margin-bottom: 16px; }}
-            .payment-details {{ background: rgba(69, 243, 255, 0.05); border-radius: 12px; padding: 12px; margin-bottom: 16px; border: 1px solid rgba(69, 243, 255, 0.1); }}
-            .payment-details .row {{ display: flex; justify-content: space-between; padding: 4px 0; font-size: 13px; color: #c0c0c0; }}
-            .payment-details .row .label {{ color: #94a3b8; }}
-            .payment-details .row .value {{ color: #45f3ff; font-weight: bold; }}
-            .payment-btn {{
-                width: 100%; padding: 13px; background: linear-gradient(135deg, #45f3ff 0%, #EC4899 100%);
-                color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: bold;
-                font-family: 'Orbitron', sans-serif; cursor: pointer; transition: all 0.15s ease;
-                text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 4px 20px rgba(69, 243, 255, 0.3);
-            }}
-            .payment-btn:hover {{ transform: translateY(-2px); box-shadow: 0 8px 30px rgba(69, 243, 255, 0.5); }}
-            .payment-btn:active {{ transform: scale(0.98); }}
-            .payment-status {{ margin-top: 12px; font-size: 12px; color: #94a3b8; }}
-            .payment-status.success {{ color: #10b981; }}
-            .payment-status.error {{ color: #ef4444; }}
-            @media (max-width: 600px) {{
-                .payment-card {{ padding: 18px 14px; margin: 0 4px; }}
-                .payment-title {{ font-size: 15px; }}
-                .payment-btn {{ font-size: 13px; padding: 12px; }}
-            }}
-        </style>
-    </head>
-    <body>
-        <div class="checkout-container">
-            <div class="payment-card" id="paymentCard">
-                <div class="payment-icon">💎</div>
-                <div class="payment-title">ZOVIX CREDITS</div>
-                <div class="payment-subtitle">{safe_plan_name}</div>
-                <div class="payment-details">
-                    <div class="row"><span class="label">💰 Amount</span><span class="value">₹{amount_inr:.0f}</span></div>
-                    <div class="row"><span class="label">⚡ Credits</span><span class="value">+{credits} Credits</span></div>
-                    <div class="row"><span class="label">👤 User</span><span class="value">{safe_username}</span></div>
-                </div>
-                <button class="payment-btn" id="pay-btn" type="button">💳 Pay Now</button>
-                <div class="payment-status" id="paymentStatus">🔒 Click Pay Now to checkout securely.</div>
-            </div>
-        </div>
-
-        <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-        <script>
-            (function() {{
-                const orderId = {json.dumps(order_id)};
-                const amount = {amount};
-                const username = {json.dumps(safe_username)};
-                const credits = {credits};
-                const planName = {json.dumps(safe_plan_name)};
-                const keyId = {json.dumps(key_id)};
-                const paymentStatus = document.getElementById('paymentStatus');
-                const payButton = document.getElementById('pay-btn');
-
-                function updateStatus(message, type) {{
-                    paymentStatus.className = 'payment-status ' + type;
-                    paymentStatus.innerHTML = message;
-                }}
-
-                function openCheckout() {{
-                    if (typeof Razorpay === 'undefined') {{
-                        updateStatus('⚠️ Razorpay SDK missing. Refreshing...', 'error');
-                        return;
-                    }}
-
-                    const options = {{
-                        key: keyId,
-                        amount: amount,
-                        currency: 'INR',
-                        name: 'ZOVIX - AI Studio',
-                        description: planName + ' - ' + credits + ' Credits',
-                        order_id: orderId,
-                        prefill: {{ name: username || 'Zovix User', email: username || 'user@zovix.ai' }},
-                        theme: {{ color: '#EC4899', backdrop_color: '#06070a' }},
-                        modal: {{
-                            ondismiss: function() {{
-                                updateStatus('❌ Payment cancelled.', 'error');
-                            }}
-                        }},
-                        handler: function(response) {{
-                            updateStatus('✅ Payment successful! Finalizing your credits...', 'success');
-                            payButton.disabled = true;
-                            payButton.innerHTML = '⏳ Finalizing...';
-
-                            const redirectTarget =
-                                window.top.location.origin +
-                                window.top.location.pathname +
-                                '?razorpay_payment_id=' + encodeURIComponent(response.razorpay_payment_id || '') +
-                                '&razorpay_order_id=' + encodeURIComponent(response.razorpay_order_id || '') +
-                                '&razorpay_signature=' + encodeURIComponent(response.razorpay_signature || '') +
-                                '&razorpay_credits=' + encodeURIComponent(String(credits)) +
-                                '&razorpay_plan_name=' + encodeURIComponent(planName) +
-                                '&razorpay_amount=' + encodeURIComponent(String(amount / 100));
-
-                            try {{
-                                window.top.location.href = redirectTarget;
-                            }} catch (error) {{
-                                console.error('Top window redirect failed:', error);
-                                updateStatus('⚠️ Redirect failed. Please reload the page to complete payment.', 'error');
-                            }}
-                        }}
-                    }};
-
-                    try {{
-                        const rzp = new Razorpay(options);
-                        rzp.open();
-                        updateStatus('🔄 Razorpay checkout modal active.', 'success');
-                    }} catch (err) {{
-                        updateStatus('⚠️ Error launching checkout window.', 'error');
-                    }}
-                }}
-
-                payButton.addEventListener('click', function(e) {{
-                    e.preventDefault();
-                    openCheckout();
-                }});
-            }})();
-        </script>
-    </body>
-    </html>
-    """
-
-    return checkout_html
 
 # ========================================================
 # 27B. PAYMENT RESPONSE HANDLER - IMPROVED
@@ -2735,68 +2646,6 @@ def finalize_razorpay_payment(username, order_id, payment_id, signature, amount,
             conn.close()
         except Exception:
             pass
-
-
-def handle_payment_response():
-    """Auto-detect and process payment from query parameters"""
-    query_params = st.query_params
-
-    if "razorpay_payment_id" in query_params and "razorpay_order_id" in query_params:
-        payment_id = get_query_param_value(query_params, "razorpay_payment_id", "")
-        order_id = get_query_param_value(query_params, "razorpay_order_id", "")
-        signature = get_query_param_value(query_params, "razorpay_signature", "")
-        credits_to_add = st.session_state.get("pending_credits", 0)
-        pack_name = st.session_state.get("pending_pack_name", "")
-        amount = st.session_state.get("pending_amount", 0)
-
-        if credits_to_add <= 0:
-            try:
-                credits_to_add = int(get_query_param_value(query_params, "razorpay_credits", 0))
-            except Exception:
-                credits_to_add = 0
-
-        if not pack_name:
-            pack_name = get_query_param_value(query_params, "razorpay_plan_name", "")
-
-        if not amount:
-            try:
-                amount = float(get_query_param_value(query_params, "razorpay_amount", 0))
-            except Exception:
-                amount = 0
-
-        if st.session_state.get("is_logged_in") and st.session_state.get("logged_user"):
-            username = st.session_state["logged_user"]
-
-            if not verify_payment_signature(order_id, payment_id, signature):
-                st.query_params.clear()
-                st.error("Payment verification failed. Credits were not added.")
-                return False
-
-            success, message = finalize_razorpay_payment(
-                username, order_id, payment_id, signature,
-                amount, credits_to_add, pack_name
-            )
-
-            if success:
-                st.toast("Credits added successfully")
-                st.success(message)
-                st.balloons()
-                st.query_params.clear()
-                st.rerun()
-                return True
-
-            st.error(message)
-            st.query_params.clear()
-            return False
-
-        st.info("✅ Payment successful! Please log in to claim your credits.")
-        st.session_state["pending_credits"] = credits_to_add
-        st.session_state["pending_pack_name"] = pack_name
-        st.session_state["pending_amount"] = amount
-        st.query_params.clear()
-        return False
-
-    return False
 
 # ========================================================
 # 28. CRYPTO PAYMENT FUNCTIONS
@@ -7198,9 +7047,6 @@ def handle_engine_access_request(mode_value: str):
 # ========================================================
 # 44. MAIN APPLICATION FLOW
 # ========================================================
-
-# Handle payment response FIRST
-handle_payment_response()
 
 if st.session_state.get("show_2fa", False):
     show_2fa_modal()
