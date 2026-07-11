@@ -1,0 +1,5 @@
+Wav2Lip/checkpoints/
+Wav2Lip/face_detection/detection/sfd/
+*.pth
+*.mp4
+*.pkl

@@ -994,6 +994,7 @@ LANGUAGE_VOICE_MAP = {
 
 BASE_BURN_RATE = {
     "Face Video Generator": 4,
+    "Face Video Studio": 5,
     "Expressive Face Video": 5,
     "Cinematic Engine": 4,
     "Creative Workshop": 3,
@@ -1009,7 +1010,7 @@ BASE_BURN_RATE = {
 
 def calculate_tokens(mode_name: str, selected_quality: str) -> int:
     base_cost = BASE_BURN_RATE.get(mode_name, 2)
-    heavy_engines = ["Face Video Generator", "Expressive Face Video", "Cinematic Engine", "Live Emotion", "Video Editor"]
+    heavy_engines = ["Face Video Generator", "Face Video Studio", "Expressive Face Video", "Cinematic Engine", "Live Emotion", "Video Editor"]
     if selected_quality in ["High", "Pro", "Ultra-HD", "4K"]:
         return base_cost + 2 if mode_name in heavy_engines else base_cost + 1
     elif selected_quality in ["HD", "Premium"]:
@@ -6794,6 +6795,186 @@ pip install gfpgan realesrgan""",
             else:
                 st.info("No expressive render yet. Upload a face image and generate your first expressive clip.")
 
+
+def generate_world_face_video(prompt, face_image_path, duration=10, quality="HD", animation_style="Auto (Expressive + Lip Sync)", backend_choice="Auto (LivePortrait → SadTalker)"):
+    """Unified generator that keeps both expressive and lip-sync engines active with intelligent fallback."""
+    if not face_image_path or not os.path.exists(face_image_path):
+        return None
+
+    if animation_style == "Lip-Sync Priority (Wav2Lip)":
+        out_path = generate_face_video(prompt, face_image_path, duration=duration, quality=quality)
+        if out_path:
+            return out_path
+        expressive_out = generate_expressive_face_video(
+            prompt,
+            face_image_path,
+            duration=duration,
+            quality=quality,
+            preferred_engine=backend_choice,
+        )
+        if expressive_out:
+            st.session_state["face_video_engine_used"] = st.session_state.get("expressive_face_engine_used", "Expressive Backend")
+            st.session_state["face_video_runtime_mode"] = st.session_state.get("expressive_face_runtime_mode", "Unknown")
+        return expressive_out
+
+    expressive_out = generate_expressive_face_video(
+        prompt,
+        face_image_path,
+        duration=duration,
+        quality=quality,
+        preferred_engine=backend_choice,
+    )
+    if expressive_out:
+        st.session_state["face_video_engine_used"] = st.session_state.get("expressive_face_engine_used", "Expressive Backend")
+        st.session_state["face_video_runtime_mode"] = st.session_state.get("expressive_face_runtime_mode", "Unknown")
+        return expressive_out
+
+    return generate_face_video(prompt, face_image_path, duration=duration, quality=quality)
+
+
+def run_unified_face_video_mode():
+    st.markdown("""
+        <div style="background: rgba(18, 19, 26, 0.85); border-radius: 12px; border: 1px solid rgba(255,192,203,0.15); padding: 20px; margin-bottom: 20px;">
+            <h3 style="font-family: 'Orbitron'; font-size: 16px; color: #FFC0CB; margin: 0 0 5px 0;">🌍 Global Face Video Studio</h3>
+            <p style="color: #94a3b8; font-size: 12px; margin: 0;">Single unified mode for any photo/selfie with both natural expressive motion and professional lip-sync active.</p>
+        </div>
+    """, unsafe_allow_html=True)
+
+    fv_col1, fv_col2 = st.columns([1.1, 1.4], gap="medium")
+    with fv_col1:
+        with st.container(border=True):
+            st.markdown("<h4 style='font-family: Orbitron; font-size: 13px; color: #FFC0CB; margin-bottom: 15px;'>⚙️ GLOBAL FACE SETTINGS</h4>", unsafe_allow_html=True)
+
+            wav2lip_setup = get_wav2lip_setup_status()
+            expressive_setup = get_expressive_setup_status()
+            runtime_profile = get_wav2lip_runtime_profile()
+
+            st.caption("Unified Face Resolver: LivePortrait + SadTalker + Wav2Lip")
+            st.caption(
+                f"Detected => Wav2Lip={'ON' if wav2lip_setup.get('ready') else 'OFF'} | "
+                f"LivePortrait={'ON' if expressive_setup.get('liveportrait_ready') else 'OFF'} | "
+                f"SadTalker={'ON' if expressive_setup.get('sadtalker_ready') else 'OFF'}"
+            )
+            st.caption(
+                f"Runtime => Wav2Lip: {runtime_profile['mode']} | Expressive: {expressive_setup.get('runtime_mode', 'Unknown')}"
+            )
+
+            st.markdown("<div class='compact-label'>📷 INPUT MODE</div>", unsafe_allow_html=True)
+            camera_mode = st.toggle("📷 Use Camera (Take Selfie)", value=False, key="unified_fv_camera_mode")
+            if camera_mode:
+                camera_photo = st.camera_input("Take a Selfie", key="unified_fv_camera_photo")
+                if camera_photo:
+                    face_path = f"face_videos/camera_face_{uuid.uuid4().hex[:8]}.png"
+                    with open(face_path, "wb") as f:
+                        f.write(camera_photo.getbuffer())
+                    st.session_state["face_image_upload"] = face_path
+                    st.success("✅ Selfie captured successfully")
+                    st.image(face_path, caption="Captured Selfie", use_container_width=True)
+            else:
+                face_image_upload = st.file_uploader(
+                    "Upload Face Photo (JPG, PNG, WEBP)",
+                    type=['jpg', 'jpeg', 'png', 'webp'],
+                    key="unified_fv_face_upload",
+                )
+                if face_image_upload:
+                    face_path = f"face_videos/face_{uuid.uuid4().hex[:8]}.png"
+                    with open(face_path, "wb") as f:
+                        f.write(face_image_upload.getbuffer())
+                    st.session_state["face_image_upload"] = face_path
+                    st.success(f"✅ Face image uploaded: {face_image_upload.name}")
+                    st.image(face_path, caption="Uploaded Face", use_container_width=True)
+
+            animation_style = st.selectbox(
+                "Animation Style",
+                ["Auto (Expressive + Lip Sync)", "Lip-Sync Priority (Wav2Lip)"],
+                key="unified_fv_style",
+            )
+            backend_choice = st.selectbox(
+                "Expressive Backend Preference",
+                ["Auto (LivePortrait → SadTalker)", "LivePortrait Only", "SadTalker Only", "Wav2Lip Fallback"],
+                key="unified_fv_backend_choice",
+            )
+
+            col_dur, col_qual = st.columns(2)
+            with col_dur:
+                video_duration = st.select_slider("Duration (seconds)", options=[5, 10, 15, 20, 30, 45, 60], value=10, key="unified_fv_duration")
+            with col_qual:
+                quality = st.selectbox("Video Quality", ["Standard", "HD", "4K"], key="unified_fv_quality")
+
+            face_prompt = st.text_area(
+                "Dialogue / Script",
+                placeholder="Type what the person should speak naturally. The engine will animate lips + expressions.",
+                height=100,
+                key="unified_fv_prompt",
+            )
+
+            if st.button("🌍 Generate Global Face Video", key="unified_fv_generate_btn", use_container_width=True):
+                success, required_tokens, message = validate_and_deduct_tokens("Face Video Studio", quality)
+                if not success:
+                    st.error(message)
+                else:
+                    st.success(message)
+                    if not face_prompt.strip():
+                        st.error("Please enter a dialogue/script.")
+                    elif not st.session_state.get("face_image_upload") or not os.path.exists(st.session_state["face_image_upload"]):
+                        st.error("Please upload a face photo or take a selfie.")
+                    else:
+                        with st.spinner(f"Generating {quality} global face video..."):
+                            video_path = generate_world_face_video(
+                                face_prompt,
+                                st.session_state["face_image_upload"],
+                                duration=video_duration,
+                                quality=quality,
+                                animation_style=animation_style,
+                                backend_choice=backend_choice,
+                            )
+                            if video_path and os.path.exists(video_path):
+                                st.session_state["active_face_video"] = video_path
+                                timestamp = time.strftime("%Y%m%d_%H%M%S")
+                                file_name = f"zovix_face_studio_{quality.lower()}_{timestamp}.mp4"
+                                save_face_video_to_db(
+                                    st.session_state["logged_user"],
+                                    file_name,
+                                    face_prompt,
+                                    video_path,
+                                    st.session_state["face_image_upload"],
+                                    quality,
+                                )
+                                st.session_state["face_video_history"] = load_face_video_history_db(st.session_state["logged_user"])
+                                st.toast(f"Global face video generated in {quality} quality!")
+                                st.rerun()
+                            else:
+                                st.error("Generation failed. Check backend setup and try again.")
+
+    with fv_col2:
+        with st.container(border=True):
+            st.markdown("<h3 style='font-family: Orbitron; font-size: 15px; color: #FFC0CB; margin-bottom: 15px; letter-spacing: 0.5px;'>🌍 GLOBAL FACE PLAYER</h3>", unsafe_allow_html=True)
+            active_face_video = st.session_state.get("active_face_video")
+            if active_face_video and os.path.exists(active_face_video):
+                engine_used = st.session_state.get("face_video_engine_used", "Unknown")
+                runtime_mode = st.session_state.get("face_video_runtime_mode", "Unknown")
+                st.caption(f"Engine used: {engine_used} | Runtime: {runtime_mode}")
+                st.video(active_face_video, format="video/mp4", autoplay=False, loop=True, muted=False)
+                col_dl, col_clr = st.columns(2)
+                with col_dl:
+                    with open(active_face_video, "rb") as f:
+                        video_bytes = f.read()
+                    st.download_button(
+                        label="📥 Download Global Face Video",
+                        data=video_bytes,
+                        file_name=f"zovix_global_face_{uuid.uuid4().hex[:8]}.mp4",
+                        mime="video/mp4",
+                        use_container_width=True,
+                        key="unified_fv_download_btn",
+                    )
+                with col_clr:
+                    if st.button("🧹 Clear Video", key="unified_fv_clear_btn", use_container_width=True):
+                        safe_remove_file(active_face_video)
+                        st.session_state["active_face_video"] = None
+                        st.rerun()
+            else:
+                st.info("No render yet. Upload any photo/selfie and generate your global face video.")
+
 # ========================================================
 # 38. AUTH MODALS - IMPROVED
 # ========================================================
@@ -8643,11 +8824,10 @@ elif st.session_state["current_page"] == "studio":
     
     st.markdown("<div class='compact-label' style='margin-bottom: 8px;'>Active Studio Workspace Mode</div>", unsafe_allow_html=True)
     
-    mode_buttons = ["👤 Face Video", "🧬 Expressive Face", "🎬 Cinematic", "🎨 Creative", "🎬 Editor", "📐 Blueprints", "⚡ Upscaler", "🎨 Draw", "🤖 AI Agent", "🎙️ Sales", "🧠 Dynamic UI", "🎤 Live Voice"]
+    mode_buttons = ["👤 Face Video", "🎬 Cinematic", "🎨 Creative", "🎬 Editor", "📐 Blueprints", "⚡ Upscaler", "🎨 Draw", "🤖 AI Agent", "🎙️ Sales", "🧠 Dynamic UI", "🎤 Live Voice"]
     
     mode_mapping = {
         "Face Video": "Face Video Mode",
-        "Expressive Face": "Expressive Face Video Mode",
         "Cinematic": "Cinematic Engine",
         "Creative": "Creative Workshop Mode",
         "Editor": "Video Editor Mode",
@@ -8669,9 +8849,9 @@ elif st.session_state["current_page"] == "studio":
                     actual_mode = mode_value
                     break
             else:
-                actual_mode = btn_label.replace("👤 ", "").replace("🧬 ", "").replace("🎬 ", "").replace("🎨 ", "").replace("📐 ", "").replace("⚡ ", "").replace("🤖 ", "").replace("🎙️ ", "").replace("🧠 ", "").replace("🎤 ", "")
+                actual_mode = btn_label.replace("👤 ", "").replace("🎬 ", "").replace("🎨 ", "").replace("📐 ", "").replace("⚡ ", "").replace("🤖 ", "").replace("🎙️ ", "").replace("🧠 ", "").replace("🎤 ", "")
             
-            clean_label = btn_label.replace("👤 ", "").replace("🧬 ", "").replace("🎬 ", "").replace("🎨 ", "").replace("📐 ", "").replace("⚡ ", "").replace("🤖 ", "").replace("🎙️ ", "").replace("🧠 ", "").replace("🎤 ", "")
+            clean_label = btn_label.replace("👤 ", "").replace("🎬 ", "").replace("🎨 ", "").replace("📐 ", "").replace("⚡ ", "").replace("🤖 ", "").replace("🎙️ ", "").replace("🧠 ", "").replace("🎤 ", "")
             
             is_selected = (st.session_state["studio_active_mode"] == actual_mode)
             
@@ -8706,9 +8886,9 @@ elif st.session_state["current_page"] == "studio":
     elif st.session_state["studio_active_mode"] == "Video Editor Mode":
         run_video_editor_mode()
     elif st.session_state["studio_active_mode"] == "Face Video Mode":
-        run_face_video_mode()
+        run_unified_face_video_mode()
     elif st.session_state["studio_active_mode"] == "Expressive Face Video Mode":
-        run_expressive_face_video_mode()
+        run_unified_face_video_mode()
     elif st.session_state["studio_active_mode"] == "AI Agent Mode":
         render_ai_agent_ui()
     elif st.session_state["studio_active_mode"] == "AI Sales Mode":
