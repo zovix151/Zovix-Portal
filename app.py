@@ -7238,13 +7238,14 @@ def generate_world_face_video(prompt, face_image_path, duration=10, quality="HD"
         logger.warning("Replicate library is not installed.")
         return None
 
-    api_token = (
-        st.session_state.get("replicate_api_key")
-        or REPLICATE_API_KEY
-        or os.getenv("REPLICATE_API_KEY")
-    )
-    if not api_token:
-        logger.warning("Replicate API key is missing.")
+    try:
+        replicate_token = st.secrets["REPLICATE_API_TOKEN"]
+    except Exception:
+        logger.warning("Streamlit secret REPLICATE_API_TOKEN is missing.")
+        return None
+
+    if not replicate_token:
+        logger.warning("REPLICATE_API_TOKEN is empty.")
         return None
 
     voice_cfg = _resolve_face_voice_config(voice_language=voice_language, voice_label=voice_label)
@@ -7258,11 +7259,10 @@ def generate_world_face_video(prompt, face_image_path, duration=10, quality="HD"
             logger.warning("Face audio synthesis failed in strict mode.")
             return None
 
-        client = replicate.Client(api_token=api_token)
+        client = replicate.Client(api_token=replicate_token)
 
         default_model = str(os.getenv("REPLICATE_FACE_MODEL", "gandhary/liveportrait")).strip()
         model_candidates = [
-            st.session_state.get("replicate_face_model") or "",
             default_model,
             "gandhary/liveportrait",
             "cjwbw/wav2lip",
@@ -7375,68 +7375,25 @@ def run_unified_face_video_mode():
     with fv_col1:
         with st.container(border=True):
             st.markdown("<h4 style='font-family: Orbitron; font-size: 13px; color: #FFC0CB; margin-bottom: 15px;'>☁️ REPLICATE FACE STUDIO</h4>", unsafe_allow_html=True)
-            st.caption("Local LivePortrait/SadTalker/Wav2Lip pipeline removed for this studio flow. Generation runs only on Replicate cloud.")
-
-            api_key_input = st.text_input(
-                "Enter Replicate API Key",
-                value=st.session_state.get("replicate_api_key", REPLICATE_API_KEY or ""),
-                type="password",
-                key="replicate_api_key_input",
-                help="Paste your Replicate API token. This key is used only for cloud generation requests.",
-            )
-            st.session_state["replicate_api_key"] = (api_key_input or "").strip()
-
-            replicate_model = st.text_input(
-                "Replicate Face Model",
-                value=st.session_state.get("replicate_face_model", os.getenv("REPLICATE_FACE_MODEL", "gandhary/liveportrait")),
-                key="replicate_face_model_input",
-                help="Use a valid Replicate model slug, e.g. gandhary/liveportrait or a compatible wav2lip/liveportrait cloud model.",
-            )
-            st.session_state["replicate_face_model"] = (replicate_model or "").strip()
+            st.caption("Face generation is secured via Streamlit secrets (REPLICATE_API_TOKEN).")
 
             if not HAS_REPLICATE:
                 st.error("replicate Python library is missing. Install it in requirements for cloud face generation.")
-
-            st.markdown("<div class='compact-label'>📷 INPUT MODE</div>", unsafe_allow_html=True)
-            camera_mode = st.toggle("📷 Use Camera (Take Selfie)", value=False, key="unified_fv_camera_mode")
-            if camera_mode:
-                camera_photo = st.camera_input("Take a Selfie", key="unified_fv_camera_photo")
-                if camera_photo:
-                    st.session_state["unified_face_image_bytes"] = bytes(camera_photo.getbuffer())
-                    st.success("✅ Selfie captured successfully")
-                    st.image(st.session_state["unified_face_image_bytes"], caption="Captured Selfie", use_container_width=True)
             else:
-                face_image_upload = st.file_uploader(
-                    "Upload Face Photo (JPG, PNG, WEBP)",
-                    type=['jpg', 'jpeg', 'png', 'webp'],
-                    key="unified_fv_face_upload",
-                )
-                if face_image_upload:
-                    st.session_state["unified_face_image_bytes"] = bytes(face_image_upload.getbuffer())
-                    st.success(f"✅ Face image uploaded: {face_image_upload.name}")
-                    st.image(st.session_state["unified_face_image_bytes"], caption="Uploaded Face", use_container_width=True)
+                try:
+                    _ = st.secrets["REPLICATE_API_TOKEN"]
+                except Exception:
+                    st.error("Missing Streamlit secret: REPLICATE_API_TOKEN")
 
-            face_voice_language = st.selectbox(
-                "Voice Language",
-                ["Hindi", "English", "All Voices"],
-                key="unified_fv_voice_language",
+            face_image_upload = st.file_uploader(
+                "Upload Face Photo (JPG, PNG, WEBP)",
+                type=['jpg', 'jpeg', 'png', 'webp'],
+                key="unified_fv_face_upload",
             )
-            voice_options = _resolve_face_voice_config(voice_language=face_voice_language).get("available_voices", [])
-            current_face_voice = st.session_state.get("face_voice_model")
-            if current_face_voice not in voice_options:
-                current_face_voice = voice_options[0] if voice_options else "Adam (Premium Male)"
-            face_voice_model = st.selectbox(
-                "Voice Model",
-                voice_options,
-                index=voice_options.index(current_face_voice) if voice_options and current_face_voice in voice_options else 0,
-                key="unified_fv_voice_model",
-            )
-
-            col_dur, col_qual = st.columns(2)
-            with col_dur:
-                video_duration = st.select_slider("Duration (seconds)", options=[5, 10, 15, 20, 30, 45, 60], value=10, key="unified_fv_duration")
-            with col_qual:
-                quality = st.selectbox("Video Quality", ["Standard", "HD", "4K"], key="unified_fv_quality")
+            if face_image_upload:
+                st.session_state["unified_face_image_bytes"] = bytes(face_image_upload.getbuffer())
+                st.success(f"✅ Face image uploaded: {face_image_upload.name}")
+                st.image(st.session_state["unified_face_image_bytes"], caption="Uploaded Face", use_container_width=True)
 
             face_prompt = st.text_area(
                 "Dialogue / Script",
@@ -7446,7 +7403,7 @@ def run_unified_face_video_mode():
             )
 
             if st.button("🌍 Generate Global Face Video", key="unified_fv_generate_btn", use_container_width=True):
-                success, required_tokens, message = validate_and_deduct_tokens("Face Video Studio", quality)
+                success, required_tokens, message = validate_and_deduct_tokens("Face Video Studio", "HD")
                 if not success:
                     st.error(message)
                 else:
@@ -7454,11 +7411,9 @@ def run_unified_face_video_mode():
                     if not face_prompt.strip():
                         st.error("Please enter a dialogue/script.")
                     elif not st.session_state.get("unified_face_image_bytes"):
-                        st.error("Please upload a face photo or take a selfie.")
-                    elif not st.session_state.get("replicate_api_key"):
-                        st.error("Please enter a Replicate API key.")
+                        st.error("Please upload a face photo.")
                     else:
-                        with st.spinner(f"Generating {quality} global face video..."):
+                        with st.spinner("Generating HD global face video..."):
                             temp_face_path = None
                             try:
                                 with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp_img:
@@ -7468,10 +7423,8 @@ def run_unified_face_video_mode():
                                 video_url = generate_world_face_video(
                                     face_prompt,
                                     temp_face_path,
-                                    duration=video_duration,
-                                    quality=quality,
-                                    voice_language=face_voice_language,
-                                    voice_label=face_voice_model,
+                                    duration=10,
+                                    quality="HD",
                                 )
                             except Exception as e:
                                 logger.warning(f"Face Studio generation exception: {e}")
