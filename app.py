@@ -4806,9 +4806,7 @@ def get_expressive_setup_status():
         auto_setup_enabled = str(os.getenv("EXPRESSIVE_AUTO_SETUP", "1")).strip().lower() in {"1", "true", "yes", "on"}
         if not auto_setup_enabled:
             return
-        if st.session_state.get("expressive_auto_setup_ran", False):
-            return
-
+        # Retry-safe bootstrap: skipped downloads are prevented by file existence checks.
         st.session_state["expressive_auto_setup_ran"] = True
 
         # Ensure repos exist when running on fresh environments.
@@ -4881,7 +4879,7 @@ def get_expressive_setup_status():
     has_gpu = shutil.which("nvidia-smi") is not None
 
     force_enable = str(os.getenv("EXPRESSIVE_FORCE_ENABLE", "0")).strip().lower() in {"1", "true", "yes", "on"}
-    sadtalker_force_ready = str(os.getenv("SADTALKER_FORCE_READY", "1")).strip().lower() in {"1", "true", "yes", "on"}
+    sadtalker_force_ready = str(os.getenv("SADTALKER_FORCE_READY", "0")).strip().lower() in {"1", "true", "yes", "on"}
     liveportrait_ready = bool(liveportrait_script) and liveportrait_models_ready
     sadtalker_ready = bool(sadtalker_script) and sadtalker_models_ready
 
@@ -4890,7 +4888,8 @@ def get_expressive_setup_status():
         sadtalker_ready = bool(sadtalker_script)
 
     if sadtalker_force_ready:
-        sadtalker_ready = True
+        # Optional bypass for missing checkpoints, but script must exist.
+        sadtalker_ready = bool(sadtalker_script)
 
     return {
         "liveportrait_repo": liveportrait_repo,
@@ -5067,7 +5066,7 @@ def run_sadtalker_cli(face_image_path, audio_path, output_video_path, width, hei
             pass
 
 
-def run_expressive_face_pipeline(face_image_path, audio_path, output_video_path, width, height, duration=10, preferred_engine="Auto (LivePortrait → SadTalker)", motion_level="high"):
+def run_expressive_face_pipeline(face_image_path, audio_path, output_video_path, width, height, duration=10, preferred_engine="Auto (LivePortrait → SadTalker → Wav2Lip)", motion_level="high"):
     safe_remove_file(output_video_path)
     setup = get_expressive_setup_status()
     st.session_state["expressive_face_runtime_mode"] = setup.get("runtime_mode", "Unknown")
@@ -5084,7 +5083,7 @@ def run_expressive_face_pipeline(face_image_path, audio_path, output_video_path,
         elif preferred_engine == "Wav2Lip Fallback":
             engine_order = ["Wav2Lip"]
         else:
-            engine_order = ["LivePortrait", "SadTalker"]
+            engine_order = ["LivePortrait", "SadTalker", "Wav2Lip"]
 
         if not setup.get("any_ready") and "Wav2Lip" not in engine_order:
             st.session_state["expressive_face_engine_used"] = "Expressive models missing"
@@ -5113,7 +5112,7 @@ def run_expressive_face_pipeline(face_image_path, audio_path, output_video_path,
         return False
 
 
-def generate_expressive_face_video(prompt, face_image_path, duration=30, emotion="neutral", camera_angle="front", quality="HD", preferred_engine="Auto (LivePortrait → SadTalker)", motion_level="high"):
+def generate_expressive_face_video(prompt, face_image_path, duration=30, emotion="neutral", camera_angle="front", quality="HD", preferred_engine="Auto (LivePortrait → SadTalker → Wav2Lip)", motion_level="high"):
     if not face_image_path or not os.path.exists(face_image_path):
         return None
 
@@ -6968,7 +6967,7 @@ pip install gfpgan realesrgan""",
 
             engine_choice = st.selectbox(
                 "Backend Preference",
-                ["Auto (LivePortrait → SadTalker)", "LivePortrait Only", "SadTalker Only", "Wav2Lip Fallback"],
+                ["Auto (LivePortrait → SadTalker → Wav2Lip)", "Auto (LivePortrait → SadTalker)", "LivePortrait Only", "SadTalker Only", "Wav2Lip Fallback"],
                 key="efv_backend_choice",
             )
 
@@ -7048,7 +7047,7 @@ pip install gfpgan realesrgan""",
                 st.info("No expressive render yet. Upload a face image and generate your first expressive clip.")
 
 
-def generate_world_face_video(prompt, face_image_path, duration=10, quality="HD", animation_style="Expressive Real Human (No Lip-Only Fallback)", backend_choice="Auto (LivePortrait → SadTalker)", motion_level="high"):
+def generate_world_face_video(prompt, face_image_path, duration=10, quality="HD", animation_style="Expressive Real Human (No Lip-Only Fallback)", backend_choice="Auto (LivePortrait → SadTalker → Wav2Lip)", motion_level="high"):
     """Unified generator that keeps both expressive and lip-sync engines active with intelligent fallback."""
     if not face_image_path or not os.path.exists(face_image_path):
         return None
