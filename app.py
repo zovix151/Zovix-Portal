@@ -7226,18 +7226,20 @@ def _get_replicate_api_token():
 
 
 def _run_replicate_face_model(client, model_ref, image_path, audio_path, script_text):
+    image_path = str(image_path)
+    if not os.path.isfile(image_path) or os.path.getsize(image_path) <= 0:
+        raise ValueError("Replicate face generation requires a valid image file path.")
+
     input_builders = [
         lambda i, a, t: {"image": i, "voice_script": t, "voice_prompt": "speak naturally with realistic eye blinks and subtle facial expressions", "video_prompt": "a realistic talking head with subtle eye blinks and natural facial movement", "resolution": "720p"},
-        lambda i, a, t: {"portrait_image": i, "voice_script": t, "voice_prompt": "speak naturally with realistic eye blinks and subtle facial expressions", "video_prompt": "a realistic talking head with subtle eye blinks and natural facial movement", "resolution": "720p"},
         lambda i, a, t: {"image": i, "voice_script": t, "resolution": "720p"},
-        lambda i, a, t: {"portrait": i, "voice_script": t, "resolution": "720p"},
+        lambda i, a, t: {"image": i, "voice_script": t, "voice_prompt": "calm and measured", "resolution": "720p"},
     ]
 
     for build_payload in input_builders:
         try:
-            with open(image_path, "rb") as img_file:
-                payload = build_payload(img_file, None, script_text)
-                output = client.run(model_ref, input=payload)
+            payload = build_payload(image_path, None, script_text)
+            output = client.run(model_ref, input=payload)
             video_url = _extract_video_url_from_replicate_output(output)
             if video_url:
                 return video_url
@@ -7264,12 +7266,34 @@ def generate_world_face_video(prompt, face_image_path, duration=10, quality="HD"
     try:
         client = replicate.Client(api_token=replicate_token)
 
-        model_ref = str(os.getenv("REPLICATE_FACE_MODEL", "prunaai/p-video-avatar")).strip() or "prunaai/p-video-avatar"
-        video_url = _run_replicate_face_model(client, model_ref, face_image_path, None, prompt)
-        if video_url:
-            st.session_state["face_video_engine_used"] = f"Replicate ({model_ref})"
-            st.session_state["face_video_runtime_mode"] = "Cloud"
-            return video_url
+        model_candidates = [
+            str(os.getenv("REPLICATE_FACE_MODEL", "prunaai/p-video-avatar")).strip() or "prunaai/p-video-avatar",
+            "prunaai/p-video-avatar",
+            "lucataco/sadtalker",
+            "cjwbw/sadtalker",
+            "gandhary/liveportrait",
+            "sync/lipsync-2-pro",
+            "sync/lipsync-2",
+        ]
+
+        deduped = []
+        seen = set()
+        for model in model_candidates:
+            key = model.strip().lower()
+            if not key or key in seen:
+                continue
+            seen.add(key)
+            deduped.append(model.strip())
+
+        for model_ref in deduped:
+            try:
+                video_url = _run_replicate_face_model(client, model_ref, face_image_path, None, prompt)
+                if video_url:
+                    st.session_state["face_video_engine_used"] = f"Replicate ({model_ref})"
+                    st.session_state["face_video_runtime_mode"] = "Cloud"
+                    return video_url
+            except Exception as e:
+                logger.warning(f"Replicate fallback failed for {model_ref}: {e}")
 
         return None
     except Exception as e:
