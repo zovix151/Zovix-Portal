@@ -23,7 +23,14 @@ import re
 import sys
 import logging
 import pickle
-from dotenv import load_dotenv
+try:
+    from dotenv import load_dotenv
+    HAS_DOTENV = True
+except Exception:
+    HAS_DOTENV = False
+
+    def load_dotenv(*args, **kwargs):
+        return False
 from PIL import Image, ImageDraw, ImageEnhance, ImageFilter
 import streamlit as st
 import streamlit.components.v1 as components
@@ -55,6 +62,9 @@ logger = logging.getLogger("Zovix")
 # ========================================================
 # ENVIRONMENT VARIABLES & SECRETS
 # ========================================================
+
+if not HAS_DOTENV:
+    logger.warning("python-dotenv not installed. Continuing with OS environment variables only.")
 
 load_dotenv()
 
@@ -4816,7 +4826,7 @@ def get_expressive_setup_status():
         liveportrait_ready = bool(liveportrait_script)
         sadtalker_ready = bool(sadtalker_script)
 
-    if sadtalker_force_ready and bool(sadtalker_script):
+    if sadtalker_force_ready:
         sadtalker_ready = True
 
     return {
@@ -7046,6 +7056,8 @@ def run_unified_face_video_mode():
                 st.info("EXPRESSIVE_FORCE_ENABLE is ON: readiness is script-based fallback mode.")
             if expressive_setup.get("sadtalker_force_ready") and not expressive_setup.get("sadtalker_models_ready"):
                 st.info("SADTALKER_FORCE_READY is ON: SadTalker shown as active with script-only bypass.")
+            if not expressive_setup.get("sadtalker_script"):
+                st.warning("SadTalker script missing. Place repo at SadTalker/ or set SADTALKER_REPO_PATH.")
             if not expressive_setup.get("liveportrait_models_ready"):
                 st.warning("LivePortrait models missing. Download to: LivePortrait/pretrained_weights")
             if not expressive_setup.get("sadtalker_models_ready"):
