@@ -4108,16 +4108,46 @@ class AudioEngine:
     def run_fallback_tts(text, output_filename, language_choice, voice_profile):
         safe_remove_file(output_filename)
         is_male = "Drew" in voice_profile or "Male" in voice_profile
+        if edge_tts is None:
+            return False
+
         if "French" in language_choice:
-            voice_name = "fr-FR-HenriNeural" if is_male else "fr-FR-DeniseNeural"
+            voice_candidates = [
+                "fr-FR-HenriNeural" if is_male else "fr-FR-DeniseNeural",
+                "fr-FR-DeniseNeural" if is_male else "fr-FR-HenriNeural",
+                "en-US-GuyNeural" if is_male else "en-US-AriaNeural",
+            ]
         elif "Japanese" in language_choice:
-            voice_name = "ja-JP-KeitaNeural" if is_male else "ja-JP-NanamiNeural"
+            voice_candidates = [
+                "ja-JP-KeitaNeural" if is_male else "ja-JP-NanamiNeural",
+                "ja-JP-NanamiNeural" if is_male else "ja-JP-KeitaNeural",
+                "en-US-GuyNeural" if is_male else "en-US-AriaNeural",
+            ]
         elif "English" in language_choice:
-            voice_name = "en-US-GuyNeural" if is_male else "en-US-AriaNeural"
+            voice_candidates = [
+                "en-US-GuyNeural" if is_male else "en-US-AriaNeural",
+                "en-US-AriaNeural" if is_male else "en-US-GuyNeural",
+                "en-GB-RyanNeural" if is_male else "en-GB-SoniaNeural",
+            ]
         else:
-            voice_name = "hi-IN-MadhurNeural" if is_male else "hi-IN-SwaraNeural"
-        if edge_tts is not None:
-            run_async_in_thread(edge_tts.Communicate(text, voice_name).save(output_filename))
+            voice_candidates = [
+                "hi-IN-MadhurNeural" if is_male else "hi-IN-SwaraNeural",
+                "hi-IN-SwaraNeural" if is_male else "hi-IN-MadhurNeural",
+                "en-IN-PrabhatNeural" if is_male else "en-IN-NeerjaNeural",
+                "en-US-GuyNeural" if is_male else "en-US-AriaNeural",
+            ]
+
+        for voice_name in voice_candidates:
+            try:
+                safe_remove_file(output_filename)
+                run_async_in_thread(edge_tts.Communicate(text, voice_name).save(output_filename))
+                if os.path.exists(output_filename) and os.path.getsize(output_filename) > 2048:
+                    return True
+            except Exception as e:
+                logger.warning(f"Fallback TTS voice failed ({voice_name}): {e}")
+                continue
+
+        return False
 
 class StitcherEngine:
     @staticmethod
@@ -5118,21 +5148,7 @@ def generate_expressive_face_video(prompt, face_image_path, duration=30, emotion
 
     voice_cfg = _resolve_face_voice_config(voice_language=voice_language, voice_label=voice_label)
     audio_path = f"face_videos/voice_{uuid.uuid4().hex[:8]}.mp3"
-    audio_success = generate_elevenlabs_audio_for_face(prompt, audio_path, voice_cfg["voice_id"])
-    if not audio_success:
-        try:
-            AudioEngine.run_fallback_tts(
-                text=prompt,
-                output_filename=audio_path,
-                language_choice=voice_cfg["fallback_language_choice"],
-                voice_profile=voice_cfg["voice_label"],
-            )
-            audio_success = os.path.exists(audio_path) and os.path.getsize(audio_path) > 0
-        except Exception:
-            audio_success = False
-
-    if not audio_success:
-        create_emergency_silent_audio(audio_path, duration)
+    audio_success = _synthesize_face_audio_strict(prompt, audio_path, voice_cfg, duration_hint=duration)
 
     quality_settings = {
         "Standard": (512, 512),
@@ -5244,7 +5260,7 @@ def generate_audio_driven_lip_only_video(face_image_path, audio_path, output_vid
             frame = base_img.copy()
             roi = frame[mouth_y:mouth_y + mouth_h, mouth_x:mouth_x + mouth_w]
             if roi.size > 0:
-                scale = 1.0 + (0.28 * float(energy))
+                scale = 1.0 + (0.45 * float(energy))
                 scaled_h = max(1, int(mouth_h * scale))
                 stretched = cv2.resize(roi, (mouth_w, scaled_h), interpolation=cv2.INTER_LINEAR)
                 if scaled_h > mouth_h:
@@ -5253,7 +5269,9 @@ def generate_audio_driven_lip_only_video(face_image_path, audio_path, output_vid
                 else:
                     pad = mouth_h - scaled_h
                     stretched = cv2.copyMakeBorder(stretched, pad // 2, pad - (pad // 2), 0, 0, cv2.BORDER_REPLICATE)
-                frame[mouth_y:mouth_y + mouth_h, mouth_x:mouth_x + mouth_w] = stretched
+                jaw_shift = int(energy * max(1, mouth_h * 0.08))
+                target_y = max(0, min(height - mouth_h, mouth_y + jaw_shift))
+                frame[target_y:target_y + mouth_h, mouth_x:mouth_x + mouth_w] = stretched
             writer.write(frame)
 
         writer.release()
@@ -5315,26 +5333,59 @@ def _resolve_face_voice_config(voice_language=None, voice_label=None):
     }
 
 
+def _synthesize_face_audio_strict(prompt_text, audio_path, voice_cfg, duration_hint=10):
+    """Best-effort TTS chain to avoid silent face videos in production."""
+    audio_success = False
+
+    # 1) Try selected ElevenLabs voice.
+    audio_success = generate_elevenlabs_audio_for_face(prompt_text, audio_path, voice_cfg.get("voice_id", "21m00Tcm4TlvDq8ikWAM"))
+
+    # 2) If selected voice ID is invalid, retry with stable default voice.
+    if not audio_success:
+        audio_success = generate_elevenlabs_audio_for_face(prompt_text, audio_path, "21m00Tcm4TlvDq8ikWAM")
+
+    # 3) Edge-TTS fallback with multilingual retry voices.
+    if not audio_success:
+        try:
+            audio_success = bool(
+                AudioEngine.run_fallback_tts(
+                    text=prompt_text,
+                    output_filename=audio_path,
+                    language_choice=voice_cfg.get("fallback_language_choice", "🇬🇧 English (US Standard)"),
+                    voice_profile=voice_cfg.get("voice_label", "Adam (Premium Male)"),
+                )
+            )
+        except Exception:
+            audio_success = False
+
+    # 4) Final speech fallback (Azure/Eleven/edge wrapped helper).
+    if not audio_success:
+        try:
+            fallback_voice_type = "male" if ("Male" in voice_cfg.get("voice_label", "") or "male" in voice_cfg.get("voice_label", "").lower()) else "female"
+            generated_audio = generate_emotion_voice(
+                prompt_text,
+                emotion="neutral",
+                voice_type=fallback_voice_type,
+                output_path=audio_path,
+                elevenlabs_voice_id=voice_cfg.get("voice_id", "21m00Tcm4TlvDq8ikWAM"),
+            )
+            audio_success = bool(generated_audio and os.path.exists(audio_path) and os.path.getsize(audio_path) > 2048)
+        except Exception:
+            audio_success = False
+
+    if not audio_success:
+        create_emergency_silent_audio(audio_path, duration_hint)
+
+    return os.path.exists(audio_path) and os.path.getsize(audio_path) > 1024
+
+
 def generate_face_video(prompt, face_image_path, duration=30, emotion="neutral", camera_angle="front", quality="Standard", voice_language=None, voice_label=None):
     if not face_image_path or not os.path.exists(face_image_path):
         return None
 
     voice_cfg = _resolve_face_voice_config(voice_language=voice_language, voice_label=voice_label)
     audio_path = f"face_videos/voice_{uuid.uuid4().hex[:8]}.mp3"
-    audio_success = generate_elevenlabs_audio_for_face(prompt, audio_path, voice_cfg["voice_id"])
-    if not audio_success:
-        try:
-            AudioEngine.run_fallback_tts(
-                text=prompt,
-                output_filename=audio_path,
-                language_choice=voice_cfg["fallback_language_choice"],
-                voice_profile=voice_cfg["voice_label"],
-            )
-            audio_success = os.path.exists(audio_path) and os.path.getsize(audio_path) > 0
-        except Exception:
-            audio_success = False
-    if not audio_success:
-        create_emergency_silent_audio(audio_path, duration)
+    audio_success = _synthesize_face_audio_strict(prompt, audio_path, voice_cfg, duration_hint=duration)
     output_path = generate_face_video_real(face_image_path, audio_path, 512, 512, duration, quality=quality, emotion=emotion, camera_angle=camera_angle)
     if os.path.exists(audio_path):
         try:
@@ -7134,6 +7185,8 @@ def generate_world_face_video(prompt, face_image_path, duration=10, quality="HD"
     if not face_image_path or not os.path.exists(face_image_path):
         return None
 
+    force_face_generation = str(os.getenv("FORCE_FACE_GENERATION", "1")).strip().lower() in {"1", "true", "yes", "on"}
+
     if animation_style == "Lip-Sync Priority (Wav2Lip)":
         out_path = generate_face_video(
             prompt,
@@ -7175,7 +7228,7 @@ def generate_world_face_video(prompt, face_image_path, duration=10, quality="HD"
         st.session_state["face_video_runtime_mode"] = st.session_state.get("expressive_face_runtime_mode", "Unknown")
         return expressive_out
 
-    if animation_style == "Auto (Expressive + Lip Sync Fallback)":
+    if animation_style == "Auto (Expressive + Lip Sync Fallback)" or force_face_generation:
         return generate_face_video(
             prompt,
             face_image_path,
