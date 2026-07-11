@@ -7207,18 +7207,36 @@ def _extract_video_url_from_replicate_output(output_obj):
     return None
 
 
+def _get_replicate_api_token():
+    secret_keys = ["REPLICATE_API_TOKEN", "REPLICATE_API_KEY"]
+    for key in secret_keys:
+        try:
+            value = st.secrets.get(key)
+        except Exception:
+            value = None
+        if value:
+            return str(value).strip()
+
+    for key in secret_keys:
+        value = os.getenv(key)
+        if value:
+            return str(value).strip()
+
+    return None
+
+
 def _run_replicate_face_model(client, model_ref, image_path, audio_path, script_text):
     input_builders = [
-        lambda i, a, t: {"source_image": i, "driving_audio": a, "script": t},
-        lambda i, a, t: {"image": i, "audio": a, "prompt": t},
-        lambda i, a, t: {"input_image": i, "input_audio": a, "text": t},
-        lambda i, a, t: {"face": i, "audio": a, "text": t},
+        lambda i, a, t: {"image": i, "voice_script": t, "voice_prompt": "speak naturally with realistic eye blinks and subtle facial expressions", "video_prompt": "a realistic talking head with subtle eye blinks and natural facial movement", "resolution": "720p"},
+        lambda i, a, t: {"portrait_image": i, "voice_script": t, "voice_prompt": "speak naturally with realistic eye blinks and subtle facial expressions", "video_prompt": "a realistic talking head with subtle eye blinks and natural facial movement", "resolution": "720p"},
+        lambda i, a, t: {"image": i, "voice_script": t, "resolution": "720p"},
+        lambda i, a, t: {"portrait": i, "voice_script": t, "resolution": "720p"},
     ]
 
     for build_payload in input_builders:
         try:
-            with open(image_path, "rb") as img_file, open(audio_path, "rb") as aud_file:
-                payload = build_payload(img_file, aud_file, script_text)
+            with open(image_path, "rb") as img_file:
+                payload = build_payload(img_file, None, script_text)
                 output = client.run(model_ref, input=payload)
             video_url = _extract_video_url_from_replicate_output(output)
             if video_url:
@@ -7238,61 +7256,25 @@ def generate_world_face_video(prompt, face_image_path, duration=10, quality="HD"
         logger.warning("Replicate library is not installed.")
         return None
 
-    try:
-        replicate_token = st.secrets["REPLICATE_API_TOKEN"]
-    except Exception:
-        logger.warning("Streamlit secret REPLICATE_API_TOKEN is missing.")
-        return None
-
+    replicate_token = _get_replicate_api_token()
     if not replicate_token:
-        logger.warning("REPLICATE_API_TOKEN is empty.")
+        logger.warning("Replicate API token is missing from Streamlit secrets or environment.")
         return None
 
-    voice_cfg = _resolve_face_voice_config(voice_language=voice_language, voice_label=voice_label)
-    temp_audio = None
     try:
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp_aud:
-            temp_audio = tmp_aud.name
-
-        audio_ok = _synthesize_face_audio_strict(prompt, temp_audio, voice_cfg, duration_hint=duration)
-        if not audio_ok:
-            logger.warning("Face audio synthesis failed in strict mode.")
-            return None
-
         client = replicate.Client(api_token=replicate_token)
 
-        default_model = str(os.getenv("REPLICATE_FACE_MODEL", "gandhary/liveportrait")).strip()
-        model_candidates = [
-            default_model,
-            "gandhary/liveportrait",
-            "cjwbw/wav2lip",
-        ]
-
-        deduped = []
-        seen = set()
-        for model in model_candidates:
-            if not model:
-                continue
-            key = model.strip().lower()
-            if key in seen:
-                continue
-            seen.add(key)
-            deduped.append(model.strip())
-
-        for model_ref in deduped:
-            video_url = _run_replicate_face_model(client, model_ref, face_image_path, temp_audio, prompt)
-            if video_url:
-                st.session_state["face_video_engine_used"] = f"Replicate ({model_ref})"
-                st.session_state["face_video_runtime_mode"] = "Cloud"
-                return video_url
+        model_ref = str(os.getenv("REPLICATE_FACE_MODEL", "prunaai/p-video-avatar")).strip() or "prunaai/p-video-avatar"
+        video_url = _run_replicate_face_model(client, model_ref, face_image_path, None, prompt)
+        if video_url:
+            st.session_state["face_video_engine_used"] = f"Replicate ({model_ref})"
+            st.session_state["face_video_runtime_mode"] = "Cloud"
+            return video_url
 
         return None
     except Exception as e:
         logger.warning(f"Replicate face generation failed: {e}")
         return None
-    finally:
-        if temp_audio:
-            safe_remove_file(temp_audio)
 
 
 # Legacy local face-engine hooks are intentionally disabled in cloud mode.
@@ -7375,15 +7357,12 @@ def run_unified_face_video_mode():
     with fv_col1:
         with st.container(border=True):
             st.markdown("<h4 style='font-family: Orbitron; font-size: 13px; color: #FFC0CB; margin-bottom: 15px;'>☁️ REPLICATE FACE STUDIO</h4>", unsafe_allow_html=True)
-            st.caption("Face generation is secured via Streamlit secrets (REPLICATE_API_TOKEN).")
+            st.caption("Face generation is secured via Streamlit secrets and runs only on Replicate cloud.")
 
             if not HAS_REPLICATE:
                 st.error("replicate Python library is missing. Install it in requirements for cloud face generation.")
-            else:
-                try:
-                    _ = st.secrets["REPLICATE_API_TOKEN"]
-                except Exception:
-                    st.error("Missing Streamlit secret: REPLICATE_API_TOKEN")
+            elif not _get_replicate_api_token():
+                st.info("Replicate secret not found in Streamlit secrets.")
 
             face_image_upload = st.file_uploader(
                 "Upload Face Photo (JPG, PNG, WEBP)",
