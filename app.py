@@ -4401,6 +4401,67 @@ def generate_face_video_real(image_path, audio_path=None, output_width=512, outp
         return None
 
 
+def _download_file_with_fallback(urls, out_path, timeout=180, min_bytes=1024):
+    """Download a file from multiple URLs with optional HF auth support."""
+    if os.path.isfile(out_path) and os.path.getsize(out_path) >= min_bytes:
+        return True
+
+    os.makedirs(os.path.dirname(out_path), exist_ok=True)
+    temp_path = f"{out_path}.part"
+
+    hf_token = (os.getenv("HF_TOKEN") or os.getenv("HUGGINGFACE_API_KEY") or "").strip()
+
+    for url in urls:
+        if not url:
+            continue
+        request_headers = {}
+        if "huggingface.co" in url and hf_token:
+            request_headers["Authorization"] = f"Bearer {hf_token}"
+
+        try:
+            with requests.get(url, stream=True, timeout=timeout, headers=request_headers or None) as response:
+                response.raise_for_status()
+                with open(temp_path, "wb") as f:
+                    for chunk in response.iter_content(chunk_size=1024 * 1024):
+                        if chunk:
+                            f.write(chunk)
+
+            if os.path.isfile(temp_path) and os.path.getsize(temp_path) >= min_bytes:
+                os.replace(temp_path, out_path)
+                logger.info(f"Downloaded model asset from {url} -> {out_path}")
+                return True
+        except Exception as e:
+            logger.warning(f"Model download failed: {url} -> {e}")
+        finally:
+            safe_remove_file(temp_path)
+
+    return os.path.isfile(out_path) and os.path.getsize(out_path) >= min_bytes
+
+
+def ensure_wav2lip_core_weights(repo_path):
+    """Ensure Wav2Lip generator checkpoint exists; auto-download if missing."""
+    if not repo_path:
+        return False
+
+    checkpoint_path = os.path.join(repo_path, "checkpoints", "wav2lip_gan.pth")
+    if os.path.isfile(checkpoint_path) and os.path.getsize(checkpoint_path) > 5 * 1024 * 1024:
+        return True
+
+    env_url = os.getenv("WAV2LIP_GAN_URL", "").strip()
+    download_urls = [
+        env_url,
+        "https://huggingface.co/numz/wav2lip_studio/resolve/main/wav2lip_gan.pth",
+        "https://huggingface.co/Kijai/Wav2Lip_fp16/resolve/main/wav2lip_gan.pth",
+        "https://huggingface.co/camenduru/Wav2Lip/resolve/main/wav2lip_gan.pth",
+        "https://github.com/Rudrabha/Wav2Lip/releases/download/v1.0/wav2lip_gan.pth",
+    ]
+
+    ok = _download_file_with_fallback(download_urls, checkpoint_path, timeout=300, min_bytes=5 * 1024 * 1024)
+    if not ok:
+        logger.warning("wav2lip_gan.pth is missing and could not be auto-downloaded.")
+    return ok
+
+
 def ensure_wav2lip_s3fd_weights(repo_path):
     """Ensure s3fd face detector weights exist; auto-download if missing."""
     if not repo_path:
@@ -4412,28 +4473,21 @@ def ensure_wav2lip_s3fd_weights(repo_path):
 
     os.makedirs(os.path.dirname(s3fd_path), exist_ok=True)
 
+    env_url = os.getenv("WAV2LIP_S3FD_URL", "").strip()
     download_urls = [
+        env_url,
+        "https://huggingface.co/numz/wav2lip_studio/resolve/main/s3fd.pth",
+        "https://huggingface.co/Kijai/Wav2Lip_fp16/resolve/main/s3fd.pth",
+        "https://huggingface.co/camenduru/Wav2Lip/resolve/main/s3fd.pth",
         "https://www.adrianbulat.com/downloads/python-fan/s3fd-619a316812.pth",
         "https://github.com/Rudrabha/Wav2Lip/releases/download/v1.0/s3fd.pth",
     ]
 
-    for url in download_urls:
-        try:
-            with requests.get(url, stream=True, timeout=90) as response:
-                response.raise_for_status()
-                with open(s3fd_path, "wb") as f:
-                    for chunk in response.iter_content(chunk_size=1024 * 1024):
-                        if chunk:
-                            f.write(chunk)
-
-            if os.path.isfile(s3fd_path) and os.path.getsize(s3fd_path) > 1024:
-                logger.info(f"Downloaded Wav2Lip s3fd weights from {url}")
-                return True
-        except Exception as e:
-            logger.warning(f"Failed downloading s3fd weights from {url}: {e}")
+    if _download_file_with_fallback(download_urls, s3fd_path, timeout=180, min_bytes=1024):
+        return True
 
     logger.warning("s3fd.pth is missing and could not be auto-downloaded. Continuing in forced mode.")
-    return True
+    return False
 
 
 def _normalize_env_path(path_value):
@@ -4503,23 +4557,45 @@ def _discover_wav2lip_repo(search_roots):
 
 
 def get_wav2lip_setup_status():
-    """Forced local Wav2Lip setup: bypass all autodetection/path validation."""
-    repo_path = r"C:\Zovix-Clean\Wav2Lip"
-    script_path = r"C:\Zovix-Clean\Wav2Lip\inference.py"
-    checkpoint_path = r"C:\Zovix-Clean\Wav2Lip\checkpoints\wav2lip_gan.pth"
-    s3fd_path = r"C:\Zovix-Clean\Wav2Lip\face_detection\detection\sfd\s3fd.pth"
+    """Resolve local Wav2Lip setup and auto-bootstrap missing model weights."""
+    repo_path = None
+    search_roots = []
+    for candidate in _build_wav2lip_repo_candidates():
+        if os.path.isdir(candidate):
+            repo_path = candidate
+            break
+        parent = os.path.dirname(candidate)
+        if parent and os.path.isdir(parent):
+            search_roots.append(parent)
+
+    if not repo_path:
+        search_roots.extend([os.getcwd(), os.path.dirname(__file__)])
+        repo_path = _discover_wav2lip_repo(search_roots)
+
+    if not repo_path:
+        repo_path = os.path.normpath(os.path.join(os.getcwd(), "Wav2Lip"))
+
+    script_path = os.path.join(repo_path, "inference.py")
+    checkpoint_path = _normalize_env_path(os.getenv("WAV2LIP_CHECKPOINT_PATH")) or os.path.join(repo_path, "checkpoints", "wav2lip_gan.pth")
+    s3fd_path = os.path.join(repo_path, "face_detection", "detection", "sfd", "s3fd.pth")
 
     # Force process-level paths for all downstream calls.
     os.environ["WAV2LIP_REPO_PATH"] = repo_path
     os.environ["WAV2LIP_CHECKPOINT_PATH"] = checkpoint_path
 
-    # Try auto-download if s3fd is missing, but never block status.
-    s3fd_ready = ensure_wav2lip_s3fd_weights(repo_path)
-    if not s3fd_ready:
-        s3fd_ready = True
+    auto_setup_enabled = str(os.getenv("WAV2LIP_AUTO_SETUP", "1")).strip().lower() in {"1", "true", "yes", "on"}
+    if auto_setup_enabled and not st.session_state.get("wav2lip_auto_setup_ran", False):
+        st.session_state["wav2lip_auto_setup_ran"] = True
+        ensure_wav2lip_core_weights(repo_path)
+        ensure_wav2lip_s3fd_weights(repo_path)
+
+    checkpoint_ready = os.path.isfile(checkpoint_path)
+    s3fd_ready = os.path.isfile(s3fd_path)
+    script_ready = os.path.isfile(script_path)
+    ready = bool(repo_path and script_ready and checkpoint_ready and s3fd_ready)
 
     return {
-        "ready": True,
+        "ready": ready,
         "repo_path": repo_path,
         "script_path": script_path,
         "checkpoint_path": checkpoint_path,
@@ -4527,7 +4603,7 @@ def get_wav2lip_setup_status():
         "s3fd_ready": s3fd_ready,
         "cwd": os.getcwd(),
         "app_dir": os.path.dirname(__file__),
-        "forced_mode": True,
+        "forced_mode": False,
     }
 
 
@@ -4702,20 +4778,7 @@ def get_expressive_setup_status():
         return os.path.normpath(fallback)
 
     def _safe_download(url, out_path, timeout=120):
-        if os.path.isfile(out_path) and os.path.getsize(out_path) > 1024:
-            return True
-        os.makedirs(os.path.dirname(out_path), exist_ok=True)
-        try:
-            with requests.get(url, stream=True, timeout=timeout) as r:
-                r.raise_for_status()
-                with open(out_path, "wb") as f:
-                    for chunk in r.iter_content(chunk_size=1024 * 1024):
-                        if chunk:
-                            f.write(chunk)
-            return os.path.isfile(out_path) and os.path.getsize(out_path) > 1024
-        except Exception as e:
-            logger.warning(f"Expressive asset download failed: {url} -> {e}")
-            return False
+        return _download_file_with_fallback([url], out_path, timeout=timeout, min_bytes=1024)
 
     def _auto_clone_repo(repo_path, clone_url):
         if os.path.isdir(repo_path) and os.path.isfile(os.path.join(repo_path, ".git", "config")):
