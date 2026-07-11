@@ -850,6 +850,8 @@ if "2fa_verified" not in st.session_state:
     st.session_state["2fa_verified"] = False
 if "mass_factory_visible" not in st.session_state:
     st.session_state["mass_factory_visible"] = False
+if "expressive_auto_setup_ran" not in st.session_state:
+    st.session_state["expressive_auto_setup_ran"] = False
 
 # Payment related - IMPROVED
 if "razorpay_order_id" not in st.session_state:
@@ -4661,8 +4663,109 @@ def get_expressive_setup_status():
     default_liveportrait = r"C:\Zovix-Clean\LivePortrait"
     default_sadtalker = r"C:\Zovix-Clean\SadTalker"
 
-    liveportrait_repo = _normalize_env_path(os.getenv("LIVEPORTRAIT_REPO_PATH")) or default_liveportrait
-    sadtalker_repo = _normalize_env_path(os.getenv("SADTALKER_REPO_PATH")) or default_sadtalker
+    def _resolve_repo_path(env_key, default_path, folder_name):
+        env_path = _normalize_env_path(os.getenv(env_key))
+        cwd_candidate = os.path.join(os.getcwd(), folder_name)
+        appdir_candidate = os.path.join(os.path.dirname(__file__), folder_name)
+        candidates = [
+            env_path,
+            default_path,
+            cwd_candidate,
+            appdir_candidate,
+        ]
+        seen = set()
+        for p in candidates:
+            if not p:
+                continue
+            n = os.path.normpath(p)
+            k = n.lower()
+            if k in seen:
+                continue
+            seen.add(k)
+            if os.path.isdir(n):
+                return n
+
+        # If nothing exists, avoid returning a Windows-only path on Linux hosts.
+        fallback = cwd_candidate
+        if os.name == "nt" and default_path:
+            fallback = default_path
+        return os.path.normpath(fallback)
+
+    def _safe_download(url, out_path, timeout=120):
+        if os.path.isfile(out_path) and os.path.getsize(out_path) > 1024:
+            return True
+        os.makedirs(os.path.dirname(out_path), exist_ok=True)
+        try:
+            with requests.get(url, stream=True, timeout=timeout) as r:
+                r.raise_for_status()
+                with open(out_path, "wb") as f:
+                    for chunk in r.iter_content(chunk_size=1024 * 1024):
+                        if chunk:
+                            f.write(chunk)
+            return os.path.isfile(out_path) and os.path.getsize(out_path) > 1024
+        except Exception as e:
+            logger.warning(f"Expressive asset download failed: {url} -> {e}")
+            return False
+
+    def _auto_clone_repo(repo_path, clone_url):
+        if os.path.isdir(repo_path) and os.path.isfile(os.path.join(repo_path, ".git", "config")):
+            return True
+        try:
+            os.makedirs(os.path.dirname(repo_path), exist_ok=True)
+        except Exception:
+            pass
+        try:
+            result = subprocess.run(
+                ["git", "clone", clone_url, repo_path],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+            )
+            if result.returncode != 0:
+                logger.warning(f"Failed cloning {clone_url}: {(result.stderr or '')[:300]}")
+                return False
+            return True
+        except Exception as e:
+            logger.warning(f"Git clone error for {clone_url}: {e}")
+            return False
+
+    def _bootstrap_expressive_assets(liveportrait_repo, sadtalker_repo):
+        auto_setup_enabled = str(os.getenv("EXPRESSIVE_AUTO_SETUP", "1")).strip().lower() in {"1", "true", "yes", "on"}
+        if not auto_setup_enabled:
+            return
+        if st.session_state.get("expressive_auto_setup_ran", False):
+            return
+
+        st.session_state["expressive_auto_setup_ran"] = True
+
+        # Ensure repos exist when running on fresh environments.
+        if not os.path.isdir(liveportrait_repo):
+            _auto_clone_repo(liveportrait_repo, "https://github.com/KwaiVGI/LivePortrait.git")
+        if not os.path.isdir(sadtalker_repo):
+            _auto_clone_repo(sadtalker_repo, "https://github.com/OpenTalker/SadTalker.git")
+
+        lp_base = os.path.join(liveportrait_repo, "pretrained_weights", "liveportrait", "base_models")
+        lp_files = {
+            "appearance_feature_extractor.pth": "https://huggingface.co/KlingTeam/LivePortrait/resolve/main/liveportrait/base_models/appearance_feature_extractor.pth",
+            "motion_extractor.pth": "https://huggingface.co/KlingTeam/LivePortrait/resolve/main/liveportrait/base_models/motion_extractor.pth",
+            "spade_generator.pth": "https://huggingface.co/KlingTeam/LivePortrait/resolve/main/liveportrait/base_models/spade_generator.pth",
+            "warping_module.pth": "https://huggingface.co/KlingTeam/LivePortrait/resolve/main/liveportrait/base_models/warping_module.pth",
+        }
+        for name, url in lp_files.items():
+            _safe_download(url, os.path.join(lp_base, name), timeout=180)
+
+        st_ckpt = os.path.join(sadtalker_repo, "checkpoints")
+        st_files = {
+            "mapping_00109-model.pth.tar": "https://github.com/OpenTalker/SadTalker/releases/download/v0.0.2-rc/mapping_00109-model.pth.tar",
+            "mapping_00229-model.pth.tar": "https://github.com/OpenTalker/SadTalker/releases/download/v0.0.2-rc/mapping_00229-model.pth.tar",
+        }
+        for name, url in st_files.items():
+            _safe_download(url, os.path.join(st_ckpt, name), timeout=180)
+
+    liveportrait_repo = _resolve_repo_path("LIVEPORTRAIT_REPO_PATH", default_liveportrait, "LivePortrait")
+    sadtalker_repo = _resolve_repo_path("SADTALKER_REPO_PATH", default_sadtalker, "SadTalker")
+
+    _bootstrap_expressive_assets(liveportrait_repo, sadtalker_repo)
 
     liveportrait_scripts = [
         os.path.join(liveportrait_repo, "inference.py"),
@@ -4676,17 +4779,61 @@ def get_expressive_setup_status():
     liveportrait_script = next((p for p in liveportrait_scripts if os.path.isfile(p)), None)
     sadtalker_script = next((p for p in sadtalker_scripts if os.path.isfile(p)), None)
 
+    liveportrait_python = _normalize_env_path(os.getenv("LIVEPORTRAIT_PYTHON_PATH")) or os.path.join(liveportrait_repo, ".venv", "Scripts", "python.exe")
+    if not os.path.isfile(liveportrait_python):
+        liveportrait_python = sys.executable
+
+    sadtalker_python = _normalize_env_path(os.getenv("SADTALKER_PYTHON_PATH")) or os.path.join(sadtalker_repo, ".venv", "Scripts", "python.exe")
+    if not os.path.isfile(sadtalker_python):
+        sadtalker_python = sys.executable
+
+    liveportrait_required = [
+        os.path.join(liveportrait_repo, "pretrained_weights", "liveportrait", "base_models", "appearance_feature_extractor.pth"),
+        os.path.join(liveportrait_repo, "pretrained_weights", "liveportrait", "base_models", "motion_extractor.pth"),
+        os.path.join(liveportrait_repo, "pretrained_weights", "liveportrait", "base_models", "spade_generator.pth"),
+        os.path.join(liveportrait_repo, "pretrained_weights", "liveportrait", "base_models", "warping_module.pth"),
+    ]
+    liveportrait_models_ready = all(os.path.isfile(p) for p in liveportrait_required)
+
+    sadtalker_required = [
+        os.path.join(sadtalker_repo, "checkpoints", "mapping_00109-model.pth.tar"),
+        os.path.join(sadtalker_repo, "checkpoints", "mapping_00229-model.pth.tar"),
+    ]
+    sadtalker_safetensors = [
+        os.path.join(sadtalker_repo, "checkpoints", "SadTalker_V0.0.2_256.safetensors"),
+        os.path.join(sadtalker_repo, "checkpoints", "SadTalker_V0.0.2_512.safetensors"),
+    ]
+    sadtalker_models_ready = all(os.path.isfile(p) for p in sadtalker_required) or any(os.path.isfile(p) for p in sadtalker_safetensors)
+
     has_gpu = shutil.which("nvidia-smi") is not None
+
+    force_enable = str(os.getenv("EXPRESSIVE_FORCE_ENABLE", "0")).strip().lower() in {"1", "true", "yes", "on"}
+    sadtalker_force_ready = str(os.getenv("SADTALKER_FORCE_READY", "1")).strip().lower() in {"1", "true", "yes", "on"}
+    liveportrait_ready = bool(liveportrait_script) and liveportrait_models_ready
+    sadtalker_ready = bool(sadtalker_script) and sadtalker_models_ready
+
+    if force_enable:
+        liveportrait_ready = bool(liveportrait_script)
+        sadtalker_ready = bool(sadtalker_script)
+
+    if sadtalker_force_ready and bool(sadtalker_script):
+        sadtalker_ready = True
 
     return {
         "liveportrait_repo": liveportrait_repo,
         "liveportrait_script": liveportrait_script,
-        "liveportrait_ready": bool(liveportrait_script),
+        "liveportrait_python": liveportrait_python,
+        "liveportrait_ready": liveportrait_ready,
+        "liveportrait_models_ready": liveportrait_models_ready,
         "sadtalker_repo": sadtalker_repo,
         "sadtalker_script": sadtalker_script,
-        "sadtalker_ready": bool(sadtalker_script),
+        "sadtalker_python": sadtalker_python,
+        "sadtalker_ready": sadtalker_ready,
+        "sadtalker_models_ready": sadtalker_models_ready,
+        "sadtalker_force_ready": sadtalker_force_ready,
         "runtime_mode": "GPU" if has_gpu else "CPU",
-        "any_ready": bool(liveportrait_script or sadtalker_script),
+        "any_ready": bool(liveportrait_ready or sadtalker_ready),
+        "force_enable": force_enable,
     }
 
 
@@ -4727,11 +4874,12 @@ def _normalize_face_video_output(input_video_path, audio_path, output_video_path
         return False
 
 
-def run_liveportrait_cli(face_image_path, audio_path, output_video_path, width, height, duration=10):
+def run_liveportrait_cli(face_image_path, audio_path, output_video_path, width, height, duration=10, motion_level="high"):
     """Run LivePortrait inference with best-effort command variants."""
     setup = get_expressive_setup_status()
     script_path = setup.get("liveportrait_script")
     repo_path = setup.get("liveportrait_repo")
+    python_exec = setup.get("liveportrait_python") or sys.executable
     if not script_path or not repo_path:
         return False
 
@@ -4740,14 +4888,14 @@ def run_liveportrait_cli(face_image_path, audio_path, output_video_path, width, 
 
     command_candidates = [
         [
-            sys.executable, script_path,
+            python_exec, script_path,
             '--source', face_image_path,
             '--driving', audio_path,
             '--output-dir', temp_out_dir,
-            '--driving_multiplier', '1.0',
+            '--driving_multiplier', '1.2' if motion_level == "high" else ('1.0' if motion_level == "medium" else '0.9'),
         ],
         [
-            sys.executable, script_path,
+            python_exec, script_path,
             '--source_image', face_image_path,
             '--driving_audio', audio_path,
             '--output', temp_out_dir,
@@ -4758,6 +4906,7 @@ def run_liveportrait_cli(face_image_path, audio_path, output_video_path, width, 
         for cmd in command_candidates:
             result = subprocess.run(cmd, cwd=repo_path, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             if result.returncode != 0:
+                logger.warning(f"LivePortrait cmd failed rc={result.returncode}: {(result.stderr or '')[:350]}")
                 continue
 
             candidate_video = _discover_latest_generated_video(temp_out_dir)
@@ -4774,29 +4923,50 @@ def run_liveportrait_cli(face_image_path, audio_path, output_video_path, width, 
             pass
 
 
-def run_sadtalker_cli(face_image_path, audio_path, output_video_path, width, height, duration=10):
+def run_sadtalker_cli(face_image_path, audio_path, output_video_path, width, height, duration=10, motion_level="high"):
     """Run SadTalker inference with best-effort command variants."""
     setup = get_expressive_setup_status()
     script_path = setup.get("sadtalker_script")
     repo_path = setup.get("sadtalker_repo")
+    python_exec = setup.get("sadtalker_python") or sys.executable
     if not script_path or not repo_path:
         return False
 
     temp_out_dir = os.path.join("face_videos", f"sadtalker_out_{uuid.uuid4().hex[:8]}")
     os.makedirs(temp_out_dir, exist_ok=True)
 
+    if motion_level == "high":
+        pose_style = '18'
+        expression_scale = '1.35'
+    elif motion_level == "low":
+        pose_style = '6'
+        expression_scale = '1.05'
+    else:
+        pose_style = '12'
+        expression_scale = '1.20'
+
     command_candidates = [
         [
-            sys.executable, script_path,
+            python_exec, script_path,
             '--driven_audio', audio_path,
             '--source_image', face_image_path,
             '--result_dir', temp_out_dir,
-            '--still',
             '--preprocess', 'full',
+            '--pose_style', pose_style,
+            '--expression_scale', expression_scale,
             '--enhancer', 'gfpgan',
         ],
         [
-            sys.executable, script_path,
+            python_exec, script_path,
+            '--driven_audio', audio_path,
+            '--source_image', face_image_path,
+            '--result_dir', temp_out_dir,
+            '--preprocess', 'crop',
+            '--pose_style', pose_style,
+            '--expression_scale', expression_scale,
+        ],
+        [
+            python_exec, script_path,
             '--source_image', face_image_path,
             '--driven_audio', audio_path,
             '--output', temp_out_dir,
@@ -4807,6 +4977,7 @@ def run_sadtalker_cli(face_image_path, audio_path, output_video_path, width, hei
         for cmd in command_candidates:
             result = subprocess.run(cmd, cwd=repo_path, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             if result.returncode != 0:
+                logger.warning(f"SadTalker cmd failed rc={result.returncode}: {(result.stderr or '')[:350]}")
                 continue
 
             candidate_video = _discover_latest_generated_video(temp_out_dir)
@@ -4823,7 +4994,7 @@ def run_sadtalker_cli(face_image_path, audio_path, output_video_path, width, hei
             pass
 
 
-def run_expressive_face_pipeline(face_image_path, audio_path, output_video_path, width, height, duration=10, preferred_engine="Auto (LivePortrait → SadTalker)"):
+def run_expressive_face_pipeline(face_image_path, audio_path, output_video_path, width, height, duration=10, preferred_engine="Auto (LivePortrait → SadTalker)", motion_level="high"):
     safe_remove_file(output_video_path)
     setup = get_expressive_setup_status()
     st.session_state["expressive_face_runtime_mode"] = setup.get("runtime_mode", "Unknown")
@@ -4835,18 +5006,25 @@ def run_expressive_face_pipeline(face_image_path, audio_path, output_video_path,
             engine_order = ["LivePortrait"]
         elif preferred_engine == "SadTalker Only":
             engine_order = ["SadTalker"]
+        elif preferred_engine == "Auto (LivePortrait → SadTalker → Wav2Lip)":
+            engine_order = ["LivePortrait", "SadTalker", "Wav2Lip"]
         elif preferred_engine == "Wav2Lip Fallback":
             engine_order = ["Wav2Lip"]
         else:
-            engine_order = ["LivePortrait", "SadTalker", "Wav2Lip"]
+            engine_order = ["LivePortrait", "SadTalker"]
+
+        if not setup.get("any_ready") and "Wav2Lip" not in engine_order:
+            st.session_state["expressive_face_engine_used"] = "Expressive models missing"
+            logger.warning("Expressive engines not ready: required LivePortrait/SadTalker model files are missing.")
+            return False
 
         for engine_name in engine_order:
             if engine_name == "LivePortrait" and setup.get("liveportrait_ready"):
-                if run_liveportrait_cli(face_image_path, audio_path, output_video_path, width, height, duration=duration):
+                if run_liveportrait_cli(face_image_path, audio_path, output_video_path, width, height, duration=duration, motion_level=motion_level):
                     st.session_state["expressive_face_engine_used"] = "LivePortrait"
                     return True
             elif engine_name == "SadTalker" and setup.get("sadtalker_ready"):
-                if run_sadtalker_cli(face_image_path, audio_path, output_video_path, width, height, duration=duration):
+                if run_sadtalker_cli(face_image_path, audio_path, output_video_path, width, height, duration=duration, motion_level=motion_level):
                     st.session_state["expressive_face_engine_used"] = "SadTalker"
                     return True
             elif engine_name == "Wav2Lip":
@@ -4862,7 +5040,7 @@ def run_expressive_face_pipeline(face_image_path, audio_path, output_video_path,
         return False
 
 
-def generate_expressive_face_video(prompt, face_image_path, duration=30, emotion="neutral", camera_angle="front", quality="HD", preferred_engine="Auto (LivePortrait → SadTalker)"):
+def generate_expressive_face_video(prompt, face_image_path, duration=30, emotion="neutral", camera_angle="front", quality="HD", preferred_engine="Auto (LivePortrait → SadTalker)", motion_level="high"):
     if not face_image_path or not os.path.exists(face_image_path):
         return None
 
@@ -4901,6 +5079,7 @@ def generate_expressive_face_video(prompt, face_image_path, duration=30, emotion
             out_h,
             duration=duration,
             preferred_engine=preferred_engine,
+            motion_level=motion_level,
         ):
             return output_video_path
         return None
@@ -6796,7 +6975,7 @@ pip install gfpgan realesrgan""",
                 st.info("No expressive render yet. Upload a face image and generate your first expressive clip.")
 
 
-def generate_world_face_video(prompt, face_image_path, duration=10, quality="HD", animation_style="Auto (Expressive + Lip Sync)", backend_choice="Auto (LivePortrait → SadTalker)"):
+def generate_world_face_video(prompt, face_image_path, duration=10, quality="HD", animation_style="Expressive Real Human (No Lip-Only Fallback)", backend_choice="Auto (LivePortrait → SadTalker)", motion_level="high"):
     """Unified generator that keeps both expressive and lip-sync engines active with intelligent fallback."""
     if not face_image_path or not os.path.exists(face_image_path):
         return None
@@ -6811,6 +6990,7 @@ def generate_world_face_video(prompt, face_image_path, duration=10, quality="HD"
             duration=duration,
             quality=quality,
             preferred_engine=backend_choice,
+            motion_level=motion_level,
         )
         if expressive_out:
             st.session_state["face_video_engine_used"] = st.session_state.get("expressive_face_engine_used", "Expressive Backend")
@@ -6823,13 +7003,17 @@ def generate_world_face_video(prompt, face_image_path, duration=10, quality="HD"
         duration=duration,
         quality=quality,
         preferred_engine=backend_choice,
+        motion_level=motion_level,
     )
     if expressive_out:
         st.session_state["face_video_engine_used"] = st.session_state.get("expressive_face_engine_used", "Expressive Backend")
         st.session_state["face_video_runtime_mode"] = st.session_state.get("expressive_face_runtime_mode", "Unknown")
         return expressive_out
 
-    return generate_face_video(prompt, face_image_path, duration=duration, quality=quality)
+    if animation_style == "Auto (Expressive + Lip Sync Fallback)":
+        return generate_face_video(prompt, face_image_path, duration=duration, quality=quality)
+
+    return None
 
 
 def run_unified_face_video_mode():
@@ -6855,6 +7039,17 @@ def run_unified_face_video_mode():
                 f"LivePortrait={'ON' if expressive_setup.get('liveportrait_ready') else 'OFF'} | "
                 f"SadTalker={'ON' if expressive_setup.get('sadtalker_ready') else 'OFF'}"
             )
+            st.caption(
+                f"Resolved repos => LP: {expressive_setup.get('liveportrait_repo')} | ST: {expressive_setup.get('sadtalker_repo')}"
+            )
+            if expressive_setup.get("force_enable"):
+                st.info("EXPRESSIVE_FORCE_ENABLE is ON: readiness is script-based fallback mode.")
+            if expressive_setup.get("sadtalker_force_ready") and not expressive_setup.get("sadtalker_models_ready"):
+                st.info("SADTALKER_FORCE_READY is ON: SadTalker shown as active with script-only bypass.")
+            if not expressive_setup.get("liveportrait_models_ready"):
+                st.warning("LivePortrait models missing. Download to: LivePortrait/pretrained_weights")
+            if not expressive_setup.get("sadtalker_models_ready"):
+                st.warning("SadTalker checkpoints missing. Download to: SadTalker/checkpoints")
             st.caption(
                 f"Runtime => Wav2Lip: {runtime_profile['mode']} | Expressive: {expressive_setup.get('runtime_mode', 'Unknown')}"
             )
@@ -6886,13 +7081,35 @@ def run_unified_face_video_mode():
 
             animation_style = st.selectbox(
                 "Animation Style",
-                ["Auto (Expressive + Lip Sync)", "Lip-Sync Priority (Wav2Lip)"],
+                [
+                    "Expressive Real Human (No Lip-Only Fallback)",
+                    "Auto (Expressive + Lip Sync Fallback)",
+                    "Lip-Sync Priority (Wav2Lip)",
+                ],
                 key="unified_fv_style",
+            )
+            allow_lip_fallback = st.toggle(
+                "Allow lip-only fallback if expressive fails",
+                value=False,
+                key="unified_fv_allow_lips_fallback",
             )
             backend_choice = st.selectbox(
                 "Expressive Backend Preference",
-                ["Auto (LivePortrait → SadTalker)", "LivePortrait Only", "SadTalker Only", "Wav2Lip Fallback"],
+                [
+                    "Auto (LivePortrait → SadTalker)",
+                    "Auto (LivePortrait → SadTalker → Wav2Lip)",
+                    "LivePortrait Only",
+                    "SadTalker Only",
+                    "Wav2Lip Fallback",
+                ],
                 key="unified_fv_backend_choice",
+            )
+
+            motion_level = st.select_slider(
+                "Expression Intensity",
+                options=["low", "medium", "high"],
+                value="high",
+                key="unified_fv_motion_level",
             )
 
             col_dur, col_qual = st.columns(2)
@@ -6920,13 +7137,18 @@ def run_unified_face_video_mode():
                         st.error("Please upload a face photo or take a selfie.")
                     else:
                         with st.spinner(f"Generating {quality} global face video..."):
+                            resolved_style = animation_style
+                            if (not allow_lip_fallback) and animation_style == "Auto (Expressive + Lip Sync Fallback)":
+                                resolved_style = "Expressive Real Human (No Lip-Only Fallback)"
+
                             video_path = generate_world_face_video(
                                 face_prompt,
                                 st.session_state["face_image_upload"],
                                 duration=video_duration,
                                 quality=quality,
-                                animation_style=animation_style,
+                                animation_style=resolved_style,
                                 backend_choice=backend_choice,
+                                motion_level=motion_level,
                             )
                             if video_path and os.path.exists(video_path):
                                 st.session_state["active_face_video"] = video_path
@@ -6944,7 +7166,7 @@ def run_unified_face_video_mode():
                                 st.toast(f"Global face video generated in {quality} quality!")
                                 st.rerun()
                             else:
-                                st.error("Generation failed. Check backend setup and try again.")
+                                st.error("Expressive generation failed. Realistic face motion needs LivePortrait/SadTalker models installed correctly.")
 
     with fv_col2:
         with st.container(border=True):
