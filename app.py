@@ -5112,20 +5112,20 @@ def run_expressive_face_pipeline(face_image_path, audio_path, output_video_path,
         return False
 
 
-def generate_expressive_face_video(prompt, face_image_path, duration=30, emotion="neutral", camera_angle="front", quality="HD", preferred_engine="Auto (LivePortrait → SadTalker → Wav2Lip)", motion_level="high"):
+def generate_expressive_face_video(prompt, face_image_path, duration=30, emotion="neutral", camera_angle="front", quality="HD", preferred_engine="Auto (LivePortrait → SadTalker → Wav2Lip)", motion_level="high", voice_language=None, voice_label=None):
     if not face_image_path or not os.path.exists(face_image_path):
         return None
 
+    voice_cfg = _resolve_face_voice_config(voice_language=voice_language, voice_label=voice_label)
     audio_path = f"face_videos/voice_{uuid.uuid4().hex[:8]}.mp3"
-    voice_id = "21m00Tcm4TlvDq8ikWAM"
-    audio_success = generate_elevenlabs_audio_for_face(prompt, audio_path, voice_id)
+    audio_success = generate_elevenlabs_audio_for_face(prompt, audio_path, voice_cfg["voice_id"])
     if not audio_success:
         try:
             AudioEngine.run_fallback_tts(
                 text=prompt,
                 output_filename=audio_path,
-                language_choice=st.session_state.get("language_choice", "🇮🇳 Hinglish"),
-                voice_profile=st.session_state.get("voice_profile", "Drew (Premium Male Voice)")
+                language_choice=voice_cfg["fallback_language_choice"],
+                voice_profile=voice_cfg["voice_label"],
             )
             audio_success = os.path.exists(audio_path) and os.path.getsize(audio_path) > 0
         except Exception:
@@ -5278,15 +5278,58 @@ def generate_audio_driven_lip_only_video(face_image_path, audio_path, output_vid
         safe_remove_file(temp_video)
         safe_remove_file(temp_muxed)
 
-def generate_face_video(prompt, face_image_path, duration=30, emotion="neutral", camera_angle="front", quality="Standard"):
+def _resolve_face_voice_config(voice_language=None, voice_label=None):
+    """Resolve voice for face-video generation with Hindi/English/all voice choices."""
+    language_pref = (voice_language or st.session_state.get("face_voice_language") or "English").strip()
+    if language_pref not in {"Hindi", "English", "All Voices"}:
+        language_pref = "English"
+
+    if language_pref == "Hindi":
+        available_voices = list(LANGUAGE_VOICE_MAP.get("Hindi", []))
+    elif language_pref == "English":
+        available_voices = list(LANGUAGE_VOICE_MAP.get("English", []))
+    else:
+        available_voices = list(ELEVENLABS_VOICES.keys())
+
+    if not available_voices:
+        available_voices = ["Adam (Premium Male)"]
+
+    selected_voice = voice_label or st.session_state.get("face_voice_model") or available_voices[0]
+    if selected_voice not in available_voices:
+        selected_voice = available_voices[0]
+
+    voice_meta = ELEVENLABS_VOICES.get(selected_voice, {})
+    selected_voice_id = voice_meta.get("id", "21m00Tcm4TlvDq8ikWAM")
+    voice_lang = str(voice_meta.get("language", "English")).strip().lower()
+    fallback_language_choice = "🇮🇳 Hinglish (Fluent Hindi Mix)" if (language_pref == "Hindi" or voice_lang in {"hindi", "bhojpuri"}) else "🇬🇧 English (US Standard)"
+
+    st.session_state["face_voice_language"] = language_pref
+    st.session_state["face_voice_model"] = selected_voice
+
+    return {
+        "language": language_pref,
+        "voice_label": selected_voice,
+        "voice_id": selected_voice_id,
+        "fallback_language_choice": fallback_language_choice,
+        "available_voices": available_voices,
+    }
+
+
+def generate_face_video(prompt, face_image_path, duration=30, emotion="neutral", camera_angle="front", quality="Standard", voice_language=None, voice_label=None):
     if not face_image_path or not os.path.exists(face_image_path):
         return None
+
+    voice_cfg = _resolve_face_voice_config(voice_language=voice_language, voice_label=voice_label)
     audio_path = f"face_videos/voice_{uuid.uuid4().hex[:8]}.mp3"
-    voice_id = "21m00Tcm4TlvDq8ikWAM"
-    audio_success = generate_elevenlabs_audio_for_face(prompt, audio_path, voice_id)
+    audio_success = generate_elevenlabs_audio_for_face(prompt, audio_path, voice_cfg["voice_id"])
     if not audio_success:
         try:
-            AudioEngine.run_fallback_tts(text=prompt, output_filename=audio_path, language_choice=st.session_state.get("language_choice", "🇮🇳 Hinglish"), voice_profile=st.session_state.get("voice_profile", "Drew (Premium Male Voice)"))
+            AudioEngine.run_fallback_tts(
+                text=prompt,
+                output_filename=audio_path,
+                language_choice=voice_cfg["fallback_language_choice"],
+                voice_profile=voice_cfg["voice_label"],
+            )
             audio_success = os.path.exists(audio_path) and os.path.getsize(audio_path) > 0
         except Exception:
             audio_success = False
@@ -6860,6 +6903,21 @@ def run_face_video_mode():
                 video_duration = st.select_slider("Duration (seconds)", options=[5, 10, 15, 20, 30, 45, 60], value=10, key="fv_duration")
             with col_qual:
                 quality = st.selectbox("Video Quality:", ["Standard", "HD", "4K"], key="fv_quality")
+            fv_voice_language = st.selectbox(
+                "Voice Language",
+                ["Hindi", "English", "All Voices"],
+                key="fv_voice_language",
+            )
+            fv_voice_options = _resolve_face_voice_config(voice_language=fv_voice_language).get("available_voices", [])
+            fv_current_voice = st.session_state.get("face_voice_model")
+            if fv_current_voice not in fv_voice_options:
+                fv_current_voice = fv_voice_options[0] if fv_voice_options else "Adam (Premium Male)"
+            fv_voice_model = st.selectbox(
+                "Voice Model",
+                fv_voice_options,
+                index=fv_voice_options.index(fv_current_voice) if fv_voice_options and fv_current_voice in fv_voice_options else 0,
+                key="fv_voice_model",
+            )
             st.markdown("---")
             face_prompt = st.text_area("Video Description / Script (for lip sync):", placeholder="Describe what the person should say: e.g. Hello everyone! Welcome to my channel. Today we're going to explore the mysteries of the universe...", height=100, key="fv_prompt")
             st.write("")
@@ -6875,7 +6933,14 @@ def run_face_video_mode():
                         st.error("Please upload a face image or take a photo using camera mode.")
                     else:
                         with st.spinner(f"Generating {quality} lip-sync face video (motion locked)..."):
-                            video_path = generate_face_video(face_prompt, st.session_state["face_image_upload"], video_duration, quality=quality)
+                            video_path = generate_face_video(
+                                face_prompt,
+                                st.session_state["face_image_upload"],
+                                video_duration,
+                                quality=quality,
+                                voice_language=fv_voice_language,
+                                voice_label=fv_voice_model,
+                            )
                             if video_path and os.path.exists(video_path):
                                 st.session_state["active_face_video"] = video_path
                                 timestamp = time.strftime("%Y%m%d_%H%M%S")
@@ -6973,6 +7038,21 @@ pip install gfpgan realesrgan""",
 
             efv_duration = st.select_slider("Duration (seconds)", options=[5, 10, 15, 20, 30, 45, 60], value=10, key="efv_duration")
             efv_quality = st.selectbox("Video Quality:", ["Standard", "HD", "4K"], key="efv_quality")
+            efv_voice_language = st.selectbox(
+                "Voice Language",
+                ["Hindi", "English", "All Voices"],
+                key="efv_voice_language",
+            )
+            efv_voice_options = _resolve_face_voice_config(voice_language=efv_voice_language).get("available_voices", [])
+            efv_current_voice = st.session_state.get("face_voice_model")
+            if efv_current_voice not in efv_voice_options:
+                efv_current_voice = efv_voice_options[0] if efv_voice_options else "Adam (Premium Male)"
+            efv_voice_model = st.selectbox(
+                "Voice Model",
+                efv_voice_options,
+                index=efv_voice_options.index(efv_current_voice) if efv_voice_options and efv_current_voice in efv_voice_options else 0,
+                key="efv_voice_model",
+            )
             efv_prompt = st.text_area(
                 "Video Description / Script:",
                 placeholder="Type natural dialogue so model can animate eyes, eyebrows and jaw in sync with speech...",
@@ -6998,6 +7078,8 @@ pip install gfpgan realesrgan""",
                                 efv_duration,
                                 quality=efv_quality,
                                 preferred_engine=engine_choice,
+                                voice_language=efv_voice_language,
+                                voice_label=efv_voice_model,
                             )
                             if video_path and os.path.exists(video_path):
                                 st.session_state["active_expressive_face_video"] = video_path
@@ -7047,13 +7129,20 @@ pip install gfpgan realesrgan""",
                 st.info("No expressive render yet. Upload a face image and generate your first expressive clip.")
 
 
-def generate_world_face_video(prompt, face_image_path, duration=10, quality="HD", animation_style="Expressive Real Human (No Lip-Only Fallback)", backend_choice="Auto (LivePortrait → SadTalker → Wav2Lip)", motion_level="high"):
+def generate_world_face_video(prompt, face_image_path, duration=10, quality="HD", animation_style="Expressive Real Human (No Lip-Only Fallback)", backend_choice="Auto (LivePortrait → SadTalker → Wav2Lip)", motion_level="high", voice_language=None, voice_label=None):
     """Unified generator that keeps both expressive and lip-sync engines active with intelligent fallback."""
     if not face_image_path or not os.path.exists(face_image_path):
         return None
 
     if animation_style == "Lip-Sync Priority (Wav2Lip)":
-        out_path = generate_face_video(prompt, face_image_path, duration=duration, quality=quality)
+        out_path = generate_face_video(
+            prompt,
+            face_image_path,
+            duration=duration,
+            quality=quality,
+            voice_language=voice_language,
+            voice_label=voice_label,
+        )
         if out_path:
             return out_path
         expressive_out = generate_expressive_face_video(
@@ -7063,6 +7152,8 @@ def generate_world_face_video(prompt, face_image_path, duration=10, quality="HD"
             quality=quality,
             preferred_engine=backend_choice,
             motion_level=motion_level,
+            voice_language=voice_language,
+            voice_label=voice_label,
         )
         if expressive_out:
             st.session_state["face_video_engine_used"] = st.session_state.get("expressive_face_engine_used", "Expressive Backend")
@@ -7076,6 +7167,8 @@ def generate_world_face_video(prompt, face_image_path, duration=10, quality="HD"
         quality=quality,
         preferred_engine=backend_choice,
         motion_level=motion_level,
+        voice_language=voice_language,
+        voice_label=voice_label,
     )
     if expressive_out:
         st.session_state["face_video_engine_used"] = st.session_state.get("expressive_face_engine_used", "Expressive Backend")
@@ -7083,7 +7176,14 @@ def generate_world_face_video(prompt, face_image_path, duration=10, quality="HD"
         return expressive_out
 
     if animation_style == "Auto (Expressive + Lip Sync Fallback)":
-        return generate_face_video(prompt, face_image_path, duration=duration, quality=quality)
+        return generate_face_video(
+            prompt,
+            face_image_path,
+            duration=duration,
+            quality=quality,
+            voice_language=voice_language,
+            voice_label=voice_label,
+        )
 
     return None
 
@@ -7105,12 +7205,31 @@ def run_unified_face_video_mode():
             expressive_setup = get_expressive_setup_status()
             runtime_profile = get_wav2lip_runtime_profile()
 
-            st.caption("Unified Face Resolver: LivePortrait + SadTalker + Wav2Lip")
-            st.caption(
-                f"Detected => Wav2Lip={'ON' if wav2lip_setup.get('ready') else 'OFF'} | "
-                f"LivePortrait={'ON' if expressive_setup.get('liveportrait_ready') else 'OFF'} | "
-                f"SadTalker={'ON' if expressive_setup.get('sadtalker_ready') else 'OFF'}"
+            force_enable_all = st.toggle(
+                "⚡ Force Enable All Backends (Cloud Safe Mode)",
+                value=True,
+                key="unified_force_enable_all",
+                help="Forces ON mode with automatic fallback chain so generation does not stop when one backend is missing.",
             )
+
+            if force_enable_all:
+                os.environ["EXPRESSIVE_AUTO_SETUP"] = "1"
+                os.environ["WAV2LIP_AUTO_SETUP"] = "1"
+                os.environ["EXPRESSIVE_FORCE_ENABLE"] = "1"
+                os.environ["SADTALKER_FORCE_READY"] = "1"
+                st.session_state["unified_fv_allow_lips_fallback"] = True
+
+            st.caption("Unified Face Resolver: LivePortrait + SadTalker + Wav2Lip")
+            w2l_display_on = bool(wav2lip_setup.get("ready") or force_enable_all)
+            lp_display_on = bool(expressive_setup.get("liveportrait_ready") or force_enable_all)
+            st_display_on = bool(expressive_setup.get("sadtalker_ready") or force_enable_all)
+            st.caption(
+                f"Detected => Wav2Lip={'ON' if w2l_display_on else 'OFF'} | "
+                f"LivePortrait={'ON' if lp_display_on else 'OFF'} | "
+                f"SadTalker={'ON' if st_display_on else 'OFF'}"
+            )
+            if force_enable_all:
+                st.success("Force mode active: all engines are forced ON with automatic fallback routing.")
             st.caption(
                 f"Resolved repos => LP: {expressive_setup.get('liveportrait_repo')} | ST: {expressive_setup.get('sadtalker_repo')}"
             )
@@ -7170,13 +7289,29 @@ def run_unified_face_video_mode():
             backend_choice = st.selectbox(
                 "Expressive Backend Preference",
                 [
-                    "Auto (LivePortrait → SadTalker)",
                     "Auto (LivePortrait → SadTalker → Wav2Lip)",
+                    "Auto (LivePortrait → SadTalker)",
                     "LivePortrait Only",
                     "SadTalker Only",
                     "Wav2Lip Fallback",
                 ],
                 key="unified_fv_backend_choice",
+            )
+
+            face_voice_language = st.selectbox(
+                "Voice Language",
+                ["Hindi", "English", "All Voices"],
+                key="unified_fv_voice_language",
+            )
+            voice_options = _resolve_face_voice_config(voice_language=face_voice_language).get("available_voices", [])
+            current_face_voice = st.session_state.get("face_voice_model")
+            if current_face_voice not in voice_options:
+                current_face_voice = voice_options[0] if voice_options else "Adam (Premium Male)"
+            face_voice_model = st.selectbox(
+                "Voice Model",
+                voice_options,
+                index=voice_options.index(current_face_voice) if voice_options and current_face_voice in voice_options else 0,
+                key="unified_fv_voice_model",
             )
 
             motion_level = st.select_slider(
@@ -7212,8 +7347,16 @@ def run_unified_face_video_mode():
                     else:
                         with st.spinner(f"Generating {quality} global face video..."):
                             resolved_style = animation_style
+                            resolved_backend = backend_choice
+
+                            if force_enable_all:
+                                resolved_style = "Auto (Expressive + Lip Sync Fallback)"
+                                resolved_backend = "Auto (LivePortrait → SadTalker → Wav2Lip)"
+
                             if (not allow_lip_fallback) and animation_style == "Auto (Expressive + Lip Sync Fallback)":
                                 resolved_style = "Expressive Real Human (No Lip-Only Fallback)"
+                            if force_enable_all:
+                                resolved_style = "Auto (Expressive + Lip Sync Fallback)"
 
                             video_path = generate_world_face_video(
                                 face_prompt,
@@ -7221,8 +7364,10 @@ def run_unified_face_video_mode():
                                 duration=video_duration,
                                 quality=quality,
                                 animation_style=resolved_style,
-                                backend_choice=backend_choice,
+                                backend_choice=resolved_backend,
                                 motion_level=motion_level,
+                                voice_language=face_voice_language,
+                                voice_label=face_voice_model,
                             )
                             if video_path and os.path.exists(video_path):
                                 st.session_state["active_face_video"] = video_path
@@ -7240,7 +7385,7 @@ def run_unified_face_video_mode():
                                 st.toast(f"Global face video generated in {quality} quality!")
                                 st.rerun()
                             else:
-                                st.error("Expressive generation failed. Realistic face motion needs LivePortrait/SadTalker models installed correctly.")
+                                st.error("Face generation failed after forced fallback attempts. Please check ffmpeg runtime and API keys, then retry.")
 
     with fv_col2:
         with st.container(border=True):
