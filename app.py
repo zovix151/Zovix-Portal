@@ -788,6 +788,10 @@ if "active_editor_output" not in st.session_state:
     st.session_state["active_editor_output"] = None
 if "active_face_video" not in st.session_state:
     st.session_state["active_face_video"] = None
+if "face_video_engine_used" not in st.session_state:
+    st.session_state["face_video_engine_used"] = "Not generated yet"
+if "face_video_runtime_mode" not in st.session_state:
+    st.session_state["face_video_runtime_mode"] = "Unknown"
 if "face_image_upload" not in st.session_state:
     st.session_state["face_image_upload"] = None
 if "user_gemini_api_key" not in st.session_state:
@@ -4358,24 +4362,15 @@ def generate_face_video_real(image_path, audio_path=None, output_width=512, outp
                 if os.path.exists(temp_processed_img):
                     os.remove(temp_processed_img)
                 return output_video_path
-        cmd = ['ffmpeg', '-y', '-loop', '1', '-i', temp_processed_img, '-t', str(duration), '-vf', f"zoompan=z='min(zoom+0.0015,1.3)':d={duration*24}:s={out_w}x{out_h},fade=t=in:st=0:d=0.5,fade=t=out:st={duration-0.5}:d=0.5", '-pix_fmt', 'yuv420p', '-c:v', 'libx264', '-preset', q_settings["preset"], '-crf', str(q_settings["crf"]), '-b:v', q_settings["bitrate"], '-r', '24', output_video_path]
-        subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
-        if audio_path and os.path.exists(audio_path):
-            temp_with_audio = output_video_path.replace('.mp4', '_with_audio.mp4')
-            audio_duration = get_audio_duration(audio_path)
-            if audio_duration > duration:
-                ffmpeg_cmd = ['ffmpeg', '-y', '-i', output_video_path, '-i', audio_path, '-c:v', 'copy', '-c:a', 'aac', '-strict', 'experimental', '-shortest', '-map', '0:v:0', '-map', '1:a:0', temp_with_audio]
-            else:
-                ffmpeg_cmd = ['ffmpeg', '-y', '-i', output_video_path, '-stream_loop', '-1', '-i', audio_path, '-c:v', 'copy', '-c:a', 'aac', '-strict', 'experimental', '-shortest', '-map', '0:v:0', '-map', '1:a:0', temp_with_audio]
-            subprocess.run(ffmpeg_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
-            if os.path.exists(temp_with_audio) and os.path.getsize(temp_with_audio) > 0:
-                shutil.move(temp_with_audio, output_video_path)
+            logger.warning("Strict lip-sync mode active: video not generated because lip-sync engine failed.")
+            if os.path.exists(temp_processed_img):
+                os.remove(temp_processed_img)
+            return None
+
+        logger.warning("Strict lip-sync mode requires driving audio. No audio path found.")
         if os.path.exists(temp_processed_img):
             os.remove(temp_processed_img)
-        if os.path.exists(output_video_path) and os.path.getsize(output_video_path) > 1000:
-            return output_video_path
-        else:
-            return None
+        return None
     except Exception as e:
         logger.error(f"Generate face video real error: {e}")
         if os.path.exists(temp_processed_img):
@@ -4385,42 +4380,295 @@ def generate_face_video_real(image_path, audio_path=None, output_width=512, outp
                 pass
         return None
 
+
+def get_wav2lip_setup_status():
+    """Resolve Wav2Lip repo/checkpoint/script paths for production inference."""
+    repo_candidates = [
+        os.getenv("WAV2LIP_REPO_PATH"),
+        os.path.join(os.getcwd(), "Wav2Lip"),
+        os.path.join(os.getcwd(), "wav2lip"),
+        os.path.join(os.path.dirname(__file__), "Wav2Lip"),
+        os.path.join(os.path.dirname(__file__), "wav2lip"),
+    ]
+    repo_path = next((p for p in repo_candidates if p and os.path.isdir(p)), None)
+
+    script_path = None
+    if repo_path:
+        candidate_script = os.path.join(repo_path, "inference.py")
+        if os.path.isfile(candidate_script):
+            script_path = candidate_script
+
+    checkpoint_candidates = [
+        os.getenv("WAV2LIP_CHECKPOINT_PATH"),
+        os.path.join(repo_path, "checkpoints", "wav2lip_gan.pth") if repo_path else None,
+        os.path.join(repo_path, "checkpoints", "wav2lip.pth") if repo_path else None,
+        os.path.join(repo_path, "wav2lip_gan.pth") if repo_path else None,
+        os.path.join(os.getcwd(), "checkpoints", "wav2lip_gan.pth"),
+    ]
+    checkpoint_path = next((p for p in checkpoint_candidates if p and os.path.isfile(p)), None)
+
+    ready = bool(repo_path and script_path and checkpoint_path)
+
+    return {
+        "ready": ready,
+        "repo_path": repo_path,
+        "script_path": script_path,
+        "checkpoint_path": checkpoint_path,
+    }
+
+
+def get_wav2lip_runtime_profile():
+    """Return runtime tuning profile for Wav2Lip CLI based on available hardware."""
+    force_cpu = str(os.getenv("WAV2LIP_FORCE_CPU", "0")).strip() in {"1", "true", "True", "yes", "YES"}
+    has_gpu = (shutil.which("nvidia-smi") is not None) and not force_cpu
+
+    if has_gpu:
+        return {
+            "mode": "GPU",
+            "face_det_batch_size": "32",
+            "wav2lip_batch_size": "128",
+            "resize_factor": "1",
+        }
+
+    return {
+        "mode": "CPU",
+        "face_det_batch_size": "8",
+        "wav2lip_batch_size": "32",
+        "resize_factor": "2",
+    }
+
+
+def run_wav2lip_cli(face_image_path, audio_path, output_video_path, width, height, fps=24):
+    """Run Wav2Lip inference.py via CLI with production-friendly flags and post-process output."""
+    setup = get_wav2lip_setup_status()
+    if not setup["ready"]:
+        return False
+
+    runtime = get_wav2lip_runtime_profile()
+    st.session_state["face_video_runtime_mode"] = runtime["mode"]
+
+    temp_face_video = f"face_videos/temp_w2l_face_{uuid.uuid4().hex[:8]}.mp4"
+    temp_raw_output = f"face_videos/temp_w2l_raw_{uuid.uuid4().hex[:8]}.mp4"
+    temp_final_output = f"face_videos/temp_w2l_final_{uuid.uuid4().hex[:8]}.mp4"
+
+    try:
+        safe_remove_file(temp_face_video)
+        safe_remove_file(temp_raw_output)
+        safe_remove_file(temp_final_output)
+
+        audio_duration = max(1.0, float(get_audio_duration(audio_path) or 1.0))
+
+        subprocess.run(
+            [
+                'ffmpeg', '-y', '-loop', '1', '-i', face_image_path,
+                '-t', str(audio_duration + 0.15),
+                '-vf', f"scale={width}:{height}:force_original_aspect_ratio=decrease,pad={width}:{height}:(ow-iw)/2:(oh-ih)/2,setsar=1",
+                '-r', str(fps), '-pix_fmt', 'yuv420p', '-c:v', 'libx264', '-preset', 'fast', temp_face_video
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=True
+        )
+
+        optimized_cmd = [
+            sys.executable,
+            setup["script_path"],
+            '--checkpoint_path', setup["checkpoint_path"],
+            '--face', temp_face_video,
+            '--audio', audio_path,
+            '--outfile', temp_raw_output,
+            '--pads', '0', '20', '0', '0',
+            '--face_det_batch_size', runtime["face_det_batch_size"],
+            '--wav2lip_batch_size', runtime["wav2lip_batch_size"],
+            '--resize_factor', runtime["resize_factor"],
+            '--nosmooth'
+        ]
+
+        result = subprocess.run(optimized_cmd, cwd=setup["repo_path"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        if result.returncode != 0 or not os.path.exists(temp_raw_output):
+            fallback_cmd = [
+                sys.executable,
+                setup["script_path"],
+                '--checkpoint_path', setup["checkpoint_path"],
+                '--face', temp_face_video,
+                '--audio', audio_path,
+                '--outfile', temp_raw_output,
+            ]
+            result = subprocess.run(fallback_cmd, cwd=setup["repo_path"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            if result.returncode != 0 or not os.path.exists(temp_raw_output):
+                logger.warning(f"Wav2Lip CLI failed: {(result.stderr or '')[:500]}")
+                return False
+
+        subprocess.run(
+            [
+                'ffmpeg', '-y', '-i', temp_raw_output, '-i', audio_path,
+                '-vf', f"scale={width}:{height}:force_original_aspect_ratio=decrease,pad={width}:{height}:(ow-iw)/2:(oh-ih)/2,setsar=1",
+                '-c:v', 'libx264', '-preset', 'medium', '-crf', '20',
+                '-c:a', 'aac', '-shortest', temp_final_output
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=True
+        )
+
+        if os.path.exists(temp_final_output) and os.path.getsize(temp_final_output) > 1000:
+            shutil.move(temp_final_output, output_video_path)
+            return True
+        return False
+
+    except Exception as e:
+        logger.warning(f"Wav2Lip CLI integration failed: {e}")
+        return False
+    finally:
+        safe_remove_file(temp_face_video)
+        safe_remove_file(temp_raw_output)
+        safe_remove_file(temp_final_output)
+
 def run_lip_sync_pipeline(face_image_path, audio_path, output_video_path, width, height, duration=10, emotion="neutral", camera_angle="front"):
     safe_remove_file(output_video_path)
     try:
-        import importlib
-        if importlib.util.find_spec("wav2lip") or importlib.util.find_spec("Wav2Lip"):
-            try:
-                from wav2lip import inference as wav2lip_inference
-                logger.info("Attempting Wav2Lip audio-driven lip sync")
-                wav2lip_inference.sync(face=face_image_path, audio=audio_path, output=output_video_path, size=(width, height), fps=24)
-                if os.path.exists(output_video_path) and os.path.getsize(output_video_path) > 1000:
-                    return True
-            except Exception as e:
-                logger.warning(f"Wav2Lip sync failed: {e}")
-        if importlib.util.find_spec("sadtalker") or importlib.util.find_spec("SadTalker"):
-            try:
-                from sadtalker import SadTalker
-                logger.info("Attempting SadTalker audio-driven lip sync")
-                model = SadTalker()
-                model.generate(source_image=face_image_path, driving_audio=audio_path, output_path=output_video_path, size=(width, height), emotion=emotion, camera_angle=camera_angle)
-                if os.path.exists(output_video_path) and os.path.getsize(output_video_path) > 1000:
-                    return True
-            except Exception as e:
-                logger.warning(f"SadTalker sync failed: {e}")
-        if importlib.util.find_spec("liveportrait") or importlib.util.find_spec("LivePortrait"):
-            try:
-                from liveportrait import LivePortrait
-                logger.info("Attempting LivePortrait audio-driven lip sync")
-                portrait = LivePortrait()
-                portrait.generate(source_image=face_image_path, driving_audio=audio_path, output_video=output_video_path, resolution=(width, height), emotion=emotion, camera_angle=camera_angle)
-                if os.path.exists(output_video_path) and os.path.getsize(output_video_path) > 1000:
-                    return True
-            except Exception as e:
-                logger.warning(f"LivePortrait sync failed: {e}")
+        st.session_state["face_video_engine_used"] = "Initializing..."
+        setup = get_wav2lip_setup_status()
+        if setup["ready"]:
+            logger.info("Attempting Wav2Lip production CLI lip sync")
+            if run_wav2lip_cli(face_image_path, audio_path, output_video_path, width, height, fps=24):
+                st.session_state["face_video_engine_used"] = "Wav2Lip (Production CLI)"
+                return True
+            logger.warning("Wav2Lip production path failed. Falling back to built-in lip-only mode.")
+
+        # Built-in fallback: animate only lip region from audio energy (no head/camera motion).
+        logger.info("Using built-in audio-driven lip-only fallback.")
+        if generate_audio_driven_lip_only_video(face_image_path, audio_path, output_video_path, width, height, fps=24):
+            st.session_state["face_video_engine_used"] = "Built-in Lip-Only Fallback"
+            st.session_state["face_video_runtime_mode"] = "CPU"
+            return True
+
+        logger.warning("No strict lip-sync backend available. Install/configure Wav2Lip for best quality.")
+        st.session_state["face_video_engine_used"] = "No Engine Available"
     except Exception as e:
         logger.warning(f"Lip sync pipeline error: {e}")
+        st.session_state["face_video_engine_used"] = "Engine Error"
     return False
+
+
+def generate_audio_driven_lip_only_video(face_image_path, audio_path, output_video_path, width, height, fps=24):
+    """Fallback lip-sync engine: keeps head static and animates only mouth region from audio energy."""
+    temp_wav = f"face_videos/temp_audio_{uuid.uuid4().hex[:8]}.wav"
+    temp_video = f"face_videos/temp_lips_{uuid.uuid4().hex[:8]}.mp4"
+    temp_muxed = f"face_videos/temp_lips_mux_{uuid.uuid4().hex[:8]}.mp4"
+
+    try:
+        safe_remove_file(temp_wav)
+        safe_remove_file(temp_video)
+        safe_remove_file(temp_muxed)
+
+        # Convert any input audio to mono PCM WAV for simple frame-level energy extraction.
+        subprocess.run(
+            ['ffmpeg', '-y', '-i', audio_path, '-ar', '16000', '-ac', '1', '-c:a', 'pcm_s16le', temp_wav],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=True
+        )
+
+        import wave
+        import struct
+
+        with wave.open(temp_wav, 'rb') as wf:
+            n_frames = wf.getnframes()
+            sample_rate = wf.getframerate()
+            raw_data = wf.readframes(n_frames)
+
+        if not raw_data:
+            return False
+
+        total_samples = len(raw_data) // 2
+        if total_samples == 0:
+            return False
+
+        samples = struct.unpack('<' + 'h' * total_samples, raw_data)
+        samples_per_frame = max(1, int(sample_rate / fps))
+        frame_energies = []
+        for i in range(0, total_samples, samples_per_frame):
+            chunk = samples[i:i + samples_per_frame]
+            if not chunk:
+                break
+            rms = (sum((s * s) for s in chunk) / max(1, len(chunk))) ** 0.5
+            frame_energies.append(rms)
+
+        if not frame_energies:
+            return False
+
+        max_energy = max(frame_energies) or 1.0
+        frame_energies = [min(1.0, e / max_energy) for e in frame_energies]
+
+        base_img = cv2.imread(face_image_path)
+        if base_img is None:
+            return False
+        base_img = cv2.resize(base_img, (width, height), interpolation=cv2.INTER_AREA)
+
+        # Detect face once and derive a stable mouth ROI to avoid full-head motion.
+        face_x, face_y, face_w, face_h = 0, 0, width, height
+        try:
+            gray = cv2.cvtColor(base_img, cv2.COLOR_BGR2GRAY)
+            cascade_path = cv2.data.haarcascades + 'haarcascade_frontalface_default.xml'
+            detector = cv2.CascadeClassifier(cascade_path)
+            faces = detector.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(60, 60))
+            if len(faces) > 0:
+                face_x, face_y, face_w, face_h = max(faces, key=lambda f: f[2] * f[3])
+        except Exception:
+            pass
+
+        mouth_w = int(face_w * 0.42)
+        mouth_h = int(face_h * 0.16)
+        mouth_x = int(face_x + (face_w - mouth_w) * 0.5)
+        mouth_y = int(face_y + face_h * 0.66)
+
+        mouth_x = max(0, min(width - mouth_w, mouth_x))
+        mouth_y = max(0, min(height - mouth_h, mouth_y))
+
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        writer = cv2.VideoWriter(temp_video, fourcc, float(fps), (width, height))
+
+        if not writer.isOpened():
+            return False
+
+        for energy in frame_energies:
+            frame = base_img.copy()
+            roi = frame[mouth_y:mouth_y + mouth_h, mouth_x:mouth_x + mouth_w]
+            if roi.size > 0:
+                scale = 1.0 + (0.28 * float(energy))
+                scaled_h = max(1, int(mouth_h * scale))
+                stretched = cv2.resize(roi, (mouth_w, scaled_h), interpolation=cv2.INTER_LINEAR)
+                if scaled_h > mouth_h:
+                    start = (scaled_h - mouth_h) // 2
+                    stretched = stretched[start:start + mouth_h, :]
+                else:
+                    pad = mouth_h - scaled_h
+                    stretched = cv2.copyMakeBorder(stretched, pad // 2, pad - (pad // 2), 0, 0, cv2.BORDER_REPLICATE)
+                frame[mouth_y:mouth_y + mouth_h, mouth_x:mouth_x + mouth_w] = stretched
+            writer.write(frame)
+
+        writer.release()
+
+        subprocess.run(
+            ['ffmpeg', '-y', '-i', temp_video, '-i', audio_path, '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-shortest', temp_muxed],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=True
+        )
+
+        if os.path.exists(temp_muxed) and os.path.getsize(temp_muxed) > 1000:
+            shutil.move(temp_muxed, output_video_path)
+            return True
+        return False
+
+    except Exception as e:
+        logger.warning(f"Audio-driven lip-only fallback failed: {e}")
+        return False
+    finally:
+        safe_remove_file(temp_wav)
+        safe_remove_file(temp_video)
+        safe_remove_file(temp_muxed)
 
 def generate_face_video(prompt, face_image_path, duration=30, emotion="neutral", camera_angle="front", quality="Standard"):
     if not face_image_path or not os.path.exists(face_image_path):
@@ -5920,13 +6168,21 @@ def run_face_video_mode():
     st.markdown("""
         <div style="background: rgba(18, 19, 26, 0.85); border-radius: 12px; border: 1px solid rgba(255,192,203,0.15); padding: 20px; margin-bottom: 20px;">
             <h3 style="font-family: 'Orbitron'; font-size: 16px; color: #FFC0CB; margin: 0 0 5px 0;">👤 Face Video Generator</h3>
-            <p style="color: #94a3b8; font-size: 12px; margin: 0;"> AI-powered face animation with lip sync, emotion control, and camera angles </p>
+            <p style="color: #94a3b8; font-size: 12px; margin: 0;"> Professional lip-sync only mode: no head/body motion, just natural speaking lips </p>
         </div>
     """, unsafe_allow_html=True)
     fv_col1, fv_col2 = st.columns([1.1, 1.4], gap="medium")
     with fv_col1:
         with st.container(border=True):
             st.markdown("<h4 style='font-family: Orbitron; font-size: 13px; color: #FFC0CB; margin-bottom: 15px;'>⚙️ FACE VIDEO PARAMETERS</h4>", unsafe_allow_html=True)
+            wav2lip_setup = get_wav2lip_setup_status()
+            runtime_profile = get_wav2lip_runtime_profile()
+            if wav2lip_setup.get("ready"):
+                st.success("✅ Pro backend active: Wav2Lip production inference is ready.")
+                st.caption(f"Runtime profile: {runtime_profile['mode']} | face_det_batch={runtime_profile['face_det_batch_size']} | wav_batch={runtime_profile['wav2lip_batch_size']}")
+            else:
+                st.warning("⚠️ Pro backend not fully configured. Running built-in lip-only fallback.")
+                st.caption("Set WAV2LIP_REPO_PATH and WAV2LIP_CHECKPOINT_PATH to enable best quality lip-sync.")
             st.markdown("<div class='compact-label'>📷 CAMERA MODE</div>", unsafe_allow_html=True)
             camera_mode = st.toggle("📷 Use Camera (Take Photo Directly)", value=False, key="fv_camera_mode")
             if camera_mode:
@@ -5962,16 +6218,16 @@ def run_face_video_mode():
                     st.image(face_path, caption="Uploaded Face Image", use_container_width=True)
             st.markdown("---")
             st.markdown("<div class='face-controls-grid'>", unsafe_allow_html=True)
-            st.markdown("""<div class='face-control-item'><div class='label'>😊 Emotion</div><div class='value'>Select Below</div></div>""", unsafe_allow_html=True)
-            st.markdown("""<div class='face-control-item'><div class='label'>🎥 Camera Angle</div><div class='value'>Select Below</div></div>""", unsafe_allow_html=True)
+            st.markdown("""<div class='face-control-item'><div class='label'>👄 Mode</div><div class='value'>Lip-Sync Only</div></div>""", unsafe_allow_html=True)
+            st.markdown("""<div class='face-control-item'><div class='label'>🎥 Motion</div><div class='value'>Disabled</div></div>""", unsafe_allow_html=True)
             st.markdown("""<div class='face-control-item'><div class='label'>⏱️ Duration</div><div class='value'>Select Below</div></div>""", unsafe_allow_html=True)
             st.markdown("""<div class='face-control-item'><div class='label'>📊 Quality</div><div class='value'>Select Below</div></div>""", unsafe_allow_html=True)
             st.markdown("</div>", unsafe_allow_html=True)
-            col_emote, col_cam, col_dur, col_qual = st.columns(4)
-            with col_emote:
-                emotion = st.selectbox("Emotion:", ["neutral", "happy", "sad", "angry", "surprised", "excited"], key="fv_emotion")
-            with col_cam:
-                camera_angle = st.selectbox("Camera Angle:", ["front", "left", "right", "up", "down", "extreme_left", "extreme_right"], key="fv_camera")
+            col_mode, col_motion, col_dur, col_qual = st.columns(4)
+            with col_mode:
+                st.selectbox("Mode:", ["Lip-Sync Only"], key="fv_mode", disabled=True)
+            with col_motion:
+                st.selectbox("Motion:", ["No Head Motion"], key="fv_motion", disabled=True)
             with col_dur:
                 video_duration = st.select_slider("Duration (seconds)", options=[5, 10, 15, 20, 30, 45, 60], value=10, key="fv_duration")
             with col_qual:
@@ -5990,8 +6246,8 @@ def run_face_video_mode():
                     elif not st.session_state.get("face_image_upload") or not os.path.exists(st.session_state["face_image_upload"]):
                         st.error("Please upload a face image or take a photo using camera mode.")
                     else:
-                        with st.spinner(f"Generating {quality} face video with {emotion} expression and {camera_angle} angle..."):
-                            video_path = generate_face_video(face_prompt, st.session_state["face_image_upload"], video_duration, emotion=emotion, camera_angle=camera_angle, quality=quality)
+                        with st.spinner(f"Generating {quality} lip-sync face video (motion locked)..."):
+                            video_path = generate_face_video(face_prompt, st.session_state["face_image_upload"], video_duration, quality=quality)
                             if video_path and os.path.exists(video_path):
                                 st.session_state["active_face_video"] = video_path
                                 timestamp = time.strftime("%Y%m%d_%H%M%S")
@@ -6001,12 +6257,15 @@ def run_face_video_mode():
                                 st.toast(f"Face video generated successfully in {quality} quality!")
                                 st.rerun()
                             else:
-                                st.error("Face video generation failed. Please try again.")
+                                st.error("Lip-sync generation failed. Please ensure Wav2Lip backend is available and try again.")
     with fv_col2:
         with st.container(border=True):
             st.markdown("<h3 style='font-family: Orbitron; font-size: 15px; color: #FFC0CB; margin-bottom: 15px; letter-spacing: 0.5px;'>👤 FACE VIDEO PLAYER</h3>", unsafe_allow_html=True)
             active_face_video = st.session_state.get("active_face_video")
             if active_face_video and os.path.exists(active_face_video):
+                engine_used = st.session_state.get("face_video_engine_used", "Unknown")
+                runtime_mode = st.session_state.get("face_video_runtime_mode", "Unknown")
+                st.caption(f"Engine used: {engine_used} | Runtime: {runtime_mode}")
                 st.video(active_face_video, format="video/mp4", autoplay=False, loop=True, muted=False)
                 st.markdown("<br>", unsafe_allow_html=True)
                 col_dl, col_clr = st.columns(2)
@@ -6024,8 +6283,8 @@ def run_face_video_mode():
                     <div class="canvas-container-box" style="height: 380px; min-height: 380px; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #64748b; text-align: center; padding: 12px; overflow: hidden;">
                         <span style="font-size: 50px; margin-bottom: 12px; filter: drop-shadow(0 0 10px rgba(236, 72, 153, 0.3));">👤</span>
                         <p style="font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 500; color: #FFC0CB; margin: 0;">Face video will render here</p>
-                        <p style="font-size: 11px; color: #a0a0a0; max-width:400px; text-align:center; margin-top: 5px; line-height: 1.4;">Upload a face image or use camera, set emotion and camera angle, then generate.</p>
-                        <p style="font-size: 10px; color: #EC4899; margin-top: 5px;">⚡ Powered by ElevenLabs voice + Lip Sync</p>
+                        <p style="font-size: 11px; color: #a0a0a0; max-width:400px; text-align:center; margin-top: 5px; line-height: 1.4;">Upload face image + script and generate a professional lip-sync-only talking face.</p>
+                        <p style="font-size: 10px; color: #EC4899; margin-top: 5px;">⚡ Powered by ElevenLabs voice + Wav2Lip</p>
                     </div>
                 """, unsafe_allow_html=True)
 
