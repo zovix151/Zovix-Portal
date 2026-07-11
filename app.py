@@ -792,6 +792,12 @@ if "face_video_engine_used" not in st.session_state:
     st.session_state["face_video_engine_used"] = "Not generated yet"
 if "face_video_runtime_mode" not in st.session_state:
     st.session_state["face_video_runtime_mode"] = "Unknown"
+if "active_expressive_face_video" not in st.session_state:
+    st.session_state["active_expressive_face_video"] = None
+if "expressive_face_engine_used" not in st.session_state:
+    st.session_state["expressive_face_engine_used"] = "Not generated yet"
+if "expressive_face_runtime_mode" not in st.session_state:
+    st.session_state["expressive_face_runtime_mode"] = "Unknown"
 if "face_image_upload" not in st.session_state:
     st.session_state["face_image_upload"] = None
 if "user_gemini_api_key" not in st.session_state:
@@ -988,6 +994,7 @@ LANGUAGE_VOICE_MAP = {
 
 BASE_BURN_RATE = {
     "Face Video Generator": 4,
+    "Expressive Face Video": 5,
     "Cinematic Engine": 4,
     "Creative Workshop": 3,
     "AI Agent": 2,
@@ -1002,7 +1009,7 @@ BASE_BURN_RATE = {
 
 def calculate_tokens(mode_name: str, selected_quality: str) -> int:
     base_cost = BASE_BURN_RATE.get(mode_name, 2)
-    heavy_engines = ["Face Video Generator", "Cinematic Engine", "Live Emotion", "Video Editor"]
+    heavy_engines = ["Face Video Generator", "Expressive Face Video", "Cinematic Engine", "Live Emotion", "Video Editor"]
     if selected_quality in ["High", "Pro", "Ultra-HD", "4K"]:
         return base_cost + 2 if mode_name in heavy_engines else base_cost + 1
     elif selected_quality in ["HD", "Premium"]:
@@ -4648,6 +4655,258 @@ def run_lip_sync_pipeline(face_image_path, audio_path, output_video_path, width,
     return False
 
 
+def get_expressive_setup_status():
+    """Probe local LivePortrait/SadTalker repositories and key runtime artifacts."""
+    default_liveportrait = r"C:\Zovix-Clean\LivePortrait"
+    default_sadtalker = r"C:\Zovix-Clean\SadTalker"
+
+    liveportrait_repo = _normalize_env_path(os.getenv("LIVEPORTRAIT_REPO_PATH")) or default_liveportrait
+    sadtalker_repo = _normalize_env_path(os.getenv("SADTALKER_REPO_PATH")) or default_sadtalker
+
+    liveportrait_scripts = [
+        os.path.join(liveportrait_repo, "inference.py"),
+        os.path.join(liveportrait_repo, "app.py"),
+    ]
+    sadtalker_scripts = [
+        os.path.join(sadtalker_repo, "inference.py"),
+        os.path.join(sadtalker_repo, "inference_cli.py"),
+    ]
+
+    liveportrait_script = next((p for p in liveportrait_scripts if os.path.isfile(p)), None)
+    sadtalker_script = next((p for p in sadtalker_scripts if os.path.isfile(p)), None)
+
+    has_gpu = shutil.which("nvidia-smi") is not None
+
+    return {
+        "liveportrait_repo": liveportrait_repo,
+        "liveportrait_script": liveportrait_script,
+        "liveportrait_ready": bool(liveportrait_script),
+        "sadtalker_repo": sadtalker_repo,
+        "sadtalker_script": sadtalker_script,
+        "sadtalker_ready": bool(sadtalker_script),
+        "runtime_mode": "GPU" if has_gpu else "CPU",
+        "any_ready": bool(liveportrait_script or sadtalker_script),
+    }
+
+
+def _discover_latest_generated_video(folder_path):
+    if not folder_path or not os.path.isdir(folder_path):
+        return None
+    candidates = []
+    for root, _, files in os.walk(folder_path):
+        for f_name in files:
+            if f_name.lower().endswith(".mp4"):
+                full_path = os.path.join(root, f_name)
+                try:
+                    candidates.append((os.path.getmtime(full_path), full_path))
+                except Exception:
+                    continue
+    if not candidates:
+        return None
+    candidates.sort(key=lambda x: x[0], reverse=True)
+    return candidates[0][1]
+
+
+def _normalize_face_video_output(input_video_path, audio_path, output_video_path, width, height):
+    safe_remove_file(output_video_path)
+    try:
+        subprocess.run(
+            [
+                'ffmpeg', '-y', '-i', input_video_path, '-i', audio_path,
+                '-vf', f"scale={width}:{height}:force_original_aspect_ratio=decrease,pad={width}:{height}:(ow-iw)/2:(oh-ih)/2,setsar=1",
+                '-c:v', 'libx264', '-preset', 'medium', '-crf', '20',
+                '-c:a', 'aac', '-shortest', output_video_path
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=True,
+        )
+        return os.path.exists(output_video_path) and os.path.getsize(output_video_path) > 1000
+    except Exception:
+        return False
+
+
+def run_liveportrait_cli(face_image_path, audio_path, output_video_path, width, height, duration=10):
+    """Run LivePortrait inference with best-effort command variants."""
+    setup = get_expressive_setup_status()
+    script_path = setup.get("liveportrait_script")
+    repo_path = setup.get("liveportrait_repo")
+    if not script_path or not repo_path:
+        return False
+
+    temp_out_dir = os.path.join("face_videos", f"liveportrait_out_{uuid.uuid4().hex[:8]}")
+    os.makedirs(temp_out_dir, exist_ok=True)
+
+    command_candidates = [
+        [
+            sys.executable, script_path,
+            '--source', face_image_path,
+            '--driving', audio_path,
+            '--output-dir', temp_out_dir,
+            '--driving_multiplier', '1.0',
+        ],
+        [
+            sys.executable, script_path,
+            '--source_image', face_image_path,
+            '--driving_audio', audio_path,
+            '--output', temp_out_dir,
+        ],
+    ]
+
+    try:
+        for cmd in command_candidates:
+            result = subprocess.run(cmd, cwd=repo_path, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            if result.returncode != 0:
+                continue
+
+            candidate_video = _discover_latest_generated_video(temp_out_dir)
+            if candidate_video and _normalize_face_video_output(candidate_video, audio_path, output_video_path, width, height):
+                return True
+        return False
+    except Exception as e:
+        logger.warning(f"LivePortrait CLI run failed: {e}")
+        return False
+    finally:
+        try:
+            shutil.rmtree(temp_out_dir, ignore_errors=True)
+        except Exception:
+            pass
+
+
+def run_sadtalker_cli(face_image_path, audio_path, output_video_path, width, height, duration=10):
+    """Run SadTalker inference with best-effort command variants."""
+    setup = get_expressive_setup_status()
+    script_path = setup.get("sadtalker_script")
+    repo_path = setup.get("sadtalker_repo")
+    if not script_path or not repo_path:
+        return False
+
+    temp_out_dir = os.path.join("face_videos", f"sadtalker_out_{uuid.uuid4().hex[:8]}")
+    os.makedirs(temp_out_dir, exist_ok=True)
+
+    command_candidates = [
+        [
+            sys.executable, script_path,
+            '--driven_audio', audio_path,
+            '--source_image', face_image_path,
+            '--result_dir', temp_out_dir,
+            '--still',
+            '--preprocess', 'full',
+            '--enhancer', 'gfpgan',
+        ],
+        [
+            sys.executable, script_path,
+            '--source_image', face_image_path,
+            '--driven_audio', audio_path,
+            '--output', temp_out_dir,
+        ],
+    ]
+
+    try:
+        for cmd in command_candidates:
+            result = subprocess.run(cmd, cwd=repo_path, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            if result.returncode != 0:
+                continue
+
+            candidate_video = _discover_latest_generated_video(temp_out_dir)
+            if candidate_video and _normalize_face_video_output(candidate_video, audio_path, output_video_path, width, height):
+                return True
+        return False
+    except Exception as e:
+        logger.warning(f"SadTalker CLI run failed: {e}")
+        return False
+    finally:
+        try:
+            shutil.rmtree(temp_out_dir, ignore_errors=True)
+        except Exception:
+            pass
+
+
+def run_expressive_face_pipeline(face_image_path, audio_path, output_video_path, width, height, duration=10, preferred_engine="Auto (LivePortrait → SadTalker)"):
+    safe_remove_file(output_video_path)
+    setup = get_expressive_setup_status()
+    st.session_state["expressive_face_runtime_mode"] = setup.get("runtime_mode", "Unknown")
+    st.session_state["expressive_face_engine_used"] = "Initializing..."
+
+    try:
+        engine_order = []
+        if preferred_engine == "LivePortrait Only":
+            engine_order = ["LivePortrait"]
+        elif preferred_engine == "SadTalker Only":
+            engine_order = ["SadTalker"]
+        elif preferred_engine == "Wav2Lip Fallback":
+            engine_order = ["Wav2Lip"]
+        else:
+            engine_order = ["LivePortrait", "SadTalker", "Wav2Lip"]
+
+        for engine_name in engine_order:
+            if engine_name == "LivePortrait" and setup.get("liveportrait_ready"):
+                if run_liveportrait_cli(face_image_path, audio_path, output_video_path, width, height, duration=duration):
+                    st.session_state["expressive_face_engine_used"] = "LivePortrait"
+                    return True
+            elif engine_name == "SadTalker" and setup.get("sadtalker_ready"):
+                if run_sadtalker_cli(face_image_path, audio_path, output_video_path, width, height, duration=duration):
+                    st.session_state["expressive_face_engine_used"] = "SadTalker"
+                    return True
+            elif engine_name == "Wav2Lip":
+                if run_lip_sync_pipeline(face_image_path, audio_path, output_video_path, width, height, duration=duration):
+                    st.session_state["expressive_face_engine_used"] = f"{st.session_state.get('face_video_engine_used', 'Wav2Lip')}"
+                    return True
+
+        st.session_state["expressive_face_engine_used"] = "No Engine Available"
+        return False
+    except Exception as e:
+        logger.warning(f"Expressive face pipeline error: {e}")
+        st.session_state["expressive_face_engine_used"] = "Engine Error"
+        return False
+
+
+def generate_expressive_face_video(prompt, face_image_path, duration=30, emotion="neutral", camera_angle="front", quality="HD", preferred_engine="Auto (LivePortrait → SadTalker)"):
+    if not face_image_path or not os.path.exists(face_image_path):
+        return None
+
+    audio_path = f"face_videos/voice_{uuid.uuid4().hex[:8]}.mp3"
+    voice_id = "21m00Tcm4TlvDq8ikWAM"
+    audio_success = generate_elevenlabs_audio_for_face(prompt, audio_path, voice_id)
+    if not audio_success:
+        try:
+            AudioEngine.run_fallback_tts(
+                text=prompt,
+                output_filename=audio_path,
+                language_choice=st.session_state.get("language_choice", "🇮🇳 Hinglish"),
+                voice_profile=st.session_state.get("voice_profile", "Drew (Premium Male Voice)")
+            )
+            audio_success = os.path.exists(audio_path) and os.path.getsize(audio_path) > 0
+        except Exception:
+            audio_success = False
+
+    if not audio_success:
+        create_emergency_silent_audio(audio_path, duration)
+
+    quality_settings = {
+        "Standard": (512, 512),
+        "HD": (768, 768),
+        "4K": (1024, 1024),
+    }
+    out_w, out_h = quality_settings.get(quality, (768, 768))
+    output_video_path = f"face_videos/expressive_face_video_{quality.lower()}_{uuid.uuid4().hex[:8]}.mp4"
+
+    try:
+        if run_expressive_face_pipeline(
+            face_image_path,
+            audio_path,
+            output_video_path,
+            out_w,
+            out_h,
+            duration=duration,
+            preferred_engine=preferred_engine,
+        ):
+            return output_video_path
+        return None
+    finally:
+        safe_remove_file(audio_path)
+
+
 def generate_audio_driven_lip_only_video(face_image_path, audio_path, output_video_path, width, height, fps=24):
     """Fallback lip-sync engine: keeps head static and animates only mouth region from audio energy."""
     temp_wav = f"face_videos/temp_audio_{uuid.uuid4().hex[:8]}.wav"
@@ -6404,6 +6663,136 @@ def run_face_video_mode():
                         <p style="font-size: 10px; color: #EC4899; margin-top: 5px;">⚡ Powered by ElevenLabs voice + Wav2Lip</p>
                     </div>
                 """, unsafe_allow_html=True)
+
+
+def run_expressive_face_video_mode():
+    st.markdown("""
+        <div style="background: rgba(18, 19, 26, 0.85); border-radius: 12px; border: 1px solid rgba(255,192,203,0.15); padding: 20px; margin-bottom: 20px;">
+            <h3 style="font-family: 'Orbitron'; font-size: 16px; color: #FFC0CB; margin: 0 0 5px 0;">🧬 Expressive Face Video</h3>
+            <p style="color: #94a3b8; font-size: 12px; margin: 0;">Natural eye blinks, eyebrow movement, jaw motion and full-face expressions using LivePortrait/SadTalker style driving.</p>
+        </div>
+    """, unsafe_allow_html=True)
+
+    efv_col1, efv_col2 = st.columns([1.1, 1.4], gap="medium")
+    with efv_col1:
+        with st.container(border=True):
+            st.markdown("<h4 style='font-family: Orbitron; font-size: 13px; color: #FFC0CB; margin-bottom: 15px;'>⚙️ EXPRESSIVE PARAMETERS</h4>", unsafe_allow_html=True)
+            expressive_setup = get_expressive_setup_status()
+            st.caption(f"Runtime profile: {expressive_setup.get('runtime_mode', 'Unknown')}")
+            if expressive_setup.get("liveportrait_ready"):
+                st.success("✅ LivePortrait backend detected.")
+            else:
+                st.warning("⚠️ LivePortrait repo/script not detected.")
+            if expressive_setup.get("sadtalker_ready"):
+                st.success("✅ SadTalker backend detected.")
+            else:
+                st.warning("⚠️ SadTalker repo/script not detected.")
+
+            with st.expander("🔧 Setup commands for production inference"):
+                st.code(
+                    """git clone https://github.com/KwaiVGI/LivePortrait.git LivePortrait
+git clone https://github.com/OpenTalker/SadTalker.git SadTalker
+
+# LivePortrait env (inside repo)
+pip install -r LivePortrait/requirements.txt
+
+# SadTalker env (inside repo)
+pip install -r SadTalker/requirements.txt
+
+# Optional quality boosters
+pip install gfpgan realesrgan""",
+                    language="bash",
+                )
+
+            face_image_upload = st.file_uploader("Upload Face Image (JPG, PNG, WEBP)", type=['jpg', 'jpeg', 'png', 'webp'], key="efv_face_upload")
+            if face_image_upload:
+                face_path = f"face_videos/expressive_face_{uuid.uuid4().hex[:8]}.png"
+                with open(face_path, "wb") as f:
+                    f.write(face_image_upload.getbuffer())
+                st.session_state["face_image_upload"] = face_path
+                st.success(f"✅ Face image uploaded: {face_image_upload.name}")
+                st.image(face_path, caption="Uploaded Face Image", use_container_width=True)
+
+            engine_choice = st.selectbox(
+                "Backend Preference",
+                ["Auto (LivePortrait → SadTalker)", "LivePortrait Only", "SadTalker Only", "Wav2Lip Fallback"],
+                key="efv_backend_choice",
+            )
+
+            efv_duration = st.select_slider("Duration (seconds)", options=[5, 10, 15, 20, 30, 45, 60], value=10, key="efv_duration")
+            efv_quality = st.selectbox("Video Quality:", ["Standard", "HD", "4K"], key="efv_quality")
+            efv_prompt = st.text_area(
+                "Video Description / Script:",
+                placeholder="Type natural dialogue so model can animate eyes, eyebrows and jaw in sync with speech...",
+                height=100,
+                key="efv_prompt",
+            )
+
+            if st.button("🧬 Generate Expressive Face Video", key="efv_generate_btn", use_container_width=True):
+                success, required_tokens, message = validate_and_deduct_tokens("Expressive Face Video", efv_quality)
+                if not success:
+                    st.error(message)
+                else:
+                    st.success(message)
+                    if not efv_prompt.strip():
+                        st.error("Please enter a script for expressive face generation.")
+                    elif not st.session_state.get("face_image_upload") or not os.path.exists(st.session_state["face_image_upload"]):
+                        st.error("Please upload a face image first.")
+                    else:
+                        with st.spinner(f"Generating {efv_quality} expressive face video..."):
+                            video_path = generate_expressive_face_video(
+                                efv_prompt,
+                                st.session_state["face_image_upload"],
+                                efv_duration,
+                                quality=efv_quality,
+                                preferred_engine=engine_choice,
+                            )
+                            if video_path and os.path.exists(video_path):
+                                st.session_state["active_expressive_face_video"] = video_path
+                                timestamp = time.strftime("%Y%m%d_%H%M%S")
+                                file_name = f"zovix_expressive_face_video_{efv_quality.lower()}_{timestamp}.mp4"
+                                save_face_video_to_db(
+                                    st.session_state["logged_user"],
+                                    file_name,
+                                    efv_prompt,
+                                    video_path,
+                                    st.session_state["face_image_upload"],
+                                    efv_quality,
+                                )
+                                st.session_state["face_video_history"] = load_face_video_history_db(st.session_state["logged_user"])
+                                st.toast(f"Expressive face video generated in {efv_quality} quality!")
+                                st.rerun()
+                            else:
+                                st.error("Expressive generation failed. Verify LivePortrait/SadTalker setup and try again.")
+
+    with efv_col2:
+        with st.container(border=True):
+            st.markdown("<h3 style='font-family: Orbitron; font-size: 15px; color: #FFC0CB; margin-bottom: 15px; letter-spacing: 0.5px;'>🧬 EXPRESSIVE FACE PLAYER</h3>", unsafe_allow_html=True)
+            active_video = st.session_state.get("active_expressive_face_video")
+            if active_video and os.path.exists(active_video):
+                engine_used = st.session_state.get("expressive_face_engine_used", "Unknown")
+                runtime_mode = st.session_state.get("expressive_face_runtime_mode", "Unknown")
+                st.caption(f"Engine used: {engine_used} | Runtime: {runtime_mode}")
+                st.video(active_video, format="video/mp4", autoplay=False, loop=True, muted=False)
+                col_dl, col_clr = st.columns(2)
+                with col_dl:
+                    with open(active_video, "rb") as f:
+                        video_bytes = f.read()
+                    st.download_button(
+                        label="📥 Download Expressive Video",
+                        data=video_bytes,
+                        file_name=f"zovix_expressive_face_video_{uuid.uuid4().hex[:8]}.mp4",
+                        mime="video/mp4",
+                        use_container_width=True,
+                        key="efv_download_btn",
+                    )
+                with col_clr:
+                    if st.button("🧹 Clear Video", key="efv_clear_btn", use_container_width=True):
+                        safe_remove_file(active_video)
+                        st.session_state["active_expressive_face_video"] = None
+                        st.rerun()
+            else:
+                st.info("No expressive render yet. Upload a face image and generate your first expressive clip.")
 
 # ========================================================
 # 38. AUTH MODALS - IMPROVED
@@ -8254,10 +8643,11 @@ elif st.session_state["current_page"] == "studio":
     
     st.markdown("<div class='compact-label' style='margin-bottom: 8px;'>Active Studio Workspace Mode</div>", unsafe_allow_html=True)
     
-    mode_buttons = ["👤 Face Video", "🎬 Cinematic", "🎨 Creative", "🎬 Editor", "📐 Blueprints", "⚡ Upscaler", "🎨 Draw", "🤖 AI Agent", "🎙️ Sales", "🧠 Dynamic UI", "🎤 Live Voice"]
+    mode_buttons = ["👤 Face Video", "🧬 Expressive Face", "🎬 Cinematic", "🎨 Creative", "🎬 Editor", "📐 Blueprints", "⚡ Upscaler", "🎨 Draw", "🤖 AI Agent", "🎙️ Sales", "🧠 Dynamic UI", "🎤 Live Voice"]
     
     mode_mapping = {
         "Face Video": "Face Video Mode",
+        "Expressive Face": "Expressive Face Video Mode",
         "Cinematic": "Cinematic Engine",
         "Creative": "Creative Workshop Mode",
         "Editor": "Video Editor Mode",
@@ -8279,9 +8669,9 @@ elif st.session_state["current_page"] == "studio":
                     actual_mode = mode_value
                     break
             else:
-                actual_mode = btn_label.replace("👤 ", "").replace("🎬 ", "").replace("🎨 ", "").replace("📐 ", "").replace("⚡ ", "").replace("🤖 ", "").replace("🎙️ ", "").replace("🧠 ", "").replace("🎤 ", "")
+                actual_mode = btn_label.replace("👤 ", "").replace("🧬 ", "").replace("🎬 ", "").replace("🎨 ", "").replace("📐 ", "").replace("⚡ ", "").replace("🤖 ", "").replace("🎙️ ", "").replace("🧠 ", "").replace("🎤 ", "")
             
-            clean_label = btn_label.replace("👤 ", "").replace("🎬 ", "").replace("🎨 ", "").replace("📐 ", "").replace("⚡ ", "").replace("🤖 ", "").replace("🎙️ ", "").replace("🧠 ", "").replace("🎤 ", "")
+            clean_label = btn_label.replace("👤 ", "").replace("🧬 ", "").replace("🎬 ", "").replace("🎨 ", "").replace("📐 ", "").replace("⚡ ", "").replace("🤖 ", "").replace("🎙️ ", "").replace("🧠 ", "").replace("🎤 ", "")
             
             is_selected = (st.session_state["studio_active_mode"] == actual_mode)
             
@@ -8317,6 +8707,8 @@ elif st.session_state["current_page"] == "studio":
         run_video_editor_mode()
     elif st.session_state["studio_active_mode"] == "Face Video Mode":
         run_face_video_mode()
+    elif st.session_state["studio_active_mode"] == "Expressive Face Video Mode":
+        run_expressive_face_video_mode()
     elif st.session_state["studio_active_mode"] == "AI Agent Mode":
         render_ai_agent_ui()
     elif st.session_state["studio_active_mode"] == "AI Sales Mode":
@@ -8344,6 +8736,14 @@ elif st.session_state["current_page"] == "studio":
                     valid_items.append(item)
             gallery_title = "👤 MY FACE VIDEO GENERATIONS"
             no_items_msg = "No face videos created yet. Upload a face image and generate!"
+            display_type = "video"
+        elif current_mode == "Expressive Face Video Mode":
+            for item in face_video_list:
+                file_name = item.get("file_name", "").lower()
+                if os.path.exists(item.get("path", "")) and "expressive_face_video" in file_name:
+                    valid_items.append(item)
+            gallery_title = "🧬 EXPRESSIVE FACE GENERATIONS"
+            no_items_msg = "No expressive face videos created yet. Generate one with LivePortrait/SadTalker."
             display_type = "video"
         elif current_mode == "Cinematic Engine":
             for item in portfolio_renders_list:
@@ -8613,12 +9013,20 @@ elif st.session_state["current_page"] == "studio":
                             add_showcase_item(st.session_state["logged_user"], prompt, img_thumb_path)
                             st.toast("Success! Project shared to community viral showcase board.")
     
-    if st.session_state["studio_active_mode"] == "Face Video Mode":
+    if st.session_state["studio_active_mode"] in {"Face Video Mode", "Expressive Face Video Mode"}:
         st.markdown("<hr style='border-color: rgba(255,255,255,0.08); margin: 30px 0;'>", unsafe_allow_html=True)
-        st.markdown("<h3 style='font-family: Orbitron; font-size: 18px; color: #FFFFFF; margin-bottom: 20px; letter-spacing: 1px;'>👤 FACE VIDEO HISTORY</h3>", unsafe_allow_html=True)
+        history_title = "👤 FACE VIDEO HISTORY" if st.session_state["studio_active_mode"] == "Face Video Mode" else "🧬 EXPRESSIVE FACE VIDEO HISTORY"
+        st.markdown(f"<h3 style='font-family: Orbitron; font-size: 18px; color: #FFFFFF; margin-bottom: 20px; letter-spacing: 1px;'>{history_title}</h3>", unsafe_allow_html=True)
         face_videos = st.session_state.get("face_video_history", [])
+        if st.session_state["studio_active_mode"] == "Expressive Face Video Mode":
+            face_videos = [fv for fv in face_videos if "expressive_face_video" in fv.get("file_name", "").lower()]
+        else:
+            face_videos = [fv for fv in face_videos if "expressive_face_video" not in fv.get("file_name", "").lower()]
         if not face_videos:
-            st.info("No face videos generated yet. Upload a face image and create your first face video!")
+            if st.session_state["studio_active_mode"] == "Expressive Face Video Mode":
+                st.info("No expressive face videos generated yet. Upload a face image and create your first expressive face video!")
+            else:
+                st.info("No face videos generated yet. Upload a face image and create your first face video!")
         else:
             fv_grid = st.columns(3)
             for idx, fv_item in enumerate(face_videos[:6]):
