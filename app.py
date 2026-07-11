@@ -18,11 +18,13 @@ import traceback
 import datetime
 import difflib
 import hashlib
+import io
 import hmac
 import re
 import sys
 import logging
 import pickle
+import tempfile
 try:
     from dotenv import load_dotenv
     HAS_DOTENV = True
@@ -125,6 +127,14 @@ try:
     from huggingface_hub import InferenceClient
 except ImportError:
     InferenceClient = None
+
+try:
+    import replicate
+    HAS_REPLICATE = True
+except ImportError:
+    replicate = None
+    HAS_REPLICATE = False
+    logger.warning("replicate not installed. Face Studio cloud mode will be unavailable.")
 
 try:
     import razorpay
@@ -7180,137 +7190,221 @@ pip install gfpgan realesrgan""",
                 st.info("No expressive render yet. Upload a face image and generate your first expressive clip.")
 
 
+def _extract_video_url_from_replicate_output(output_obj):
+    if isinstance(output_obj, str) and output_obj.startswith("http"):
+        return output_obj
+    if isinstance(output_obj, dict):
+        for key in ["video", "output", "url", "mp4", "result"]:
+            val = output_obj.get(key)
+            found = _extract_video_url_from_replicate_output(val)
+            if found:
+                return found
+    if isinstance(output_obj, (list, tuple)):
+        for item in output_obj:
+            found = _extract_video_url_from_replicate_output(item)
+            if found:
+                return found
+    return None
+
+
+def _run_replicate_face_model(client, model_ref, image_path, audio_path, script_text):
+    input_builders = [
+        lambda i, a, t: {"source_image": i, "driving_audio": a, "script": t},
+        lambda i, a, t: {"image": i, "audio": a, "prompt": t},
+        lambda i, a, t: {"input_image": i, "input_audio": a, "text": t},
+        lambda i, a, t: {"face": i, "audio": a, "text": t},
+    ]
+
+    for build_payload in input_builders:
+        try:
+            with open(image_path, "rb") as img_file, open(audio_path, "rb") as aud_file:
+                payload = build_payload(img_file, aud_file, script_text)
+                output = client.run(model_ref, input=payload)
+            video_url = _extract_video_url_from_replicate_output(output)
+            if video_url:
+                return video_url
+        except Exception as e:
+            logger.warning(f"Replicate model payload attempt failed for {model_ref}: {e}")
+            continue
+    return None
+
+
 def generate_world_face_video(prompt, face_image_path, duration=10, quality="HD", animation_style="Expressive Real Human (No Lip-Only Fallback)", backend_choice="Auto (LivePortrait → SadTalker → Wav2Lip)", motion_level="high", voice_language=None, voice_label=None):
-    """Unified generator that keeps both expressive and lip-sync engines active with intelligent fallback."""
+    """Cloud-only face generation using Replicate models; no local face animation pipeline."""
     if not face_image_path or not os.path.exists(face_image_path):
         return None
 
-    force_face_generation = str(os.getenv("FORCE_FACE_GENERATION", "1")).strip().lower() in {"1", "true", "yes", "on"}
+    if not HAS_REPLICATE:
+        logger.warning("Replicate library is not installed.")
+        return None
 
-    if animation_style == "Lip-Sync Priority (Wav2Lip)":
-        out_path = generate_face_video(
-            prompt,
-            face_image_path,
-            duration=duration,
-            quality=quality,
-            voice_language=voice_language,
-            voice_label=voice_label,
-        )
-        if out_path:
-            return out_path
-        expressive_out = generate_expressive_face_video(
-            prompt,
-            face_image_path,
-            duration=duration,
-            quality=quality,
-            preferred_engine=backend_choice,
-            motion_level=motion_level,
-            voice_language=voice_language,
-            voice_label=voice_label,
-        )
-        if expressive_out:
-            st.session_state["face_video_engine_used"] = st.session_state.get("expressive_face_engine_used", "Expressive Backend")
-            st.session_state["face_video_runtime_mode"] = st.session_state.get("expressive_face_runtime_mode", "Unknown")
-        return expressive_out
-
-    expressive_out = generate_expressive_face_video(
-        prompt,
-        face_image_path,
-        duration=duration,
-        quality=quality,
-        preferred_engine=backend_choice,
-        motion_level=motion_level,
-        voice_language=voice_language,
-        voice_label=voice_label,
+    api_token = (
+        st.session_state.get("replicate_api_key")
+        or REPLICATE_API_KEY
+        or os.getenv("REPLICATE_API_KEY")
     )
-    if expressive_out:
-        st.session_state["face_video_engine_used"] = st.session_state.get("expressive_face_engine_used", "Expressive Backend")
-        st.session_state["face_video_runtime_mode"] = st.session_state.get("expressive_face_runtime_mode", "Unknown")
-        return expressive_out
+    if not api_token:
+        logger.warning("Replicate API key is missing.")
+        return None
 
-    if animation_style == "Auto (Expressive + Lip Sync Fallback)" or force_face_generation:
-        return generate_face_video(
-            prompt,
-            face_image_path,
-            duration=duration,
-            quality=quality,
-            voice_language=voice_language,
-            voice_label=voice_label,
-        )
+    voice_cfg = _resolve_face_voice_config(voice_language=voice_language, voice_label=voice_label)
+    temp_audio = None
+    try:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp_aud:
+            temp_audio = tmp_aud.name
 
-    return None
+        audio_ok = _synthesize_face_audio_strict(prompt, temp_audio, voice_cfg, duration_hint=duration)
+        if not audio_ok:
+            logger.warning("Face audio synthesis failed in strict mode.")
+            return None
+
+        client = replicate.Client(api_token=api_token)
+
+        default_model = str(os.getenv("REPLICATE_FACE_MODEL", "gandhary/liveportrait")).strip()
+        model_candidates = [
+            st.session_state.get("replicate_face_model") or "",
+            default_model,
+            "gandhary/liveportrait",
+            "cjwbw/wav2lip",
+        ]
+
+        deduped = []
+        seen = set()
+        for model in model_candidates:
+            if not model:
+                continue
+            key = model.strip().lower()
+            if key in seen:
+                continue
+            seen.add(key)
+            deduped.append(model.strip())
+
+        for model_ref in deduped:
+            video_url = _run_replicate_face_model(client, model_ref, face_image_path, temp_audio, prompt)
+            if video_url:
+                st.session_state["face_video_engine_used"] = f"Replicate ({model_ref})"
+                st.session_state["face_video_runtime_mode"] = "Cloud"
+                return video_url
+
+        return None
+    except Exception as e:
+        logger.warning(f"Replicate face generation failed: {e}")
+        return None
+    finally:
+        if temp_audio:
+            safe_remove_file(temp_audio)
+
+
+# Legacy local face-engine hooks are intentionally disabled in cloud mode.
+def get_wav2lip_setup_status():
+    return {
+        "ready": False,
+        "repo_path": None,
+        "script_path": None,
+        "checkpoint_path": None,
+        "s3fd_path": None,
+        "s3fd_ready": False,
+        "cwd": os.getcwd(),
+        "app_dir": os.path.dirname(__file__),
+        "forced_mode": False,
+    }
+
+
+def get_wav2lip_runtime_profile():
+    return {
+        "mode": "Cloud",
+        "face_det_batch_size": "0",
+        "wav2lip_batch_size": "0",
+        "resize_factor": "1",
+    }
+
+
+def get_expressive_setup_status():
+    return {
+        "liveportrait_repo": None,
+        "liveportrait_script": None,
+        "liveportrait_python": None,
+        "liveportrait_ready": False,
+        "liveportrait_models_ready": False,
+        "sadtalker_repo": None,
+        "sadtalker_script": None,
+        "sadtalker_python": None,
+        "sadtalker_ready": False,
+        "sadtalker_models_ready": False,
+        "sadtalker_force_ready": False,
+        "runtime_mode": "Cloud",
+        "any_ready": False,
+        "force_enable": False,
+    }
+
+
+def run_wav2lip_cli(face_image_path, audio_path, output_video_path, width, height, fps=24):
+    logger.info("Local Wav2Lip path disabled. Using Replicate cloud generation only.")
+    return False
+
+
+def run_lip_sync_pipeline(face_image_path, audio_path, output_video_path, width, height, duration=10, emotion="neutral", camera_angle="front"):
+    logger.info("Local lip-sync pipeline disabled. Using Replicate cloud generation only.")
+    return False
+
+
+def run_liveportrait_cli(face_image_path, audio_path, output_video_path, width, height, duration=10, motion_level="high"):
+    logger.info("Local LivePortrait path disabled. Using Replicate cloud generation only.")
+    return False
+
+
+def run_sadtalker_cli(face_image_path, audio_path, output_video_path, width, height, duration=10, motion_level="high"):
+    logger.info("Local SadTalker path disabled. Using Replicate cloud generation only.")
+    return False
+
+
+def run_expressive_face_pipeline(face_image_path, audio_path, output_video_path, width, height, duration=10, preferred_engine="Auto (LivePortrait → SadTalker)", motion_level="high"):
+    logger.info("Local expressive pipeline disabled. Using Replicate cloud generation only.")
+    return False
 
 
 def run_unified_face_video_mode():
     st.markdown("""
         <div style="background: rgba(18, 19, 26, 0.85); border-radius: 12px; border: 1px solid rgba(255,192,203,0.15); padding: 20px; margin-bottom: 20px;">
             <h3 style="font-family: 'Orbitron'; font-size: 16px; color: #FFC0CB; margin: 0 0 5px 0;">🌍 Global Face Video Studio</h3>
-            <p style="color: #94a3b8; font-size: 12px; margin: 0;">Single unified mode for any photo/selfie with both natural expressive motion and professional lip-sync active.</p>
+            <p style="color: #94a3b8; font-size: 12px; margin: 0;">Cloud-only Face Studio powered by Replicate. Upload photo, enter script, generate talking face video from cloud URL.</p>
         </div>
     """, unsafe_allow_html=True)
 
     fv_col1, fv_col2 = st.columns([1.1, 1.4], gap="medium")
     with fv_col1:
         with st.container(border=True):
-            st.markdown("<h4 style='font-family: Orbitron; font-size: 13px; color: #FFC0CB; margin-bottom: 15px;'>⚙️ GLOBAL FACE SETTINGS</h4>", unsafe_allow_html=True)
+            st.markdown("<h4 style='font-family: Orbitron; font-size: 13px; color: #FFC0CB; margin-bottom: 15px;'>☁️ REPLICATE FACE STUDIO</h4>", unsafe_allow_html=True)
+            st.caption("Local LivePortrait/SadTalker/Wav2Lip pipeline removed for this studio flow. Generation runs only on Replicate cloud.")
 
-            wav2lip_setup = get_wav2lip_setup_status()
-            expressive_setup = get_expressive_setup_status()
-            runtime_profile = get_wav2lip_runtime_profile()
+            api_key_input = st.text_input(
+                "Enter Replicate API Key",
+                value=st.session_state.get("replicate_api_key", REPLICATE_API_KEY or ""),
+                type="password",
+                key="replicate_api_key_input",
+                help="Paste your Replicate API token. This key is used only for cloud generation requests.",
+            )
+            st.session_state["replicate_api_key"] = (api_key_input or "").strip()
 
-            force_enable_all = st.toggle(
-                "⚡ Force Enable All Backends (Cloud Safe Mode)",
-                value=True,
-                key="unified_force_enable_all",
-                help="Forces ON mode with automatic fallback chain so generation does not stop when one backend is missing.",
+            replicate_model = st.text_input(
+                "Replicate Face Model",
+                value=st.session_state.get("replicate_face_model", os.getenv("REPLICATE_FACE_MODEL", "gandhary/liveportrait")),
+                key="replicate_face_model_input",
+                help="Use a valid Replicate model slug, e.g. gandhary/liveportrait or a compatible wav2lip/liveportrait cloud model.",
             )
+            st.session_state["replicate_face_model"] = (replicate_model or "").strip()
 
-            if force_enable_all:
-                os.environ["EXPRESSIVE_AUTO_SETUP"] = "1"
-                os.environ["WAV2LIP_AUTO_SETUP"] = "1"
-                os.environ["EXPRESSIVE_FORCE_ENABLE"] = "1"
-                os.environ["SADTALKER_FORCE_READY"] = "1"
-                st.session_state["unified_fv_allow_lips_fallback"] = True
-
-            st.caption("Unified Face Resolver: LivePortrait + SadTalker + Wav2Lip")
-            w2l_display_on = bool(wav2lip_setup.get("ready") or force_enable_all)
-            lp_display_on = bool(expressive_setup.get("liveportrait_ready") or force_enable_all)
-            st_display_on = bool(expressive_setup.get("sadtalker_ready") or force_enable_all)
-            st.caption(
-                f"Detected => Wav2Lip={'ON' if w2l_display_on else 'OFF'} | "
-                f"LivePortrait={'ON' if lp_display_on else 'OFF'} | "
-                f"SadTalker={'ON' if st_display_on else 'OFF'}"
-            )
-            if force_enable_all:
-                st.success("Force mode active: all engines are forced ON with automatic fallback routing.")
-            st.caption(
-                f"Resolved repos => LP: {expressive_setup.get('liveportrait_repo')} | ST: {expressive_setup.get('sadtalker_repo')}"
-            )
-            if expressive_setup.get("force_enable"):
-                st.info("EXPRESSIVE_FORCE_ENABLE is ON: readiness is script-based fallback mode.")
-            if expressive_setup.get("sadtalker_force_ready") and not expressive_setup.get("sadtalker_models_ready"):
-                st.info("SADTALKER_FORCE_READY is ON: SadTalker shown as active with script-only bypass.")
-            if not expressive_setup.get("sadtalker_script"):
-                st.warning("SadTalker script missing. Place repo at SadTalker/ or set SADTALKER_REPO_PATH.")
-            if not expressive_setup.get("liveportrait_models_ready"):
-                st.warning("LivePortrait models missing. Download to: LivePortrait/pretrained_weights")
-            if not expressive_setup.get("sadtalker_models_ready"):
-                st.warning("SadTalker checkpoints missing. Download to: SadTalker/checkpoints")
-            st.caption(
-                f"Runtime => Wav2Lip: {runtime_profile['mode']} | Expressive: {expressive_setup.get('runtime_mode', 'Unknown')}"
-            )
+            if not HAS_REPLICATE:
+                st.error("replicate Python library is missing. Install it in requirements for cloud face generation.")
 
             st.markdown("<div class='compact-label'>📷 INPUT MODE</div>", unsafe_allow_html=True)
             camera_mode = st.toggle("📷 Use Camera (Take Selfie)", value=False, key="unified_fv_camera_mode")
             if camera_mode:
                 camera_photo = st.camera_input("Take a Selfie", key="unified_fv_camera_photo")
                 if camera_photo:
-                    face_path = f"face_videos/camera_face_{uuid.uuid4().hex[:8]}.png"
-                    with open(face_path, "wb") as f:
-                        f.write(camera_photo.getbuffer())
-                    st.session_state["face_image_upload"] = face_path
+                    st.session_state["unified_face_image_bytes"] = bytes(camera_photo.getbuffer())
                     st.success("✅ Selfie captured successfully")
-                    st.image(face_path, caption="Captured Selfie", use_container_width=True)
+                    st.image(st.session_state["unified_face_image_bytes"], caption="Captured Selfie", use_container_width=True)
             else:
                 face_image_upload = st.file_uploader(
                     "Upload Face Photo (JPG, PNG, WEBP)",
@@ -7318,38 +7412,9 @@ def run_unified_face_video_mode():
                     key="unified_fv_face_upload",
                 )
                 if face_image_upload:
-                    face_path = f"face_videos/face_{uuid.uuid4().hex[:8]}.png"
-                    with open(face_path, "wb") as f:
-                        f.write(face_image_upload.getbuffer())
-                    st.session_state["face_image_upload"] = face_path
+                    st.session_state["unified_face_image_bytes"] = bytes(face_image_upload.getbuffer())
                     st.success(f"✅ Face image uploaded: {face_image_upload.name}")
-                    st.image(face_path, caption="Uploaded Face", use_container_width=True)
-
-            animation_style = st.selectbox(
-                "Animation Style",
-                [
-                    "Expressive Real Human (No Lip-Only Fallback)",
-                    "Auto (Expressive + Lip Sync Fallback)",
-                    "Lip-Sync Priority (Wav2Lip)",
-                ],
-                key="unified_fv_style",
-            )
-            allow_lip_fallback = st.toggle(
-                "Allow lip-only fallback if expressive fails",
-                value=False,
-                key="unified_fv_allow_lips_fallback",
-            )
-            backend_choice = st.selectbox(
-                "Expressive Backend Preference",
-                [
-                    "Auto (LivePortrait → SadTalker → Wav2Lip)",
-                    "Auto (LivePortrait → SadTalker)",
-                    "LivePortrait Only",
-                    "SadTalker Only",
-                    "Wav2Lip Fallback",
-                ],
-                key="unified_fv_backend_choice",
-            )
+                    st.image(st.session_state["unified_face_image_bytes"], caption="Uploaded Face", use_container_width=True)
 
             face_voice_language = st.selectbox(
                 "Voice Language",
@@ -7365,13 +7430,6 @@ def run_unified_face_video_mode():
                 voice_options,
                 index=voice_options.index(current_face_voice) if voice_options and current_face_voice in voice_options else 0,
                 key="unified_fv_voice_model",
-            )
-
-            motion_level = st.select_slider(
-                "Expression Intensity",
-                options=["low", "medium", "high"],
-                value="high",
-                key="unified_fv_motion_level",
             )
 
             col_dur, col_qual = st.columns(2)
@@ -7395,79 +7453,72 @@ def run_unified_face_video_mode():
                     st.success(message)
                     if not face_prompt.strip():
                         st.error("Please enter a dialogue/script.")
-                    elif not st.session_state.get("face_image_upload") or not os.path.exists(st.session_state["face_image_upload"]):
+                    elif not st.session_state.get("unified_face_image_bytes"):
                         st.error("Please upload a face photo or take a selfie.")
+                    elif not st.session_state.get("replicate_api_key"):
+                        st.error("Please enter a Replicate API key.")
                     else:
                         with st.spinner(f"Generating {quality} global face video..."):
-                            resolved_style = animation_style
-                            resolved_backend = backend_choice
+                            temp_face_path = None
+                            try:
+                                with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp_img:
+                                    tmp_img.write(st.session_state["unified_face_image_bytes"])
+                                    temp_face_path = tmp_img.name
 
-                            if force_enable_all:
-                                resolved_style = "Auto (Expressive + Lip Sync Fallback)"
-                                resolved_backend = "Auto (LivePortrait → SadTalker → Wav2Lip)"
-
-                            if (not allow_lip_fallback) and animation_style == "Auto (Expressive + Lip Sync Fallback)":
-                                resolved_style = "Expressive Real Human (No Lip-Only Fallback)"
-                            if force_enable_all:
-                                resolved_style = "Auto (Expressive + Lip Sync Fallback)"
-
-                            video_path = generate_world_face_video(
-                                face_prompt,
-                                st.session_state["face_image_upload"],
-                                duration=video_duration,
-                                quality=quality,
-                                animation_style=resolved_style,
-                                backend_choice=resolved_backend,
-                                motion_level=motion_level,
-                                voice_language=face_voice_language,
-                                voice_label=face_voice_model,
-                            )
-                            if video_path and os.path.exists(video_path):
-                                st.session_state["active_face_video"] = video_path
-                                timestamp = time.strftime("%Y%m%d_%H%M%S")
-                                file_name = f"zovix_face_studio_{quality.lower()}_{timestamp}.mp4"
-                                save_face_video_to_db(
-                                    st.session_state["logged_user"],
-                                    file_name,
+                                video_url = generate_world_face_video(
                                     face_prompt,
-                                    video_path,
-                                    st.session_state["face_image_upload"],
-                                    quality,
+                                    temp_face_path,
+                                    duration=video_duration,
+                                    quality=quality,
+                                    voice_language=face_voice_language,
+                                    voice_label=face_voice_model,
                                 )
-                                st.session_state["face_video_history"] = load_face_video_history_db(st.session_state["logged_user"])
-                                st.toast(f"Global face video generated in {quality} quality!")
+                            except Exception as e:
+                                logger.warning(f"Face Studio generation exception: {e}")
+                                video_url = None
+                            finally:
+                                if temp_face_path:
+                                    safe_remove_file(temp_face_path)
+
+                            if video_url:
+                                st.session_state["active_face_video_url"] = video_url
+                                st.toast("Cloud face video generated successfully!")
                                 st.rerun()
                             else:
-                                st.error("Face generation failed after forced fallback attempts. Please check ffmpeg runtime and API keys, then retry.")
+                                st.error("Cloud face generation failed. Verify Replicate API key/model and try again.")
 
     with fv_col2:
         with st.container(border=True):
             st.markdown("<h3 style='font-family: Orbitron; font-size: 15px; color: #FFC0CB; margin-bottom: 15px; letter-spacing: 0.5px;'>🌍 GLOBAL FACE PLAYER</h3>", unsafe_allow_html=True)
-            active_face_video = st.session_state.get("active_face_video")
-            if active_face_video and os.path.exists(active_face_video):
+            active_face_video_url = st.session_state.get("active_face_video_url")
+            if active_face_video_url:
                 engine_used = st.session_state.get("face_video_engine_used", "Unknown")
                 runtime_mode = st.session_state.get("face_video_runtime_mode", "Unknown")
                 st.caption(f"Engine used: {engine_used} | Runtime: {runtime_mode}")
-                st.video(active_face_video, format="video/mp4", autoplay=False, loop=True, muted=False)
+                st.video(active_face_video_url, format="video/mp4", autoplay=False, loop=True, muted=False)
                 col_dl, col_clr = st.columns(2)
                 with col_dl:
-                    with open(active_face_video, "rb") as f:
-                        video_bytes = f.read()
-                    st.download_button(
-                        label="📥 Download Global Face Video",
-                        data=video_bytes,
-                        file_name=f"zovix_global_face_{uuid.uuid4().hex[:8]}.mp4",
-                        mime="video/mp4",
-                        use_container_width=True,
-                        key="unified_fv_download_btn",
-                    )
+                    try:
+                        dl = requests.get(active_face_video_url, timeout=30)
+                        if dl.status_code == 200 and len(dl.content) > 1024:
+                            st.download_button(
+                                label="📥 Download Global Face Video",
+                                data=dl.content,
+                                file_name=f"zovix_global_face_{uuid.uuid4().hex[:8]}.mp4",
+                                mime="video/mp4",
+                                use_container_width=True,
+                                key="unified_fv_download_btn",
+                            )
+                        else:
+                            st.info("Download temporarily unavailable. Open video directly from player.")
+                    except Exception:
+                        st.info("Download temporarily unavailable. Open video directly from player.")
                 with col_clr:
                     if st.button("🧹 Clear Video", key="unified_fv_clear_btn", use_container_width=True):
-                        safe_remove_file(active_face_video)
-                        st.session_state["active_face_video"] = None
+                        st.session_state["active_face_video_url"] = None
                         st.rerun()
             else:
-                st.info("No render yet. Upload any photo/selfie and generate your global face video.")
+                st.info("No render yet. Upload a face photo, add script, enter Replicate key, and generate cloud video.")
 
 # ========================================================
 # 38. AUTH MODALS - IMPROVED
