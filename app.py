@@ -6183,6 +6183,18 @@ def run_face_video_mode():
             else:
                 st.warning("⚠️ Pro backend not fully configured. Running built-in lip-only fallback.")
                 st.caption("Set WAV2LIP_REPO_PATH and WAV2LIP_CHECKPOINT_PATH to enable best quality lip-sync.")
+                repo_ok = bool(wav2lip_setup.get("repo_path"))
+                script_ok = bool(wav2lip_setup.get("script_path"))
+                ckpt_ok = bool(wav2lip_setup.get("checkpoint_path"))
+                st.caption(
+                    f"Detected: repo={'OK' if repo_ok else 'MISSING'} | "
+                    f"inference.py={'OK' if script_ok else 'MISSING'} | "
+                    f"checkpoint={'OK' if ckpt_ok else 'MISSING'}"
+                )
+                st.caption(
+                    f"Resolved repo={wav2lip_setup.get('repo_path') or 'None'} | "
+                    f"checkpoint={wav2lip_setup.get('checkpoint_path') or 'None'}"
+                )
             st.markdown("<div class='compact-label'>📷 CAMERA MODE</div>", unsafe_allow_html=True)
             camera_mode = st.toggle("📷 Use Camera (Take Photo Directly)", value=False, key="fv_camera_mode")
             if camera_mode:
