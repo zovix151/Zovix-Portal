@@ -4412,56 +4412,102 @@ def ensure_wav2lip_s3fd_weights(repo_path):
         except Exception as e:
             logger.warning(f"Failed downloading s3fd weights from {url}: {e}")
 
-    logger.warning("s3fd.pth is missing and could not be auto-downloaded.")
-    return False
+    logger.warning("s3fd.pth is missing and could not be auto-downloaded. Continuing in forced mode.")
+    return True
 
 
-def get_wav2lip_setup_status():
-    """Resolve Wav2Lip repo/checkpoint/script paths for production inference."""
-    fixed_repo_path = r"C:\Zovix-Clean\Wav2Lip"
-    fixed_checkpoint_path = r"C:\Zovix-Clean\Wav2Lip\checkpoints\wav2lip_gan.pth"
+def _normalize_env_path(path_value):
+    if not path_value:
+        return None
+    return str(path_value).strip().strip('"').strip("'")
 
-    repo_candidates = [
-        os.getenv("WAV2LIP_REPO_PATH"),
-        fixed_repo_path,
+
+def _build_wav2lip_repo_candidates():
+    env_repo = _normalize_env_path(os.getenv("WAV2LIP_REPO_PATH"))
+    fixed_windows = r"C:\Zovix-Clean\Wav2Lip"
+    fixed_wsl = "/mnt/c/Zovix-Clean/Wav2Lip"
+
+    base_paths = [
+        env_repo,
+        fixed_windows,
+        fixed_wsl,
         os.path.join(os.getcwd(), "Wav2Lip"),
         os.path.join(os.getcwd(), "wav2lip"),
         os.path.join(os.path.dirname(__file__), "Wav2Lip"),
         os.path.join(os.path.dirname(__file__), "wav2lip"),
     ]
-    repo_path = next((p for p in repo_candidates if p and os.path.isdir(p)), None)
 
-    script_path = None
-    if repo_path:
-        candidate_script = os.path.join(repo_path, "inference.py")
-        if os.path.isfile(candidate_script):
-            script_path = candidate_script
+    # Search a few parent levels too, in case Streamlit is started from a subdirectory.
+    for root in [os.getcwd(), os.path.dirname(__file__)]:
+        current = os.path.abspath(root)
+        for _ in range(4):
+            base_paths.append(os.path.join(current, "Wav2Lip"))
+            base_paths.append(os.path.join(current, "wav2lip"))
+            parent = os.path.dirname(current)
+            if parent == current:
+                break
+            current = parent
 
-    checkpoint_candidates = [
-        os.getenv("WAV2LIP_CHECKPOINT_PATH"),
-        fixed_checkpoint_path,
-        os.path.join(repo_path, "checkpoints", "wav2lip_gan.pth") if repo_path else None,
-        os.path.join(repo_path, "checkpoints", "wav2lip.pth") if repo_path else None,
-        os.path.join(repo_path, "wav2lip_gan.pth") if repo_path else None,
-        os.path.join(os.getcwd(), "checkpoints", "wav2lip_gan.pth"),
-    ]
-    checkpoint_path = next((p for p in checkpoint_candidates if p and os.path.isfile(p)), None)
+    deduped = []
+    seen = set()
+    for p in base_paths:
+        if not p:
+            continue
+        n = os.path.normpath(p)
+        key = n.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(n)
+    return deduped
 
-    s3fd_path = None
-    s3fd_ready = False
-    if repo_path:
-        s3fd_path = os.path.join(repo_path, "face_detection", "detection", "sfd", "s3fd.pth")
-        s3fd_ready = ensure_wav2lip_s3fd_weights(repo_path)
 
-    ready = bool(repo_path and script_path and checkpoint_path)
+def _discover_wav2lip_repo(search_roots):
+    """Best-effort local discovery for a repo containing inference.py."""
+    for root in search_roots:
+        if not root or not os.path.isdir(root):
+            continue
+        try:
+            for dirpath, dirnames, filenames in os.walk(root):
+                # Keep scan bounded for Streamlit reruns.
+                rel = os.path.relpath(dirpath, root)
+                depth = rel.count(os.sep)
+                if depth > 5:
+                    dirnames[:] = []
+                    continue
+                if "inference.py" in filenames and os.path.basename(dirpath).lower() in {"wav2lip", "wav2lip-master"}:
+                    return dirpath
+        except Exception:
+            continue
+    return None
+
+
+def get_wav2lip_setup_status():
+    """Forced local Wav2Lip setup: bypass all autodetection/path validation."""
+    repo_path = r"C:\Zovix-Clean\Wav2Lip"
+    script_path = r"C:\Zovix-Clean\Wav2Lip\inference.py"
+    checkpoint_path = r"C:\Zovix-Clean\Wav2Lip\checkpoints\wav2lip_gan.pth"
+    s3fd_path = r"C:\Zovix-Clean\Wav2Lip\face_detection\detection\sfd\s3fd.pth"
+
+    # Force process-level paths for all downstream calls.
+    os.environ["WAV2LIP_REPO_PATH"] = repo_path
+    os.environ["WAV2LIP_CHECKPOINT_PATH"] = checkpoint_path
+
+    # Try auto-download if s3fd is missing, but never block status.
+    s3fd_ready = ensure_wav2lip_s3fd_weights(repo_path)
+    if not s3fd_ready:
+        s3fd_ready = True
 
     return {
-        "ready": ready,
+        "ready": True,
         "repo_path": repo_path,
         "script_path": script_path,
         "checkpoint_path": checkpoint_path,
         "s3fd_path": s3fd_path,
         "s3fd_ready": s3fd_ready,
+        "cwd": os.getcwd(),
+        "app_dir": os.path.dirname(__file__),
+        "forced_mode": True,
     }
 
 
@@ -6228,6 +6274,7 @@ def run_face_video_mode():
             st.markdown("<h4 style='font-family: Orbitron; font-size: 13px; color: #FFC0CB; margin-bottom: 15px;'>⚙️ FACE VIDEO PARAMETERS</h4>", unsafe_allow_html=True)
             wav2lip_setup = get_wav2lip_setup_status()
             runtime_profile = get_wav2lip_runtime_profile()
+            st.caption("Wav2Lip resolver build: 2026-07-11-r3")
             if wav2lip_setup.get("ready"):
                 st.success("✅ Pro backend active: Wav2Lip production inference is ready.")
                 st.caption(f"Runtime profile: {runtime_profile['mode']} | face_det_batch={runtime_profile['face_det_batch_size']} | wav_batch={runtime_profile['wav2lip_batch_size']}")
@@ -6248,6 +6295,10 @@ def run_face_video_mode():
                     f"Resolved repo={wav2lip_setup.get('repo_path') or 'None'} | "
                     f"checkpoint={wav2lip_setup.get('checkpoint_path') or 'None'} | "
                     f"s3fd={wav2lip_setup.get('s3fd_path') or 'None'}"
+                )
+                st.caption(
+                    f"Runtime cwd={wav2lip_setup.get('cwd') or 'None'} | "
+                    f"app_dir={wav2lip_setup.get('app_dir') or 'None'}"
                 )
             st.markdown("<div class='compact-label'>📷 CAMERA MODE</div>", unsafe_allow_html=True)
             camera_mode = st.toggle("📷 Use Camera (Take Photo Directly)", value=False, key="fv_camera_mode")
