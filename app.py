@@ -4381,10 +4381,49 @@ def generate_face_video_real(image_path, audio_path=None, output_width=512, outp
         return None
 
 
+def ensure_wav2lip_s3fd_weights(repo_path):
+    """Ensure s3fd face detector weights exist; auto-download if missing."""
+    if not repo_path:
+        return False
+
+    s3fd_path = os.path.join(repo_path, "face_detection", "detection", "sfd", "s3fd.pth")
+    if os.path.isfile(s3fd_path):
+        return True
+
+    os.makedirs(os.path.dirname(s3fd_path), exist_ok=True)
+
+    download_urls = [
+        "https://www.adrianbulat.com/downloads/python-fan/s3fd-619a316812.pth",
+        "https://github.com/Rudrabha/Wav2Lip/releases/download/v1.0/s3fd.pth",
+    ]
+
+    for url in download_urls:
+        try:
+            with requests.get(url, stream=True, timeout=90) as response:
+                response.raise_for_status()
+                with open(s3fd_path, "wb") as f:
+                    for chunk in response.iter_content(chunk_size=1024 * 1024):
+                        if chunk:
+                            f.write(chunk)
+
+            if os.path.isfile(s3fd_path) and os.path.getsize(s3fd_path) > 1024:
+                logger.info(f"Downloaded Wav2Lip s3fd weights from {url}")
+                return True
+        except Exception as e:
+            logger.warning(f"Failed downloading s3fd weights from {url}: {e}")
+
+    logger.warning("s3fd.pth is missing and could not be auto-downloaded.")
+    return False
+
+
 def get_wav2lip_setup_status():
     """Resolve Wav2Lip repo/checkpoint/script paths for production inference."""
+    fixed_repo_path = r"C:\Zovix-Clean\Wav2Lip"
+    fixed_checkpoint_path = r"C:\Zovix-Clean\Wav2Lip\checkpoints\wav2lip_gan.pth"
+
     repo_candidates = [
         os.getenv("WAV2LIP_REPO_PATH"),
+        fixed_repo_path,
         os.path.join(os.getcwd(), "Wav2Lip"),
         os.path.join(os.getcwd(), "wav2lip"),
         os.path.join(os.path.dirname(__file__), "Wav2Lip"),
@@ -4400,12 +4439,19 @@ def get_wav2lip_setup_status():
 
     checkpoint_candidates = [
         os.getenv("WAV2LIP_CHECKPOINT_PATH"),
+        fixed_checkpoint_path,
         os.path.join(repo_path, "checkpoints", "wav2lip_gan.pth") if repo_path else None,
         os.path.join(repo_path, "checkpoints", "wav2lip.pth") if repo_path else None,
         os.path.join(repo_path, "wav2lip_gan.pth") if repo_path else None,
         os.path.join(os.getcwd(), "checkpoints", "wav2lip_gan.pth"),
     ]
     checkpoint_path = next((p for p in checkpoint_candidates if p and os.path.isfile(p)), None)
+
+    s3fd_path = None
+    s3fd_ready = False
+    if repo_path:
+        s3fd_path = os.path.join(repo_path, "face_detection", "detection", "sfd", "s3fd.pth")
+        s3fd_ready = ensure_wav2lip_s3fd_weights(repo_path)
 
     ready = bool(repo_path and script_path and checkpoint_path)
 
@@ -4414,6 +4460,8 @@ def get_wav2lip_setup_status():
         "repo_path": repo_path,
         "script_path": script_path,
         "checkpoint_path": checkpoint_path,
+        "s3fd_path": s3fd_path,
+        "s3fd_ready": s3fd_ready,
     }
 
 
@@ -4442,6 +4490,9 @@ def run_wav2lip_cli(face_image_path, audio_path, output_video_path, width, heigh
     """Run Wav2Lip inference.py via CLI with production-friendly flags and post-process output."""
     setup = get_wav2lip_setup_status()
     if not setup["ready"]:
+        return False
+    if not setup.get("s3fd_ready"):
+        logger.warning("Wav2Lip s3fd.pth is missing and auto-download failed.")
         return False
 
     runtime = get_wav2lip_runtime_profile()
@@ -6186,14 +6237,17 @@ def run_face_video_mode():
                 repo_ok = bool(wav2lip_setup.get("repo_path"))
                 script_ok = bool(wav2lip_setup.get("script_path"))
                 ckpt_ok = bool(wav2lip_setup.get("checkpoint_path"))
+                s3fd_ok = bool(wav2lip_setup.get("s3fd_ready"))
                 st.caption(
                     f"Detected: repo={'OK' if repo_ok else 'MISSING'} | "
                     f"inference.py={'OK' if script_ok else 'MISSING'} | "
-                    f"checkpoint={'OK' if ckpt_ok else 'MISSING'}"
+                    f"checkpoint={'OK' if ckpt_ok else 'MISSING'} | "
+                    f"s3fd={'OK' if s3fd_ok else 'MISSING'}"
                 )
                 st.caption(
                     f"Resolved repo={wav2lip_setup.get('repo_path') or 'None'} | "
-                    f"checkpoint={wav2lip_setup.get('checkpoint_path') or 'None'}"
+                    f"checkpoint={wav2lip_setup.get('checkpoint_path') or 'None'} | "
+                    f"s3fd={wav2lip_setup.get('s3fd_path') or 'None'}"
                 )
             st.markdown("<div class='compact-label'>📷 CAMERA MODE</div>", unsafe_allow_html=True)
             camera_mode = st.toggle("📷 Use Camera (Take Photo Directly)", value=False, key="fv_camera_mode")
