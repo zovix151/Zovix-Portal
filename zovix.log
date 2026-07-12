@@ -4101,3 +4101,75 @@ ConnectionResetError: [WinError 10054] An existing connection was forcibly close
 2026-07-11 16:33:16,350 - Zovix - INFO - Load balancer initialized with 4 workers
 2026-07-11 16:33:18,398 - Zovix - INFO - Redis cache connected
 2026-07-11 16:33:18,441 - Zovix - INFO - Database initialized successfully
+2026-07-12 14:18:56,765 - Zovix - WARNING - replicate not installed. Face Studio cloud mode will be unavailable.
+2026-07-12 14:18:59,825 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 14:18:59,862 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 14:19:01,903 - Zovix - INFO - Redis cache connected
+2026-07-12 14:19:01,950 - Zovix - INFO - Database initialized successfully
+2026-07-12 14:19:04,829 - Zovix - WARNING - replicate not installed. Face Studio cloud mode will be unavailable.
+2026-07-12 14:19:06,867 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 14:19:06,868 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 14:19:08,894 - Zovix - INFO - Redis cache connected
+2026-07-12 14:19:08,899 - Zovix - INFO - Database initialized successfully
+2026-07-12 14:19:18,999 - Zovix - WARNING - replicate not installed. Face Studio cloud mode will be unavailable.
+2026-07-12 14:19:21,037 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 14:19:21,037 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 14:19:23,064 - Zovix - INFO - Redis cache connected
+2026-07-12 14:19:23,069 - Zovix - INFO - Database initialized successfully
+2026-07-12 14:19:28,178 - Zovix - WARNING - replicate not installed. Face Studio cloud mode will be unavailable.
+2026-07-12 14:19:30,203 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 14:19:30,204 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 14:19:32,250 - Zovix - INFO - Redis cache connected
+2026-07-12 14:19:32,256 - Zovix - INFO - Database initialized successfully
+2026-07-12 14:19:34,604 - Zovix - WARNING - replicate not installed. Face Studio cloud mode will be unavailable.
+2026-07-12 14:19:36,648 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 14:19:36,649 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 14:19:38,687 - Zovix - INFO - Redis cache connected
+2026-07-12 14:19:38,694 - Zovix - INFO - Database initialized successfully
+2026-07-12 14:25:25,969 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 14:25:26,006 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 14:25:28,045 - Zovix - INFO - Redis cache connected
+2026-07-12 14:25:28,062 - Zovix - INFO - Database initialized successfully
+2026-07-12 14:25:33,400 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 14:25:33,401 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 14:25:35,426 - Zovix - INFO - Redis cache connected
+2026-07-12 14:25:35,430 - Zovix - INFO - Database initialized successfully
+2026-07-12 14:25:45,871 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 14:25:45,872 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 14:25:47,900 - Zovix - INFO - Redis cache connected
+2026-07-12 14:25:47,905 - Zovix - INFO - Database initialized successfully
+2026-07-12 14:25:54,971 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 14:25:54,971 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 14:25:57,027 - Zovix - INFO - Redis cache connected
+2026-07-12 14:25:57,033 - Zovix - INFO - Database initialized successfully
+2026-07-12 14:26:01,338 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 14:26:01,339 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 14:26:03,363 - Zovix - INFO - Redis cache connected
+2026-07-12 14:26:03,368 - Zovix - INFO - Database initialized successfully
+2026-07-12 14:26:43,955 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 14:26:43,956 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 14:26:45,985 - Zovix - INFO - Redis cache connected
+2026-07-12 14:26:45,990 - Zovix - INFO - Database initialized successfully
+2026-07-12 14:27:18,410 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 14:27:18,411 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 14:27:18,475 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 14:27:18,476 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 14:27:20,441 - Zovix - INFO - Redis cache connected
+2026-07-12 14:27:20,694 - Zovix - INFO - Redis cache connected
+2026-07-12 14:27:20,703 - Zovix - INFO - Database initialized successfully
+2026-07-12 14:27:23,821 - Zovix - INFO - Deducted 6 credits from rajmehta886297@gmail.com
+2026-07-12 14:27:28,796 - httpx - INFO - HTTP Request: POST https://api.replicate.com/v1/models/prunaai/p-video-avatar/predictions "HTTP/1.1 201 Created"
+2026-07-12 14:27:29,829 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/rtbvg9dwqhrmr0czap5t0wpej4 "HTTP/1.1 200 OK"
+2026-07-12 14:27:30,778 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/rtbvg9dwqhrmr0czap5t0wpej4 "HTTP/1.1 200 OK"
+2026-07-12 14:27:32,493 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/rtbvg9dwqhrmr0czap5t0wpej4 "HTTP/1.1 200 OK"
+2026-07-12 14:27:33,525 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/rtbvg9dwqhrmr0czap5t0wpej4 "HTTP/1.1 200 OK"
+2026-07-12 14:27:34,549 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/rtbvg9dwqhrmr0czap5t0wpej4 "HTTP/1.1 200 OK"
+2026-07-12 14:27:35,496 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/rtbvg9dwqhrmr0czap5t0wpej4 "HTTP/1.1 200 OK"
+2026-07-12 14:27:36,403 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/rtbvg9dwqhrmr0czap5t0wpej4 "HTTP/1.1 200 OK"
+2026-07-12 14:27:37,405 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/rtbvg9dwqhrmr0czap5t0wpej4 "HTTP/1.1 200 OK"
+2026-07-12 14:27:38,430 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/rtbvg9dwqhrmr0czap5t0wpej4 "HTTP/1.1 200 OK"
+2026-07-12 14:27:39,455 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/rtbvg9dwqhrmr0czap5t0wpej4 "HTTP/1.1 200 OK"
+2026-07-12 14:27:41,768 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 14:27:41,771 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 14:27:43,796 - Zovix - INFO - Redis cache connected
+2026-07-12 14:27:43,802 - Zovix - INFO - Database initialized successfully
