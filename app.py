@@ -458,7 +458,7 @@ if HAS_CELERY:
                 scenes_data=scenes_data,
                 video_output="final_shorts.mp4",
                 size_choice=config.get("aspect_ratio", "📐 9:16 Vertical (Shorts/Reels)"),
-                voice_profile=config.get("voice_profile", "Drew (Premium Male Voice)"),
+                voice_profile=config.get("voice_profile", "Adam (Premium Male)"),
                 language_choice=config.get("language_choice", "🇮🇳 Hinglish (Fluent Hindi Mix)"),
                 bgm_path=config.get("bgm_path"),
                 bgm_volume=config.get("bgm_volume", 0.3),
@@ -775,7 +775,7 @@ if "aspect_ratio" not in st.session_state:
 if "duration_choice" not in st.session_state:
     st.session_state["duration_choice"] = "⏱️ Quick Format Shorts (10-15s)"
 if "voice_profile" not in st.session_state:
-    st.session_state["voice_profile"] = "Drew (Premium Male Voice)"
+    st.session_state["voice_profile"] = "Adam (Premium Male)"
 if "res_choice" not in st.session_state:
     st.session_state["res_choice"] = "720p"
 if "language_choice" not in st.session_state:
@@ -3757,25 +3757,30 @@ class VisualEngine:
             return False
         safe_remove_file(output_filename)
         clean_query = query.replace('"', '').replace("'", "").strip()
-        url = f"https://api.pexels.com/videos/search?query={urllib.parse.quote(clean_query)}&per_page=1"
+        url = f"https://api.pexels.com/videos/search?query={urllib.parse.quote(clean_query)}&per_page=8"
         headers = {"Authorization": pexels_key}
         try:
             res = requests.get(url, headers=headers, timeout=12)
             if res.status_code == 200:
                 data = res.json()
                 videos = data.get("videos", [])
-                if videos:
-                    selected_video = videos[0]
-                    video_files = selected_video.get("video_files", [])
-                    if video_files:
-                        video_url = video_files[0].get("link")
-                        if video_url:
-                            with requests.get(video_url, stream=True, timeout=15) as r:
-                                with open(output_filename, 'wb') as f:
-                                    for chunk in r.iter_content(chunk_size=8192):
-                                        f.write(chunk)
-                            if os.path.exists(output_filename) and os.path.getsize(output_filename) > 100000:
-                                return True
+                for selected_video in videos:
+                    video_files = sorted(
+                        selected_video.get("video_files", []),
+                        key=lambda item: int(item.get("width") or 0),
+                        reverse=True,
+                    )
+                    for video_file in video_files:
+                        video_url = video_file.get("link")
+                        if not video_url:
+                            continue
+                        safe_remove_file(output_filename)
+                        with requests.get(video_url, stream=True, timeout=15) as r:
+                            with open(output_filename, 'wb') as f:
+                                for chunk in r.iter_content(chunk_size=8192):
+                                    f.write(chunk)
+                        if os.path.exists(output_filename) and os.path.getsize(output_filename) > 100000:
+                            return True
         except Exception as e:
             logger.error(f"Pexels error: {e}")
         return False
@@ -3786,18 +3791,20 @@ class VisualEngine:
         if not pixabay_key:
             return False
         safe_remove_file(output_filename)
-        clean_query = query.replace('"', '').replace("'", "").strip().split()[0]
+        clean_query = query.replace('"', '').replace("'", "").strip()
+        if not clean_query:
+            return False
         url = f"https://pixabay.com/api/videos/?key={pixabay_key}&q={clean_query}&per_page=10&video_type=film"
         try:
             res = requests.get(url, timeout=12)
             if res.status_code == 200:
                 response = res.json()
-                if "hits" in response and len(response["hits"]) > 0:
-                    selected_video = random.choice(response["hits"])
+                for selected_video in response.get("hits", []):
                     videos_dict = selected_video.get("videos", {})
-                    target_video = videos_dict.get("medium") or videos_dict.get("small") or videos_dict.get("large")
+                    target_video = videos_dict.get("large") or videos_dict.get("medium") or videos_dict.get("small")
                     if target_video and "url" in target_video:
                         video_url = target_video["url"]
+                        safe_remove_file(output_filename)
                         with requests.get(video_url, stream=True, timeout=15) as r:
                             with open(output_filename, 'wb') as f:
                                 for chunk in r.iter_content(chunk_size=8192): 
@@ -3905,12 +3912,6 @@ def get_scene_asset(description, output_filename, scene_text=None, idx=None, sta
             clean_w = w.strip(",.?!\"'")
             translated_words.append(hinglish_map.get(clean_w, clean_w))
         refined_query = " ".join(translated_words)
-        cached_path = get_cached_clip(refined_query)
-        if cached_path and os.path.exists(cached_path):
-            shutil.copy(cached_path, output_filename)
-            if status_dict is not None and idx is not None:
-                status_dict[idx] = f"✅ Cached: '{refined_query}'"
-            return True
         if status_dict is not None and idx is not None:
             status_dict[idx] = f"📹 Sourcing Pexels: '{refined_query}'"
         if VisualEngine.fetch_pexels_clip(refined_query, output_filename):
@@ -4248,7 +4249,10 @@ class StitcherEngine:
                 status_dict[idx] = "Synthesizing vocal elements..."
             audio_segment_path = os.path.join(workspace_dir, f"temp_voice_{idx}.mp3")
             voice_built = False
-            selected_voice_id = "21m00Tcm4TlvDq8ikWAM" if "Drew" in voice_profile else "pNInz6obpgDQ5IdwJg7p"
+            selected_voice_meta = ELEVENLABS_VOICES.get(voice_profile, {})
+            selected_voice_id = selected_voice_meta.get("id")
+            if not selected_voice_id:
+                selected_voice_id = "21m00Tcm4TlvDq8ikWAM" if "Male" in voice_profile else "pNInz6obpgDQ5IdwJg7p"
             if ELEVENLABS_API_KEY:
                 voice_built = AudioEngine.generate_elevenlabs_speech(text, audio_segment_path, selected_voice_id)
             if not voice_built:
@@ -6254,22 +6258,31 @@ def generate_emotion_voice(text, emotion="neutral", voice_type="male", output_pa
     os.makedirs("emotion_voice_outputs", exist_ok=True)
     safe_remove_file(output_path)
     
+    detected_language = st.session_state.get("emotion_voice_language", "English")
+    use_hindi_voice = "Hindi" in detected_language or "Hinglish" in detected_language
+
     azure_key = os.getenv("AZURE_SPEECH_KEY") or get_system_secret("AZURE_SPEECH_KEY")
     azure_region = os.getenv("AZURE_SPEECH_REGION") or get_system_secret("AZURE_SPEECH_REGION", "eastus")
     if azure_key and azure_region:
         try:
-            voice_name = "en-US-GuyNeural" if voice_type == "male" else "en-US-JennyNeural"
+            if use_hindi_voice:
+                voice_name = "hi-IN-MadhurNeural" if voice_type == "male" else "hi-IN-SwaraNeural"
+            else:
+                voice_name = "en-US-GuyNeural" if voice_type == "male" else "en-US-JennyNeural"
             style_map = {"neutral": "neutral", "happy": "cheerful", "sad": "sad", "angry": "angry", "excited": "excited", "serious": "serious", "mysterious": "neutral"}
             style = style_map.get(emotion, "neutral")
             url = f"https://{azure_region}.tts.speech.microsoft.com/cognitiveservices/v1"
             headers = {"Ocp-Apim-Subscription-Key": azure_key, "Content-Type": "application/ssml+xml", "X-Microsoft-OutputFormat": "audio-24khz-96kbitrate-mono-mp3"}
-            ssml = f"""<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="en-US">
-                        <voice name="{voice_name}">
-                            <mstts:express-as style="{style}">
-                                {text}
-                            </mstts:express-as>
-                        </voice>
-                    </speak>"""
+            if use_hindi_voice:
+                ssml = f"""<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="hi-IN">
+                            <voice name="{voice_name}">{text}</voice>
+                        </speak>"""
+            else:
+                ssml = f"""<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xmlns:mstts="https://www.w3.org/2001/mstts" xml:lang="en-US">
+                            <voice name="{voice_name}">
+                                <mstts:express-as style="{style}">{text}</mstts:express-as>
+                            </voice>
+                        </speak>"""
             response = requests.post(url, headers=headers, data=ssml, timeout=30)
             if response.status_code == 200 and len(response.content) > 1000:
                 with open(output_path, "wb") as f:
@@ -6291,15 +6304,28 @@ def generate_emotion_voice(text, emotion="neutral", voice_type="male", output_pa
             logger.warning(f"ElevenLabs TTS failed: {e}")
     
     try:
-        voice_map = {"neutral": {"male": "en-US-GuyNeural", "female": "en-US-AriaNeural"}, "happy": {"male": "en-US-GuyNeural", "female": "en-US-AriaNeural"}, "sad": {"male": "en-US-GuyNeural", "female": "en-US-AriaNeural"}, "angry": {"male": "en-US-GuyNeural", "female": "en-US-AriaNeural"}, "excited": {"male": "en-US-GuyNeural", "female": "en-US-AriaNeural"}, "serious": {"male": "en-US-GuyNeural", "female": "en-US-AriaNeural"}, "mysterious": {"male": "en-US-GuyNeural", "female": "en-US-AriaNeural"}}
-        if voice_type == "male":
-            voice_name = "hi-IN-MadhurNeural"
-        else:
-            voice_name = "hi-IN-SwaraNeural"
         if edge_tts is not None:
-            run_async_in_thread(edge_tts.Communicate(text, voice_name).save(output_path))
-            if os.path.exists(output_path) and os.path.getsize(output_path) > 0:
-                return output_path
+            if use_hindi_voice:
+                voice_candidates = [
+                    "hi-IN-MadhurNeural" if voice_type == "male" else "hi-IN-SwaraNeural",
+                    "en-IN-PrabhatNeural" if voice_type == "male" else "en-IN-NeerjaNeural",
+                    "en-US-GuyNeural" if voice_type == "male" else "en-US-AriaNeural",
+                ]
+            else:
+                voice_candidates = [
+                    "en-US-GuyNeural" if voice_type == "male" else "en-US-AriaNeural",
+                    "en-GB-RyanNeural" if voice_type == "male" else "en-GB-SoniaNeural",
+                    "en-IN-PrabhatNeural" if voice_type == "male" else "en-IN-NeerjaNeural",
+                ]
+
+            for voice_name in voice_candidates:
+                try:
+                    safe_remove_file(output_path)
+                    run_async_in_thread(edge_tts.Communicate(text, voice_name).save(output_path))
+                    if os.path.exists(output_path) and os.path.getsize(output_path) > 2048:
+                        return output_path
+                except Exception as voice_error:
+                    logger.warning(f"Edge TTS voice failed ({voice_name}): {voice_error}")
     except Exception as e:
         logger.warning(f"Fallback TTS failed: {e}")
     
@@ -7872,9 +7898,9 @@ def run_cinematic_engine():
             render_premium_selection_cards("Timeline Target Duration", ["⏱️ Quick Format Shorts (10-15s)", "⏱️ Expanded Long Format (1 Minute / 60s)"], "duration_choice")
             st.markdown("<div class='compact-label'>🎤 Voice Profile</div>", unsafe_allow_html=True)
             voice_options = list(ELEVENLABS_VOICES.keys())
-            current_voice = st.session_state.get("voice_profile", "Drew (Premium Male Voice)")
+            current_voice = st.session_state.get("voice_profile", "Adam (Premium Male)")
             if current_voice not in voice_options:
-                current_voice = "Drew (Premium Male Voice)"
+                current_voice = "Adam (Premium Male)"
             selected_voice = st.selectbox("Select Voice", voice_options, index=voice_options.index(current_voice) if current_voice in voice_options else 0, key="cinematic_voice_select")
             if selected_voice != st.session_state.get("voice_profile"):
                 st.session_state["voice_profile"] = selected_voice
