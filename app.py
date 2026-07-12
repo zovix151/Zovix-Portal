@@ -7230,22 +7230,50 @@ def _run_replicate_face_model(client, model_ref, image_path, audio_path, script_
     if not os.path.isfile(image_path) or os.path.getsize(image_path) <= 0:
         raise ValueError("Replicate face generation requires a valid image file path.")
 
-    input_builders = [
-        lambda i, a, t: {"image": i, "voice_script": t, "voice_prompt": "speak naturally with realistic eye blinks and subtle facial expressions", "video_prompt": "a realistic talking head with subtle eye blinks and natural facial movement", "resolution": "720p"},
-        lambda i, a, t: {"image": i, "voice_script": t, "resolution": "720p"},
-        lambda i, a, t: {"image": i, "voice_script": t, "voice_prompt": "calm and measured", "resolution": "720p"},
-    ]
+    model_lc = str(model_ref).lower()
+    has_audio = bool(audio_path and os.path.isfile(audio_path) and os.path.getsize(audio_path) > 1024)
+
+    if "p-video-avatar" in model_lc:
+        input_builders = [
+            lambda i, a, t: {"image": i, "voice_script": t, "voice_prompt": "speak naturally", "video_prompt": "real human talking head with natural lip movement and subtle eye blinks", "resolution": "720p"},
+            lambda i, a, t: {"image": i, "voice_script": t, "resolution": "720p"},
+        ]
+    elif "sadtalker" in model_lc:
+        input_builders = [
+            lambda i, a, t: {"source_image": i, "driven_audio": a, "preprocess": "full"},
+            lambda i, a, t: {"source_image": i, "driven_audio": a},
+            lambda i, a, t: {"image": i, "audio": a},
+        ]
+    elif "liveportrait" in model_lc:
+        input_builders = [
+            lambda i, a, t: {"source_image": i, "driving_audio": a},
+            lambda i, a, t: {"image": i, "audio": a},
+            lambda i, a, t: {"source": i, "driving": a},
+        ]
+    else:
+        input_builders = [
+            lambda i, a, t: {"image": i, "voice_script": t},
+            lambda i, a, t: {"image": i, "text": t},
+        ]
 
     for build_payload in input_builders:
         try:
-            payload = build_payload(image_path, None, script_text)
-            output = client.run(model_ref, input=payload)
+            with open(image_path, "rb") as img_file:
+                aud_file = open(audio_path, "rb") if has_audio else None
+                try:
+                    payload = build_payload(img_file, aud_file, script_text)
+                    output = client.run(model_ref, input=payload)
+                finally:
+                    if aud_file:
+                        aud_file.close()
+
             video_url = _extract_video_url_from_replicate_output(output)
             if video_url:
                 return video_url
         except Exception as e:
-            logger.warning(f"Replicate model payload attempt failed for {model_ref}: {e}")
+            logger.warning(f"Replicate payload failed for {model_ref}: {e}")
             continue
+
     return None
 
 
@@ -7263,7 +7291,13 @@ def generate_world_face_video(prompt, face_image_path, duration=10, quality="HD"
         logger.warning("Replicate API token is missing from Streamlit secrets or environment.")
         return None
 
+    temp_audio = None
     try:
+        voice_cfg = _resolve_face_voice_config(voice_language=voice_language, voice_label=voice_label)
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp_aud:
+            temp_audio = tmp_aud.name
+        _synthesize_face_audio_strict(prompt, temp_audio, voice_cfg, duration_hint=duration)
+
         client = replicate.Client(api_token=replicate_token)
 
         model_candidates = [
@@ -7271,9 +7305,8 @@ def generate_world_face_video(prompt, face_image_path, duration=10, quality="HD"
             "prunaai/p-video-avatar",
             "lucataco/sadtalker",
             "cjwbw/sadtalker",
+            "gandhana/liveportrait",
             "gandhary/liveportrait",
-            "sync/lipsync-2-pro",
-            "sync/lipsync-2",
         ]
 
         deduped = []
@@ -7283,11 +7316,12 @@ def generate_world_face_video(prompt, face_image_path, duration=10, quality="HD"
             if not key or key in seen:
                 continue
             seen.add(key)
+            
             deduped.append(model.strip())
 
         for model_ref in deduped:
             try:
-                video_url = _run_replicate_face_model(client, model_ref, face_image_path, None, prompt)
+                video_url = _run_replicate_face_model(client, model_ref, face_image_path, temp_audio, prompt)
                 if video_url:
                     st.session_state["face_video_engine_used"] = f"Replicate ({model_ref})"
                     st.session_state["face_video_runtime_mode"] = "Cloud"
@@ -7299,7 +7333,9 @@ def generate_world_face_video(prompt, face_image_path, duration=10, quality="HD"
     except Exception as e:
         logger.warning(f"Replicate face generation failed: {e}")
         return None
-
+    finally:
+        if temp_audio:
+            safe_remove_file(temp_audio)
 
 # Legacy local face-engine hooks are intentionally disabled in cloud mode.
 def get_wav2lip_setup_status():
@@ -7474,7 +7510,7 @@ def run_unified_face_video_mode():
                         st.session_state["active_face_video_url"] = None
                         st.rerun()
             else:
-                st.info("No render yet. Upload a face photo, add script, enter Replicate key, and generate cloud video.")
+                st.info("No render yet. Upload a face photo, add script, and generate cloud video.")
 
 # ========================================================
 # 38. AUTH MODALS - IMPROVED
