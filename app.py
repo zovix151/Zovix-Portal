@@ -3644,61 +3644,96 @@ def has_audio_stream(media_path):
     except Exception:
         return False
 
+def is_audio_audible(audio_path, min_db=-55.0):
+    if not audio_path or not os.path.exists(audio_path):
+        return False
+    if os.path.getsize(audio_path) < 1024:
+        return False
+    if get_audio_duration(audio_path) < 0.35:
+        return False
+    try:
+        cmd = ['ffmpeg', '-hide_banner', '-i', audio_path, '-af', 'volumedetect', '-f', 'null', 'NUL']
+        result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=False)
+        output = (result.stderr or '') + "\n" + (result.stdout or '')
+        max_match = re.search(r"max_volume:\s*(-?\d+(?:\.\d+)?)\s*dB", output)
+        mean_match = re.search(r"mean_volume:\s*(-?\d+(?:\.\d+)?)\s*dB", output)
+        if max_match:
+            max_db = float(max_match.group(1))
+            return max_db > min_db
+        if mean_match:
+            mean_db = float(mean_match.group(1))
+            return mean_db > (min_db - 5.0)
+    except Exception:
+        pass
+    return True
+
+def is_remote_url(path_or_url):
+    if not path_or_url:
+        return False
+    value = str(path_or_url).strip().lower()
+    return value.startswith("http://") or value.startswith("https://")
+
 def mix_audio_layers(video_input_path, output_path, bgm_path=None, bgm_volume=0.3, voice_path=None, voice_volume=1.0):
     if not video_input_path or not os.path.exists(video_input_path):
         return False
 
-    cmd = ['ffmpeg', *get_hwaccel_args(), '-y', '-i', video_input_path]
-    input_audio_specs = []
-    next_input_index = 1
+    include_base_pref = has_audio_stream(video_input_path)
+    include_base_candidates = [include_base_pref] if include_base_pref else [True, False]
 
-    if has_audio_stream(video_input_path):
-        input_audio_specs.append((0, 1.0))
+    for include_base_audio in include_base_candidates:
+        cmd = ['ffmpeg', *get_hwaccel_args(), '-y', '-i', video_input_path]
+        input_audio_specs = []
+        next_input_index = 1
 
-    if voice_path and os.path.exists(voice_path):
-        cmd += ['-i', voice_path]
-        input_audio_specs.append((next_input_index, max(0.0, min(2.0, float(voice_volume)))))
-        next_input_index += 1
+        if include_base_audio:
+            input_audio_specs.append((0, 1.0))
 
-    if bgm_path and os.path.exists(bgm_path):
-        cmd += ['-stream_loop', '-1', '-i', bgm_path]
-        input_audio_specs.append((next_input_index, max(0.0, min(2.0, float(bgm_volume)))))
-        next_input_index += 1
+        if voice_path and os.path.exists(voice_path):
+            cmd += ['-i', voice_path]
+            input_audio_specs.append((next_input_index, max(0.0, min(2.0, float(voice_volume)))))
+            next_input_index += 1
 
-    if not input_audio_specs:
+        if bgm_path and os.path.exists(bgm_path):
+            cmd += ['-stream_loop', '-1', '-i', bgm_path]
+            input_audio_specs.append((next_input_index, max(0.0, min(2.0, float(bgm_volume)))))
+            next_input_index += 1
+
+        if not input_audio_specs:
+            try:
+                shutil.copy(video_input_path, output_path)
+                return os.path.exists(output_path) and os.path.getsize(output_path) > 0
+            except Exception:
+                return False
+
+        filter_parts = []
+        mixed_labels = []
+        for idx, (input_idx, vol) in enumerate(input_audio_specs):
+            label = f"a{idx}"
+            filter_parts.append(f"[{input_idx}:a]volume={vol:.2f}[{label}]")
+            mixed_labels.append(f"[{label}]")
+
+        if len(mixed_labels) == 1:
+            filter_parts.append(f"{mixed_labels[0]}aresample=async=1:first_pts=0[aout]")
+        else:
+            filter_parts.append(
+                f"{''.join(mixed_labels)}amix=inputs={len(mixed_labels)}:duration=longest:dropout_transition=2,"
+                f"aresample=async=1:first_pts=0[aout]"
+            )
+
+        cmd += [
+            '-filter_complex', ';'.join(filter_parts),
+            '-map', '0:v:0', '-map', '[aout]',
+            '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k',
+            '-shortest', output_path
+        ]
+
         try:
-            shutil.copy(video_input_path, output_path)
+            subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
             return os.path.exists(output_path) and os.path.getsize(output_path) > 0
         except Exception:
-            return False
+            continue
 
-    filter_parts = []
-    mixed_labels = []
-    for idx, (input_idx, vol) in enumerate(input_audio_specs):
-        label = f"a{idx}"
-        filter_parts.append(f"[{input_idx}:a]volume={vol:.2f}[{label}]")
-        mixed_labels.append(f"[{label}]")
-
-    if len(mixed_labels) == 1:
-        filter_parts.append(f"{mixed_labels[0]}aresample=async=1:first_pts=0[aout]")
-    else:
-        filter_parts.append(
-            f"{''.join(mixed_labels)}amix=inputs={len(mixed_labels)}:duration=longest:dropout_transition=2,"
-            f"aresample=async=1:first_pts=0[aout]"
-        )
-
-    cmd += [
-        '-filter_complex', ';'.join(filter_parts),
-        '-map', '0:v:0', '-map', '[aout]',
-        '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k',
-        '-shortest', output_path
-    ]
-
-    try:
-        subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
-        return os.path.exists(output_path) and os.path.getsize(output_path) > 0
-    except Exception:
-        return False
+    return False
 
 def get_hwaccel_args():
     if getattr(get_hwaccel_args, "cached", None) is not None:
@@ -4339,8 +4374,18 @@ class StitcherEngine:
             if ELEVENLABS_API_KEY:
                 voice_built = AudioEngine.generate_elevenlabs_speech(text, audio_segment_path, selected_voice_id)
             if not voice_built:
-                AudioEngine.run_fallback_tts(text=text, output_filename=audio_segment_path, language_choice=language_choice, voice_profile=voice_profile)
-            if not os.path.exists(audio_segment_path) or os.path.getsize(audio_segment_path) == 0:
+                voice_built = AudioEngine.run_fallback_tts(text=text, output_filename=audio_segment_path, language_choice=language_choice, voice_profile=voice_profile)
+            if (not voice_built) or (not os.path.exists(audio_segment_path)) or (not is_audio_audible(audio_segment_path)):
+                alt_voice_type = "male" if "Male" in voice_profile else "female"
+                alt_audio = generate_emotion_voice(
+                    text=text,
+                    emotion="neutral",
+                    voice_type=alt_voice_type,
+                    output_path=audio_segment_path,
+                    elevenlabs_voice_id=selected_voice_id,
+                )
+                voice_built = bool(alt_audio and os.path.exists(audio_segment_path) and is_audio_audible(audio_segment_path))
+            if not voice_built:
                 create_emergency_silent_audio(audio_segment_path, 5.0)
             dur = get_audio_duration(audio_segment_path)
             if dur <= 0:
@@ -5473,10 +5518,7 @@ def _synthesize_face_audio_strict(prompt_text, audio_path, voice_cfg, duration_h
         except Exception:
             audio_success = False
 
-    if not audio_success:
-        create_emergency_silent_audio(audio_path, duration_hint)
-
-    return os.path.exists(audio_path) and os.path.getsize(audio_path) > 1024
+    return audio_success and os.path.exists(audio_path) and is_audio_audible(audio_path)
 
 
 def generate_face_video(prompt, face_image_path, duration=30, emotion="neutral", camera_angle="front", quality="Standard", voice_language=None, voice_label=None):
@@ -5486,7 +5528,19 @@ def generate_face_video(prompt, face_image_path, duration=30, emotion="neutral",
     voice_cfg = _resolve_face_voice_config(voice_language=voice_language, voice_label=voice_label)
     audio_path = f"face_videos/voice_{uuid.uuid4().hex[:8]}.mp3"
     audio_success = _synthesize_face_audio_strict(prompt, audio_path, voice_cfg, duration_hint=duration)
-    output_path = generate_face_video_real(face_image_path, audio_path, 512, 512, duration, quality=quality, emotion=emotion, camera_angle=camera_angle)
+    output_path = None
+    if audio_success:
+        output_path = generate_face_video_real(face_image_path, audio_path, 512, 512, duration, quality=quality, emotion=emotion, camera_angle=camera_angle)
+
+    if not output_path:
+        output_path = generate_world_face_video(
+            prompt,
+            face_image_path,
+            duration=duration,
+            quality=quality,
+            voice_language=voice_cfg.get("language", "English"),
+            voice_label=voice_cfg.get("voice_label", "Adam (Premium Male)"),
+        )
     if os.path.exists(audio_path):
         try:
             os.remove(audio_path)
@@ -6020,12 +6074,39 @@ def render_ai_sales_ui():
                         with st.spinner(f"🎬 Generating AI Sales Video in {sales_language}..."):
                             script_text = st.session_state["sales_script_input"]
                             face_img_path = st.session_state["sales_product_image"]
-                            video_path = generate_face_video(script_text, face_img_path, duration=15, emotion="excited", camera_angle="front", quality=sales_quality)
-                            if video_path and os.path.exists(video_path):
+                            sales_lang_to_face_lang = {
+                                "Hindi": "Hindi",
+                                "Bhojpuri": "Hindi",
+                                "Maithili": "Hindi",
+                                "Tamil": "Hindi",
+                                "Telugu": "Hindi",
+                                "Hinglish": "Hindi",
+                                "English": "English",
+                            }
+                            sales_voice_to_label = {
+                                "Male (Drew)": "Drew (Professional Male)",
+                                "Female (Rachel)": "Rachel (Premium Female)",
+                                "Male (Deep)": "Antoni (Deep Male)",
+                                "Female (Aria)": "Emily (Professional Female)",
+                            }
+                            face_voice_language = sales_lang_to_face_lang.get(sales_language, "English")
+                            face_voice_label = sales_voice_to_label.get(sales_voice, "Adam (Premium Male)")
+                            video_path = generate_face_video(
+                                script_text,
+                                face_img_path,
+                                duration=15,
+                                emotion="excited",
+                                camera_angle="front",
+                                quality=sales_quality,
+                                voice_language=face_voice_language,
+                                voice_label=face_voice_label,
+                            )
+                            if video_path and (is_remote_url(video_path) or os.path.exists(video_path)):
                                 st.session_state["sales_video_output"] = video_path
                                 st.session_state["sales_product_name"] = product_name
                                 st.session_state["sales_product_price"] = product_price
                                 st.session_state["sales_language"] = sales_language
+                                st.session_state["sales_voice"] = sales_voice
                                 st.session_state["sales_script"] = script_text
                                 conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
                                 cursor = conn.cursor()
@@ -6044,7 +6125,7 @@ def render_ai_sales_ui():
         with st.container(border=True):
             st.markdown("<h3 style='font-family: Orbitron; font-size: 15px; color: #EC4899; margin-bottom: 15px; letter-spacing: 0.5px;'>🎬 SALES VIDEO PLAYER</h3>", unsafe_allow_html=True)
             sales_video = st.session_state.get("sales_video_output")
-            if sales_video and os.path.exists(sales_video):
+            if sales_video and (is_remote_url(sales_video) or os.path.exists(sales_video)):
                 st.video(sales_video, format="video/mp4", autoplay=True, loop=True, muted=False)
                 st.markdown("<br>", unsafe_allow_html=True)
                 st.markdown(f"""
@@ -6052,14 +6133,28 @@ def render_ai_sales_ui():
                         <p style="font-size: 12px; color: #94a3b8; margin: 0;">📦 {st.session_state.get('sales_product_name', 'Product')}</p>
                         <p style="font-size: 14px; font-weight: bold; color: #EC4899; margin: 0;">💰 {st.session_state.get('sales_product_price', 'N/A')}</p>
                         <p style="font-size: 11px; color: #94a3b8; margin: 0;">🎙️ {st.session_state.get('sales_language', 'N/A')}</p>
+                        <p style="font-size: 11px; color: #94a3b8; margin: 0;">🎤 {st.session_state.get('sales_voice', 'N/A')}</p>
                     </div>
                 """, unsafe_allow_html=True)
                 st.markdown("<br>", unsafe_allow_html=True)
                 col_dl, col_share, col_clr = st.columns(3)
                 with col_dl:
-                    with open(sales_video, "rb") as f:
-                        video_bytes = f.read()
-                    st.download_button(label="📥 Download Sales Video", data=video_bytes, file_name=f"sales_video_{uuid.uuid4().hex[:8]}.mp4", mime="video/mp4", use_container_width=True, key="sales_download_btn")
+                    video_bytes = None
+                    if is_remote_url(sales_video):
+                        try:
+                            remote_resp = requests.get(sales_video, timeout=45)
+                            if remote_resp.status_code == 200 and len(remote_resp.content) > 1024:
+                                video_bytes = remote_resp.content
+                        except Exception:
+                            video_bytes = None
+                    else:
+                        with open(sales_video, "rb") as f:
+                            video_bytes = f.read()
+
+                    if video_bytes:
+                        st.download_button(label="📥 Download Sales Video", data=video_bytes, file_name=f"sales_video_{uuid.uuid4().hex[:8]}.mp4", mime="video/mp4", use_container_width=True, key="sales_download_btn")
+                    else:
+                        st.info("Download unavailable for current cloud render.")
                 with col_share:
                     if st.button("📤 Share on WhatsApp", key="sales_share_wa", use_container_width=True):
                         wa_msg = f"🎬 Check out this amazing product! {st.session_state.get('sales_product_name', 'Product')} - Only {st.session_state.get('sales_product_price', 'N/A')}!"
@@ -6067,7 +6162,8 @@ def render_ai_sales_ui():
                         st.markdown(f'<a href="{wa_url}" target="_blank" style="text-decoration:none;width:100%;"><button style="width:100%;padding:10px;background:#25D366;color:white;border:none;border-radius:6px;font-family:Orbitron;font-size:11px;cursor:pointer;">💬 Share</button></a>', unsafe_allow_html=True)
                 with col_clr:
                     if st.button("🧹 Clear Video", key="sales_clear_btn", use_container_width=True):
-                        safe_remove_file(sales_video)
+                        if not is_remote_url(sales_video):
+                            safe_remove_file(sales_video)
                         st.session_state["sales_video_output"] = None
                         st.rerun()
                 with st.expander("📝 View Sales Script", expanded=False):
@@ -6478,7 +6574,7 @@ def generate_emotion_voice(text, emotion="neutral", voice_type="male", output_pa
             if response.status_code == 200 and len(response.content) > 1000:
                 with open(output_path, "wb") as f:
                     f.write(response.content)
-                if os.path.exists(output_path) and os.path.getsize(output_path) > 0:
+                if os.path.exists(output_path) and is_audio_audible(output_path):
                     logger.info(f"Azure TTS generated successfully for {text[:30]}...")
                     return output_path
         except Exception as e:
@@ -6490,7 +6586,8 @@ def generate_emotion_voice(text, emotion="neutral", voice_type="male", output_pa
             emotion_modifiers = {"neutral": "", "happy": " [Happy, cheerful tone] ", "sad": " [Sad, melancholic tone] ", "angry": " [Angry, frustrated tone] ", "excited": " [Excited, enthusiastic tone] ", "serious": " [Serious, professional tone] ", "mysterious": " [Mysterious, intriguing tone] "}
             modified_text = emotion_modifiers.get(emotion, "") + text
             if AudioEngine.generate_elevenlabs_speech(modified_text, output_path, elevenlabs_voice_id):
-                return output_path
+                if is_audio_audible(output_path):
+                    return output_path
         except Exception as e:
             logger.warning(f"ElevenLabs TTS failed: {e}")
     
@@ -6513,15 +6610,15 @@ def generate_emotion_voice(text, emotion="neutral", voice_type="male", output_pa
                 try:
                     safe_remove_file(output_path)
                     run_async_in_thread(edge_tts.Communicate(text, voice_name).save(output_path))
-                    if os.path.exists(output_path) and os.path.getsize(output_path) > 2048:
+                    if os.path.exists(output_path) and is_audio_audible(output_path):
                         return output_path
                 except Exception as voice_error:
                     logger.warning(f"Edge TTS voice failed ({voice_name}): {voice_error}")
     except Exception as e:
         logger.warning(f"Fallback TTS failed: {e}")
-    
-    create_emergency_silent_audio(output_path, len(text.split()) * 0.5 + 1)
-    return output_path if os.path.exists(output_path) else None
+
+    safe_remove_file(output_path)
+    return None
 
 # ========================================================
 # 37. MODE FUNCTIONS - Creative Workshop, Blueprints, Upscaler, Draw, Video Editor, Face Video
