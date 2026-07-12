@@ -3601,7 +3601,12 @@ def get_music_path(mood):
     default_path = os.path.join(base_path, "default.mp3")
     if os.path.exists(target_path):
         return target_path
-    return default_path
+    if os.path.exists(default_path):
+        return default_path
+    for fallback_path in MOOD_TO_MUSIC_MAP.values():
+        if os.path.exists(fallback_path):
+            return fallback_path
+    return None
 
 def get_audio_duration(audio_path):
     try:
@@ -3616,6 +3621,84 @@ def get_audio_duration(audio_path):
         return float(result.stdout.strip())
     except Exception:
         return 5.0
+
+def get_media_duration(media_path):
+    try:
+        cmd = [
+            'ffprobe', '-v', 'error', '-show_entries', 'format=duration',
+            '-of', 'default=noprint_wrappers=1:nokey=1', media_path
+        ]
+        result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=True)
+        return max(0.1, float(result.stdout.strip()))
+    except Exception:
+        return 3.0
+
+def has_audio_stream(media_path):
+    try:
+        cmd = [
+            'ffprobe', '-v', 'error', '-select_streams', 'a:0',
+            '-show_entries', 'stream=codec_type', '-of', 'csv=p=0', media_path
+        ]
+        result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=False)
+        return result.returncode == 0 and "audio" in (result.stdout or "").lower()
+    except Exception:
+        return False
+
+def mix_audio_layers(video_input_path, output_path, bgm_path=None, bgm_volume=0.3, voice_path=None, voice_volume=1.0):
+    if not video_input_path or not os.path.exists(video_input_path):
+        return False
+
+    cmd = ['ffmpeg', *get_hwaccel_args(), '-y', '-i', video_input_path]
+    input_audio_specs = []
+    next_input_index = 1
+
+    if has_audio_stream(video_input_path):
+        input_audio_specs.append((0, 1.0))
+
+    if voice_path and os.path.exists(voice_path):
+        cmd += ['-i', voice_path]
+        input_audio_specs.append((next_input_index, max(0.0, min(2.0, float(voice_volume)))))
+        next_input_index += 1
+
+    if bgm_path and os.path.exists(bgm_path):
+        cmd += ['-stream_loop', '-1', '-i', bgm_path]
+        input_audio_specs.append((next_input_index, max(0.0, min(2.0, float(bgm_volume)))))
+        next_input_index += 1
+
+    if not input_audio_specs:
+        try:
+            shutil.copy(video_input_path, output_path)
+            return os.path.exists(output_path) and os.path.getsize(output_path) > 0
+        except Exception:
+            return False
+
+    filter_parts = []
+    mixed_labels = []
+    for idx, (input_idx, vol) in enumerate(input_audio_specs):
+        label = f"a{idx}"
+        filter_parts.append(f"[{input_idx}:a]volume={vol:.2f}[{label}]")
+        mixed_labels.append(f"[{label}]")
+
+    if len(mixed_labels) == 1:
+        filter_parts.append(f"{mixed_labels[0]}aresample=async=1:first_pts=0[aout]")
+    else:
+        filter_parts.append(
+            f"{''.join(mixed_labels)}amix=inputs={len(mixed_labels)}:duration=longest:dropout_transition=2,"
+            f"aresample=async=1:first_pts=0[aout]"
+        )
+
+    cmd += [
+        '-filter_complex', ';'.join(filter_parts),
+        '-map', '0:v:0', '-map', '[aout]',
+        '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k',
+        '-shortest', output_path
+    ]
+
+    try:
+        subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+        return os.path.exists(output_path) and os.path.getsize(output_path) > 0
+    except Exception:
+        return False
 
 def get_hwaccel_args():
     if getattr(get_hwaccel_args, "cached", None) is not None:
@@ -4342,10 +4425,13 @@ class StitcherEngine:
             concat_cmd = ['ffmpeg', *get_hwaccel_args(), '-y', '-f', 'concat', '-safe', '0', '-i', manifest_file, '-c:v', 'copy', '-c:a', 'copy', temp_stitched_output]
             subprocess.run(concat_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
             if bgm_path and os.path.exists(bgm_path):
-                mix_cmd = ['ffmpeg', *get_hwaccel_args(), '-y', '-i', temp_stitched_output, '-stream_loop', '-1', '-i', bgm_path, '-filter_complex', f'[0:a]volume=1.0[a0];[1:a]volume={bgm_volume:.2f}[a1];[a0][a1]amix=inputs=2:duration=first[aout]', '-map', '0:v:0', '-map', '[aout]', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', video_output]
-                try:
-                    subprocess.run(mix_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
-                except Exception:
+                mixed_ok = mix_audio_layers(
+                    video_input_path=temp_stitched_output,
+                    output_path=video_output,
+                    bgm_path=bgm_path,
+                    bgm_volume=bgm_volume,
+                )
+                if not mixed_ok:
                     shutil.copy(temp_stitched_output, video_output)
             else:
                 shutil.copy(temp_stitched_output, video_output)
@@ -5428,108 +5514,213 @@ def generate_elevenlabs_audio_for_face(text, output_path, voice_id="21m00Tcm4Tlv
         pass
     return False
 
-def process_editor_video(uploaded_files, output_path, effect="none", transition="fade", resolution="1080p", custom_bgm=None, bgm_volume=0.3):
+def process_editor_video(uploaded_files, output_path, effect="none", transition="fade", resolution="1080p", custom_bgm=None, bgm_volume=0.3, voiceover_text="", voice_profile="Adam (Premium Male)", voice_language_choice="🇬🇧 English (US Standard)"):
     if not uploaded_files:
         return False
+
     media_paths = []
-    for idx, uploaded_file in enumerate(uploaded_files):
+    for uploaded_file in uploaded_files:
         ext = os.path.splitext(uploaded_file.name)[1].lower()
         file_path = os.path.join("editor_uploads", f"media_{uuid.uuid4().hex[:8]}{ext}")
         with open(file_path, "wb") as f:
             f.write(uploaded_file.getbuffer())
         media_paths.append(file_path)
-    if len(media_paths) == 0:
+
+    if not media_paths:
         return False
+
     res_map = {"720p": "1280:720", "1080p": "1920:1080", "4K": "3840:2160"}
     resolution_str = res_map.get(resolution, "1920:1080")
     temp_dir = os.path.join("temp_scenes", f"editor_temp_{uuid.uuid4().hex[:8]}")
     os.makedirs(temp_dir, exist_ok=True)
+
     bgm_path = None
     if custom_bgm is not None:
         bgm_path = os.path.join(temp_dir, f"custom_bgm_{uuid.uuid4().hex[:8]}.mp3")
         with open(bgm_path, "wb") as f:
             f.write(custom_bgm.getbuffer())
+
+    voiceover_path = None
+    if voiceover_text and str(voiceover_text).strip():
+        voiceover_path = os.path.join(temp_dir, f"voiceover_{uuid.uuid4().hex[:8]}.mp3")
+        selected_voice_meta = ELEVENLABS_VOICES.get(voice_profile, {})
+        selected_voice_id = selected_voice_meta.get("id")
+        if not selected_voice_id:
+            selected_voice_id = "21m00Tcm4TlvDq8ikWAM" if "Male" in voice_profile else "pNInz6obpgDQ5IdwJg7p"
+
+        voice_built = False
+        if ELEVENLABS_API_KEY:
+            voice_built = AudioEngine.generate_elevenlabs_speech(str(voiceover_text).strip(), voiceover_path, selected_voice_id)
+        if not voice_built:
+            voice_built = AudioEngine.run_fallback_tts(
+                text=str(voiceover_text).strip(),
+                output_filename=voiceover_path,
+                language_choice=voice_language_choice,
+                voice_profile=voice_profile,
+            )
+        if not voice_built or not os.path.exists(voiceover_path) or os.path.getsize(voiceover_path) <= 1000:
+            voiceover_path = None
+
     try:
         processed_clips = []
         for idx, media_path in enumerate(media_paths):
             ext = os.path.splitext(media_path)[1].lower()
             output_clip = os.path.join(temp_dir, f"clip_{idx:04d}.mp4")
+
             if ext in ['.png', '.jpg', '.jpeg', '.webp']:
-                cmd = ['ffmpeg', '-y', '-loop', '1', '-i', media_path, '-t', '3', '-vf', f"scale={resolution_str}:force_original_aspect_ratio=decrease,pad={resolution_str}:(ow-iw)/2:(oh-ih)/2,fps=24", '-c:v', 'libx264', '-preset', 'ultrafast', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '128k', '-ac', '2', '-ar', '44100', '-f', 'mp4', output_clip]
+                cmd = [
+                    'ffmpeg', '-y', '-loop', '1', '-i', media_path, '-t', '3',
+                    '-vf', f"scale={resolution_str}:force_original_aspect_ratio=decrease,pad={resolution_str}:(ow-iw)/2:(oh-ih)/2,fps=24",
+                    '-c:v', 'libx264', '-preset', 'ultrafast', '-pix_fmt', 'yuv420p',
+                    '-c:a', 'aac', '-b:a', '128k', '-ac', '2', '-ar', '44100', '-f', 'mp4', output_clip
+                ]
+            elif ext in ['.mp3', '.wav']:
+                cmd = [
+                    'ffmpeg', '-y', '-f', 'lavfi', '-i', f'color=c=#050508:s={resolution_str}:r=24',
+                    '-i', media_path, '-shortest', '-vf', 'fps=24',
+                    '-c:v', 'libx264', '-preset', 'ultrafast', '-pix_fmt', 'yuv420p',
+                    '-c:a', 'aac', '-b:a', '128k', '-ac', '2', '-ar', '44100', '-f', 'mp4', output_clip
+                ]
             else:
-                cmd = ['ffmpeg', '-y', '-i', media_path, '-vf', f"scale={resolution_str}:force_original_aspect_ratio=decrease,pad={resolution_str}:(ow-iw)/2:(oh-ih)/2,fps=24", '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '23', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '128k', '-ac', '2', '-ar', '44100', '-f', 'mp4', output_clip]
+                cmd = [
+                    'ffmpeg', '-y', '-i', media_path,
+                    '-vf', f"scale={resolution_str}:force_original_aspect_ratio=decrease,pad={resolution_str}:(ow-iw)/2:(oh-ih)/2,fps=24",
+                    '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '23', '-pix_fmt', 'yuv420p',
+                    '-c:a', 'aac', '-b:a', '128k', '-ac', '2', '-ar', '44100', '-f', 'mp4', output_clip
+                ]
+
             try:
                 subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True, timeout=60)
                 if os.path.exists(output_clip) and os.path.getsize(output_clip) > 1000:
                     processed_clips.append(output_clip)
             except Exception:
                 fallback_clip = os.path.join(temp_dir, f"fallback_{idx:04d}.mp4")
-                fallback_cmd = ['ffmpeg', '-y', '-f', 'lavfi', '-i', f'color=c=#050508:s={resolution_str}:r=24', '-t', '3', '-c:v', 'libx264', '-preset', 'ultrafast', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '128k', '-ac', '2', '-ar', '44100', '-f', 'mp4', fallback_clip]
+                fallback_cmd = [
+                    'ffmpeg', '-y', '-f', 'lavfi', '-i', f'color=c=#050508:s={resolution_str}:r=24',
+                    '-t', '3', '-c:v', 'libx264', '-preset', 'ultrafast', '-pix_fmt', 'yuv420p',
+                    '-c:a', 'aac', '-b:a', '128k', '-ac', '2', '-ar', '44100', '-f', 'mp4', fallback_clip
+                ]
                 subprocess.run(fallback_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
                 processed_clips.append(fallback_clip)
+
         if not processed_clips:
             return False
-        concat_file = os.path.join(temp_dir, "concat.txt")
-        with open(concat_file, "w") as f:
-            for clip_path in processed_clips:
-                abs_path = os.path.abspath(clip_path).replace('\\', '/')
-                f.write(f"file '{abs_path}'\n")
-        filter_chain = ""
-        if transition == "fade":
-            filter_chain = "fade=t=in:st=0:d=0.5,fade=t=out:st=2.5:d=0.5"
-        elif transition == "crossfade":
-            filter_chain = "xfade=transition=fade:duration=0.5:offset=2.5"
-        elif transition == "zoom":
-            filter_chain = "zoompan=z='min(zoom+0.0015,1.3)':d=72:s=1280x720"
-        elif transition == "slide":
-            filter_chain = "xfade=transition=slideleft:duration=0.5:offset=2.5"
-        elif transition == "circle":
-            filter_chain = "xfade=transition=circleopen:duration=0.5:offset=2.5"
-        elif transition == "radial":
-            filter_chain = "xfade=transition=radial:duration=0.5:offset=2.5"
-        elif transition == "smooth":
-            filter_chain = "xfade=transition=smooth:duration=0.5:offset=2.5"
-        else:
-            filter_chain = "fade=t=in:st=0:d=0.5"
+
+        transition_map = {
+            "fade": "fade",
+            "crossfade": "fade",
+            "slide": "slideleft",
+            "circle": "circleopen",
+            "radial": "radial",
+            "smooth": "smoothleft",
+            "zoom": "zoomin",
+        }
+
+        effect_filter = ""
         if effect == "sepia":
-            filter_chain += ",colorchannelmixer=.393:.769:.189:0:.349:.686:.168:0:.272:.534:.131"
+            effect_filter = "colorchannelmixer=.393:.769:.189:0:.349:.686:.168:0:.272:.534:.131"
         elif effect == "grayscale":
-            filter_chain += ",hue=s=0"
+            effect_filter = "hue=s=0"
         elif effect == "vintage":
-            filter_chain += ",curves=all='0/0 0.5/0.5 1/1',colorbalance=rs=0.1:gs=0.1:bs=0.1"
+            effect_filter = "curves=all='0/0 0.5/0.5 1/1',colorbalance=rs=0.1:gs=0.1:bs=0.1"
         elif effect == "cinematic":
-            filter_chain += ",colorbalance=rs=0.1:gs=-0.05:bs=-0.05,curves=all='0/0 0.3/0.2 0.7/0.8 1/1'"
+            effect_filter = "colorbalance=rs=0.1:gs=-0.05:bs=-0.05,curves=all='0/0 0.3/0.2 0.7/0.8 1/1'"
         elif effect == "neon":
-            filter_chain += ",colorbalance=rs=0.3:gs=-0.2:bs=0.5,curves=all='0/0 0.2/0.1 0.5/0.7 1/1'"
+            effect_filter = "colorbalance=rs=0.3:gs=-0.2:bs=0.5,curves=all='0/0 0.2/0.1 0.5/0.7 1/1'"
         elif effect == "glitch":
-            filter_chain += ",rgbashift=rh=2:gh=4:bh=6"
+            effect_filter = "rgbashift=rh=2:gh=4:bh=6"
         elif effect == "dreamy":
-            filter_chain += ",boxblur=2:1,colorbalance=rs=0.2:gs=0.1:bs=0.3"
+            effect_filter = "boxblur=2:1,colorbalance=rs=0.2:gs=0.1:bs=0.3"
         elif effect == "dramatic":
-            filter_chain += ",colorbalance=rs=0.2:gs=-0.1:bs=-0.1,curves=all='0/0 0.3/0.1 0.7/0.8 1/1',unsharp=5:5:1.0"
-        final_cmd = ['ffmpeg', '-y', '-f', 'concat', '-safe', '0', '-i', concat_file, '-vf', filter_chain, '-c:v', 'libx264', '-preset', 'medium', '-crf', '23', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', '-c:a', 'aac', '-b:a', '192k', '-ac', '2', '-ar', '44100', '-vsync', '2', output_path]
-        try:
-            subprocess.run(final_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True, timeout=120)
-            if bgm_path and os.path.exists(bgm_path) and os.path.exists(output_path):
-                temp_with_bgm = output_path.replace('.mp4', '_with_bgm.mp4')
-                mix_cmd = ['ffmpeg', '-y', '-i', output_path, '-stream_loop', '-1', '-i', bgm_path, '-filter_complex', f'[0:a]volume=1.0[a0];[1:a]volume={bgm_volume:.2f}[a1];[a0][a1]amix=inputs=2:duration=first[aout]', '-map', '0:v:0', '-map', '[aout]', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-shortest', temp_with_bgm]
-                try:
-                    subprocess.run(mix_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True, timeout=60)
-                    if os.path.exists(temp_with_bgm) and os.path.getsize(temp_with_bgm) > 0:
-                        shutil.move(temp_with_bgm, output_path)
-                except Exception:
-                    pass
-            if os.path.exists(output_path) and os.path.getsize(output_path) > 0:
-                return True
-        except Exception:
-            simple_cmd = ['ffmpeg', '-y', '-f', 'concat', '-safe', '0', '-i', concat_file, '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', output_path]
+            effect_filter = "colorbalance=rs=0.2:gs=-0.1:bs=-0.1,curves=all='0/0 0.3/0.1 0.7/0.8 1/1',unsharp=5:5:1.0"
+
+        base_stitched = os.path.join(temp_dir, "stitched_base.mp4")
+        if len(processed_clips) == 1:
+            shutil.copy(processed_clips[0], base_stitched)
+        elif transition in transition_map:
+            xfade_name = transition_map[transition]
+            durations = [max(0.6, get_media_duration(path)) for path in processed_clips]
+            xfade_duration = 0.5
+
+            ff_inputs = ['ffmpeg', '-y']
+            for clip in processed_clips:
+                ff_inputs += ['-i', clip]
+
+            filter_parts = []
+            running_offset = max(0.0, durations[0] - xfade_duration)
+            current_label = '[0:v]'
+            for i in range(1, len(processed_clips)):
+                out_label = f"[vx{i}]"
+                filter_parts.append(
+                    f"{current_label}[{i}:v]xfade=transition={xfade_name}:duration={xfade_duration:.2f}:offset={running_offset:.2f}{out_label}"
+                )
+                current_label = out_label
+                running_offset += max(0.1, durations[i] - xfade_duration)
+
+            if effect_filter:
+                filter_parts.append(f"{current_label}{effect_filter}[vout]")
+                final_video_label = '[vout]'
+            else:
+                final_video_label = current_label
+
+            transition_cmd = ff_inputs + [
+                '-filter_complex', ';'.join(filter_parts),
+                '-map', final_video_label,
+                '-pix_fmt', 'yuv420p',
+                '-c:v', 'libx264', '-preset', 'medium', '-crf', '23',
+                base_stitched
+            ]
             try:
-                subprocess.run(simple_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True, timeout=120)
-                if os.path.exists(output_path) and os.path.getsize(output_path) > 0:
-                    return True
+                subprocess.run(transition_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True, timeout=180)
             except Exception:
-                pass
-        return False
+                transition = "none"
+
+        if not os.path.exists(base_stitched) or os.path.getsize(base_stitched) <= 0:
+            concat_file = os.path.join(temp_dir, "concat.txt")
+            with open(concat_file, "w") as f:
+                for clip_path in processed_clips:
+                    abs_path = os.path.abspath(clip_path).replace('\\', '/')
+                    f.write(f"file '{abs_path}'\n")
+
+            no_transition_output = os.path.join(temp_dir, "stitched_no_transition.mp4")
+            concat_cmd = [
+                'ffmpeg', '-y', '-f', 'concat', '-safe', '0', '-i', concat_file,
+                '-c:v', 'libx264', '-preset', 'medium', '-crf', '23', '-pix_fmt', 'yuv420p',
+                '-map', '0:v:0', '-map', '0:a?', '-c:a', 'aac', '-b:a', '192k',
+                '-movflags', '+faststart', no_transition_output
+            ]
+            subprocess.run(concat_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True, timeout=120)
+
+            if effect_filter:
+                effect_output = os.path.join(temp_dir, "stitched_effect.mp4")
+                effect_cmd = [
+                    'ffmpeg', '-y', '-i', no_transition_output, '-vf', effect_filter,
+                    '-map', '0:v:0', '-map', '0:a?', '-c:v', 'libx264', '-preset', 'medium', '-crf', '23',
+                    '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '192k', '-movflags', '+faststart', effect_output
+                ]
+                subprocess.run(effect_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True, timeout=120)
+                base_stitched = effect_output
+            else:
+                base_stitched = no_transition_output
+
+        if not os.path.exists(base_stitched) or os.path.getsize(base_stitched) <= 0:
+            return False
+
+        mixed_ok = mix_audio_layers(
+            video_input_path=base_stitched,
+            output_path=output_path,
+            bgm_path=bgm_path,
+            bgm_volume=bgm_volume,
+            voice_path=voiceover_path,
+            voice_volume=1.0,
+        )
+        if not mixed_ok:
+            try:
+                shutil.copy(base_stitched, output_path)
+            except Exception:
+                return False
+
+        return os.path.exists(output_path) and os.path.getsize(output_path) > 0
     except Exception as e:
         logger.error(f"Video editor error: {e}")
         return False
@@ -6820,6 +7011,32 @@ def run_video_editor_mode():
             output_resolution = st.selectbox("📐 Output Resolution:", ["720p", "1080p", "4K"], key="editor_resolution")
             st.markdown("<div class='compact-label'>🎵 ADD CUSTOM BACKGROUND MUSIC</div>", unsafe_allow_html=True)
             editor_bgm = st.file_uploader("Upload Custom BGM Track (MP3 or WAV)", type=['mp3', 'wav'], key="editor_bgm_upload")
+            use_editor_voiceover = st.toggle("🎙️ Add Cinematic AI Voiceover", value=False, key="editor_enable_voiceover")
+            editor_voice_text = ""
+            editor_voice_profile = st.session_state.get("voice_profile", "Adam (Premium Male)")
+            editor_voice_language = st.session_state.get("language_choice", "🇬🇧 English (US Standard)")
+            if use_editor_voiceover:
+                editor_voice_text = st.text_area(
+                    "Voiceover Script",
+                    placeholder="Yahan narration likho. Ye cinematic engine voice se generate hoga.",
+                    height=80,
+                    key="editor_voiceover_text",
+                )
+                voice_options = list(ELEVENLABS_VOICES.keys())
+                if editor_voice_profile not in voice_options:
+                    editor_voice_profile = "Adam (Premium Male)"
+                editor_voice_profile = st.selectbox(
+                    "Voice Profile",
+                    voice_options,
+                    index=voice_options.index(editor_voice_profile) if editor_voice_profile in voice_options else 0,
+                    key="editor_voiceover_profile",
+                )
+                editor_voice_language = st.selectbox(
+                    "Voice Language",
+                    ["🇮🇳 Hinglish (Fluent Hindi Mix)", "🇬🇧 English (US Standard)", "🇫🇷 French (Parisian Neural)", "🇯🇵 Japanese (Formal Tokyo)"],
+                    index=1,
+                    key="editor_voiceover_language",
+                )
             st.markdown("<div class='compact-label'>🎵 SELECT BGM FROM LIBRARY</div>", unsafe_allow_html=True)
             bgm_library = {"None": None, "Cinematic": "assets/music/cinematic.mp3", "Uplifting": "assets/music/uplifting.mp3", "Dramatic": "assets/music/dramatic.mp3", "Calm": "assets/music/calm.mp3", "Energetic": "assets/music/energetic.mp3", "Mysterious": "assets/music/mysterious.mp3"}
             selected_bgm_name = st.selectbox("Choose BGM from Library", list(bgm_library.keys()), key="editor_bgm_select")
@@ -6863,7 +7080,18 @@ def run_video_editor_mode():
                             bgm_to_use = BGMFile(selected_bgm_path)
                         with st.spinner("🎬 Processing uploaded media with FFmpeg engine..."):
                             output_path = f"saved_renders/editor_output_{uuid.uuid4().hex[:8]}.mp4"
-                            success = process_editor_video(st.session_state["editor_uploads"], output_path, effect=video_effect, transition=transition_effect, resolution=output_resolution, custom_bgm=bgm_to_use, bgm_volume=editor_bgm_volume)
+                            success = process_editor_video(
+                                st.session_state["editor_uploads"],
+                                output_path,
+                                effect=video_effect,
+                                transition=transition_effect,
+                                resolution=output_resolution,
+                                custom_bgm=bgm_to_use,
+                                bgm_volume=editor_bgm_volume,
+                                voiceover_text=editor_voice_text if use_editor_voiceover else "",
+                                voice_profile=editor_voice_profile,
+                                voice_language_choice=editor_voice_language,
+                            )
                             if success and os.path.exists(output_path) and os.path.getsize(output_path) > 0:
                                 st.session_state["active_editor_output"] = output_path
                                 st.toast("✅ Video processed successfully with BGM!")
