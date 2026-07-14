@@ -5584,3 +5584,107 @@ ConnectionResetError: [WinError 10054] An existing connection was forcibly close
 2026-07-13 21:19:40,158 - Zovix - INFO - Started 4 threaded workers
 2026-07-13 21:19:40,158 - Zovix - INFO - Load balancer initialized with 4 workers
 2026-07-13 21:19:40,167 - Zovix - INFO - Database initialized successfully
+2026-07-14 17:08:55,125 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-14 17:08:55,126 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-14 17:08:55,129 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-14 17:08:55,131 - Zovix - INFO - Started 4 threaded workers
+2026-07-14 17:08:55,131 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-14 17:08:55,149 - Zovix - INFO - Database initialized successfully
+2026-07-14 17:10:21,080 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-14 17:10:21,080 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-14 17:10:21,081 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-14 17:10:21,083 - Zovix - INFO - Started 4 threaded workers
+2026-07-14 17:10:21,083 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-14 17:10:21,092 - Zovix - INFO - Database initialized successfully
+2026-07-14 17:10:50,751 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-14 17:10:50,756 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-14 17:10:50,758 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-14 17:10:50,760 - Zovix - INFO - Started 4 threaded workers
+2026-07-14 17:10:50,761 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-14 17:10:50,778 - Zovix - INFO - Database initialized successfully
+2026-07-14 17:11:18,509 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-14 17:11:18,510 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-14 17:11:18,512 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-14 17:11:18,514 - Zovix - INFO - Started 4 threaded workers
+2026-07-14 17:11:18,515 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-14 17:11:18,521 - Zovix - INFO - Database initialized successfully
+2026-07-14 17:11:23,757 - Zovix - WARNING - Failed login attempt for user: rajmehta886297@gmail.com
+2026-07-14 17:11:32,242 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-14 17:11:32,243 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-14 17:11:32,245 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-14 17:11:32,247 - Zovix - INFO - Started 4 threaded workers
+2026-07-14 17:11:32,248 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-14 17:11:32,258 - Zovix - INFO - Database initialized successfully
+2026-07-14 17:11:33,762 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-14 17:11:33,763 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-14 17:11:33,765 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-14 17:11:33,768 - Zovix - INFO - Started 4 threaded workers
+2026-07-14 17:11:33,769 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-14 17:11:33,778 - Zovix - INFO - Database initialized successfully
+2026-07-14 17:11:35,084 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-14 17:11:35,085 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-14 17:11:35,086 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-14 17:11:35,089 - Zovix - INFO - Started 4 threaded workers
+2026-07-14 17:11:35,089 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-14 17:11:35,096 - Zovix - INFO - Database initialized successfully
+2026-07-14 17:11:35,342 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-14 17:11:35,343 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-14 17:11:35,345 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-14 17:11:35,347 - Zovix - INFO - Started 4 threaded workers
+2026-07-14 17:11:35,348 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-14 17:11:35,356 - Zovix - INFO - Database initialized successfully
+2026-07-14 17:11:42,219 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-14 17:11:42,220 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-14 17:11:42,222 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-14 17:11:42,224 - Zovix - INFO - Started 4 threaded workers
+2026-07-14 17:11:42,224 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-14 17:11:42,230 - Zovix - INFO - Database initialized successfully
+2026-07-14 17:11:42,500 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-14 17:11:42,501 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-14 17:11:42,503 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-14 17:11:42,505 - Zovix - INFO - Started 4 threaded workers
+2026-07-14 17:11:42,506 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-14 17:11:42,512 - Zovix - INFO - Database initialized successfully
+2026-07-14 17:12:09,271 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-14 17:12:09,272 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-14 17:12:09,273 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-14 17:12:09,275 - Zovix - INFO - Started 4 threaded workers
+2026-07-14 17:12:09,276 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-14 17:12:09,282 - Zovix - INFO - Database initialized successfully
+2026-07-14 17:12:10,443 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-14 17:12:10,444 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-14 17:12:10,445 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-14 17:12:10,448 - Zovix - INFO - Started 4 threaded workers
+2026-07-14 17:12:10,448 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-14 17:12:10,454 - Zovix - INFO - Database initialized successfully
+2026-07-14 17:12:13,063 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-14 17:12:13,065 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-14 17:12:13,066 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-14 17:12:13,068 - Zovix - INFO - Started 4 threaded workers
+2026-07-14 17:12:13,068 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-14 17:12:13,075 - Zovix - INFO - Database initialized successfully
+2026-07-14 17:12:18,754 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-14 17:12:18,755 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-14 17:12:18,756 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-14 17:12:18,758 - Zovix - INFO - Started 4 threaded workers
+2026-07-14 17:12:18,759 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-14 17:12:18,765 - Zovix - INFO - Database initialized successfully
+2026-07-14 17:12:21,222 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-14 17:12:21,224 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-14 17:12:21,225 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-14 17:12:21,227 - Zovix - INFO - Started 4 threaded workers
+2026-07-14 17:12:21,227 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-14 17:12:21,233 - Zovix - INFO - Database initialized successfully
+2026-07-14 17:12:27,064 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-14 17:12:27,065 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-14 17:12:27,066 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-14 17:12:27,070 - Zovix - INFO - Started 4 threaded workers
+2026-07-14 17:12:27,070 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-14 17:12:27,076 - Zovix - INFO - Database initialized successfully
+2026-07-14 17:12:28,280 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-14 17:12:28,281 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-14 17:12:28,283 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-14 17:12:28,285 - Zovix - INFO - Started 4 threaded workers
+2026-07-14 17:12:28,286 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-14 17:12:28,291 - Zovix - INFO - Database initialized successfully
+2026-07-14 17:12:28,390 - Zovix - INFO - Deducted 5 credits from rajmehta886297@gmail.com

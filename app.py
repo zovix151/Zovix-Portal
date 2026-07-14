@@ -6473,7 +6473,7 @@ def render_live_emotion_voice():
                     else:
                         st.success(message)
                         with st.spinner(f"🎤 Generating {selected_emotion} voice with {selected_voice_label} in {selected_language}..."):
-                            voice_id = ELEVENLABS_VOICES.get(selected_voice_label, {}).get("id", "21m00Tcm4TlvDq8ikWAM")
+                            voice_id = ELEVENLABS_VOICES.get(selected_voice_label, {}).get("id", "pNInz6obpgDQ5IdwJg7p")
                             output_path = generate_emotion_voice(voice_text, emotion=selected_emotion, voice_type="male" if voice_info.get("gender") == "male" else "female", elevenlabs_voice_id=voice_id)
                             if output_path and os.path.exists(output_path) and os.path.getsize(output_path) > 0:
                                 st.session_state["emotion_voice_output"] = output_path
@@ -6596,7 +6596,7 @@ def generate_emotion_voice(text, emotion="neutral", voice_type="male", output_pa
             emotion_modifiers = {"neutral": "", "happy": " [Happy, cheerful tone] ", "sad": " [Sad, melancholic tone] ", "angry": " [Angry, frustrated tone] ", "excited": " [Excited, enthusiastic tone] ", "serious": " [Serious, professional tone] ", "mysterious": " [Mysterious, intriguing tone] "}
             modified_text = emotion_modifiers.get(emotion, "") + text
             if AudioEngine.generate_elevenlabs_speech(modified_text, output_path, elevenlabs_voice_id):
-                if is_audio_audible(output_path):
+                if os.path.exists(output_path) and os.path.getsize(output_path) > 1024:
                     return output_path
         except Exception as e:
             logger.warning(f"ElevenLabs TTS failed: {e}")
@@ -6620,7 +6620,7 @@ def generate_emotion_voice(text, emotion="neutral", voice_type="male", output_pa
                 try:
                     safe_remove_file(output_path)
                     run_async_in_thread(edge_tts.Communicate(text, voice_name).save(output_path))
-                    if os.path.exists(output_path) and is_audio_audible(output_path):
+                    if os.path.exists(output_path) and os.path.getsize(output_path) > 2048:
                         return output_path
                 except Exception as voice_error:
                     logger.warning(f"Edge TTS voice failed ({voice_name}): {voice_error}")
