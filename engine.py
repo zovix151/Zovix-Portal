@@ -713,7 +713,8 @@ def compile_video(assets: List[str], output_path: str = "final_shorts.mp4") -> O
         manifest_path = os.path.join("temp_scenes", f"manifest_{uuid.uuid4().hex[:8]}.txt")
         with open(manifest_path, "w") as f:
             for path in assets:
-                f.write(f"file '{os.path.abspath(path).replace('\\', '/')}'\n")
+                clean_path = os.path.abspath(path).replace("\\", "/")
+            f.write(f"file '{clean_path}'\n")
         
         concat_cmd = [
             "ffmpeg", *get_hwaccel_args(), "-y", "-f", "concat", "-safe", "0", "-i", manifest_path,

@@ -4173,3 +4173,1414 @@ ConnectionResetError: [WinError 10054] An existing connection was forcibly close
 2026-07-12 14:27:41,771 - Zovix - INFO - Load balancer initialized with 4 workers
 2026-07-12 14:27:43,796 - Zovix - INFO - Redis cache connected
 2026-07-12 14:27:43,802 - Zovix - INFO - Database initialized successfully
+2026-07-12 16:01:36,633 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 16:01:36,656 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 16:01:38,691 - Zovix - INFO - Redis cache connected
+2026-07-12 16:01:38,745 - Zovix - INFO - Database initialized successfully
+2026-07-12 16:01:47,256 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 16:01:47,259 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 16:01:49,319 - Zovix - INFO - Redis cache connected
+2026-07-12 16:01:49,326 - Zovix - INFO - Database initialized successfully
+2026-07-12 16:01:59,112 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 16:01:59,114 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 16:02:01,148 - Zovix - INFO - Redis cache connected
+2026-07-12 16:02:01,153 - Zovix - INFO - Database initialized successfully
+2026-07-12 16:04:11,884 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 16:04:11,885 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 16:04:11,947 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 16:04:11,949 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 16:04:13,910 - Zovix - INFO - Redis cache connected
+2026-07-12 16:04:14,058 - Zovix - INFO - Redis cache connected
+2026-07-12 16:04:14,063 - Zovix - INFO - Database initialized successfully
+2026-07-12 16:04:18,371 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 16:04:18,374 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 16:04:19,697 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 16:04:19,698 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 16:04:20,402 - Zovix - INFO - Redis cache connected
+2026-07-12 16:04:21,724 - Zovix - INFO - Redis cache connected
+2026-07-12 16:04:21,729 - Zovix - INFO - Database initialized successfully
+2026-07-12 16:04:26,017 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 16:04:26,018 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 16:04:28,067 - Zovix - INFO - Redis cache connected
+2026-07-12 16:04:28,072 - Zovix - INFO - Database initialized successfully
+2026-07-12 16:04:44,053 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 16:04:44,055 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 16:04:46,113 - Zovix - INFO - Redis cache connected
+2026-07-12 16:04:46,120 - Zovix - INFO - Database initialized successfully
+2026-07-12 16:04:50,390 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 16:04:50,391 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 16:04:52,434 - Zovix - INFO - Redis cache connected
+2026-07-12 16:04:52,439 - Zovix - INFO - Database initialized successfully
+2026-07-12 16:05:03,851 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 16:05:03,853 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 16:05:05,902 - Zovix - INFO - Redis cache connected
+2026-07-12 16:05:05,909 - Zovix - INFO - Database initialized successfully
+2026-07-12 16:05:10,846 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 16:05:10,852 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 16:05:12,896 - Zovix - INFO - Redis cache connected
+2026-07-12 16:05:12,902 - Zovix - INFO - Database initialized successfully
+2026-07-12 16:05:17,271 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 16:05:17,272 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 16:05:19,308 - Zovix - INFO - Redis cache connected
+2026-07-12 16:05:19,315 - Zovix - INFO - Database initialized successfully
+2026-07-12 16:05:35,964 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 16:05:35,965 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 16:05:37,599 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 16:05:37,601 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 16:05:38,018 - Zovix - INFO - Redis cache connected
+2026-07-12 16:05:39,639 - Zovix - INFO - Redis cache connected
+2026-07-12 16:05:39,646 - Zovix - INFO - Database initialized successfully
+2026-07-12 16:05:50,945 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 16:05:50,948 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 16:05:52,966 - Zovix - INFO - Redis cache connected
+2026-07-12 16:05:52,972 - Zovix - INFO - Database initialized successfully
+2026-07-12 16:05:55,117 - Zovix - INFO - Deducted 4 credits from rajmehta886297@gmail.com
+2026-07-12 16:05:57,411 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 16:05:57,412 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 16:05:59,452 - Zovix - INFO - Redis cache connected
+2026-07-12 16:05:59,461 - Zovix - INFO - Database initialized successfully
+2026-07-12 16:06:01,674 - Zovix - INFO - Deducted 2 credits from rajmehta886297@gmail.com
+2026-07-12 16:06:29,614 - Zovix - ERROR - Pollinations error: HTTPSConnectionPool(host='image.pollinations.ai', port=443): Read timed out. (read timeout=25)
+2026-07-12 16:21:29,972 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 16:21:29,977 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 16:21:32,032 - Zovix - INFO - Redis cache connected
+2026-07-12 16:21:32,047 - Zovix - INFO - Database initialized successfully
+2026-07-12 16:22:17,587 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 16:22:17,589 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 16:22:19,632 - Zovix - INFO - Redis cache connected
+2026-07-12 16:22:19,641 - Zovix - INFO - Database initialized successfully
+2026-07-12 16:22:28,057 - Zovix - INFO - New social user: raviranjan2k14@gmail.com via Google
+2026-07-12 16:22:30,371 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 16:22:30,373 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 16:22:32,430 - Zovix - INFO - Redis cache connected
+2026-07-12 16:22:32,439 - Zovix - INFO - Database initialized successfully
+2026-07-12 16:22:45,509 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 16:22:45,511 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 16:22:47,547 - Zovix - INFO - Redis cache connected
+2026-07-12 16:22:47,555 - Zovix - INFO - Database initialized successfully
+2026-07-12 16:22:57,501 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 16:22:57,503 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 16:22:59,542 - Zovix - INFO - Redis cache connected
+2026-07-12 16:22:59,548 - Zovix - INFO - Database initialized successfully
+2026-07-12 16:23:03,949 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 16:23:03,951 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 16:23:05,982 - Zovix - INFO - Redis cache connected
+2026-07-12 16:23:06,394 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 16:23:06,396 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 16:23:08,443 - Zovix - INFO - Redis cache connected
+2026-07-12 16:23:08,449 - Zovix - INFO - Database initialized successfully
+2026-07-12 16:23:12,843 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 16:23:12,845 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 16:23:14,884 - Zovix - INFO - Redis cache connected
+2026-07-12 16:23:14,890 - Zovix - INFO - Database initialized successfully
+2026-07-12 16:23:24,116 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 16:23:24,119 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 16:23:26,169 - Zovix - INFO - Redis cache connected
+2026-07-12 16:23:26,176 - Zovix - INFO - Database initialized successfully
+2026-07-12 16:23:30,607 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 16:23:30,609 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 16:23:32,654 - Zovix - INFO - Redis cache connected
+2026-07-12 16:23:32,660 - Zovix - INFO - Database initialized successfully
+2026-07-12 16:23:44,780 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 16:23:44,781 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 16:23:46,825 - Zovix - INFO - Redis cache connected
+2026-07-12 16:23:46,831 - Zovix - INFO - Database initialized successfully
+2026-07-12 16:23:57,824 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 16:23:57,826 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 16:23:59,868 - Zovix - INFO - Redis cache connected
+2026-07-12 16:23:59,874 - Zovix - INFO - Database initialized successfully
+2026-07-12 16:24:04,366 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 16:24:04,368 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 16:24:06,423 - Zovix - INFO - Redis cache connected
+2026-07-12 16:24:06,429 - Zovix - INFO - Database initialized successfully
+2026-07-12 16:24:14,908 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 16:24:14,909 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 16:24:16,627 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 16:24:16,628 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 16:24:16,957 - Zovix - INFO - Redis cache connected
+2026-07-12 16:24:17,817 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 16:24:17,818 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 16:24:18,678 - Zovix - INFO - Redis cache connected
+2026-07-12 16:24:19,865 - Zovix - INFO - Redis cache connected
+2026-07-12 16:24:19,873 - Zovix - INFO - Database initialized successfully
+2026-07-12 16:24:33,222 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 16:24:33,224 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 16:24:35,248 - Zovix - INFO - Redis cache connected
+2026-07-12 16:24:35,254 - Zovix - INFO - Database initialized successfully
+2026-07-12 16:24:37,406 - Zovix - INFO - Deducted 4 credits from raviranjan2k14@gmail.com
+2026-07-12 16:24:39,711 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 16:24:39,713 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 16:24:41,743 - Zovix - INFO - Redis cache connected
+2026-07-12 16:24:41,751 - Zovix - INFO - Database initialized successfully
+2026-07-12 16:24:43,927 - Zovix - INFO - Deducted 1 credits from raviranjan2k14@gmail.com
+2026-07-12 21:41:44,448 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 21:41:44,519 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 21:41:46,547 - Zovix - INFO - Redis cache connected
+2026-07-12 21:41:46,567 - Zovix - INFO - Database initialized successfully
+2026-07-12 21:43:12,881 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 21:43:12,884 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 21:43:14,930 - Zovix - INFO - Redis cache connected
+2026-07-12 21:43:14,936 - Zovix - INFO - Database initialized successfully
+2026-07-12 21:43:26,851 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 21:43:26,853 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 21:43:28,896 - Zovix - INFO - Redis cache connected
+2026-07-12 21:43:28,900 - Zovix - INFO - Database initialized successfully
+2026-07-12 21:44:01,086 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 21:44:01,089 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 21:44:03,113 - Zovix - INFO - Redis cache connected
+2026-07-12 21:44:03,121 - Zovix - INFO - Database initialized successfully
+2026-07-12 21:44:11,757 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 21:44:11,758 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 21:44:13,776 - Zovix - INFO - Redis cache connected
+2026-07-12 21:44:13,780 - Zovix - INFO - Database initialized successfully
+2026-07-12 21:46:11,720 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 21:46:11,723 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 21:46:13,779 - Zovix - INFO - Redis cache connected
+2026-07-12 21:46:13,786 - Zovix - INFO - Database initialized successfully
+2026-07-12 21:46:18,110 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 21:46:18,111 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 21:46:20,142 - Zovix - INFO - Redis cache connected
+2026-07-12 21:46:20,150 - Zovix - INFO - Database initialized successfully
+2026-07-12 21:46:37,435 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 21:46:37,439 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 21:46:39,486 - Zovix - INFO - Redis cache connected
+2026-07-12 21:46:39,493 - Zovix - INFO - Database initialized successfully
+2026-07-12 21:47:12,204 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 21:47:12,205 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 21:47:12,249 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 21:47:12,251 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 21:47:14,235 - Zovix - INFO - Redis cache connected
+2026-07-12 21:47:14,483 - Zovix - INFO - Redis cache connected
+2026-07-12 21:47:14,493 - Zovix - INFO - Database initialized successfully
+2026-07-12 21:47:18,867 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 21:47:18,868 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 21:47:20,926 - Zovix - INFO - Redis cache connected
+2026-07-12 21:47:20,932 - Zovix - INFO - Database initialized successfully
+2026-07-12 21:47:30,551 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 21:47:30,553 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 21:47:32,584 - Zovix - INFO - Redis cache connected
+2026-07-12 21:47:32,591 - Zovix - INFO - Database initialized successfully
+2026-07-12 21:47:38,112 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 21:47:38,113 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 21:47:40,155 - Zovix - INFO - Redis cache connected
+2026-07-12 21:47:40,162 - Zovix - INFO - Database initialized successfully
+2026-07-12 21:47:44,519 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 21:47:44,522 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 21:47:46,551 - Zovix - INFO - Redis cache connected
+2026-07-12 21:47:46,558 - Zovix - INFO - Database initialized successfully
+2026-07-12 21:48:18,312 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 21:48:18,314 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 21:48:20,350 - Zovix - INFO - Redis cache connected
+2026-07-12 21:48:20,358 - Zovix - INFO - Database initialized successfully
+2026-07-12 21:48:53,539 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 21:48:53,539 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 21:48:53,618 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 21:48:53,620 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 21:48:55,571 - Zovix - INFO - Redis cache connected
+2026-07-12 21:48:55,828 - Zovix - INFO - Redis cache connected
+2026-07-12 21:48:55,841 - Zovix - INFO - Database initialized successfully
+2026-07-12 21:49:00,268 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 21:49:00,270 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 21:49:01,112 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 21:49:01,114 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 21:49:02,316 - Zovix - INFO - Redis cache connected
+2026-07-12 21:49:03,163 - Zovix - INFO - Redis cache connected
+2026-07-12 21:49:03,169 - Zovix - INFO - Database initialized successfully
+2026-07-12 21:49:07,626 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 21:49:07,628 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 21:49:08,186 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 21:49:08,187 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 21:49:09,652 - Zovix - INFO - Redis cache connected
+2026-07-12 21:49:10,231 - Zovix - INFO - Redis cache connected
+2026-07-12 21:49:10,239 - Zovix - INFO - Database initialized successfully
+2026-07-12 21:49:14,676 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 21:49:14,679 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 21:49:16,717 - Zovix - INFO - Redis cache connected
+2026-07-12 21:49:16,724 - Zovix - INFO - Database initialized successfully
+2026-07-12 21:49:21,777 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 21:49:21,778 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 21:49:23,811 - Zovix - INFO - Redis cache connected
+2026-07-12 21:49:23,818 - Zovix - INFO - Database initialized successfully
+2026-07-12 21:49:28,224 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 21:49:28,225 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 21:49:30,272 - Zovix - INFO - Redis cache connected
+2026-07-12 21:49:30,280 - Zovix - INFO - Database initialized successfully
+2026-07-12 21:49:39,195 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 21:49:39,198 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 21:49:41,246 - Zovix - INFO - Redis cache connected
+2026-07-12 21:49:41,250 - Zovix - INFO - Database initialized successfully
+2026-07-12 21:49:46,265 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 21:49:46,267 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 21:49:48,320 - Zovix - INFO - Redis cache connected
+2026-07-12 21:49:48,325 - Zovix - INFO - Database initialized successfully
+2026-07-12 21:49:52,765 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 21:49:52,767 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 21:49:54,807 - Zovix - INFO - Redis cache connected
+2026-07-12 21:49:54,812 - Zovix - INFO - Database initialized successfully
+2026-07-12 21:50:10,072 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 21:50:10,074 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 21:50:11,290 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 21:50:11,293 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 21:50:12,116 - Zovix - INFO - Redis cache connected
+2026-07-12 21:50:13,317 - Zovix - INFO - Redis cache connected
+2026-07-12 21:50:13,322 - Zovix - INFO - Database initialized successfully
+2026-07-12 21:50:23,363 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 21:50:23,364 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 21:50:25,398 - Zovix - INFO - Redis cache connected
+2026-07-12 21:50:25,405 - Zovix - INFO - Database initialized successfully
+2026-07-12 21:50:27,549 - Zovix - INFO - Deducted 4 credits from rajmehta886297@gmail.com
+2026-07-12 21:50:29,858 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 21:50:29,860 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 21:50:31,900 - Zovix - INFO - Redis cache connected
+2026-07-12 21:50:31,907 - Zovix - INFO - Database initialized successfully
+2026-07-12 21:50:34,142 - Zovix - INFO - Deducted 1 credits from rajmehta886297@gmail.com
+2026-07-12 21:54:02,543 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 21:54:02,544 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 21:54:04,580 - Zovix - INFO - Redis cache connected
+2026-07-12 21:54:04,587 - Zovix - INFO - Database initialized successfully
+2026-07-12 21:54:08,964 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 21:54:08,967 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 21:54:11,013 - Zovix - INFO - Redis cache connected
+2026-07-12 21:54:11,020 - Zovix - INFO - Database initialized successfully
+2026-07-12 21:54:51,368 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 21:54:51,369 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 21:54:52,254 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 21:54:52,255 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 21:54:53,405 - Zovix - INFO - Redis cache connected
+2026-07-12 21:54:54,295 - Zovix - INFO - Redis cache connected
+2026-07-12 21:54:54,300 - Zovix - INFO - Database initialized successfully
+2026-07-12 21:55:02,741 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 21:55:02,742 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 21:55:04,797 - Zovix - INFO - Redis cache connected
+2026-07-12 21:55:04,806 - Zovix - INFO - Database initialized successfully
+2026-07-12 21:55:10,139 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 21:55:10,141 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 21:55:12,186 - Zovix - INFO - Redis cache connected
+2026-07-12 21:55:12,193 - Zovix - INFO - Database initialized successfully
+2026-07-12 21:55:14,550 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 21:55:14,551 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 21:55:16,583 - Zovix - INFO - Redis cache connected
+2026-07-12 21:55:16,588 - Zovix - INFO - Database initialized successfully
+2026-07-12 21:55:21,629 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 21:55:21,631 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 21:55:23,672 - Zovix - INFO - Redis cache connected
+2026-07-12 21:55:23,674 - Zovix - INFO - Database initialized successfully
+2026-07-12 21:55:29,559 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 21:55:29,561 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 21:55:31,605 - Zovix - INFO - Redis cache connected
+2026-07-12 21:55:31,610 - Zovix - INFO - Database initialized successfully
+2026-07-12 21:55:44,211 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 21:55:44,216 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 21:55:46,262 - Zovix - INFO - Redis cache connected
+2026-07-12 21:55:46,267 - Zovix - INFO - Database initialized successfully
+2026-07-12 21:55:48,431 - Zovix - INFO - Deducted 4 credits from rajmehta886297@gmail.com
+2026-07-12 21:55:52,164 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 21:55:52,166 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 21:55:54,210 - Zovix - INFO - Redis cache connected
+2026-07-12 21:55:54,218 - Zovix - INFO - Database initialized successfully
+2026-07-12 21:59:04,090 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 21:59:04,091 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 21:59:06,116 - Zovix - INFO - Redis cache connected
+2026-07-12 21:59:06,131 - Zovix - INFO - Database initialized successfully
+2026-07-12 21:59:13,414 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 21:59:13,415 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 21:59:15,447 - Zovix - INFO - Redis cache connected
+2026-07-12 21:59:15,452 - Zovix - INFO - Database initialized successfully
+2026-07-12 21:59:22,236 - Zovix - INFO - New user registered: zooweefun@gmail.com
+2026-07-12 21:59:24,623 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 21:59:24,624 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 21:59:26,653 - Zovix - INFO - Redis cache connected
+2026-07-12 21:59:26,662 - Zovix - INFO - Database initialized successfully
+2026-07-12 21:59:46,646 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 21:59:46,647 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 21:59:48,690 - Zovix - INFO - Redis cache connected
+2026-07-12 21:59:48,696 - Zovix - INFO - Database initialized successfully
+2026-07-12 21:59:52,991 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 21:59:52,992 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 21:59:55,036 - Zovix - INFO - Redis cache connected
+2026-07-12 21:59:55,043 - Zovix - INFO - Database initialized successfully
+2026-07-12 22:01:20,887 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:01:20,909 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:01:22,948 - Zovix - INFO - Redis cache connected
+2026-07-12 22:01:22,964 - Zovix - INFO - Database initialized successfully
+2026-07-12 22:01:28,121 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:01:28,122 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:01:30,149 - Zovix - INFO - Redis cache connected
+2026-07-12 22:01:30,155 - Zovix - INFO - Database initialized successfully
+2026-07-12 22:01:38,509 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:01:38,511 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:01:40,538 - Zovix - INFO - Redis cache connected
+2026-07-12 22:01:40,542 - Zovix - INFO - Database initialized successfully
+2026-07-12 22:01:47,815 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:01:47,815 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:01:49,857 - Zovix - INFO - Redis cache connected
+2026-07-12 22:01:49,863 - Zovix - INFO - Database initialized successfully
+2026-07-12 22:01:54,123 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:01:54,124 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:01:56,171 - Zovix - INFO - Redis cache connected
+2026-07-12 22:01:56,177 - Zovix - INFO - Database initialized successfully
+2026-07-12 22:02:59,785 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:02:59,785 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:03:01,812 - Zovix - INFO - Redis cache connected
+2026-07-12 22:03:01,816 - Zovix - INFO - Database initialized successfully
+2026-07-12 22:03:46,584 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:03:46,584 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:03:46,647 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:03:46,648 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:03:48,610 - Zovix - INFO - Redis cache connected
+2026-07-12 22:03:48,798 - Zovix - INFO - Redis cache connected
+2026-07-12 22:03:48,808 - Zovix - INFO - Database initialized successfully
+2026-07-12 22:03:50,996 - Zovix - INFO - Deducted 6 credits from zooweefun@gmail.com
+2026-07-12 22:03:58,892 - httpx - INFO - HTTP Request: POST https://api.replicate.com/v1/models/prunaai/p-video-avatar/predictions "HTTP/1.1 201 Created"
+2026-07-12 22:04:00,429 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/fjrs2rxcm9rmr0czawpsxe6qpg "HTTP/1.1 200 OK"
+2026-07-12 22:04:01,452 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/fjrs2rxcm9rmr0czawpsxe6qpg "HTTP/1.1 200 OK"
+2026-07-12 22:04:02,988 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/fjrs2rxcm9rmr0czawpsxe6qpg "HTTP/1.1 200 OK"
+2026-07-12 22:04:04,116 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/fjrs2rxcm9rmr0czawpsxe6qpg "HTTP/1.1 200 OK"
+2026-07-12 22:04:05,139 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/fjrs2rxcm9rmr0czawpsxe6qpg "HTTP/1.1 200 OK"
+2026-07-12 22:04:06,110 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/fjrs2rxcm9rmr0czawpsxe6qpg "HTTP/1.1 200 OK"
+2026-07-12 22:04:07,389 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/fjrs2rxcm9rmr0czawpsxe6qpg "HTTP/1.1 200 OK"
+2026-07-12 22:04:09,031 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/fjrs2rxcm9rmr0czawpsxe6qpg "HTTP/1.1 200 OK"
+2026-07-12 22:04:10,055 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/fjrs2rxcm9rmr0czawpsxe6qpg "HTTP/1.1 200 OK"
+2026-07-12 22:04:11,066 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/fjrs2rxcm9rmr0czawpsxe6qpg "HTTP/1.1 200 OK"
+2026-07-12 22:04:12,062 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/fjrs2rxcm9rmr0czawpsxe6qpg "HTTP/1.1 200 OK"
+2026-07-12 22:04:13,013 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/fjrs2rxcm9rmr0czawpsxe6qpg "HTTP/1.1 200 OK"
+2026-07-12 22:04:13,975 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/fjrs2rxcm9rmr0czawpsxe6qpg "HTTP/1.1 200 OK"
+2026-07-12 22:04:15,176 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/fjrs2rxcm9rmr0czawpsxe6qpg "HTTP/1.1 200 OK"
+2026-07-12 22:04:16,302 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/fjrs2rxcm9rmr0czawpsxe6qpg "HTTP/1.1 200 OK"
+2026-07-12 22:04:17,327 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/fjrs2rxcm9rmr0czawpsxe6qpg "HTTP/1.1 200 OK"
+2026-07-12 22:04:18,351 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/fjrs2rxcm9rmr0czawpsxe6qpg "HTTP/1.1 200 OK"
+2026-07-12 22:04:19,375 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/fjrs2rxcm9rmr0czawpsxe6qpg "HTTP/1.1 200 OK"
+2026-07-12 22:04:20,399 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/fjrs2rxcm9rmr0czawpsxe6qpg "HTTP/1.1 200 OK"
+2026-07-12 22:04:21,422 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/fjrs2rxcm9rmr0czawpsxe6qpg "HTTP/1.1 200 OK"
+2026-07-12 22:04:22,447 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/fjrs2rxcm9rmr0czawpsxe6qpg "HTTP/1.1 200 OK"
+2026-07-12 22:04:23,369 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/fjrs2rxcm9rmr0czawpsxe6qpg "HTTP/1.1 200 OK"
+2026-07-12 22:04:24,905 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/fjrs2rxcm9rmr0czawpsxe6qpg "HTTP/1.1 200 OK"
+2026-07-12 22:04:25,929 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/fjrs2rxcm9rmr0czawpsxe6qpg "HTTP/1.1 200 OK"
+2026-07-12 22:04:26,953 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/fjrs2rxcm9rmr0czawpsxe6qpg "HTTP/1.1 200 OK"
+2026-07-12 22:04:27,901 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/fjrs2rxcm9rmr0czawpsxe6qpg "HTTP/1.1 200 OK"
+2026-07-12 22:04:28,899 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/fjrs2rxcm9rmr0czawpsxe6qpg "HTTP/1.1 200 OK"
+2026-07-12 22:04:30,641 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/fjrs2rxcm9rmr0czawpsxe6qpg "HTTP/1.1 200 OK"
+2026-07-12 22:04:31,767 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/fjrs2rxcm9rmr0czawpsxe6qpg "HTTP/1.1 200 OK"
+2026-07-12 22:04:32,803 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/fjrs2rxcm9rmr0czawpsxe6qpg "HTTP/1.1 200 OK"
+2026-07-12 22:04:33,849 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/fjrs2rxcm9rmr0czawpsxe6qpg "HTTP/1.1 200 OK"
+2026-07-12 22:04:35,351 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/fjrs2rxcm9rmr0czawpsxe6qpg "HTTP/1.1 200 OK"
+2026-07-12 22:04:36,478 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/fjrs2rxcm9rmr0czawpsxe6qpg "HTTP/1.1 200 OK"
+2026-07-12 22:04:37,502 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/fjrs2rxcm9rmr0czawpsxe6qpg "HTTP/1.1 200 OK"
+2026-07-12 22:04:38,467 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/fjrs2rxcm9rmr0czawpsxe6qpg "HTTP/1.1 200 OK"
+2026-07-12 22:04:39,448 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/fjrs2rxcm9rmr0czawpsxe6qpg "HTTP/1.1 200 OK"
+2026-07-12 22:04:40,369 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/fjrs2rxcm9rmr0czawpsxe6qpg "HTTP/1.1 200 OK"
+2026-07-12 22:04:41,291 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/fjrs2rxcm9rmr0czawpsxe6qpg "HTTP/1.1 200 OK"
+2026-07-12 22:04:42,207 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/fjrs2rxcm9rmr0czawpsxe6qpg "HTTP/1.1 200 OK"
+2026-07-12 22:04:43,246 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/fjrs2rxcm9rmr0czawpsxe6qpg "HTTP/1.1 200 OK"
+2026-07-12 22:04:44,773 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/fjrs2rxcm9rmr0czawpsxe6qpg "HTTP/1.1 200 OK"
+2026-07-12 22:04:45,684 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/fjrs2rxcm9rmr0czawpsxe6qpg "HTTP/1.1 200 OK"
+2026-07-12 22:04:46,615 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/fjrs2rxcm9rmr0czawpsxe6qpg "HTTP/1.1 200 OK"
+2026-07-12 22:04:47,854 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/fjrs2rxcm9rmr0czawpsxe6qpg "HTTP/1.1 200 OK"
+2026-07-12 22:04:48,869 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/fjrs2rxcm9rmr0czawpsxe6qpg "HTTP/1.1 200 OK"
+2026-07-12 22:04:49,895 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/fjrs2rxcm9rmr0czawpsxe6qpg "HTTP/1.1 200 OK"
+2026-07-12 22:04:50,903 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/fjrs2rxcm9rmr0czawpsxe6qpg "HTTP/1.1 200 OK"
+2026-07-12 22:04:52,045 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/fjrs2rxcm9rmr0czawpsxe6qpg "HTTP/1.1 200 OK"
+2026-07-12 22:04:53,069 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/fjrs2rxcm9rmr0czawpsxe6qpg "HTTP/1.1 200 OK"
+2026-07-12 22:04:54,093 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/fjrs2rxcm9rmr0czawpsxe6qpg "HTTP/1.1 200 OK"
+2026-07-12 22:04:55,015 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/fjrs2rxcm9rmr0czawpsxe6qpg "HTTP/1.1 200 OK"
+2026-07-12 22:04:56,019 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/fjrs2rxcm9rmr0czawpsxe6qpg "HTTP/1.1 200 OK"
+2026-07-12 22:04:58,312 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:04:58,314 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:05:00,336 - Zovix - INFO - Redis cache connected
+2026-07-12 22:05:00,340 - Zovix - INFO - Database initialized successfully
+2026-07-12 22:05:32,722 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:05:32,723 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:05:34,782 - Zovix - INFO - Redis cache connected
+2026-07-12 22:05:34,787 - Zovix - INFO - Database initialized successfully
+2026-07-12 22:06:26,925 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:06:26,928 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:06:28,958 - Zovix - INFO - Redis cache connected
+2026-07-12 22:06:28,963 - Zovix - INFO - Database initialized successfully
+2026-07-12 22:06:33,305 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:06:33,306 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:06:35,332 - Zovix - INFO - Redis cache connected
+2026-07-12 22:06:35,336 - Zovix - INFO - Database initialized successfully
+2026-07-12 22:07:51,297 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:07:51,298 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:07:53,327 - Zovix - INFO - Redis cache connected
+2026-07-12 22:07:53,332 - Zovix - INFO - Database initialized successfully
+2026-07-12 22:08:09,910 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:08:09,911 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:08:11,940 - Zovix - INFO - Redis cache connected
+2026-07-12 22:08:11,944 - Zovix - INFO - Database initialized successfully
+2026-07-12 22:08:16,304 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:08:16,305 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:08:18,336 - Zovix - INFO - Redis cache connected
+2026-07-12 22:08:18,340 - Zovix - INFO - Database initialized successfully
+2026-07-12 22:08:25,940 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:08:25,942 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:08:27,970 - Zovix - INFO - Redis cache connected
+2026-07-12 22:08:27,973 - Zovix - INFO - Database initialized successfully
+2026-07-12 22:08:32,328 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:08:32,329 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:08:34,354 - Zovix - INFO - Redis cache connected
+2026-07-12 22:08:34,358 - Zovix - INFO - Database initialized successfully
+2026-07-12 22:08:42,188 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:08:42,189 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:08:44,218 - Zovix - INFO - Redis cache connected
+2026-07-12 22:08:44,224 - Zovix - INFO - Database initialized successfully
+2026-07-12 22:08:48,579 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:08:48,580 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:08:50,608 - Zovix - INFO - Redis cache connected
+2026-07-12 22:08:50,613 - Zovix - INFO - Database initialized successfully
+2026-07-12 22:09:00,865 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:09:00,866 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:09:02,898 - Zovix - INFO - Redis cache connected
+2026-07-12 22:09:02,902 - Zovix - INFO - Database initialized successfully
+2026-07-12 22:09:08,828 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:09:08,829 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:09:10,862 - Zovix - INFO - Redis cache connected
+2026-07-12 22:09:10,866 - Zovix - INFO - Database initialized successfully
+2026-07-12 22:09:15,223 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:09:15,224 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:09:17,254 - Zovix - INFO - Redis cache connected
+2026-07-12 22:09:17,262 - Zovix - INFO - Database initialized successfully
+2026-07-12 22:09:28,205 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:09:28,206 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:09:29,345 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:09:29,346 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:09:30,230 - Zovix - INFO - Redis cache connected
+2026-07-12 22:09:30,689 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:09:30,690 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:09:31,386 - Zovix - INFO - Redis cache connected
+2026-07-12 22:09:32,721 - Zovix - INFO - Redis cache connected
+2026-07-12 22:09:32,730 - Zovix - INFO - Database initialized successfully
+2026-07-12 22:09:43,257 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:09:43,258 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:09:45,284 - Zovix - INFO - Redis cache connected
+2026-07-12 22:09:45,288 - Zovix - INFO - Database initialized successfully
+2026-07-12 22:09:47,416 - Zovix - INFO - Deducted 4 credits from zooweefun@gmail.com
+2026-07-12 22:09:49,679 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:09:49,679 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:09:51,711 - Zovix - INFO - Redis cache connected
+2026-07-12 22:09:51,716 - Zovix - INFO - Database initialized successfully
+2026-07-12 22:09:53,894 - Zovix - INFO - Deducted 1 credits from zooweefun@gmail.com
+2026-07-12 22:13:01,329 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:13:01,329 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:13:03,374 - Zovix - INFO - Redis cache connected
+2026-07-12 22:13:03,382 - Zovix - INFO - Database initialized successfully
+2026-07-12 22:13:09,668 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:13:09,669 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:13:11,729 - Zovix - INFO - Redis cache connected
+2026-07-12 22:13:11,734 - Zovix - INFO - Database initialized successfully
+2026-07-12 22:13:34,651 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:13:34,652 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:13:34,746 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:13:34,747 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:13:36,686 - Zovix - INFO - Redis cache connected
+2026-07-12 22:13:36,957 - Zovix - INFO - Redis cache connected
+2026-07-12 22:13:36,966 - Zovix - INFO - Database initialized successfully
+2026-07-12 22:13:41,358 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:13:41,359 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:13:43,394 - Zovix - INFO - Redis cache connected
+2026-07-12 22:13:43,400 - Zovix - INFO - Database initialized successfully
+2026-07-12 22:13:52,149 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:13:52,151 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:13:54,187 - Zovix - INFO - Redis cache connected
+2026-07-12 22:13:54,191 - Zovix - INFO - Database initialized successfully
+2026-07-12 22:13:58,549 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:13:58,550 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:14:00,580 - Zovix - INFO - Redis cache connected
+2026-07-12 22:14:00,584 - Zovix - INFO - Database initialized successfully
+2026-07-12 22:14:06,550 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:14:06,551 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:14:08,585 - Zovix - INFO - Redis cache connected
+2026-07-12 22:14:08,590 - Zovix - INFO - Database initialized successfully
+2026-07-12 22:14:12,975 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:14:12,976 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:14:15,003 - Zovix - INFO - Redis cache connected
+2026-07-12 22:14:15,008 - Zovix - INFO - Database initialized successfully
+2026-07-12 22:14:25,905 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:14:25,906 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:14:27,938 - Zovix - INFO - Redis cache connected
+2026-07-12 22:14:27,943 - Zovix - INFO - Database initialized successfully
+2026-07-12 22:14:32,592 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:14:32,593 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:14:34,620 - Zovix - INFO - Redis cache connected
+2026-07-12 22:14:34,626 - Zovix - INFO - Database initialized successfully
+2026-07-12 22:14:40,888 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:14:40,890 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:14:42,927 - Zovix - INFO - Redis cache connected
+2026-07-12 22:14:42,933 - Zovix - INFO - Database initialized successfully
+2026-07-12 22:14:45,043 - Zovix - INFO - Deducted 4 credits from zooweefun@gmail.com
+2026-07-12 22:14:47,369 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:14:47,371 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:14:49,396 - Zovix - INFO - Redis cache connected
+2026-07-12 22:14:49,403 - Zovix - INFO - Database initialized successfully
+2026-07-12 22:14:51,568 - Zovix - INFO - Deducted 1 credits from zooweefun@gmail.com
+2026-07-12 22:21:32,408 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:21:32,409 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:21:34,434 - Zovix - INFO - Redis cache connected
+2026-07-12 22:21:34,439 - Zovix - INFO - Database initialized successfully
+2026-07-12 22:21:38,782 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:21:38,782 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:21:40,819 - Zovix - INFO - Redis cache connected
+2026-07-12 22:21:40,825 - Zovix - INFO - Database initialized successfully
+2026-07-12 22:51:29,947 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:51:29,948 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:51:31,975 - Zovix - INFO - Redis cache connected
+2026-07-12 22:51:31,980 - Zovix - INFO - Database initialized successfully
+2026-07-12 22:51:36,312 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:51:36,312 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:51:38,341 - Zovix - INFO - Redis cache connected
+2026-07-12 22:51:38,346 - Zovix - INFO - Database initialized successfully
+2026-07-12 22:52:17,511 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:52:17,516 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:52:19,560 - Zovix - INFO - Redis cache connected
+2026-07-12 22:52:19,565 - Zovix - INFO - Database initialized successfully
+2026-07-12 22:52:23,890 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:52:23,891 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:52:25,919 - Zovix - INFO - Redis cache connected
+2026-07-12 22:52:25,923 - Zovix - INFO - Database initialized successfully
+2026-07-12 22:52:57,090 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:52:57,095 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:52:59,138 - Zovix - INFO - Redis cache connected
+2026-07-12 22:52:59,145 - Zovix - INFO - Database initialized successfully
+2026-07-12 22:53:02,186 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:53:02,188 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:53:04,205 - Zovix - INFO - Redis cache connected
+2026-07-12 22:53:05,608 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:53:05,610 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:53:07,640 - Zovix - INFO - Redis cache connected
+2026-07-12 22:53:07,645 - Zovix - INFO - Database initialized successfully
+2026-07-12 22:53:56,183 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:53:56,184 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:53:56,261 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:53:56,262 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:53:58,240 - Zovix - INFO - Redis cache connected
+2026-07-12 22:53:58,497 - Zovix - INFO - Redis cache connected
+2026-07-12 22:53:58,506 - Zovix - INFO - Database initialized successfully
+2026-07-12 22:54:02,908 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:54:02,910 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:54:04,954 - Zovix - INFO - Redis cache connected
+2026-07-12 22:54:05,192 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:54:05,193 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:54:07,219 - Zovix - INFO - Redis cache connected
+2026-07-12 22:54:08,077 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:54:08,078 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:54:10,128 - Zovix - INFO - Redis cache connected
+2026-07-12 22:54:10,135 - Zovix - INFO - Database initialized successfully
+2026-07-12 22:54:16,274 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:54:16,276 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:54:18,322 - Zovix - INFO - Redis cache connected
+2026-07-12 22:54:18,326 - Zovix - INFO - Database initialized successfully
+2026-07-12 22:54:21,035 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:54:21,035 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:54:23,070 - Zovix - INFO - Redis cache connected
+2026-07-12 22:54:23,080 - Zovix - INFO - Database initialized successfully
+2026-07-12 22:54:25,809 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:54:25,813 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:54:27,867 - Zovix - INFO - Redis cache connected
+2026-07-12 22:54:29,280 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:54:29,283 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:54:31,321 - Zovix - INFO - Redis cache connected
+2026-07-12 22:54:33,615 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:54:33,616 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:54:35,649 - Zovix - INFO - Redis cache connected
+2026-07-12 22:54:35,654 - Zovix - INFO - Database initialized successfully
+2026-07-12 22:54:45,391 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:54:45,392 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:54:47,424 - Zovix - INFO - Redis cache connected
+2026-07-12 22:54:47,432 - Zovix - INFO - Database initialized successfully
+2026-07-12 22:54:52,531 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:54:52,532 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:54:54,572 - Zovix - INFO - Redis cache connected
+2026-07-12 22:54:54,578 - Zovix - INFO - Database initialized successfully
+2026-07-12 22:54:56,714 - Zovix - INFO - Deducted 4 credits from zooweefun@gmail.com
+2026-07-12 22:54:59,041 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 22:54:59,043 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 22:55:01,071 - Zovix - INFO - Redis cache connected
+2026-07-12 22:55:01,077 - Zovix - INFO - Database initialized successfully
+2026-07-12 22:55:03,232 - Zovix - INFO - Deducted 1 credits from zooweefun@gmail.com
+2026-07-12 22:55:03,425 - google_genai.models - INFO - AFC is enabled with max remote calls: 10.
+2026-07-12 22:55:04,123 - httpx - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent "HTTP/1.1 429 Too Many Requests"
+2026-07-12 22:55:04,127 - Zovix - ERROR - Script generation error: 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.5-pro\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.5-pro\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.5-pro\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.5-pro\nPlease retry in 55.784597297s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_input_token_count', 'quotaId': 'GenerateContentInputTokensPerModelPerMinute-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.5-pro'}}, {'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerMinutePerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.5-pro'}}, {'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.5-pro'}}, {'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_input_token_count', 'quotaId': 'GenerateContentInputTokensPerModelPerDay-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.5-pro'}}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '55s'}]}}
+2026-07-12 23:01:12,570 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 23:01:12,571 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 23:01:14,612 - Zovix - INFO - Redis cache connected
+2026-07-12 23:01:14,620 - Zovix - INFO - Database initialized successfully
+2026-07-12 23:01:40,257 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 23:01:40,258 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 23:01:42,287 - Zovix - INFO - Redis cache connected
+2026-07-12 23:01:42,299 - Zovix - INFO - Database initialized successfully
+2026-07-12 23:01:46,779 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 23:01:46,781 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 23:01:48,816 - Zovix - INFO - Redis cache connected
+2026-07-12 23:01:48,820 - Zovix - INFO - Database initialized successfully
+2026-07-12 23:02:00,882 - Zovix - WARNING - Failed login attempt for user: rajmehta886297@gmail.com
+2026-07-12 23:02:07,990 - Zovix - WARNING - Failed login attempt for user: rajmehta886297@gmail.com
+2026-07-12 23:02:16,961 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 23:02:16,962 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 23:02:18,990 - Zovix - INFO - Redis cache connected
+2026-07-12 23:02:18,996 - Zovix - INFO - Database initialized successfully
+2026-07-12 23:02:34,870 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 23:02:34,871 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 23:02:34,916 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 23:02:34,921 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 23:02:36,907 - Zovix - INFO - Redis cache connected
+2026-07-12 23:02:37,202 - Zovix - INFO - Redis cache connected
+2026-07-12 23:02:39,576 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 23:02:39,577 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 23:02:41,603 - Zovix - INFO - Redis cache connected
+2026-07-12 23:02:41,610 - Zovix - INFO - Database initialized successfully
+2026-07-12 23:02:44,703 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 23:02:44,705 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 23:02:46,733 - Zovix - INFO - Redis cache connected
+2026-07-12 23:02:46,738 - Zovix - INFO - Database initialized successfully
+2026-07-12 23:02:51,128 - Zovix - INFO - Redis connected for rate limiting
+2026-07-12 23:02:51,128 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-12 23:02:53,148 - Zovix - INFO - Redis cache connected
+2026-07-12 23:02:53,150 - Zovix - INFO - Database initialized successfully
+2026-07-13 16:43:02,422 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 16:43:02,458 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 16:43:04,485 - Zovix - INFO - Redis cache connected
+2026-07-13 16:43:04,508 - Zovix - INFO - Database initialized successfully
+2026-07-13 16:43:12,382 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 16:43:12,385 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 16:43:14,424 - Zovix - INFO - Redis cache connected
+2026-07-13 16:43:14,431 - Zovix - INFO - Database initialized successfully
+2026-07-13 16:43:26,364 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 16:43:26,366 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 16:43:28,397 - Zovix - INFO - Redis cache connected
+2026-07-13 16:43:28,403 - Zovix - INFO - Database initialized successfully
+2026-07-13 16:45:59,890 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 16:45:59,892 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 16:46:01,936 - Zovix - INFO - Redis cache connected
+2026-07-13 16:46:01,942 - Zovix - INFO - Database initialized successfully
+2026-07-13 16:46:09,763 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 16:46:09,764 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 16:46:11,795 - Zovix - INFO - Redis cache connected
+2026-07-13 16:46:11,806 - Zovix - INFO - Database initialized successfully
+2026-07-13 16:50:56,657 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 16:50:56,659 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 16:50:58,692 - Zovix - INFO - Redis cache connected
+2026-07-13 16:50:58,714 - Zovix - INFO - Database initialized successfully
+2026-07-13 16:51:03,168 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 16:51:03,170 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 16:51:05,218 - Zovix - INFO - Redis cache connected
+2026-07-13 16:51:05,227 - Zovix - INFO - Database initialized successfully
+2026-07-13 16:51:24,917 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 16:51:24,919 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 16:51:26,950 - Zovix - INFO - Redis cache connected
+2026-07-13 16:51:26,957 - Zovix - INFO - Database initialized successfully
+2026-07-13 16:51:33,173 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 16:51:33,175 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 16:51:35,203 - Zovix - INFO - Redis cache connected
+2026-07-13 16:51:35,212 - Zovix - INFO - Database initialized successfully
+2026-07-13 16:51:39,579 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 16:51:39,581 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 16:51:41,610 - Zovix - INFO - Redis cache connected
+2026-07-13 16:51:41,617 - Zovix - INFO - Database initialized successfully
+2026-07-13 17:41:15,478 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 17:41:15,536 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 17:41:17,559 - Zovix - INFO - Redis cache connected
+2026-07-13 17:41:17,609 - Zovix - INFO - Database initialized successfully
+2026-07-13 17:41:24,960 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 17:41:24,962 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 17:41:27,004 - Zovix - INFO - Redis cache connected
+2026-07-13 17:41:27,011 - Zovix - INFO - Database initialized successfully
+2026-07-13 17:41:37,763 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 17:41:37,767 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 17:41:39,796 - Zovix - INFO - Redis cache connected
+2026-07-13 17:41:39,804 - Zovix - INFO - Database initialized successfully
+2026-07-13 17:43:12,896 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 17:43:12,899 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 17:43:14,926 - Zovix - INFO - Redis cache connected
+2026-07-13 17:43:14,933 - Zovix - INFO - Database initialized successfully
+2026-07-13 17:43:19,382 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 17:43:19,385 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 17:43:21,423 - Zovix - INFO - Redis cache connected
+2026-07-13 17:43:21,426 - Zovix - INFO - Database initialized successfully
+2026-07-13 17:44:07,436 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 17:44:07,439 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 17:44:09,480 - Zovix - INFO - Redis cache connected
+2026-07-13 17:44:09,488 - Zovix - INFO - Database initialized successfully
+2026-07-13 17:44:40,596 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 17:44:40,597 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 17:44:42,632 - Zovix - INFO - Redis cache connected
+2026-07-13 17:44:42,640 - Zovix - INFO - Database initialized successfully
+2026-07-13 17:44:46,990 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 17:44:46,993 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 17:44:49,025 - Zovix - INFO - Redis cache connected
+2026-07-13 17:44:49,050 - Zovix - INFO - Database initialized successfully
+2026-07-13 17:50:11,095 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 17:50:11,098 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 17:50:13,139 - Zovix - INFO - Redis cache connected
+2026-07-13 17:50:13,147 - Zovix - INFO - Database initialized successfully
+2026-07-13 17:50:17,514 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 17:50:17,516 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 17:50:19,549 - Zovix - INFO - Redis cache connected
+2026-07-13 17:50:19,557 - Zovix - INFO - Database initialized successfully
+2026-07-13 17:50:54,011 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 17:50:54,012 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 17:50:56,045 - Zovix - INFO - Redis cache connected
+2026-07-13 17:50:56,053 - Zovix - INFO - Database initialized successfully
+2026-07-13 17:51:00,391 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 17:51:00,392 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 17:51:02,424 - Zovix - INFO - Redis cache connected
+2026-07-13 17:51:02,431 - Zovix - INFO - Database initialized successfully
+2026-07-13 17:56:27,397 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 17:56:27,399 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 17:56:29,441 - Zovix - INFO - Redis cache connected
+2026-07-13 17:56:29,447 - Zovix - INFO - Database initialized successfully
+2026-07-13 17:57:03,247 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 17:57:03,247 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 17:57:05,268 - Zovix - INFO - Redis cache connected
+2026-07-13 17:57:05,275 - Zovix - INFO - Database initialized successfully
+2026-07-13 17:57:09,623 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 17:57:09,625 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 17:57:09,947 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 17:57:09,948 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 17:57:11,662 - Zovix - INFO - Redis cache connected
+2026-07-13 17:57:11,990 - Zovix - INFO - Redis cache connected
+2026-07-13 17:57:11,995 - Zovix - INFO - Database initialized successfully
+2026-07-13 17:57:16,329 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 17:57:16,331 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 17:57:18,388 - Zovix - INFO - Redis cache connected
+2026-07-13 17:57:18,395 - Zovix - INFO - Database initialized successfully
+2026-07-13 18:00:14,532 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 18:00:14,534 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 18:00:16,567 - Zovix - INFO - Redis cache connected
+2026-07-13 18:00:16,573 - Zovix - INFO - Database initialized successfully
+2026-07-13 18:02:59,348 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 18:02:59,350 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 18:03:01,390 - Zovix - INFO - Redis cache connected
+2026-07-13 18:03:01,398 - Zovix - INFO - Database initialized successfully
+2026-07-13 18:03:05,792 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 18:03:05,794 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 18:03:07,835 - Zovix - INFO - Redis cache connected
+2026-07-13 18:03:07,843 - Zovix - INFO - Database initialized successfully
+2026-07-13 19:09:09,998 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 19:09:10,024 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 19:09:12,079 - Zovix - INFO - Redis cache connected
+2026-07-13 19:09:12,113 - Zovix - INFO - Database initialized successfully
+2026-07-13 19:09:18,205 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 19:09:18,208 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 19:09:20,240 - Zovix - INFO - Redis cache connected
+2026-07-13 19:09:20,247 - Zovix - INFO - Database initialized successfully
+2026-07-13 19:09:26,844 - Zovix - WARNING - Failed login attempt for user: rajmehta886297@gmail.com
+2026-07-13 19:09:36,223 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 19:09:36,226 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 19:09:38,279 - Zovix - INFO - Redis cache connected
+2026-07-13 19:09:38,288 - Zovix - INFO - Database initialized successfully
+2026-07-13 19:11:06,497 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 19:11:06,499 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 19:11:08,556 - Zovix - INFO - Redis cache connected
+2026-07-13 19:11:08,562 - Zovix - INFO - Database initialized successfully
+2026-07-13 19:11:12,937 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 19:11:12,938 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 19:11:14,986 - Zovix - INFO - Redis cache connected
+2026-07-13 19:11:14,990 - Zovix - INFO - Database initialized successfully
+2026-07-13 19:12:04,908 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 19:12:04,910 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 19:12:06,947 - Zovix - INFO - Redis cache connected
+2026-07-13 19:12:06,961 - Zovix - INFO - Database initialized successfully
+2026-07-13 19:27:09,006 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 19:27:09,007 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 19:27:11,046 - Zovix - INFO - Redis cache connected
+2026-07-13 19:27:11,066 - Zovix - INFO - Database initialized successfully
+2026-07-13 19:27:16,242 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 19:27:16,244 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 19:27:18,281 - Zovix - INFO - Redis cache connected
+2026-07-13 19:27:18,290 - Zovix - INFO - Database initialized successfully
+2026-07-13 19:27:27,617 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 19:27:27,620 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 19:27:29,642 - Zovix - INFO - Redis cache connected
+2026-07-13 19:27:29,649 - Zovix - INFO - Database initialized successfully
+2026-07-13 19:30:54,141 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 19:30:54,143 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 19:30:56,180 - Zovix - INFO - Redis cache connected
+2026-07-13 19:30:56,192 - Zovix - INFO - Database initialized successfully
+2026-07-13 19:31:25,879 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 19:31:25,882 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 19:31:27,935 - Zovix - INFO - Redis cache connected
+2026-07-13 19:31:27,948 - Zovix - INFO - Database initialized successfully
+2026-07-13 19:31:32,343 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 19:31:32,347 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 19:31:34,399 - Zovix - INFO - Redis cache connected
+2026-07-13 19:31:34,404 - Zovix - INFO - Database initialized successfully
+2026-07-13 20:08:49,099 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 20:08:49,144 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 20:08:51,189 - Zovix - INFO - Redis cache connected
+2026-07-13 20:08:51,227 - Zovix - INFO - Database initialized successfully
+2026-07-13 20:14:22,900 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 20:14:22,902 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 20:14:24,942 - Zovix - INFO - Redis cache connected
+2026-07-13 20:14:24,946 - Zovix - INFO - Database initialized successfully
+2026-07-13 20:14:34,179 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 20:14:34,180 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 20:14:36,218 - Zovix - INFO - Redis cache connected
+2026-07-13 20:14:36,222 - Zovix - INFO - Database initialized successfully
+2026-07-13 20:14:51,341 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 20:14:51,343 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 20:14:53,377 - Zovix - INFO - Redis cache connected
+2026-07-13 20:14:53,383 - Zovix - INFO - Database initialized successfully
+2026-07-13 20:14:57,684 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 20:14:57,685 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 20:14:59,701 - Zovix - INFO - Redis cache connected
+2026-07-13 20:14:59,710 - Zovix - INFO - Database initialized successfully
+2026-07-13 20:15:10,045 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 20:15:10,046 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 20:15:12,091 - Zovix - INFO - Redis cache connected
+2026-07-13 20:15:12,097 - Zovix - INFO - Database initialized successfully
+2026-07-13 20:15:19,155 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 20:15:19,157 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 20:15:21,204 - Zovix - INFO - Redis cache connected
+2026-07-13 20:15:21,212 - Zovix - INFO - Database initialized successfully
+2026-07-13 20:16:04,715 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 20:16:04,716 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 20:16:06,746 - Zovix - INFO - Redis cache connected
+2026-07-13 20:16:06,750 - Zovix - INFO - Database initialized successfully
+2026-07-13 20:16:11,075 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 20:16:11,078 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 20:16:13,133 - Zovix - INFO - Redis cache connected
+2026-07-13 20:16:13,138 - Zovix - INFO - Database initialized successfully
+2026-07-13 20:18:35,341 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 20:18:35,343 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 20:18:37,378 - Zovix - INFO - Redis cache connected
+2026-07-13 20:18:37,387 - Zovix - INFO - Database initialized successfully
+2026-07-13 20:18:41,747 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 20:18:41,748 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 20:18:43,793 - Zovix - INFO - Redis cache connected
+2026-07-13 20:18:43,800 - Zovix - INFO - Database initialized successfully
+2026-07-13 20:19:50,396 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 20:19:50,398 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 20:19:52,453 - Zovix - INFO - Redis cache connected
+2026-07-13 20:19:52,464 - Zovix - INFO - Database initialized successfully
+2026-07-13 20:27:49,748 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 20:27:49,750 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 20:27:51,792 - Zovix - INFO - Redis cache connected
+2026-07-13 20:27:51,804 - Zovix - INFO - Database initialized successfully
+2026-07-13 20:28:11,589 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 20:28:11,590 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 20:28:13,623 - Zovix - INFO - Redis cache connected
+2026-07-13 20:28:13,628 - Zovix - INFO - Database initialized successfully
+2026-07-13 20:28:38,504 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 20:28:38,504 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 20:28:40,542 - Zovix - INFO - Redis cache connected
+2026-07-13 20:28:40,548 - Zovix - INFO - Database initialized successfully
+2026-07-13 20:28:50,053 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 20:28:50,054 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 20:28:52,093 - Zovix - INFO - Redis cache connected
+2026-07-13 20:28:52,103 - Zovix - INFO - Database initialized successfully
+2026-07-13 20:28:56,475 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 20:28:56,476 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 20:28:58,512 - Zovix - INFO - Redis cache connected
+2026-07-13 20:28:58,517 - Zovix - INFO - Database initialized successfully
+2026-07-13 20:29:19,486 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 20:29:19,488 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 20:29:21,530 - Zovix - INFO - Redis cache connected
+2026-07-13 20:29:21,535 - Zovix - INFO - Database initialized successfully
+2026-07-13 20:29:59,124 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 20:29:59,126 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 20:29:59,187 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 20:29:59,188 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 20:30:01,170 - Zovix - INFO - Redis cache connected
+2026-07-13 20:30:01,422 - Zovix - INFO - Redis cache connected
+2026-07-13 20:30:01,432 - Zovix - INFO - Database initialized successfully
+2026-07-13 20:30:04,917 - Zovix - INFO - Deducted 6 credits from rajmehta886297@gmail.com
+2026-07-13 20:30:16,160 - httpx - INFO - HTTP Request: POST https://api.replicate.com/v1/models/prunaai/p-video-avatar/predictions "HTTP/1.1 201 Created"
+2026-07-13 20:30:17,340 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:30:18,833 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:30:19,741 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:30:20,770 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:30:22,178 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:30:23,154 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:30:24,136 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:30:25,124 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:30:26,100 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:30:27,026 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:30:28,033 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:30:29,055 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:30:30,080 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:30:31,018 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:30:31,950 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:30:33,665 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:30:34,603 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:30:35,607 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:30:36,552 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:30:37,561 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:30:38,577 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:30:39,502 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:30:40,421 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:30:41,415 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:30:42,366 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:30:43,903 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:30:44,826 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:30:45,786 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:30:46,770 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:30:47,803 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:30:49,433 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:30:50,456 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:30:51,378 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:30:52,323 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:30:53,324 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:30:54,860 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:30:55,883 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:30:56,907 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:30:57,930 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:30:58,947 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:30:59,876 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:00,800 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:01,823 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:02,848 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:03,773 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:04,695 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:05,713 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:06,628 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:07,659 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:08,595 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:09,709 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:10,731 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:11,755 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:12,781 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:13,805 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:14,755 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:16,057 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:16,978 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:18,002 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:18,937 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:19,947 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:20,869 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:21,893 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:22,846 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:23,849 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:24,785 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:25,990 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:27,218 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:28,244 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:29,178 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:30,155 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:31,167 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:32,134 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:33,063 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:34,079 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:35,103 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:36,126 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:37,150 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:38,175 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:39,199 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:40,224 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:41,247 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:42,271 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:43,295 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:44,320 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:45,344 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:46,320 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:47,391 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:48,313 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:49,337 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:50,259 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:51,179 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:52,103 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:53,059 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:54,056 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:55,071 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:56,522 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:57,432 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:58,450 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:31:59,905 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:00,909 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:01,850 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:02,776 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:03,774 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:05,311 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:06,233 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:07,257 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:08,227 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:09,202 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:10,135 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:11,028 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:12,069 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:12,991 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:13,979 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:14,878 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:16,145 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:17,092 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:18,009 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:18,935 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:19,884 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:20,840 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:22,018 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:23,028 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:23,964 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:24,916 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:25,895 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:26,815 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:27,841 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:28,864 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:29,888 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:30,911 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:31,848 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:32,774 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:33,778 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:35,008 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:36,031 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:37,055 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:37,998 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:38,921 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:39,924 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:40,874 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:41,868 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:42,790 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:43,719 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:44,800 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:45,741 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:46,682 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:47,605 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:48,511 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:49,413 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:50,327 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:51,242 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:52,313 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:53,299 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:54,772 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:55,795 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:56,724 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:57,741 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:58,764 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:32:59,790 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:00,772 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:01,785 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:02,759 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:03,680 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:04,703 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:05,729 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:06,666 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:07,591 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:08,596 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:09,620 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:10,644 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:11,667 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:12,692 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:13,715 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:14,740 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:15,763 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:16,991 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:18,008 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:18,921 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:19,842 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:20,884 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:21,805 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:22,863 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:23,816 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:24,877 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:25,901 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:26,836 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:27,949 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:29,086 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:30,019 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:31,022 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:32,047 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:33,069 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:34,093 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:35,082 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:36,141 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:37,268 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:38,292 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:39,316 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:40,750 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:41,876 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:42,899 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:43,924 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:44,940 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:45,869 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:46,894 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:47,918 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:49,044 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:49,971 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:50,886 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:51,910 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:52,935 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:53,959 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:54,982 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:55,914 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:56,929 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:57,864 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:58,875 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:33:59,900 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:00,923 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:01,946 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:02,912 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:03,860 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:05,327 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:06,276 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:07,272 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:08,193 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:09,114 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:10,129 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:11,162 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:12,087 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:13,106 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:14,030 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:14,975 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:15,946 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:17,261 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:18,251 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:19,230 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:20,200 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:21,107 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:22,081 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:23,245 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:24,270 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:25,216 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:26,217 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:27,240 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:28,263 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:29,184 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:30,106 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:31,130 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:32,053 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:32,974 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:33,997 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:35,022 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:36,048 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:37,072 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:38,092 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:39,640 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:40,654 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:41,679 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:42,704 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:43,726 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:44,750 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:45,672 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:46,697 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:47,646 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:48,642 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:49,562 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:50,588 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:51,508 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:52,429 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:53,456 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:54,375 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:55,400 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:56,338 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:57,345 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:58,370 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:34:59,319 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:35:00,314 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:35:01,264 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:35:02,681 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:35:03,693 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:35:04,720 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:35:05,742 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:35:06,869 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:35:07,790 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:35:08,814 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:35:09,839 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:35:10,760 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:35:11,786 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:35:12,695 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:35:13,730 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:35:14,731 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:35:15,777 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:35:16,803 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:35:17,826 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:35:19,158 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:35:20,086 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:35:21,111 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:35:22,538 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:35:23,560 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:35:25,096 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:35:26,037 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:35:27,042 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:35:28,067 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:35:29,090 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:35:30,113 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:35:31,059 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:35:32,060 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:35:33,077 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:35:34,107 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:35:35,642 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:35:36,582 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:35:37,590 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:35:38,613 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:35:39,540 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:35:40,559 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:35:41,583 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:35:42,604 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:35:43,630 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:35:44,552 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:35:45,576 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:35:46,564 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:35:47,829 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:35:48,854 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:35:49,979 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:35:51,003 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:35:52,028 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:35:53,051 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0hcm0yhz61rmt0czbfzava1048 "HTTP/1.1 200 OK"
+2026-07-13 20:35:55,363 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 20:35:55,366 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 20:35:57,391 - Zovix - INFO - Redis cache connected
+2026-07-13 20:35:57,399 - Zovix - INFO - Database initialized successfully
+2026-07-13 20:39:08,108 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 20:39:08,111 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 20:39:10,139 - Zovix - INFO - Redis cache connected
+2026-07-13 20:39:10,146 - Zovix - INFO - Database initialized successfully
+2026-07-13 20:39:55,997 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 20:39:55,999 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 20:39:58,041 - Zovix - INFO - Redis cache connected
+2026-07-13 20:39:58,049 - Zovix - INFO - Database initialized successfully
+2026-07-13 20:40:06,652 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 20:40:06,655 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 20:40:08,709 - Zovix - INFO - Redis cache connected
+2026-07-13 20:40:08,716 - Zovix - INFO - Database initialized successfully
+2026-07-13 20:40:13,095 - Zovix - INFO - Redis connected for rate limiting
+2026-07-13 20:40:13,097 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 20:40:15,112 - Zovix - INFO - Redis cache connected
+2026-07-13 20:40:15,118 - Zovix - INFO - Database initialized successfully
+2026-07-13 21:14:02,861 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-13 21:14:02,862 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-13 21:14:02,864 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-13 21:14:02,865 - Zovix - INFO - Started 4 threaded workers
+2026-07-13 21:14:02,865 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 21:14:02,933 - Zovix - INFO - Database initialized successfully
+2026-07-13 21:14:48,840 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-13 21:14:48,841 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-13 21:14:48,853 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-13 21:14:49,043 - Zovix - INFO - Started 4 threaded workers
+2026-07-13 21:14:49,044 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 21:14:49,074 - Zovix - INFO - Database initialized successfully
+2026-07-13 21:15:06,086 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-13 21:15:06,087 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-13 21:15:06,088 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-13 21:15:06,090 - Zovix - INFO - Started 4 threaded workers
+2026-07-13 21:15:06,090 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 21:15:06,097 - Zovix - INFO - Database initialized successfully
+2026-07-13 21:15:12,370 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-13 21:15:12,372 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-13 21:15:12,375 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-13 21:15:12,378 - Zovix - INFO - Started 4 threaded workers
+2026-07-13 21:15:12,379 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 21:15:12,391 - Zovix - INFO - Database initialized successfully
+2026-07-13 21:15:26,619 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-13 21:15:26,620 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-13 21:15:26,621 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-13 21:15:26,623 - Zovix - INFO - Started 4 threaded workers
+2026-07-13 21:15:26,624 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 21:15:26,630 - Zovix - INFO - Database initialized successfully
+2026-07-13 21:15:26,881 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-13 21:15:26,883 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-13 21:15:26,885 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-13 21:15:26,887 - Zovix - INFO - Started 4 threaded workers
+2026-07-13 21:15:26,887 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 21:15:26,893 - Zovix - INFO - Database initialized successfully
+2026-07-13 21:15:32,808 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-13 21:15:32,810 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-13 21:15:32,812 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-13 21:15:32,814 - Zovix - INFO - Started 4 threaded workers
+2026-07-13 21:15:32,815 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 21:15:32,817 - Zovix - INFO - Database initialized successfully
+2026-07-13 21:15:33,054 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-13 21:15:33,055 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-13 21:15:33,055 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-13 21:15:33,061 - Zovix - INFO - Started 4 threaded workers
+2026-07-13 21:15:33,062 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 21:15:33,069 - Zovix - INFO - Database initialized successfully
+2026-07-13 21:15:42,402 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-13 21:15:42,402 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-13 21:15:42,402 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-13 21:15:42,404 - Zovix - INFO - Started 4 threaded workers
+2026-07-13 21:15:42,404 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 21:15:42,410 - Zovix - INFO - Database initialized successfully
+2026-07-13 21:15:45,517 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-13 21:15:45,518 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-13 21:15:45,520 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-13 21:15:45,523 - Zovix - INFO - Started 4 threaded workers
+2026-07-13 21:15:45,523 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 21:15:45,528 - Zovix - INFO - Database initialized successfully
+2026-07-13 21:15:49,456 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-13 21:15:49,457 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-13 21:15:49,458 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-13 21:15:49,460 - Zovix - INFO - Started 4 threaded workers
+2026-07-13 21:15:49,460 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 21:15:49,465 - Zovix - INFO - Database initialized successfully
+2026-07-13 21:15:49,746 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-13 21:15:49,748 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-13 21:15:49,750 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-13 21:15:49,754 - Zovix - INFO - Started 4 threaded workers
+2026-07-13 21:15:49,754 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 21:15:49,760 - Zovix - INFO - Database initialized successfully
+2026-07-13 21:15:58,171 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-13 21:15:58,173 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-13 21:15:58,175 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-13 21:15:58,177 - Zovix - INFO - Started 4 threaded workers
+2026-07-13 21:15:58,177 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 21:15:58,190 - Zovix - INFO - Database initialized successfully
+2026-07-13 21:16:01,384 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-13 21:16:01,385 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-13 21:16:01,387 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-13 21:16:01,391 - Zovix - INFO - Started 4 threaded workers
+2026-07-13 21:16:01,392 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 21:16:01,399 - Zovix - INFO - Database initialized successfully
+2026-07-13 21:16:01,652 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-13 21:16:01,654 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-13 21:16:01,656 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-13 21:16:01,659 - Zovix - INFO - Started 4 threaded workers
+2026-07-13 21:16:01,659 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 21:16:01,665 - Zovix - INFO - Database initialized successfully
+2026-07-13 21:16:04,416 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-13 21:16:04,417 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-13 21:16:04,419 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-13 21:16:04,422 - Zovix - INFO - Started 4 threaded workers
+2026-07-13 21:16:04,422 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 21:16:04,429 - Zovix - INFO - Database initialized successfully
+2026-07-13 21:16:06,887 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-13 21:16:06,889 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-13 21:16:06,891 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-13 21:16:06,892 - Zovix - INFO - Started 4 threaded workers
+2026-07-13 21:16:06,893 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 21:16:06,897 - Zovix - INFO - Database initialized successfully
+2026-07-13 21:16:07,147 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-13 21:16:07,149 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-13 21:16:07,151 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-13 21:16:07,153 - Zovix - INFO - Started 4 threaded workers
+2026-07-13 21:16:07,154 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 21:16:07,157 - Zovix - INFO - Database initialized successfully
+2026-07-13 21:19:22,578 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-13 21:19:22,579 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-13 21:19:22,580 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-13 21:19:22,581 - Zovix - INFO - Started 4 threaded workers
+2026-07-13 21:19:22,581 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 21:19:22,594 - Zovix - INFO - Database initialized successfully
+2026-07-13 21:19:26,900 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-13 21:19:26,901 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-13 21:19:26,902 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-13 21:19:26,903 - Zovix - INFO - Started 4 threaded workers
+2026-07-13 21:19:26,904 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 21:19:26,909 - Zovix - INFO - Database initialized successfully
+2026-07-13 21:19:35,153 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-13 21:19:35,154 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-13 21:19:35,156 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-13 21:19:35,158 - Zovix - INFO - Started 4 threaded workers
+2026-07-13 21:19:35,158 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 21:19:35,163 - Zovix - INFO - Database initialized successfully
+2026-07-13 21:19:37,558 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-13 21:19:37,559 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-13 21:19:37,560 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-13 21:19:37,562 - Zovix - INFO - Started 4 threaded workers
+2026-07-13 21:19:37,562 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 21:19:37,569 - Zovix - INFO - Database initialized successfully
+2026-07-13 21:19:37,757 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-13 21:19:37,758 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-13 21:19:37,759 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-13 21:19:37,761 - Zovix - INFO - Started 4 threaded workers
+2026-07-13 21:19:37,761 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 21:19:37,765 - Zovix - INFO - Database initialized successfully
+2026-07-13 21:19:39,924 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-13 21:19:39,925 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-13 21:19:39,925 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-13 21:19:39,927 - Zovix - INFO - Started 4 threaded workers
+2026-07-13 21:19:39,927 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 21:19:39,933 - Zovix - INFO - Database initialized successfully
+2026-07-13 21:19:40,152 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-13 21:19:40,154 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-13 21:19:40,155 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-13 21:19:40,158 - Zovix - INFO - Started 4 threaded workers
+2026-07-13 21:19:40,158 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-13 21:19:40,167 - Zovix - INFO - Database initialized successfully

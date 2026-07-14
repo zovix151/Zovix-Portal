@@ -5291,7 +5291,7 @@ def generate_expressive_face_video(prompt, face_image_path, duration=30, emotion
     if not face_image_path or not os.path.exists(face_image_path):
         return None
 
-    voice_cfg = _resolve_face_voice_config(voice_language=voice_language, voice_label=voice_label)
+    voice_cfg = _resolve_face_voice_config(voice_language=voice_language, voice_label=voice_label, preferred_gender=st.session_state.get('fv_detected_gender') if st.session_state.get('fv_gender_auto', False) else None)
     audio_path = f"face_videos/voice_{uuid.uuid4().hex[:8]}.mp3"
     audio_success = _synthesize_face_audio_strict(prompt, audio_path, voice_cfg, duration_hint=duration)
 
@@ -5441,7 +5441,7 @@ def generate_audio_driven_lip_only_video(face_image_path, audio_path, output_vid
         safe_remove_file(temp_video)
         safe_remove_file(temp_muxed)
 
-def _resolve_face_voice_config(voice_language=None, voice_label=None):
+def _resolve_face_voice_config(voice_language=None, voice_label=None, preferred_gender=None):
     """Resolve voice for face-video generation with Hindi/English/all voice choices."""
     language_pref = (voice_language or st.session_state.get("face_voice_language") or "English").strip()
     if language_pref not in {"Hindi", "English", "All Voices"}:
@@ -5453,6 +5453,16 @@ def _resolve_face_voice_config(voice_language=None, voice_label=None):
         available_voices = list(LANGUAGE_VOICE_MAP.get("English", []))
     else:
         available_voices = list(ELEVENLABS_VOICES.keys())
+
+    # Filter by gender preference if provided
+    if preferred_gender and available_voices:
+        gender_filtered = []
+        for v in available_voices:
+            meta = ELEVENLABS_VOICES.get(v, {})
+            if meta.get('gender') == preferred_gender:
+                gender_filtered.append(v)
+        if gender_filtered:
+            available_voices = gender_filtered
 
     if not available_voices:
         available_voices = ["Adam (Premium Male)"]
@@ -5525,7 +5535,7 @@ def generate_face_video(prompt, face_image_path, duration=30, emotion="neutral",
     if not face_image_path or not os.path.exists(face_image_path):
         return None
 
-    voice_cfg = _resolve_face_voice_config(voice_language=voice_language, voice_label=voice_label)
+    voice_cfg = _resolve_face_voice_config(voice_language=voice_language, voice_label=voice_label, preferred_gender=st.session_state.get('fv_detected_gender') if st.session_state.get('fv_gender_auto', False) else None)
     audio_path = f"face_videos/voice_{uuid.uuid4().hex[:8]}.mp3"
     audio_success = _synthesize_face_audio_strict(prompt, audio_path, voice_cfg, duration_hint=duration)
     output_path = None
@@ -7227,6 +7237,54 @@ def run_video_editor_mode():
                     </div>
                 """, unsafe_allow_html=True)
 
+
+# ========================================================
+# GENDER DETECTION UTILITY FOR FACE VIDEO MODE
+# ========================================================
+def detect_gender_from_image(image_path):
+    """Detect gender (male/female) from a face image using DeepFace AI."""
+    if not image_path or not os.path.exists(image_path):
+        return None
+    
+    try:
+        from deepface import DeepFace
+        os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
+        result = DeepFace.analyze(image_path, actions=['gender'], enforce_detection=False, prog_bar=False)
+        if isinstance(result, list) and len(result) > 0:
+            gender_data = result[0].get('gender', {})
+        elif isinstance(result, dict):
+            gender_data = result.get('gender', {})
+        else:
+            return None
+        
+        if isinstance(gender_data, dict) and gender_data:
+            detected_gender = max(gender_data, key=gender_data.get)
+            return detected_gender.lower().strip()
+        elif isinstance(gender_data, str):
+            return gender_data.lower().strip()
+    except Exception as e:
+        logger.warning(f'Gender detection failed: {e}')
+    
+    return None
+
+
+def get_gender_based_voice_recommendation(detected_gender, language='English'):
+    """Get recommended voice profiles based on detected gender."""
+    if detected_gender == 'male':
+        if language == 'Hindi':
+            return [v for v, m in ELEVENLABS_VOICES.items() if m.get('gender') == 'male' and m.get('language') in ['Hindi', 'English']]
+        elif language == 'English':
+            return [v for v, m in ELEVENLABS_VOICES.items() if m.get('gender') == 'male' and m.get('language') == 'English']
+        return [v for v, m in ELEVENLABS_VOICES.items() if m.get('gender') == 'male']
+    elif detected_gender == 'female':
+        if language == 'Hindi':
+            return [v for v, m in ELEVENLABS_VOICES.items() if m.get('gender') == 'female' and m.get('language') in ['Hindi', 'English']]
+        elif language == 'English':
+            return [v for v, m in ELEVENLABS_VOICES.items() if m.get('gender') == 'female' and m.get('language') == 'English']
+        return [v for v, m in ELEVENLABS_VOICES.items() if m.get('gender') == 'female']
+    return []
+
+
 def run_face_video_mode():
     st.markdown("""
         <div style="background: rgba(18, 19, 26, 0.85); border-radius: 12px; border: 1px solid rgba(255,192,203,0.15); padding: 20px; margin-bottom: 20px;">
@@ -7320,20 +7378,86 @@ def run_face_video_mode():
                 ["Hindi", "English", "All Voices"],
                 key="fv_voice_language",
             )
-            fv_voice_options = _resolve_face_voice_config(voice_language=fv_voice_language).get("available_voices", [])
+            
+            # ---- Gender Auto-Detect Feature ----
+            if "fv_gender_auto" not in st.session_state:
+                st.session_state["fv_gender_auto"] = True
+            
+            face_uploaded = st.session_state.get("face_image_upload")
+            face_available = bool(face_uploaded and os.path.exists(face_uploaded))
+            
+            col_g1, col_g2 = st.columns([1, 1])
+            with col_g1:
+                gender_auto = st.toggle(
+                    "🎭 Auto-Detect Gender",
+                    value=st.session_state.get("fv_gender_auto", True),
+                    key="fv_gender_auto_toggle",
+                    help="Automatically detect gender from face image and suggest matching voice",
+                )
+            
+            if gender_auto and face_available:
+                with col_g2:
+                    if st.button("🔍 Detect Now", key="fv_detect_gender_btn", use_container_width=True):
+                        with st.spinner("Analyzing face image for gender..."):
+                            detected = detect_gender_from_image(face_uploaded)
+                            if detected:
+                                st.session_state["fv_detected_gender"] = detected
+                                st.session_state["fv_gender_auto"] = True
+                                st.toast(f"Gender detected: {detected.title()}")
+                                st.rerun()
+                            else:
+                                st.warning("Could not detect gender. Please select manually.")
+                                st.session_state["fv_gender_auto"] = False
+            
+            detected_gender = st.session_state.get("fv_detected_gender")
+            if gender_auto and detected_gender and face_available:
+                emoji = "👨" if detected_gender == 'male' else "👩"
+                st.markdown(f"""<div style='background: rgba(69,243,255,0.08); border: 1px solid rgba(69,243,255,0.2); 
+                    border-radius: 8px; padding: 8px 12px; margin: 5px 0; display: flex; align-items: center; gap: 8px;'>
+                    <span style='font-size: 18px;'>{emoji}</span>
+                    <span style='color: #45f3ff; font-size: 13px; font-weight: 500;'>
+                        Detected: <strong>{detected_gender.title()}</strong>
+                    </span>
+                </div>""", unsafe_allow_html=True)
+                
+                recommended_voices = get_gender_based_voice_recommendation(detected_gender, fv_voice_language)
+                if recommended_voices:
+                    fv_voice_options = recommended_voices
+                else:
+                    fv_voice_options = _resolve_face_voice_config(voice_language=fv_voice_language).get("available_voices", [])
+            else:
+                if gender_auto and not face_available:
+                    st.caption("📷 Upload a face image first to enable auto gender detection")
+                fv_voice_options = _resolve_face_voice_config(voice_language=fv_voice_language).get("available_voices", [])
+            
             fv_current_voice = st.session_state.get("face_voice_model")
             if fv_current_voice not in fv_voice_options:
                 fv_current_voice = fv_voice_options[0] if fv_voice_options else "Adam (Premium Male)"
+            
+            manual_label = "Voice Model (Manual Override)" if (gender_auto and detected_gender and face_available) else "Voice Model"
             fv_voice_model = st.selectbox(
-                "Voice Model",
+                manual_label,
                 fv_voice_options,
                 index=fv_voice_options.index(fv_current_voice) if fv_voice_options and fv_current_voice in fv_voice_options else 0,
                 key="fv_voice_model",
             )
+            
+            if gender_auto != st.session_state.get("fv_gender_auto", True):
+                st.session_state["fv_gender_auto"] = gender_auto
             st.markdown("---")
             face_prompt = st.text_area("Video Description / Script (for lip sync):", placeholder="Describe what the person should say: e.g. Hello everyone! Welcome to my channel. Today we're going to explore the mysteries of the universe...", height=100, key="fv_prompt")
             st.write("")
             if st.button("👤 Generate Face Video", key="fv_generate_btn", use_container_width=True):
+                if st.session_state.get("fv_gender_auto", True) and st.session_state.get("face_image_upload"):
+                    if not st.session_state.get("fv_detected_gender"):
+                        with st.spinner("🔍 Detecting gender from face image..."):
+                            detected = detect_gender_from_image(st.session_state["face_image_upload"])
+                            if detected:
+                                st.session_state["fv_detected_gender"] = detected
+                                st.toast(f"Gender detected: {detected.title()}")
+                            else:
+                                st.warning("Gender detection failed. Using default voice.")
+                
                 success, required_tokens, message = validate_and_deduct_tokens("Face Video Generator", quality)
                 if not success:
                     st.error(message)
@@ -7644,7 +7768,7 @@ def generate_world_face_video(prompt, face_image_path, duration=10, quality="HD"
 
     temp_audio = None
     try:
-        voice_cfg = _resolve_face_voice_config(voice_language=voice_language, voice_label=voice_label)
+        voice_cfg = _resolve_face_voice_config(voice_language=voice_language, voice_label=voice_label, preferred_gender=st.session_state.get('fv_detected_gender') if st.session_state.get('fv_gender_auto', False) else None)
         with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp_aud:
             temp_audio = tmp_aud.name
         _synthesize_face_audio_strict(prompt, temp_audio, voice_cfg, duration_hint=duration)
