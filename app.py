@@ -1413,7 +1413,8 @@ def init_database():
                 file_name TEXT,
                 timestamp TEXT,
                 prompt TEXT,
-                path TEXT
+                path TEXT,
+                generation_type TEXT DEFAULT 'General'
             )
         """)
         
@@ -3395,13 +3396,20 @@ def process_video_billing(username, duration_minutes, total_scenes, stock_scenes
     finally:
         conn.close()
 
-def save_render_to_db(username, file_name, prompt, path):
+def save_render_to_db(username, file_name, prompt, path, generation_type="General"):
     conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
     cursor = conn.cursor()
     try:
         timestamp = time.strftime("%b %d, %Y - %I:%M %p")
-        cursor.execute("INSERT OR IGNORE INTO history (username, file_name, timestamp, prompt, path) VALUES (?, ?, ?, ?, ?)",
-                       (username, file_name, timestamp, prompt, path))
+        # Check if generation_type column exists (for backward compatibility)
+        cursor.execute("PRAGMA table_info(history)")
+        columns = [col[1] for col in cursor.fetchall()]
+        if "generation_type" in columns:
+            cursor.execute("INSERT OR IGNORE INTO history (username, file_name, timestamp, prompt, path, generation_type) VALUES (?, ?, ?, ?, ?, ?)",
+                           (username, file_name, timestamp, prompt, path, generation_type))
+        else:
+            cursor.execute("INSERT OR IGNORE INTO history (username, file_name, timestamp, prompt, path) VALUES (?, ?, ?, ?, ?)",
+                           (username, file_name, timestamp, prompt, path))
         conn.commit()
     except Exception as e:
         logger.error(f"Save render error: {e}")
@@ -3426,15 +3434,31 @@ def load_renders_history_db(username):
     cursor = conn.cursor()
     history = []
     try:
-        cursor.execute("SELECT file_name, timestamp, prompt, path FROM history WHERE username = ? ORDER BY id DESC", (username,))
-        rows = cursor.fetchall()
-        for row in rows:
-            history.append({
-                "file_name": row[0],
-                "timestamp": row[1],
-                "prompt": row[2],
-                "path": row[3]
-            })
+        # Check if generation_type column exists
+        cursor.execute("PRAGMA table_info(history)")
+        columns = [col[1] for col in cursor.fetchall()]
+        if "generation_type" in columns:
+            cursor.execute("SELECT file_name, timestamp, prompt, path, generation_type FROM history WHERE username = ? ORDER BY id DESC", (username,))
+            rows = cursor.fetchall()
+            for row in rows:
+                history.append({
+                    "file_name": row[0],
+                    "timestamp": row[1],
+                    "prompt": row[2],
+                    "path": row[3],
+                    "generation_type": row[4]
+                })
+        else:
+            cursor.execute("SELECT file_name, timestamp, prompt, path FROM history WHERE username = ? ORDER BY id DESC", (username,))
+            rows = cursor.fetchall()
+            for row in rows:
+                history.append({
+                    "file_name": row[0],
+                    "timestamp": row[1],
+                    "prompt": row[2],
+                    "path": row[3],
+                    "generation_type": "General"
+                })
     except Exception as e:
         logger.error(f"Load renders error: {e}")
     finally:
@@ -6709,7 +6733,7 @@ def run_creative_workshop():
                                     saved_img_name = f"zovix_image_{timestamp_img}.png"
                                     saved_img_path = f"saved_renders/{saved_img_name}"
                                     shutil.copy(generated_img, saved_img_path)
-                                    save_render_to_db(st.session_state.get("logged_user"), saved_img_name, workshop_prompt_str, saved_img_path)
+                                    save_render_to_db(st.session_state.get("logged_user"), saved_img_name, workshop_prompt_str, saved_img_path, "Creative Workshop")
                                     save_to_json_history(st.session_state.get("logged_user"), saved_img_name, workshop_prompt_str, saved_img_path)
                                     st.session_state["history_renders"] = load_renders_history_db(st.session_state.get("logged_user"))
                                     st.rerun()
@@ -7235,7 +7259,7 @@ def run_video_editor_mode():
                                 st.toast("✅ Video processed successfully with BGM!")
                                 timestamp = time.strftime("%Y%m%d_%H%M%S")
                                 file_name = f"zovix_editor_video_{timestamp}.mp4"
-                                save_render_to_db(st.session_state["logged_user"], file_name, movie_concept or "Editor Project", output_path)
+                                save_render_to_db(st.session_state["logged_user"], file_name, movie_concept or "Editor Project", output_path, "Video Editor")
                                 st.session_state["history_renders"] = load_renders_history_db(st.session_state["logged_user"])
                                 time.sleep(0.1)
                                 st.rerun()
@@ -8572,7 +8596,7 @@ def run_cinematic_engine():
                                     update_user_xp_db(st.session_state["logged_user"], 10)
                                     st.session_state["xp_points"] = get_user_xp_db(st.session_state["logged_user"])
                                     st.session_state["creator_level"] = 1 + (st.session_state["xp_points"] // 100)
-                                save_render_to_db(st.session_state.get("logged_user"), local_file_name, pipeline_prompt_input, history_path)
+                                save_render_to_db(st.session_state.get("logged_user"), local_file_name, pipeline_prompt_input, history_path, "Cinematic Engine")
                                 save_to_json_history(st.session_state.get("logged_user"), local_file_name, pipeline_prompt_input, history_path)
                                 st.session_state["history_renders"] = load_renders_history_db(st.session_state.get("logged_user"))
                                 st.session_state["render_done"] = True
@@ -9956,6 +9980,16 @@ elif st.session_state["current_page"] == "studio":
         portfolio_renders_list = st.session_state.get("history_renders", [])
         face_video_list = st.session_state.get("face_video_history", [])
         valid_items = []
+        # Map modes to their generation_type for DB filtering
+        mode_type_map = {
+            "Cinematic Engine": "Cinematic Engine",
+            "Video Editor Mode": "Video Editor",
+            "Creative Workshop Mode": "Creative Workshop",
+            "Blueprints Mode": "General",
+            "Upscaler Mode": "General",
+            "Draw Mode": "General",
+            "Image-to-Video Mode": "Image-to-Video",
+        }
         gallery_title = ""
         no_items_msg = ""
         display_type = "image"
@@ -9979,12 +10013,29 @@ elif st.session_state["current_page"] == "studio":
             for item in portfolio_renders_list:
                 file_path = item.get("path", "")
                 file_name = item.get("file_name", "")
+                gen_type = item.get("generation_type", "")
+                if gen_type and gen_type != "Cinematic Engine":
+                    continue
+                if os.path.exists(file_path) and "cinematic" in file_name.lower():
+                    valid_items.append(item)
+            gallery_title = "🎬 CINEMATIC ENGINE VIDEOS"
+            for item in portfolio_renders_list:
+                file_path = item.get("path", "")
+                file_name = item.get("file_name", "")
                 if os.path.exists(file_path) and "cinematic" in file_name.lower():
                     valid_items.append(item)
             gallery_title = "🎬 CINEMATIC ENGINE VIDEOS"
             no_items_msg = "No cinematic videos created yet. Generate your first cinematic video!"
             display_type = "video"
         elif current_mode == "Creative Workshop Mode":
+            for item in portfolio_renders_list:
+                file_path = item.get("path", "")
+                gen_type = item.get("generation_type", "")
+                if gen_type and gen_type != "Creative Workshop":
+                    continue
+                if os.path.exists(file_path):
+                    valid_items.append(item)
+            gallery_title = "🖌️ CREATIVE WORKSHOP ART"
             for item in portfolio_renders_list:
                 file_path = item.get("path", "")
                 file_name = item.get("file_name", "")
@@ -9996,6 +10047,14 @@ elif st.session_state["current_page"] == "studio":
         elif current_mode == "Video Editor Mode":
             for item in portfolio_renders_list:
                 file_path = item.get("path", "")
+                gen_type = item.get("generation_type", "")
+                if gen_type and gen_type != "Video Editor":
+                    continue
+                if os.path.exists(file_path):
+                    valid_items.append(item)
+            gallery_title = "🎞️ VIDEO EDITOR EXPORTS"
+            for item in portfolio_renders_list:
+                file_path = item.get("path", "")
                 file_name = item.get("file_name", "")
                 if os.path.exists(file_path) and "editor" in file_name.lower():
                     valid_items.append(item)
@@ -10003,6 +10062,14 @@ elif st.session_state["current_page"] == "studio":
             no_items_msg = "No edited videos created yet. Upload media and process!"
             display_type = "video"
         elif current_mode == "Blueprints Mode":
+            for item in portfolio_renders_list:
+                file_path = item.get("path", "")
+                gen_type = item.get("generation_type", "")
+                if gen_type and gen_type != "General":
+                    continue
+                if os.path.exists(file_path):
+                    valid_items.append(item)
+            gallery_title = "📐 BLUEPRINT GENERATIONS"
             for item in portfolio_renders_list:
                 file_path = item.get("path", "")
                 file_name = item.get("file_name", "")
@@ -10014,6 +10081,14 @@ elif st.session_state["current_page"] == "studio":
         elif current_mode == "Upscaler Mode":
             for item in portfolio_renders_list:
                 file_path = item.get("path", "")
+                gen_type = item.get("generation_type", "")
+                if gen_type and gen_type != "General":
+                    continue
+                if os.path.exists(file_path):
+                    valid_items.append(item)
+            gallery_title = "🔍 UPSCALED IMAGES"
+            for item in portfolio_renders_list:
+                file_path = item.get("path", "")
                 file_name = item.get("file_name", "")
                 if os.path.exists(file_path) and "upscaled" in file_name.lower():
                     valid_items.append(item)
@@ -10021,6 +10096,14 @@ elif st.session_state["current_page"] == "studio":
             no_items_msg = "No upscaled images created yet. Upload an image to upscale!"
             display_type = "image"
         elif current_mode == "Draw Mode":
+            for item in portfolio_renders_list:
+                file_path = item.get("path", "")
+                gen_type = item.get("generation_type", "")
+                if gen_type and gen_type != "General":
+                    continue
+                if os.path.exists(file_path):
+                    valid_items.append(item)
+            gallery_title = "✏️ DRAW MODE OUTPUTS"
             for item in portfolio_renders_list:
                 file_path = item.get("path", "")
                 file_name = item.get("file_name", "")
@@ -10231,7 +10314,7 @@ elif st.session_state["current_page"] == "studio":
                                         st.session_state["active_svd_video"] = video_out
                                         st.session_state["studio_active_mode"] = "Creative Workshop Mode"
                                         saved_vid_name = f"svd_render_{int(time.time())}.mp4"
-                                        save_render_to_db(st.session_state.get("logged_user"), saved_vid_name, f"[I2V Motion of]: {prompt}", video_out)
+                                        save_render_to_db(st.session_state.get("logged_user"), saved_vid_name, f"[I2V Motion of]: {prompt}", video_out, "Image-to-Video")
                                         save_to_json_history(st.session_state.get("logged_user"), saved_vid_name, f"[I2V Motion of]: {prompt}", video_out)
                                         st.session_state["history_renders"] = load_renders_history_db(st.session_state.get("logged_user"))
                                         st.toast("Video compiled successfully!")
