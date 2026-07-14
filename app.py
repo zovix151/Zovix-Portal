@@ -3608,6 +3608,30 @@ def get_music_path(mood):
             return fallback_path
     return None
 
+def resolve_audible_bgm_path(preferred_path=None, mood="cinematic"):
+    """Return the first audible BGM path from preferred, mood, then known fallbacks."""
+    candidates = []
+    if preferred_path:
+        candidates.append(preferred_path)
+    mood_path = get_music_path((mood or "cinematic").lower().strip())
+    if mood_path:
+        candidates.append(mood_path)
+    for fallback_path in MOOD_TO_MUSIC_MAP.values():
+        if fallback_path:
+            candidates.append(fallback_path)
+
+    seen = set()
+    for path in candidates:
+        if not path:
+            continue
+        norm = os.path.abspath(path)
+        if norm in seen:
+            continue
+        seen.add(norm)
+        if os.path.exists(path) and is_audio_audible(path, min_db=-70.0):
+            return path
+    return None
+
 def get_audio_duration(audio_path):
     try:
         if MP3 is not None:
@@ -3677,25 +3701,29 @@ def mix_audio_layers(video_input_path, output_path, bgm_path=None, bgm_volume=0.
     if not video_input_path or not os.path.exists(video_input_path):
         return False
 
+    target_duration = get_audio_duration(voice_path) if (voice_path and os.path.exists(voice_path)) else get_audio_duration(video_input_path)
+    if target_duration <= 0:
+        target_duration = None
+
     include_base_pref = has_audio_stream(video_input_path)
     include_base_candidates = [include_base_pref] if include_base_pref else [True, False]
 
     for include_base_audio in include_base_candidates:
-        cmd = ['ffmpeg', *get_hwaccel_args(), '-y', '-i', video_input_path]
+        cmd = ['ffmpeg', '-y', '-i', video_input_path]
         input_audio_specs = []
         next_input_index = 1
 
         if include_base_audio:
-            input_audio_specs.append((0, 1.0))
+            input_audio_specs.append((0, 1.0, False))
 
         if voice_path and os.path.exists(voice_path):
             cmd += ['-i', voice_path]
-            input_audio_specs.append((next_input_index, max(0.0, min(2.0, float(voice_volume)))))
+            input_audio_specs.append((next_input_index, max(0.0, min(2.0, float(voice_volume))), False))
             next_input_index += 1
 
         if bgm_path and os.path.exists(bgm_path):
             cmd += ['-stream_loop', '-1', '-i', bgm_path]
-            input_audio_specs.append((next_input_index, max(0.0, min(2.0, float(bgm_volume)))))
+            input_audio_specs.append((next_input_index, max(0.0, min(2.0, float(bgm_volume))), True))
             next_input_index += 1
 
         if not input_audio_specs:
@@ -3707,16 +3735,19 @@ def mix_audio_layers(video_input_path, output_path, bgm_path=None, bgm_volume=0.
 
         filter_parts = []
         mixed_labels = []
-        for idx, (input_idx, vol) in enumerate(input_audio_specs):
+        for idx, (input_idx, vol, is_bgm) in enumerate(input_audio_specs):
             label = f"a{idx}"
-            filter_parts.append(f"[{input_idx}:a]volume={vol:.2f}[{label}]")
+            chain = f"[{input_idx}:a]aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo,aresample=44100,volume={vol:.3f}"
+            if is_bgm and target_duration is not None:
+                chain += f",atrim=0:{target_duration:.3f}"
+            filter_parts.append(f"{chain}[{label}]")
             mixed_labels.append(f"[{label}]")
 
         if len(mixed_labels) == 1:
             filter_parts.append(f"{mixed_labels[0]}aresample=async=1:first_pts=0[aout]")
         else:
             filter_parts.append(
-                f"{''.join(mixed_labels)}amix=inputs={len(mixed_labels)}:duration=longest:dropout_transition=2,"
+                f"{''.join(mixed_labels)}amix=inputs={len(mixed_labels)}:duration=first:dropout_transition=0:normalize=0,"
                 f"aresample=async=1:first_pts=0[aout]"
             )
 
@@ -8373,6 +8404,8 @@ def run_cinematic_engine():
             st.markdown("<hr style='border-color: rgba(255,255,255,0.08); margin: 15px 0;'>", unsafe_allow_html=True)
             st.markdown("<h4 style='font-family: Orbitron; font-size: 13px; color: #FFC0CB; margin-bottom: 15px; letter-spacing: 0.5px;'>🎵 AUDIO MIXING CONFIG</h4>", unsafe_allow_html=True)
             uploaded_bgm = st.file_uploader("Upload Custom BGM Track", type=['mp3', 'wav'], key="studio_audio_bgm_uploader")
+            if uploaded_bgm is not None:
+                st.info("✅ Custom BGM uploaded. Will be used instead of library selection.")
             bgm_volume = st.slider("BGM Audio Level Mixer", 0.0, 1.0, 0.30, step=0.05, key="studio_audio_bgm_volume_slider")
     with video_canvas_col:
         with st.container(border=True):
@@ -8459,10 +8492,15 @@ def run_cinematic_engine():
                         voice_profile_val = st.session_state.get("voice_profile")
                         language_choice_val = st.session_state.get("language_choice")
                         data_snapshot = {"aspect_ratio": size_choice_val, "voice_profile": voice_profile_val, "language_choice": language_choice_val, "required_credits": required_credits, "logged_user": st.session_state.get("logged_user"), "res_choice": st.session_state.get("res_choice"), "duration_choice": st.session_state.get("duration_choice"), "music_mood": music_mood, "workshop_img": st.session_state.get("workshop_active_image")}
-                        effective_bgm_path = bgm_temp_path
-                        if not effective_bgm_path:
-                            normalized_mood = music_mood.lower().strip()
-                            effective_bgm_path = get_music_path(normalized_mood)
+                        normalized_mood = music_mood.lower().strip()
+                        preferred_bgm_path = bgm_temp_path
+                        if not preferred_bgm_path:
+                            preferred_bgm_path = get_music_path(normalized_mood)
+                        effective_bgm_path = resolve_audible_bgm_path(preferred_path=preferred_bgm_path, mood=normalized_mood)
+                        if preferred_bgm_path and (not effective_bgm_path or os.path.abspath(effective_bgm_path) != os.path.abspath(preferred_bgm_path)):
+                            status_indicator.warning("Selected BGM appears silent/corrupt. Auto-switched to an audible fallback track.")
+                        elif not effective_bgm_path:
+                            status_indicator.warning("No audible BGM track found. Rendering with voice-only audio.")
                         render_status_dict = {}
                         def internal_thread_worker(data_snapshot, scenes_data, video_output, bgm_path, bgm_volume, status_dict):
                             result = {"success": False, "error": None, "video_path": None}
