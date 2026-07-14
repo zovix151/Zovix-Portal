@@ -1414,7 +1414,8 @@ def init_database():
                 timestamp TEXT,
                 prompt TEXT,
                 path TEXT,
-                generation_type TEXT DEFAULT 'General'
+                generation_type TEXT DEFAULT 'General',
+                cost_inr REAL DEFAULT 0.0
             )
         """)
         
@@ -1592,6 +1593,21 @@ def init_database():
                 timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
             )
         """)
+        
+        conn.commit()
+        # --- MIGRATION: Auto-add missing columns ---
+        try:
+            cursor.execute("PRAGMA table_info(history)")
+            existing_cols = [col[1] for col in cursor.fetchall()]
+            if "generation_type" not in existing_cols:
+                cursor.execute("ALTER TABLE history ADD COLUMN generation_type TEXT DEFAULT 'General'")
+                logger.info("MIGRATION: Added generation_type column")
+            if "cost_inr" not in existing_cols:
+                cursor.execute("ALTER TABLE history ADD COLUMN cost_inr REAL DEFAULT 0.0")
+                logger.info("MIGRATION: Added cost_inr column")
+            conn.commit()
+        except Exception as mig_e:
+            logger.warning(f"MIGRATION skip: {mig_e}")
         
         conn.commit()
         logger.info("Database initialized successfully")
@@ -3396,15 +3412,21 @@ def process_video_billing(username, duration_minutes, total_scenes, stock_scenes
     finally:
         conn.close()
 
-def save_render_to_db(username, file_name, prompt, path, generation_type="General"):
+def save_render_to_db(username, file_name, prompt, path, generation_type="General", cost_inr=None):
     conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
     cursor = conn.cursor()
     try:
         timestamp = time.strftime("%b %d, %Y - %I:%M %p")
-        # Check if generation_type column exists (for backward compatibility)
+        if cost_inr is None:
+            cost_inr = calculate_render_cost(generation_type, prompt or "")
         cursor.execute("PRAGMA table_info(history)")
         columns = [col[1] for col in cursor.fetchall()]
-        if "generation_type" in columns:
+        has_gen_type = "generation_type" in columns
+        has_cost = "cost_inr" in columns
+        if has_gen_type and has_cost:
+            cursor.execute("INSERT OR IGNORE INTO history (username, file_name, timestamp, prompt, path, generation_type, cost_inr) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                           (username, file_name, timestamp, prompt, path, generation_type, cost_inr))
+        elif has_gen_type:
             cursor.execute("INSERT OR IGNORE INTO history (username, file_name, timestamp, prompt, path, generation_type) VALUES (?, ?, ?, ?, ?, ?)",
                            (username, file_name, timestamp, prompt, path, generation_type))
         else:
@@ -3434,36 +3456,192 @@ def load_renders_history_db(username):
     cursor = conn.cursor()
     history = []
     try:
-        # Check if generation_type column exists
         cursor.execute("PRAGMA table_info(history)")
         columns = [col[1] for col in cursor.fetchall()]
-        if "generation_type" in columns:
+        has_gen_type = "generation_type" in columns
+        has_cost = "cost_inr" in columns
+        
+        if has_gen_type and has_cost:
+            cursor.execute("SELECT file_name, timestamp, prompt, path, generation_type, cost_inr FROM history WHERE username = ? ORDER BY id DESC", (username,))
+            rows = cursor.fetchall()
+            for row in rows:
+                history.append({
+                    "file_name": row[0], "timestamp": row[1], "prompt": row[2],
+                    "path": row[3], "generation_type": row[4], "cost_inr": row[5] or 0.0
+                })
+        elif has_gen_type:
             cursor.execute("SELECT file_name, timestamp, prompt, path, generation_type FROM history WHERE username = ? ORDER BY id DESC", (username,))
             rows = cursor.fetchall()
             for row in rows:
                 history.append({
-                    "file_name": row[0],
-                    "timestamp": row[1],
-                    "prompt": row[2],
-                    "path": row[3],
-                    "generation_type": row[4]
+                    "file_name": row[0], "timestamp": row[1], "prompt": row[2],
+                    "path": row[3], "generation_type": row[4], "cost_inr": 0.0
                 })
         else:
             cursor.execute("SELECT file_name, timestamp, prompt, path FROM history WHERE username = ? ORDER BY id DESC", (username,))
             rows = cursor.fetchall()
             for row in rows:
                 history.append({
-                    "file_name": row[0],
-                    "timestamp": row[1],
-                    "prompt": row[2],
-                    "path": row[3],
-                    "generation_type": "General"
+                    "file_name": row[0], "timestamp": row[1], "prompt": row[2],
+                    "path": row[3], "generation_type": "General", "cost_inr": 0.0
                 })
     except Exception as e:
         logger.error(f"Load renders error: {e}")
     finally:
         conn.close()
     return history
+
+def calculate_render_cost(generation_type, prompt="", script_text="", quality="Standard"):
+    '''Calculate cost for a render based on generation type.'''
+    gen_type = generation_type.lower() if generation_type else ""
+    if "cinematic" in gen_type:
+        text_len = len(script_text or prompt or "")
+        cost = max(2.0, round((text_len / 1000) * 12, 2))
+        return cost
+    if "face" in gen_type or "expressive" in gen_type:
+        return 3.0
+    if "image" in gen_type or "video" in gen_type:
+        return 2.0
+    if "workshop" in gen_type or "creative" in gen_type:
+        return 1.0
+    return 0.0
+
+def show_admin_dashboard():
+    '''Display admin dashboard with cost analytics. Only visible to admin email.'''
+    st.markdown("<h2 style='font-family: Orbitron; color: #FFD700; text-align: center;'>🔐 ADMIN DASHBOARD</h2>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: #FFC0CB;'>Platform-wide generation cost analytics & monitoring</p>", unsafe_allow_html=True)
+    
+    conn = sqlite3.connect('zovix_v4.db', check_same_thread=False)
+    cursor = conn.cursor()
+    
+    try:
+        # Check columns
+        cursor.execute('PRAGMA table_info(history)')
+        columns = [col[1] for col in cursor.fetchall()]
+        has_cost = 'cost_inr' in columns
+        
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            try:
+                cursor.execute('SELECT COUNT(*) FROM history')
+                total_videos = cursor.fetchone()[0]
+            except:
+                total_videos = 0
+            st.metric('🎬 Total Generations', total_videos)
+        with col2:
+            try:
+                cursor.execute('SELECT COUNT(DISTINCT username) FROM history')
+                total_users = cursor.fetchone()[0]
+            except:
+                total_users = 0
+            st.metric('👥 Active Users', total_users)
+        with col3:
+            if has_cost:
+                try:
+                    cursor.execute('SELECT COALESCE(SUM(cost_inr), 0) FROM history')
+                    total_cost = cursor.fetchone()[0]
+                except:
+                    total_cost = 0
+            else:
+                total_cost = 0
+            st.metric('💰 Total Cost (₹)', f'₹{total_cost:.2f}')
+        with col4:
+            avg_cost = total_cost / total_videos if (has_cost and total_videos > 0) else 0
+            st.metric('📊 Avg/Generation', f'₹{avg_cost:.2f}')
+        
+        st.markdown('---')
+        st.markdown("<h3 style='font-family: Orbitron; color: #FFFFFF;'>⚙️ Cost Breakdown by Engine</h3>", unsafe_allow_html=True)
+        
+        if has_cost:
+            try:
+                cursor.execute('''
+                    SELECT COALESCE(generation_type, 'Unknown') as engine,
+                           COUNT(*) as count,
+                           COALESCE(SUM(cost_inr), 0) as total_cost
+                    FROM history
+                    GROUP BY engine
+                    ORDER BY total_cost DESC
+                ''')
+                breakdown = cursor.fetchall()
+                if breakdown:
+                    engine_icons = {
+                        'Cinematic Engine': '🎬',
+                        'Video Editor': '🎞️',
+                        'Creative Workshop': '🖌️',
+                        'Image-to-Video': '🎥',
+                        'Face Video': '👤',
+                        'General': '📁'
+                    }
+                    b_cols = st.columns(len(breakdown))
+                    for i, (engine, count, cost) in enumerate(breakdown):
+                        with b_cols[i]:
+                            icon = engine_icons.get(engine, '📁')
+                            st.markdown(f'''
+                            <div style="background: rgba(255, 215, 0, 0.08); border: 1px solid rgba(255, 215, 0, 0.2);
+                                        border-radius: 10px; padding: 12px; text-align: center;">
+                                <span style="font-size: 28px;">{icon}</span>
+                                <p style="font-size: 12px; color: #FFC0CB; margin: 5px 0;">{engine}</p>
+                                <p style="font-size: 20px; color: #FFFFFF; font-weight: bold; margin: 0;">₹{cost:.2f}</p>
+                                <p style="font-size: 11px; color: #888; margin: 0;">{count} renders</p>
+                            </div>
+                            ''', unsafe_allow_html=True)
+            except Exception as e:
+                st.info(f'Breakdown data: {e}')
+        else:
+            st.info('Cost tracking not yet enabled. New generations will be tracked.')
+        
+        st.markdown('---')
+        st.markdown("<h3 style='font-family: Orbitron; color: #FFFFFF;'>📋 Recent Generations</h3>", unsafe_allow_html=True)
+        
+        try:
+            query = 'SELECT username, file_name, timestamp, generation_type'
+            if has_cost:
+                query += ', cost_inr'
+            query += ' FROM history ORDER BY id DESC LIMIT 20'
+            cursor.execute(query)
+            rows = cursor.fetchall()
+            if rows:
+                import pandas as pd
+                df_cols = ['User', 'File', 'Date', 'Engine']
+                if has_cost:
+                    df_cols.append('Cost')
+                data = []
+                for row in rows:
+                    r = list(row)
+                    if has_cost and len(r) >= 5:
+                        r[4] = f'₹{r[4]:.2f}' if r[4] else '₹0.00'
+                    data.append(r)
+                st.dataframe(pd.DataFrame(data, columns=df_cols), use_container_width=True, hide_index=True)
+            else:
+                st.info('No generations yet.')
+        except Exception as e:
+            st.warning(f'Data error: {e}')
+        
+        st.markdown('---')
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button('📊 Export Report (CSV)', key='admin_export_csv', use_container_width=True):
+                try:
+                    cursor.execute('SELECT * FROM history ORDER BY id DESC')
+                    all_rows = cursor.fetchall()
+                    if all_rows:
+                        import pandas as pd
+                        cursor.execute('PRAGMA table_info(history)')
+                        col_names = [c[1] for c in cursor.fetchall()]
+                        df = pd.DataFrame(all_rows, columns=col_names)
+                        csv_path = 'admin_report.csv'
+                        df.to_csv(csv_path, index=False)
+                        with open(csv_path, 'rb') as f:
+                            st.download_button('📥 Download', f, file_name=csv_path, mime='text/csv', key='admin_dl_csv')
+                except Exception as e:
+                    st.error(f'Export error: {e}')
+        with col2:
+            if st.button('🔄 Refresh', key='admin_refresh', use_container_width=True):
+                st.rerun()
+    except Exception as e:
+        st.error(f'Dashboard error: {e}')
+    finally:
+        conn.close()
 
 def load_face_video_history_db(username):
     conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
@@ -6771,10 +6949,40 @@ def run_creative_workshop():
                 else:
                     st.image(active_img_file, use_container_width=True)
                 st.markdown("<br>", unsafe_allow_html=True)
-                col_dl, col_clr = st.columns(2)
+                col_dl, col_convert, col_clr = st.columns(3)
                 with col_dl:
                     with open(active_img_file, "rb") as file_bytes_wrapper:
                         st.download_button(label="📥 Save Frame (PNG)", data=file_bytes_wrapper, file_name="zovix_workshop_masterpiece.png", mime="image/png", use_container_width=True, key="workshop_download_action_btn")
+                with col_convert:
+                    if st.button("🎬 Convert to Video (2₹)", key="workshop_convert_to_video_btn", use_container_width=True):
+                        success, required_tokens, message = validate_and_deduct_tokens("Creative Workshop", "HD")
+                        if not success:
+                            st.error(message)
+                        else:
+                            st.success(message)
+                            image_video_path = f"saved_renders/workshop_video_{uuid.uuid4().hex[:8]}.mp4"
+                            with st.spinner("Converting image to video..."):
+                                try:
+                                    cmd = ['ffmpeg', '-y', '-loop', '1', '-i', active_img_file, '-t', '4', '-vf', "zoompan=z='min(zoom+0.0015,1.5)':d=96:s=1280x720", '-pix_fmt', 'yuv420p', '-c:v', 'libx264', '-preset', 'ultrafast', '-r', '24', image_video_path]
+                                    subprocess.run(cmd, capture_output=True, timeout=30)
+                                except Exception:
+                                    try:
+                                        from PIL import Image
+                                        import imageio
+                                        frames = []
+                                        img_pil = Image.open(active_img_file)
+                                        for i in range(48):
+                                            frame = img_pil.copy()
+                                            frames.append(frame)
+                                        imageio.mimsave(image_video_path, frames, fps=12)
+                                    except Exception:
+                                        image_video_path = None
+                            if image_video_path and os.path.exists(image_video_path):
+                                st.session_state["active_svd_video"] = image_video_path
+                                st.toast("Image converted to video!")
+                                st.rerun()
+                            else:
+                                st.error("Video conversion failed.")
                 with col_clr:
                     if st.button("🧹 Clear Output", key="workshop_clear_output_btn", use_container_width=True):
                         safe_remove_file(active_img_file)
@@ -9733,7 +9941,9 @@ elif st.session_state["current_page"] == "studio":
             <div class="panel-header">⚡ QUICK ACCESS NODES</div>
         </div>
         """, unsafe_allow_html=True)
-        tab_cols = st.columns(6)
+        is_admin_user = st.session_state.get("logged_user", "").lower().strip() == "rajmehta886297@gmail.com"
+        num_cols = 7 if is_admin_user else 6
+        tab_cols = st.columns(num_cols)
         with tab_cols[0]:
             if st.button("🚀 Factory", key="quick_tab_factory", use_container_width=True):
                 st.session_state["sidebar_tab"] = "🚀 Zovix Mass Factory"
@@ -9758,29 +9968,38 @@ elif st.session_state["current_page"] == "studio":
             if st.button("📅 Scheduler", key="quick_tab_scheduler", use_container_width=True):
                 st.session_state["sidebar_tab"] = "📅 ADVANCED AI CONTENT SCHEDULER"
                 st.rerun()
-        st.markdown("<hr style='border-color: rgba(255,255,255,0.08); margin: 15px 0 20px 0;'>", unsafe_allow_html=True)
-    
+        if is_admin_user:
+            with tab_cols[6]:
+                if st.button("🔐 ADMIN", key="quick_tab_admin", use_container_width=True):
+                    st.session_state["sidebar_tab"] = "📂 My Portfolio"
+                    st.rerun()
+        st.markdown("<hr style='border-color: rgba(255,255,255,0.08); margin: 15px 0 20px 0;'>", unsafe_allow_html=True)    
     if st.session_state["sidebar_tab"] == "💎 Buy Credits":
         render_enhanced_payment_ui()
     
-    elif st.session_state["sidebar_tab"] == "📂 My Portfolio":
-        st.markdown("<h4 style='font-family: Orbitron; color: #FFC0CB;'>📂 My Portfolio</h4>", unsafe_allow_html=True)
-        st.info("View and manage all your generated content.")
-        history = st.session_state.get("history_renders", [])
-        if history:
-            st.markdown(f"**Total Items:** {len(history)}")
-            for idx, item in enumerate(history[:10]):
-                with st.container(border=True):
-                    col_a, col_b = st.columns([3, 1])
-                    with col_a:
-                        st.markdown(f"**{item['file_name']}**")
-                        st.caption(item['prompt'][:80] + "..." if len(item['prompt']) > 80 else item['prompt'])
-                    with col_b:
-                        st.caption(item['timestamp'])
-                        if st.button("🗑️ Delete", key=f"del_{idx}"):
-                            st.toast("Delete functionality coming soon!")
+    if st.session_state["sidebar_tab"] == "📂 My Portfolio":
+        logged_user_email = st.session_state.get("logged_user", "").lower().strip()
+        if logged_user_email == "rajmehta886297@gmail.com":
+            show_admin_dashboard()
         else:
-            st.info("No items in portfolio yet. Start creating!")
+            st.markdown("<h4 style='font-family: Orbitron; color: #FFC0CB;'>📂 My Portfolio</h4>", unsafe_allow_html=True)
+            st.info("View and manage all your generated content.")
+            history = st.session_state.get("history_renders", [])
+        
+            if history:
+                st.markdown(f"**Total Items:** {len(history)}")
+                for idx, item in enumerate(history[:10]):
+                    with st.container(border=True):
+                        col_a, col_b = st.columns([3, 1])
+                        with col_a:
+                            st.markdown(f"**{item['file_name']}**")
+                            st.caption(item['prompt'][:80] + "..." if len(item['prompt']) > 80 else item['prompt'])
+                        with col_b:
+                            st.caption(item['timestamp'])
+                            if st.button("🗑️ Delete", key=f"del_{idx}"):
+                                st.toast("Delete functionality coming soon!")
+            else:
+                st.info("No items in portfolio yet. Start creating!")
     
     elif st.session_state["sidebar_tab"] == "👤 My Premium Profile":
         st.markdown("<h4 style='font-family: Orbitron; color: #FFC0CB;'>👤 My Premium Profile</h4>", unsafe_allow_html=True)
