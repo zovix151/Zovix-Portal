@@ -6759,3 +6759,15 @@ ConnectionResetError: [WinError 10054] An existing connection was forcibly close
 2026-07-15 11:40:23,501 - Zovix - INFO - Started 4 threaded workers
 2026-07-15 11:40:23,501 - Zovix - INFO - Load balancer initialized with 4 workers
 2026-07-15 11:40:23,506 - Zovix - INFO - Database initialized successfully
+2026-07-15 12:07:54,593 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-15 12:07:54,595 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-15 12:07:54,606 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-15 12:07:54,610 - Zovix - INFO - Started 4 threaded workers
+2026-07-15 12:07:54,610 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-15 12:07:54,640 - Zovix - INFO - Database initialized successfully
+2026-07-15 12:21:18,654 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-15 12:21:18,656 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-15 12:21:18,664 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-15 12:21:18,667 - Zovix - INFO - Started 4 threaded workers
+2026-07-15 12:21:18,667 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-15 12:21:18,697 - Zovix - INFO - Database initialized successfully

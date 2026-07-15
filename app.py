@@ -3786,6 +3786,184 @@ def save_to_json_history(username, file_name, prompt, path):
     except Exception as e:
         logger.error(f"Save to JSON error: {e}")
 
+
+# ============================================================
+# ERROR HANDLING UTILITIES - Safe file & face operations
+# ============================================================
+
+def safe_get_face_image_path():
+    """Safely get the face image file path from session state.
+    Returns: str (path) or None if not available.
+    Handles both file bytes (from upload widget) and file paths (from camera).
+    """
+    try:
+        face_data = st.session_state.get("face_image_upload")
+        if face_data is None:
+            return None
+        
+        # Case 1: It's a file path string
+        if isinstance(face_data, str):
+            if os.path.exists(face_data):
+                return face_data
+            logger.warning(f"safe_get_face_image_path: Stored path does not exist: {face_data}")
+            return None
+        
+        # Case 2: It's UploadedFile bytes - save to temp
+        if hasattr(face_data, 'getbuffer') or hasattr(face_data, 'read'):
+            temp_path = f"face_videos/temp_face_{uuid.uuid4().hex[:8]}.png"
+            os.makedirs("face_videos", exist_ok=True)
+            if hasattr(face_data, 'getbuffer'):
+                with open(temp_path, 'wb') as f:
+                    f.write(face_data.getbuffer())
+            elif hasattr(face_data, 'read'):
+                with open(temp_path, 'wb') as f:
+                    f.write(face_data.read())
+            if os.path.exists(temp_path) and os.path.getsize(temp_path) > 100:
+                return temp_path
+        
+        return None
+    except Exception as e:
+        logger.warning(f"safe_get_face_image_path error: {e}")
+        return None
+
+
+def safe_deepface_analyze(image_path, actions=None):
+    """Safely run DeepFace.analyze with comprehensive error handling.
+    Returns: dict with result or error info.
+    """
+    if actions is None:
+        actions = ['age', 'gender']
+    
+    result = {
+        "success": False,
+        "age": 25,
+        "gender": "Male",
+        "category": "Adult Male",
+        "error": None
+    }
+    
+    if not image_path or not os.path.exists(image_path):
+        result["error"] = "Image path not found or invalid"
+        logger.warning(f"safe_deepface_analyze: {result['error']}")
+        return result
+    
+    if not os.path.getsize(image_path) > 100:
+        result["error"] = "Image file is too small or empty"
+        logger.warning(f"safe_deepface_analyze: {result['error']}")
+        return result
+    
+    try:
+        import warnings
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            from deepface import DeepFace
+            import tensorflow as tf
+            tf.get_logger().setLevel("ERROR")
+            os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
+            
+            analysis = DeepFace.analyze(img_path=image_path, actions=actions, enforce_detection=False, prog_bar=False)
+        
+        if isinstance(analysis, list) and len(analysis) > 0:
+            face_data = analysis[0]
+        elif isinstance(analysis, dict):
+            face_data = analysis
+        else:
+            result["error"] = "Unexpected DeepFace response format"
+            return result
+        
+        # Extract age
+        detected_age = int(face_data.get('age', 25))
+        result["age"] = detected_age
+        
+        # Extract gender
+        gender_data = face_data.get('gender', {})
+        if isinstance(gender_data, dict) and gender_data:
+            detected_gender = max(gender_data, key=gender_data.get).lower().strip()
+        elif isinstance(gender_data, str):
+            detected_gender = gender_data.lower().strip()
+        else:
+            detected_gender = "Male"
+        
+        result["gender"] = detected_gender
+        
+        # Map to category using VOICE_MODULE_SPLIT
+        voice_module = get_voice_module_by_age_gender(detected_age, detected_gender)
+        if voice_module:
+            result["category"] = voice_module["category"]
+            result["voice_label"] = voice_module["default_voice"]
+            result["voice_id"] = voice_module["default_voice_id"]
+        else:
+            result["category"] = "Adult Male"
+            result["voice_label"] = "Adam (Premium Male)"
+            result["voice_id"] = "21m00Tcm4TlvDq8ikWAM"
+        
+        result["success"] = True
+        logger.info(f"safe_deepface_analyze OK -> Age:{detected_age}, Gender:{detected_gender}, Category:{result['category']}")
+        
+    except ImportError as e:
+        result["error"] = f"DeepFace import error: {e}. Install with: pip install deepface"
+        logger.warning(result["error"])
+    except Exception as e:
+        result["error"] = f"DeepFace analyze error: {e}"
+        logger.warning(result["error"])
+    
+    return result
+
+
+def safe_generate_face_video_wrapper(prompt, face_image_path, duration=30, emotion="neutral", camera_angle="front", quality="Standard", voice_language=None, voice_label=None):
+    """Wrapper around generate_face_video with comprehensive error handling.
+    Ensures face_image_path is valid before proceeding.
+    Returns: (video_path_or_None, error_message_or_None)
+    """
+    error_msg = None
+    video_path = None
+    
+    try:
+        # Validate inputs
+        if not prompt or not prompt.strip():
+            return None, "Script/prompt is empty. Please enter a valid dialogue."
+        
+        if not face_image_path:
+            return None, "No face image found. Please upload a face photo first."
+        
+        # Validate face image exists
+        resolved_path = face_image_path
+        if isinstance(resolved_path, str):
+            if not os.path.exists(resolved_path):
+                # Try to resolve from session state
+                resolved_path = safe_get_face_image_path()
+                if not resolved_path:
+                    return None, "Face image file not found on disk. Please re-upload."
+        else:
+            # UploadedFile object - try to save as temp
+            resolved_path = safe_get_face_image_path()
+            if not resolved_path:
+                return None, "Could not process face image. Please re-upload."
+        
+        # Check file size
+        if os.path.getsize(resolved_path) < 100:
+            return None, "Face image file is corrupted or too small. Please re-upload."
+        
+        # Run generation
+        video_path = generate_face_video(
+            prompt, resolved_path,
+            duration=duration,
+            emotion=emotion,
+            camera_angle=camera_angle,
+            quality=quality,
+            voice_language=voice_language,
+            voice_label=voice_label,
+        )
+        
+        if not video_path:
+            error_msg = "Video generation failed silently. Try a different face image or script."
+            
+    except Exception as e:
+        error_msg = f"Video generation error: {str(e)}"
+        logger.error(f"safe_generate_face_video_wrapper error: {e}")
+    
+    return video_path, error_msg
+
 def get_base64_img_raw(path):
     if not path or not os.path.exists(path):
         return None
@@ -7700,34 +7878,50 @@ def run_video_editor_mode():
 # ========================================================
 def detect_gender_from_image(image_path):
     """Detect gender, age from face using DeepFace AI. Auto-selects ElevenLabs voice."""
-    if not image_path or not os.path.exists(image_path):
+    if not image_path:
+        logger.warning("detect_gender_from_image: image_path is None")
+        return None
+    
+    # Handle UploadedFile objects by saving to temp
+    resolved_path = image_path
+    if not isinstance(image_path, str):
+        try:
+            temp_path = f"face_videos/temp_detect_{uuid.uuid4().hex[:8]}.png"
+            os.makedirs("face_videos", exist_ok=True)
+            if hasattr(image_path, 'getbuffer'):
+                with open(temp_path, 'wb') as f:
+                    f.write(image_path.getbuffer())
+            elif hasattr(image_path, 'read'):
+                with open(temp_path, 'wb') as f:
+                    f.write(image_path.read())
+            resolved_path = temp_path
+        except Exception as e:
+            logger.warning(f"detect_gender_from_image: Could not process upload: {e}")
+            return None
+    
+    if not resolved_path or not os.path.exists(resolved_path):
+        logger.warning(f"detect_gender_from_image: File not found: {resolved_path}")
+        return None
+    
+    if os.path.getsize(resolved_path) < 100:
+        logger.warning(f"detect_gender_from_image: File too small: {resolved_path}")
         return None
     
     try:
-        from deepface import DeepFace
-        os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
-        result = DeepFace.analyze(image_path, actions=['gender', 'age'], enforce_detection=False, prog_bar=False)
-        if isinstance(result, list) and len(result) > 0:
-            face_data = result[0]
-        elif isinstance(result, dict):
-            face_data = result
-        else:
+        scan_result = safe_deepface_analyze(resolved_path, actions=['gender', 'age'])
+        
+        if not scan_result.get("success"):
+            logger.warning(f"detect_gender_from_image: Scan failed: {scan_result.get('error')}")
             return None
         
-        gender_data = face_data.get('gender', {})
-        detected_age = int(face_data.get('age', 25))
-        
-        if isinstance(gender_data, dict) and gender_data:
-            detected_gender = max(gender_data, key=gender_data.get).lower().strip()
-        elif isinstance(gender_data, str):
-            detected_gender = gender_data.lower().strip()
-        else:
-            return None
+        detected_gender = scan_result.get("gender", "Male")
+        detected_age = scan_result.get("age", 25)
+        detected_category = scan_result.get("category", "Adult Male")
+        detected_voice = scan_result.get("voice_label", "Adam (Premium Male)")
         
         st.session_state["fv_detected_age"] = detected_age
         st.session_state["fv_detected_gender"] = detected_gender
         
-                # Use VOICE_MODULE_SPLIT for consistent voice selection
         voice_module = get_voice_module_by_age_gender(detected_age, detected_gender)
         if voice_module:
             st.session_state["fv_auto_selected_voice"] = voice_module["default_voice"]
@@ -7739,6 +7933,7 @@ def detect_gender_from_image(image_path):
             st.session_state["fv_detected_category"] = "Adult Male"
             st.session_state["fv_voice_module_key"] = "👨 Adult Male (>= 14)"
             st.session_state["fv_voice_recommended_list"] = []
+        
         logger.info(f"DeepFace scan -> Age:{detected_age}, Gender:{detected_gender}, "
                     f"Category:{st.session_state['fv_detected_category']}, "
                     f"Voice:{st.session_state['fv_auto_selected_voice']}")
@@ -7748,29 +7943,7 @@ def detect_gender_from_image(image_path):
         logger.warning(f'DeepFace scan failed: {e}')
     
     return None
-    if not image_path or not os.path.exists(image_path):
-        return None
-    
-    try:
-        from deepface import DeepFace
-        os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
-        result = DeepFace.analyze(image_path, actions=['gender'], enforce_detection=False, prog_bar=False)
-        if isinstance(result, list) and len(result) > 0:
-            gender_data = result[0].get('gender', {})
-        elif isinstance(result, dict):
-            gender_data = result.get('gender', {})
-        else:
-            return None
         
-        if isinstance(gender_data, dict) and gender_data:
-            detected_gender = max(gender_data, key=gender_data.get)
-            return detected_gender.lower().strip()
-        elif isinstance(gender_data, str):
-            return gender_data.lower().strip()
-    except Exception as e:
-        logger.warning(f'Gender detection failed: {e}')
-    
-    return None
 
 
 def get_gender_based_voice_recommendation(detected_gender, language='English'):
@@ -7955,17 +8128,30 @@ def run_face_video_mode():
             face_prompt = st.text_area("Video Description / Script (for lip sync):", placeholder="Describe what the person should say: e.g. Hello everyone! Welcome to my channel. Today we're going to explore the mysteries of the universe...", height=100, key="fv_prompt")
             st.write("")
             if st.button("👤 Generate Face Video", key="fv_generate_btn", use_container_width=True):
-                if st.session_state.get("fv_gender_auto", True) and st.session_state.get("face_image_upload"):
-                    # Always re-scan on Generate for fresh data
-                    with st.spinner("🔍 DeepFace AI scanning face (age + gender)..."):
-                        detected = detect_gender_from_image(st.session_state["face_image_upload"])
-                        if detected:
-                            cat = st.session_state.get("fv_detected_category", "Unknown")
-                            age = st.session_state.get("fv_detected_age", "?")
-                            voice = st.session_state.get("fv_auto_selected_voice", "Default")
-                            st.toast(f"Scan: {cat} (Age: {age}) -> Voice: {voice}")
-                        else:
-                            st.warning("Face scan failed. Using default voice.")
+                # Validate face image before scanning
+                face_img_for_scan = st.session_state.get("face_image_upload")
+                if face_img_for_scan is not None:
+                    # Check if path exists (for string paths) or if file is UploadedFile
+                    is_valid = False
+                    if isinstance(face_img_for_scan, str):
+                        is_valid = os.path.exists(face_img_for_scan)
+                    else:
+                        is_valid = True  # UploadedFile objects are valid
+                    
+                    if is_valid and st.session_state.get("fv_gender_auto", True):
+                        with st.spinner("🔍 DeepFace AI scanning face (age + gender)..."):
+                            try:
+                                detected = detect_gender_from_image(face_img_for_scan)
+                                if detected:
+                                    cat = st.session_state.get("fv_detected_category", "Unknown")
+                                    age = st.session_state.get("fv_detected_age", "?")
+                                    voice = st.session_state.get("fv_auto_selected_voice", "Default")
+                                    st.toast(f"Scan: {cat} (Age: {age}) -> Voice: {voice}")
+                                else:
+                                    st.toast("Face scan fallback: Using default voice based on selection.", icon="🤖")
+                            except Exception as scan_err:
+                                logger.warning(f"Generate-time face scan error: {scan_err}")
+                                st.toast("Face scan unavailable. Using default voice.", icon="🤖")
                 
                 success, required_tokens, message = validate_and_deduct_tokens("Face Video Generator", quality)
                 if not success:
@@ -7978,15 +8164,18 @@ def run_face_video_mode():
                         st.error("Please upload a face image or take a photo using camera mode.")
                     else:
                         with st.spinner(f"Generating {quality} lip-sync face video (motion locked)..."):
-                            video_path = generate_face_video(
+                            # Use safe wrapper with error handling
+                            video_path, gen_error = safe_generate_face_video_wrapper(
                                 face_prompt,
-                                st.session_state["face_image_upload"],
-                                video_duration,
+                                st.session_state.get("face_image_upload"),
+                                duration=video_duration,
                                 quality=quality,
                                 voice_language=fv_voice_language,
                                 voice_label=fv_voice_model,
                             )
-                            if video_path and os.path.exists(video_path):
+                            if gen_error:
+                                st.error(gen_error)
+                            elif video_path and os.path.exists(video_path):
                                 st.session_state["active_face_video"] = video_path
                                 timestamp = time.strftime("%Y%m%d_%H%M%S")
                                 file_name = f"zovix_face_video_{quality.lower()}_{timestamp}.mp4"
