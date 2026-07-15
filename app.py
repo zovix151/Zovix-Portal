@@ -1002,6 +1002,76 @@ ELEVENLABS_VOICES = {
     "Anvi (Soft Hindi Female)": {"id": "vZ9Rs7Bp5aOu0tT4wD1xE", "gender": "female", "accent": "Indian", "language": "Hindi"},
 }
 
+# ============================================================
+# VOICE MODULE SPLIT - Auto-mapped by DeepFace age+gender scan
+# Each category maps to a list of recommended voice labels
+# ============================================================
+VOICE_MODULE_SPLIT = {
+    "Boy": {
+        "label": "👦 Boy (Male < 14)",
+        "category": "Boy",
+        "min_age": 0,
+        "max_age": 13,
+        "gender": "male",
+        "default_voice": "Josh (Young Male)",
+        "default_voice_id": "TxGEqnHWrfWFTfGW9XjX",
+        "recommended_voices": ["Josh (Young Male)"],
+        "description": "Young boy voice - youthful and energetic"
+    },
+    "Girl": {
+        "label": "👧 Girl (Female < 14)",
+        "category": "Girl/Child",
+        "min_age": 0,
+        "max_age": 13,
+        "gender": "female",
+        "default_voice": "Bella (Warm Female)",
+        "default_voice_id": "MF3mGyEYCl7XYWbV9V6O",
+        "recommended_voices": ["Bella (Warm Female)"],
+        "description": "Young girl voice - warm and gentle"
+    },
+    "Adult_Male": {
+        "label": "👨 Adult Male (>= 14)",
+        "category": "Adult Male",
+        "min_age": 14,
+        "max_age": 99,
+        "gender": "male",
+        "default_voice": "Adam (Premium Male)",
+        "default_voice_id": "21m00Tcm4TlvDq8ikWAM",
+        "recommended_voices": ["Adam (Premium Male)", "Drew (Professional Male)", "Antoni (Deep Male)", "James (Narrator Male)", "Arjun (Hindi Male)", "Ravi (Hindi Professional Male)", "Pierre (French Male)", "Kenji (Japanese Male)", "Vikram (Bhojpuri Male)", "Adit (Youthful Hindi Male)"],
+        "description": "Adult male voice - professional and authoritative"
+    },
+    "Adult_Female": {
+        "label": "👩 Adult Female (>= 14)",
+        "category": "Adult Female",
+        "min_age": 14,
+        "max_age": 99,
+        "gender": "female",
+        "default_voice": "Rachel (Premium Female)",
+        "default_voice_id": "pNInz6obpgDQ5IdwJg7p",
+        "recommended_voices": ["Rachel (Premium Female)", "Bella (Warm Female)", "Charlotte (Elegant Female)", "Emily (Professional Female)", "Sarah (Soothing Female)", "Priya (Hindi Female)", "Anjura (Expressive Hindi Female)", "Anvi (Soft Hindi Female)", "Sophie (French Female)", "Yuki (Japanese Female)", "Sita (Bhojpuri Female)"],
+        "description": "Adult female voice - clear and expressive"
+    },
+}
+
+def get_voice_module_by_age_gender(age, gender):
+    """Return the VOICE_MODULE_SPLIT entry matching age and gender."""
+    if gender == 'male' and age < 14:
+        return VOICE_MODULE_SPLIT["Boy"]
+    elif gender == 'female' and age < 14:
+        return VOICE_MODULE_SPLIT["Girl"]
+    elif gender == 'male' and age >= 14:
+        return VOICE_MODULE_SPLIT["Adult_Male"]
+    elif gender == 'female' and age >= 14:
+        return VOICE_MODULE_SPLIT["Adult_Female"]
+    return None
+
+def get_voice_module_by_category(category_str):
+    """Return the VOICE_MODULE_SPLIT entry by category string."""
+    for key, val in VOICE_MODULE_SPLIT.items():
+        if val.get("category") == category_str:
+            return val
+    return None
+
 LANGUAGE_VOICE_MAP = {
     "English": ["Adam (Premium Male)", "Rachel (Premium Female)", "Drew (Professional Male)", "Bella (Warm Female)", "Antoni (Deep Male)", "Charlotte (Elegant Female)", "Josh (Young Male)", "Emily (Professional Female)", "James (Narrator Male)", "Sarah (Soothing Female)"],
     "Hindi": ["Arjun (Hindi Male)", "Priya (Hindi Female)", "Ravi (Hindi Professional Male)", "Anjura (Expressive Hindi Female)", "Adit (Youthful Hindi Male)", "Anvi (Soft Hindi Female)"],
@@ -3812,9 +3882,15 @@ def get_music_path(mood):
 
 def resolve_audible_bgm_path(preferred_path=None, mood="cinematic"):
     """Return the first audible BGM path from preferred, mood, then known fallbacks."""
+    # Always honor an explicit user upload if the file exists and looks valid.
+    if preferred_path and os.path.exists(preferred_path):
+        try:
+            if os.path.getsize(preferred_path) > 1024 and get_audio_duration(preferred_path) >= 0.35:
+                return preferred_path
+        except Exception:
+            return preferred_path
+
     candidates = []
-    if preferred_path:
-        candidates.append(preferred_path)
     mood_path = get_music_path((mood or "cinematic").lower().strip())
     if mood_path:
         candidates.append(mood_path)
@@ -3903,6 +3979,13 @@ def mix_audio_layers(video_input_path, output_path, bgm_path=None, bgm_volume=0.
     if not video_input_path or not os.path.exists(video_input_path):
         return False
 
+    try:
+        slider_bgm = max(0.0, min(1.0, float(bgm_volume)))
+    except Exception:
+        slider_bgm = 0.3
+    # Perceptual mapping: lower slider values remain usable; upper values get clearly louder.
+    mapped_bgm_gain = 0.0 if slider_bgm <= 0.0 else min(3.0, 0.08 + (slider_bgm ** 1.25) * 2.4)
+
     target_duration = get_audio_duration(voice_path) if (voice_path and os.path.exists(voice_path)) else get_audio_duration(video_input_path)
     if target_duration <= 0:
         target_duration = None
@@ -3923,9 +4006,9 @@ def mix_audio_layers(video_input_path, output_path, bgm_path=None, bgm_volume=0.
             input_audio_specs.append((next_input_index, max(0.0, min(2.0, float(voice_volume))), False))
             next_input_index += 1
 
-        if bgm_path and os.path.exists(bgm_path):
+        if bgm_path and os.path.exists(bgm_path) and mapped_bgm_gain > 0.0:
             cmd += ['-stream_loop', '-1', '-i', bgm_path]
-            input_audio_specs.append((next_input_index, max(0.0, min(2.0, float(bgm_volume))), True))
+            input_audio_specs.append((next_input_index, mapped_bgm_gain, True))
             next_input_index += 1
 
         if not input_audio_specs:
@@ -5764,9 +5847,120 @@ def _synthesize_face_audio_strict(prompt_text, audio_path, voice_cfg, duration_h
     return audio_success and os.path.exists(audio_path) and is_audio_audible(audio_path)
 
 
+def deepface_scan_face_and_select_voice(face_image_path):
+    """
+    Scan face using DeepFace to detect age & gender.
+    Auto-select ElevenLabs voice based on classification:
+    - Boy (Male &lt; 14) -> Josh (Young Male)
+    - Girl/Child (Female &lt; 14) -> Bella (Warm Female)
+    - Adult Male (Male >= 14) -> Adam (Premium Male)
+    - Adult Female (Female >= 14) -> Rachel (Premium Female)
+    Returns: dict with {voice_id, voice_label, category, age, gender}
+    """
+    result = {
+        "voice_id": "21m00Tcm4TlvDq8ikWAM",  # Default: Adam
+        "voice_label": "Adam (Premium Male)",
+        "category": "Adult Male",
+        "age": 25,
+        "gender": "Male"
+    }
+    
+    if not face_image_path or not os.path.exists(face_image_path):
+        logger.warning("DeepFace: No face image path provided, using default voice (Adam)")
+        return result
+    
+    try:
+        import warnings
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            import tensorflow as tf
+            tf.get_logger().setLevel("ERROR")
+            
+            analysis = DeepFace.analyze(img_path=face_image_path, actions=['age', 'gender'], enforce_detection=False)
+        
+        if isinstance(analysis, list) and len(analysis) > 0:
+            face_data = analysis[0]
+        elif isinstance(analysis, dict):
+            face_data = analysis
+        else:
+            raise ValueError("Unexpected DeepFace response format")
+        
+        detected_age = int(face_data.get('age', 25))
+        detected_gender_raw = face_data.get('gender', {})
+        
+        if isinstance(detected_gender_raw, dict):
+            if detected_gender_raw.get('Man', 0) > detected_gender_raw.get('Woman', 0):
+                gender = "Male"
+            else:
+                gender = "Female"
+        elif isinstance(detected_gender_raw, str):
+            gender = detected_gender_raw
+        else:
+            gender = "Male"
+        
+        # Use VOICE_MODULE_SPLIT for consistent selection
+        voice_module = get_voice_module_by_age_gender(detected_age, gender)
+        if voice_module:
+            voice_id = voice_module["default_voice_id"]
+            voice_label = voice_module["default_voice"]
+            category = voice_module["category"]
+        else:
+            voice_id = "21m00Tcm4TlvDq8ikWAM"
+            voice_label = "Adam (Premium Male)"
+            category = "Adult Male"
+        
+        result = {
+            "voice_id": voice_id,
+            "voice_label": voice_label,
+            "category": category,
+            "age": detected_age,
+            "gender": gender
+        }
+        
+        logger.info(f"DeepFace scan -> Age:{detected_age}, Gender:{gender}, Category:{category}, Voice:{voice_label}")
+        
+    except Exception as e:
+        logger.warning(f"DeepFace scan failed (using default voice): {e}")
+        # If DeepFace fails, try to at least detect if file is valid
+        if face_image_path and os.path.exists(face_image_path):
+            try:
+                from PIL import Image
+                img = Image.open(face_image_path)
+                logger.info(f"Image validated: {img.size}, mode={img.mode}")
+            except Exception:
+                pass
+    
+    return result
+
 def generate_face_video(prompt, face_image_path, duration=30, emotion="neutral", camera_angle="front", quality="Standard", voice_language=None, voice_label=None):
     if not face_image_path or not os.path.exists(face_image_path):
         return None
+
+    # --- DeepFace Auto-Scan: Detect age & gender, auto-select voice --- #
+    try:
+        scan_result = deepface_scan_face_and_select_voice(face_image_path)
+        detected_category = scan_result.get("category", "Adult Male")
+        detected_age = scan_result.get("age", 25)
+        detected_gender = scan_result.get("gender", "Male")
+        
+        # Auto-select voice based on scan (unless manual voice_label)
+        if voice_label is None or voice_label == "":
+            auto_voice = st.session_state.get("fv_auto_selected_voice")
+            if auto_voice:
+                voice_label = auto_voice
+            else:
+                voice_label = scan_result.get("voice_label", "Adam (Premium Male)")
+                st.session_state["fv_auto_selected_voice"] = voice_label
+            st.session_state["fv_auto_selected_category"] = detected_category
+        
+        st.session_state["fv_detected_gender"] = detected_gender
+        st.session_state["fv_detected_age"] = detected_age
+        st.session_state["fv_detected_category"] = detected_category
+        
+        logger.info(f"DeepFace Auto-Voice: {detected_category} (Age:{detected_age}) -> {voice_label}")
+    except Exception as scan_e:
+        logger.warning(f"DeepFace auto-scan error (proceeding with default voice): {scan_e}")
+    # --- End DeepFace Auto-Scan --- #
 
     voice_cfg = _resolve_face_voice_config(voice_language=voice_language, voice_label=voice_label, preferred_gender=st.session_state.get('fv_detected_gender') if st.session_state.get('fv_gender_auto', False) else None)
     audio_path = f"face_videos/voice_{uuid.uuid4().hex[:8]}.mp3"
@@ -7505,7 +7699,55 @@ def run_video_editor_mode():
 # GENDER DETECTION UTILITY FOR FACE VIDEO MODE
 # ========================================================
 def detect_gender_from_image(image_path):
-    """Detect gender (male/female) from a face image using DeepFace AI."""
+    """Detect gender, age from face using DeepFace AI. Auto-selects ElevenLabs voice."""
+    if not image_path or not os.path.exists(image_path):
+        return None
+    
+    try:
+        from deepface import DeepFace
+        os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
+        result = DeepFace.analyze(image_path, actions=['gender', 'age'], enforce_detection=False, prog_bar=False)
+        if isinstance(result, list) and len(result) > 0:
+            face_data = result[0]
+        elif isinstance(result, dict):
+            face_data = result
+        else:
+            return None
+        
+        gender_data = face_data.get('gender', {})
+        detected_age = int(face_data.get('age', 25))
+        
+        if isinstance(gender_data, dict) and gender_data:
+            detected_gender = max(gender_data, key=gender_data.get).lower().strip()
+        elif isinstance(gender_data, str):
+            detected_gender = gender_data.lower().strip()
+        else:
+            return None
+        
+        st.session_state["fv_detected_age"] = detected_age
+        st.session_state["fv_detected_gender"] = detected_gender
+        
+                # Use VOICE_MODULE_SPLIT for consistent voice selection
+        voice_module = get_voice_module_by_age_gender(detected_age, detected_gender)
+        if voice_module:
+            st.session_state["fv_auto_selected_voice"] = voice_module["default_voice"]
+            st.session_state["fv_detected_category"] = voice_module["category"]
+            st.session_state["fv_voice_module_key"] = voice_module.get("label", "")
+            st.session_state["fv_voice_recommended_list"] = voice_module.get("recommended_voices", [])
+        else:
+            st.session_state["fv_auto_selected_voice"] = "Adam (Premium Male)"
+            st.session_state["fv_detected_category"] = "Adult Male"
+            st.session_state["fv_voice_module_key"] = "👨 Adult Male (>= 14)"
+            st.session_state["fv_voice_recommended_list"] = []
+        logger.info(f"DeepFace scan -> Age:{detected_age}, Gender:{detected_gender}, "
+                    f"Category:{st.session_state['fv_detected_category']}, "
+                    f"Voice:{st.session_state['fv_auto_selected_voice']}")
+        
+        return detected_gender
+    except Exception as e:
+        logger.warning(f'DeepFace scan failed: {e}')
+    
+    return None
     if not image_path or not os.path.exists(image_path):
         return None
     
@@ -7697,6 +7939,8 @@ def run_face_video_mode():
             if fv_current_voice not in fv_voice_options:
                 fv_current_voice = fv_voice_options[0] if fv_voice_options else "Adam (Premium Male)"
             
+            recommended_list = st.session_state.get("fv_voice_recommended_list", [])
+            rec_note = f" 💡 {st.session_state.get('fv_voice_module_key', '')} rec: {', '.join(recommended_list[:3])}" if (gender_auto and recommended_list) else ""
             manual_label = "Voice Model (Manual Override)" if (gender_auto and detected_gender and face_available) else "Voice Model"
             fv_voice_model = st.selectbox(
                 manual_label,
@@ -7712,14 +7956,16 @@ def run_face_video_mode():
             st.write("")
             if st.button("👤 Generate Face Video", key="fv_generate_btn", use_container_width=True):
                 if st.session_state.get("fv_gender_auto", True) and st.session_state.get("face_image_upload"):
-                    if not st.session_state.get("fv_detected_gender"):
-                        with st.spinner("🔍 Detecting gender from face image..."):
-                            detected = detect_gender_from_image(st.session_state["face_image_upload"])
-                            if detected:
-                                st.session_state["fv_detected_gender"] = detected
-                                st.toast(f"Gender detected: {detected.title()}")
-                            else:
-                                st.warning("Gender detection failed. Using default voice.")
+                    # Always re-scan on Generate for fresh data
+                    with st.spinner("🔍 DeepFace AI scanning face (age + gender)..."):
+                        detected = detect_gender_from_image(st.session_state["face_image_upload"])
+                        if detected:
+                            cat = st.session_state.get("fv_detected_category", "Unknown")
+                            age = st.session_state.get("fv_detected_age", "?")
+                            voice = st.session_state.get("fv_auto_selected_voice", "Default")
+                            st.toast(f"Scan: {cat} (Age: {age}) -> Voice: {voice}")
+                        else:
+                            st.warning("Face scan failed. Using default voice.")
                 
                 success, required_tokens, message = validate_and_deduct_tokens("Face Video Generator", quality)
                 if not success:
@@ -7757,6 +8003,13 @@ def run_face_video_mode():
             if active_face_video and os.path.exists(active_face_video):
                 engine_used = st.session_state.get("face_video_engine_used", "Unknown")
                 runtime_mode = st.session_state.get("face_video_runtime_mode", "Unknown")
+                fv_module_key = st.session_state.get("fv_voice_module_key", "")
+                fv_cat = st.session_state.get("fv_detected_category", "")
+                fv_age = st.session_state.get("fv_detected_age", "")
+                if fv_module_key:
+                    st.caption(f"🤖 AI Voice Module: {fv_module_key} | Age: {fv_age}")
+                else:
+                    st.caption(f"🤖 AI Scan: {fv_cat or 'Unknown'} | Age: {fv_age or '?'}")
                 st.caption(f"Engine used: {engine_used} | Runtime: {runtime_mode}")
                 st.video(active_face_video, format="video/mp4", autoplay=False, loop=True, muted=False)
                 st.markdown("<br>", unsafe_allow_html=True)
@@ -7905,6 +8158,13 @@ pip install gfpgan realesrgan""",
             if active_video and os.path.exists(active_video):
                 engine_used = st.session_state.get("expressive_face_engine_used", "Unknown")
                 runtime_mode = st.session_state.get("expressive_face_runtime_mode", "Unknown")
+                fv_module_key = st.session_state.get("fv_voice_module_key", "")
+                fv_cat = st.session_state.get("fv_detected_category", "")
+                fv_age = st.session_state.get("fv_detected_age", "")
+                if fv_module_key:
+                    st.caption(f"🤖 AI Voice Module: {fv_module_key} | Age: {fv_age}")
+                else:
+                    st.caption(f"🤖 AI Scan: {fv_cat or 'Unknown'} | Age: {fv_age or '?'}")
                 st.caption(f"Engine used: {engine_used} | Runtime: {runtime_mode}")
                 st.video(active_video, format="video/mp4", autoplay=False, loop=True, muted=False)
                 col_dl, col_clr = st.columns(2)
@@ -8224,6 +8484,13 @@ def run_unified_face_video_mode():
             if active_face_video_url:
                 engine_used = st.session_state.get("face_video_engine_used", "Unknown")
                 runtime_mode = st.session_state.get("face_video_runtime_mode", "Unknown")
+                fv_module_key = st.session_state.get("fv_voice_module_key", "")
+                fv_cat = st.session_state.get("fv_detected_category", "")
+                fv_age = st.session_state.get("fv_detected_age", "")
+                if fv_module_key:
+                    st.caption(f"🤖 AI Voice Module: {fv_module_key} | Age: {fv_age}")
+                else:
+                    st.caption(f"🤖 AI Scan: {fv_cat or 'Unknown'} | Age: {fv_age or '?'}")
                 st.caption(f"Engine used: {engine_used} | Runtime: {runtime_mode}")
                 st.video(active_face_video_url, format="video/mp4", autoplay=False, loop=True, muted=False)
                 col_dl, col_clr = st.columns(2)
