@@ -6771,3 +6771,65 @@ ConnectionResetError: [WinError 10054] An existing connection was forcibly close
 2026-07-15 12:21:18,667 - Zovix - INFO - Started 4 threaded workers
 2026-07-15 12:21:18,667 - Zovix - INFO - Load balancer initialized with 4 workers
 2026-07-15 12:21:18,697 - Zovix - INFO - Database initialized successfully
+2026-07-15 12:31:42,135 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-15 12:31:42,135 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-15 12:31:42,137 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-15 12:31:42,138 - Zovix - INFO - Started 4 threaded workers
+2026-07-15 12:31:42,138 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-15 12:31:42,142 - Zovix - INFO - Database initialized successfully
+2026-07-15 13:37:37,878 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-15 13:37:37,880 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-15 13:37:37,882 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-15 13:37:37,885 - Zovix - INFO - Started 4 threaded workers
+2026-07-15 13:37:37,885 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-15 13:37:37,910 - Zovix - INFO - Database initialized successfully
+2026-07-15 13:37:40,911 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-15 13:37:40,912 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-15 13:37:40,914 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-15 13:37:40,917 - Zovix - INFO - Started 4 threaded workers
+2026-07-15 13:37:40,917 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-15 13:37:40,925 - Zovix - INFO - Database initialized successfully
+2026-07-15 13:37:46,830 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-15 13:37:46,831 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-15 13:37:46,833 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-15 13:37:46,836 - Zovix - INFO - Started 4 threaded workers
+2026-07-15 13:37:46,836 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-15 13:37:46,844 - Zovix - INFO - Database initialized successfully
+2026-07-15 13:37:55,573 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-15 13:37:55,574 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-15 13:37:55,575 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-15 13:37:55,579 - Zovix - INFO - Started 4 threaded workers
+2026-07-15 13:37:55,580 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-15 13:37:55,587 - Zovix - INFO - Database initialized successfully
+2026-07-15 13:37:56,722 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-15 13:37:56,724 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-15 13:37:56,725 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-15 13:37:56,728 - Zovix - INFO - Started 4 threaded workers
+2026-07-15 13:37:56,729 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-15 13:37:56,735 - Zovix - INFO - Database initialized successfully
+2026-07-15 13:37:56,913 - Zovix - WARNING - redis not installed. Using in-memory cache.
+2026-07-15 13:37:56,914 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-07-15 13:37:56,915 - Zovix - WARNING - pyotp or qrcode not installed. 2FA disabled.
+2026-07-15 13:37:56,917 - Zovix - INFO - Started 4 threaded workers
+2026-07-15 13:37:56,917 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-15 13:37:56,922 - Zovix - INFO - Database initialized successfully
+2026-07-15 14:06:16,294 - Zovix - INFO - Redis connected for rate limiting
+2026-07-15 14:06:16,323 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-15 14:06:18,355 - Zovix - INFO - Redis cache connected
+2026-07-15 14:06:18,399 - Zovix - INFO - Database initialized successfully
+2026-07-15 14:06:48,887 - Zovix - INFO - Redis connected for rate limiting
+2026-07-15 14:06:48,890 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-15 14:06:50,941 - Zovix - INFO - Redis cache connected
+2026-07-15 14:06:50,951 - Zovix - INFO - Database initialized successfully
+2026-07-15 14:07:00,985 - Zovix - INFO - Redis connected for rate limiting
+2026-07-15 14:07:00,987 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-15 14:07:03,019 - Zovix - INFO - Redis cache connected
+2026-07-15 14:07:03,030 - Zovix - INFO - Database initialized successfully
+2026-07-15 14:07:14,285 - Zovix - INFO - Redis connected for rate limiting
+2026-07-15 14:07:14,287 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-15 14:07:16,337 - Zovix - INFO - Redis cache connected
+2026-07-15 14:07:16,339 - Zovix - INFO - Database initialized successfully
+2026-07-15 14:07:20,714 - Zovix - INFO - Redis connected for rate limiting
+2026-07-15 14:07:20,716 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-07-15 14:07:22,766 - Zovix - INFO - Redis cache connected
+2026-07-15 14:07:22,773 - Zovix - INFO - Database initialized successfully
