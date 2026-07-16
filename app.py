@@ -47,6 +47,7 @@ import psutil
 import socket
 import platform
 
+
 # ========================================================
 # LOGGING SETUP
 # ========================================================
@@ -10188,81 +10189,503 @@ elif st.session_state["current_page"] == "studio":
         show_2fa_modal()
         st.stop()
     
-    st.markdown(get_premium_theme_css(), unsafe_allow_html=True)
+    # ========================================================
+    # ADVANCED PREMIUM STUDIO PAGE CSS - LANDING PAGE MATCH
+    # ========================================================
+    st.markdown("""
+    <style>
+        /* ===== IMPORTS ===== */
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Cinzel:wght@400;600;700;900&display=swap');
+        
+        /* ===== GLOBAL TEXT STYLES ===== */
+        .stApp {
+            font-family: 'Inter', sans-serif !important;
+            color: #f8fafc !important;
+        }
+        
+        /* Headings */
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Orbitron', sans-serif !important;
+            letter-spacing: 0.5px !important;
+        }
+        h1 .highlight, h2 .highlight, h3 .highlight {
+            background: linear-gradient(135deg, #45f3ff, #EC4899) !important;
+            -webkit-background-clip: text !important;
+            -webkit-text-fill-color: transparent !important;
+            background-clip: text !important;
+        }
+        
+        /* Labels */
+        .premium-label {
+            font-family: 'Orbitron', sans-serif !important;
+            font-size: 11px !important;
+            color: #94a3b8 !important;
+            letter-spacing: 2px !important;
+            text-transform: uppercase !important;
+            margin-bottom: 6px !important;
+            font-weight: 600 !important;
+        }
+        .premium-label.glow {
+            color: #45f3ff !important;
+            text-shadow: 0 0 20px rgba(69,243,255,0.15) !important;
+        }
+        .premium-label.pink {
+            color: #EC4899 !important;
+            text-shadow: 0 0 20px rgba(236,72,153,0.15) !important;
+        }
+        
+        /* Values */
+        .premium-value {
+            font-family: 'Orbitron', sans-serif !important;
+            font-size: 18px !important;
+            font-weight: 700 !important;
+            color: #FFFFFF !important;
+        }
+        .premium-value.gold { color: #fbbf24 !important; }
+        .premium-value.pink { color: #EC4899 !important; }
+        .premium-value.cyan { color: #45f3ff !important; }
+        .premium-value.gradient {
+            background: linear-gradient(135deg, #45f3ff, #EC4899) !important;
+            -webkit-background-clip: text !important;
+            -webkit-text-fill-color: transparent !important;
+            background-clip: text !important;
+        }
+        
+        /* Descriptions */
+        .premium-desc {
+            font-family: 'Inter', sans-serif !important;
+            font-size: 13px !important;
+            color: #94a3b8 !important;
+            line-height: 1.6 !important;
+            font-weight: 300 !important;
+        }
+        .premium-desc.light {
+            color: #c0c0c0 !important;
+        }
+        
+        /* Stats Numbers */
+        .stat-number {
+            font-family: 'Orbitron', sans-serif !important;
+            font-size: 28px !important;
+            font-weight: 900 !important;
+            color: #45f3ff !important;
+            text-shadow: 0 0 30px rgba(69,243,255,0.1) !important;
+        }
+        .stat-label {
+            font-family: 'Inter', sans-serif !important;
+            font-size: 12px !important;
+            color: #94a3b8 !important;
+            font-weight: 400 !important;
+            letter-spacing: 0.5px !important;
+        }
+        
+        /* Buttons Text */
+        .stButton > button {
+            font-family: 'Orbitron', sans-serif !important;
+            font-size: 12px !important;
+            font-weight: 700 !important;
+            letter-spacing: 0.5px !important;
+            text-transform: uppercase !important;
+        }
+        
+        /* ===== STUDIO HEADER ===== */
+        .studio-premium-header {
+            background: linear-gradient(135deg, rgba(236,72,153,0.08), rgba(69,243,255,0.08));
+            border-radius: 20px;
+            padding: 25px 30px;
+            border: 1px solid rgba(69,243,255,0.1);
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            position: relative;
+            overflow: hidden;
+        }
+        .studio-premium-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(236,72,153,0.05), transparent 70%);
+            border-radius: 50%;
+        }
+        .studio-premium-header .left { position: relative; z-index: 1; }
+        .studio-premium-header .left h1 {
+            font-family: 'Orbitron', sans-serif !important;
+            font-size: 28px !important;
+            color: #FFFFFF !important;
+            margin: 0 !important;
+            letter-spacing: 1px !important;
+        }
+        .studio-premium-header .left h1 .highlight {
+            background: linear-gradient(135deg, #45f3ff, #EC4899) !important;
+            -webkit-background-clip: text !important;
+            -webkit-text-fill-color: transparent !important;
+            background-clip: text !important;
+        }
+        .studio-premium-header .left p {
+            font-family: 'Inter', sans-serif !important;
+            color: #94a3b8 !important;
+            font-size: 12px !important;
+            margin: 2px 0 0 0 !important;
+            letter-spacing: 2px !important;
+            text-transform: uppercase !important;
+            font-weight: 400 !important;
+        }
+        .studio-premium-header .right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            position: relative;
+            z-index: 1;
+        }
+        .studio-premium-header .right .credits-badge {
+            background: rgba(69,243,255,0.1);
+            padding: 8px 20px;
+            border-radius: 20px;
+            color: #45f3ff;
+            font-family: 'Orbitron', sans-serif !important;
+            font-size: 14px !important;
+            font-weight: 700 !important;
+            border: 1px solid rgba(69,243,255,0.2);
+            letter-spacing: 0.5px !important;
+        }
+        .studio-premium-header .right .exit-btn {
+            background: linear-gradient(135deg, #FF2E63, #B80032);
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 10px;
+            font-family: 'Orbitron', sans-serif !important;
+            font-size: 12px !important;
+            font-weight: 700 !important;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            letter-spacing: 1px !important;
+            text-transform: uppercase !important;
+        }
+        .studio-premium-header .right .exit-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 20px rgba(255,46,99,0.3);
+        }
+        
+        /* ===== STATS ===== */
+        .studio-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin: 20px 0 25px 0;
+        }
+        .studio-stats .stat-card {
+            background: rgba(18,19,26,0.85);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 14px;
+            padding: 18px 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        .studio-stats .stat-card:hover {
+            border-color: #EC4899;
+            transform: translateY(-3px);
+        }
+        .studio-stats .stat-card .stat-number {
+            font-family: 'Orbitron', sans-serif !important;
+            font-size: 28px !important;
+            font-weight: 900 !important;
+            color: #45f3ff !important;
+        }
+        .studio-stats .stat-card .stat-label {
+            font-family: 'Inter', sans-serif !important;
+            font-size: 12px !important;
+            color: #94a3b8 !important;
+            font-weight: 400 !important;
+            margin-top: 4px !important;
+        }
+        .studio-stats .stat-card .stat-icon {
+            font-size: 20px !important;
+            display: block !important;
+            margin-bottom: 4px !important;
+        }
+        
+        /* ===== QUICK ACCESS ===== */
+        .quick-access-premium {
+            background: rgba(18,19,26,0.85);
+            border-radius: 14px;
+            border: 1px solid rgba(255,255,255,0.05);
+            padding: 15px 20px;
+            margin-bottom: 20px;
+        }
+        .quick-access-premium .qa-header {
+            font-family: 'Orbitron', sans-serif !important;
+            font-size: 13px !important;
+            color: #FFC0CB !important;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600 !important;
+            letter-spacing: 0.5px !important;
+        }
+        .quick-access-premium .qa-header:hover {
+            color: #EC4899 !important;
+        }
+        .quick-access-premium .qa-grid .qa-btn {
+            font-family: 'Orbitron', sans-serif !important;
+            font-size: 9px !important;
+            color: #94a3b8 !important;
+            font-weight: 600 !important;
+            letter-spacing: 0.5px !important;
+        }
+        .quick-access-premium .qa-grid .qa-btn:hover {
+            color: #FFFFFF !important;
+        }
+        
+        /* ===== MODE BUTTONS ===== */
+        .mode-selector-label {
+            font-family: 'Orbitron', sans-serif !important;
+            color: #94a3b8 !important;
+            font-size: 12px !important;
+            margin: 15px 0 10px 0 !important;
+            letter-spacing: 1px !important;
+            font-weight: 600 !important;
+        }
+        .mode-grid .mode-btn {
+            font-family: 'Orbitron', sans-serif !important;
+            font-size: 9px !important;
+            color: #94a3b8 !important;
+            font-weight: 600 !important;
+            letter-spacing: 0.5px !important;
+        }
+        .mode-grid .mode-btn:hover {
+            color: #FFFFFF !important;
+        }
+        .mode-grid .mode-btn.active {
+            background: #EC4899 !important;
+            color: #FFFFFF !important;
+            border-color: #EC4899 !important;
+            box-shadow: 0 0 25px rgba(236,72,153,0.2) !important;
+        }
+        
+        /* ===== TAB CARDS ===== */
+        .premium-tab-card .tab-title {
+            font-family: 'Orbitron', sans-serif !important;
+            font-size: 13px !important;
+            color: #FFC0CB !important;
+            font-weight: 600 !important;
+            letter-spacing: 0.5px !important;
+        }
+        .premium-tab-card .tab-value {
+            font-family: 'Orbitron', sans-serif !important;
+            font-size: 18px !important;
+            font-weight: 700 !important;
+            color: #FFFFFF !important;
+            margin-top: 4px !important;
+        }
+        
+        /* ===== PORTFOLIO ===== */
+        .portfolio-item .name {
+            font-family: 'Orbitron', sans-serif !important;
+            font-size: 13px !important;
+            color: #FFFFFF !important;
+            font-weight: 600 !important;
+        }
+        .portfolio-item .prompt {
+            font-family: 'Inter', sans-serif !important;
+            font-size: 12px !important;
+            color: #94a3b8 !important;
+            font-weight: 300 !important;
+        }
+        .portfolio-item .meta {
+            font-family: 'Inter', sans-serif !important;
+            font-size: 10px !important;
+            color: #64748b !important;
+        }
+        
+        /* ===== SCHEDULER ===== */
+        .scheduler-item .sched-title {
+            font-family: 'Orbitron', sans-serif !important;
+            font-size: 11px !important;
+            color: #FFC0CB !important;
+            font-weight: 700 !important;
+        }
+        .scheduler-item .sched-status {
+            font-family: 'Inter', sans-serif !important;
+            font-size: 10px !important;
+            font-weight: 700 !important;
+        }
+        .scheduler-item .sched-detail {
+            font-family: 'Inter', sans-serif !important;
+            font-size: 11px !important;
+            color: #94a3b8 !important;
+        }
+        
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .studio-premium-header { flex-direction: column; text-align: center; gap: 15px; }
+            .studio-premium-header .left h1 { font-size: 20px !important; }
+            .studio-stats { grid-template-columns: repeat(2, 1fr); }
+            .quick-access-premium .qa-grid { grid-template-columns: repeat(3, 1fr); }
+            .mode-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+        @media (max-width: 480px) {
+            .studio-stats { grid-template-columns: 1fr; }
+            .quick-access-premium .qa-grid { grid-template-columns: repeat(2, 1fr); }
+            .mode-grid { grid-template-columns: repeat(2, 1fr); }
+            .studio-premium-header .left h1 { font-size: 16px !important; }
+            .studio-premium-header .right .credits-badge { font-size: 11px !important; padding: 4px 12px !important; }
+        }
+    </style>
+    """, unsafe_allow_html=True)
     
-    get_language_selector()
-    
-    with st.sidebar.expander("🟢 System Health", expanded=False):
-        health = system_health_check()
-        for check in health["checks"]:
-            icon = "✅" if check["status"] == "healthy" else "⚠️" if check["status"] == "warning" else "❌"
-            st.markdown(f"{icon} **{check['name']}**: {check['status']}")
-            if check.get("details"):
-                st.caption(check["details"])
-    
-    col_left, col_center, col_right = st.columns([4, 2, 2])
-    with col_left:
-        st.markdown("<h2 style='margin:0; padding:0; font-family:Orbitron; color:white;'>YOURS TO CREATE</h2>", unsafe_allow_html=True)
-        st.caption("ACTIVE GENERATION PIPELINE WORKSPACE")
-    with col_center:
-        st.markdown("""
-            <div style='display: flex; justify-content: display center; align-items: center; height: 100%; margin-top: -8px;'>
-                <div class='z-logo'>Z</div>
-            </div>
-        """, unsafe_allow_html=True)
-    with col_right:
-        st.markdown("<div style='margin-top: 5px;'></div>", unsafe_allow_html=True)
-        if st.button("EXIT", key="main_top_exit_btn", use_container_width=True):
-            st.session_state["current_page"] = "landing"
-            st.session_state["is_logged_in"] = False
-            st.session_state["2fa_verified"] = False
-            st.rerun()
-    st.markdown("<hr style='border-color: rgba(255,255,255,0.08); margin: 10px 0 20px 0;'>", unsafe_allow_html=True)
-    
-    if check_49_voucher_valid():
-        st.info(f"🎫 ₹49 Voucher Active! 30 Credits added. Valid for: {st.session_state.get('voucher_49_expiry', datetime.now() + timedelta(hours=24)).strftime('%H:%M:%S')} remaining")
-    
-    if st.button("⚡ QUICK ACCESS NODES " + ("▼" if st.session_state["quick_access_open"] else "▶"), key="quick_access_toggle", use_container_width=True):
-        st.session_state["quick_access_open"] = not st.session_state["quick_access_open"]
-    if st.session_state["quick_access_open"]:
-        st.markdown("""
-        <div class="quick-access-panel">
-            <div class="panel-header">⚡ QUICK ACCESS NODES</div>
+    # ==========================================================
+    # STUDIO HEADER - PREMIUM
+    # ==========================================================
+    credits = int(st.session_state.get('user_credits', 0))
+    username = st.session_state.get('logged_user', 'User')
+
+    st.markdown(f"""
+    <div class="studio-premium-header">
+        <div class="left">
+            <h1><span class="highlight">ZOVIX</span> TO CREATE</h1>
+            <p>ACTIVE GENERATION PIPELINE WORKSPACE</p>
         </div>
-        """, unsafe_allow_html=True)
-        is_admin_user = st.session_state.get("logged_user", "").lower().strip() == "rajmehta886297@gmail.com"
-        num_cols = 7 if is_admin_user else 6
-        tab_cols = st.columns(num_cols)
-        with tab_cols[0]:
-            if st.button("🚀 Factory", key="quick_tab_factory", use_container_width=True):
-                st.session_state["sidebar_tab"] = "🚀 Zovix Mass Factory"
-                st.rerun()
-        with tab_cols[1]:
-            if st.button("💎 Credits", key="quick_tab_credits", use_container_width=True):
-                st.session_state["sidebar_tab"] = "💎 Buy Credits"
-                st.rerun()
-        with tab_cols[2]:
-            if st.button("📂 Portfolio", key="quick_tab_portfolio", use_container_width=True):
-                st.session_state["sidebar_tab"] = "📂 My Portfolio"
-                st.rerun()
-        with tab_cols[3]:
-            if st.button("👤 Profile", key="quick_tab_profile", use_container_width=True):
-                st.session_state["sidebar_tab"] = "👤 My Premium Profile"
-                st.rerun()
-        with tab_cols[4]:
-            if st.button("👥 Sub-Users", key="quick_tab_subusers", use_container_width=True):
-                st.session_state["sidebar_tab"] = "👥 SUB-USER ACCESS MANAGEMENT"
-                st.rerun()
-        with tab_cols[5]:
-            if st.button("📅 Scheduler", key="quick_tab_scheduler", use_container_width=True):
-                st.session_state["sidebar_tab"] = "📅 ADVANCED AI CONTENT SCHEDULER"
-                st.rerun()
-        if is_admin_user:
-            with tab_cols[6]:
-                if st.button("🔐 ADMIN", key="quick_tab_admin", use_container_width=True):
-                    st.session_state["sidebar_tab"] = "📂 My Portfolio"
+        <div class="right">
+            <span class="credits-badge">⚡ {credits} Credits</span>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+
+    st.markdown('<div class="hidden-exit-trigger">', unsafe_allow_html=True)
+    exit_clicked = st.button("EXIT", key="exit_studio_btn", use_container_width=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    if exit_clicked:
+        st.session_state["current_page"] = "landing"
+        st.session_state["is_logged_in"] = False
+        st.session_state["2fa_verified"] = False
+        st.rerun()
+    
+    # ========================================================
+    # STATS - PREMIUM
+    # ========================================================
+    history = st.session_state.get("history_renders", [])
+    face_history = st.session_state.get("face_video_history", [])
+    xp = st.session_state.get('xp_points', 0)
+    total_videos = len(history) + len(face_history)
+    
+    st.markdown(f"""
+    <div class="studio-stats">
+        <div class="stat-card">
+            <span class="stat-icon">🎬</span>
+            <div class="stat-number">{total_videos}</div>
+            <div class="stat-label">Total Videos</div>
+        </div>
+        <div class="stat-card">
+            <span class="stat-icon">🎥</span>
+            <div class="stat-number">{len(history)}</div>
+            <div class="stat-label">Cinematic</div>
+        </div>
+        <div class="stat-card">
+            <span class="stat-icon">👤</span>
+            <div class="stat-number">{len(face_history)}</div>
+            <div class="stat-label">Face Videos</div>
+        </div>
+        <div class="stat-card">
+            <span class="stat-icon">⭐</span>
+            <div class="stat-number">{xp}</div>
+            <div class="stat-label">XP Points</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # ========================================================
+    # QUICK ACCESS - PREMIUM
+    # ========================================================
+    st.markdown("""
+    <div class="quick-access-premium">
+        <div class="qa-header" onclick="document.getElementById('qa_toggle').click()">
+            ⚡ QUICK ACCESS MODES
+            <span>{}</span>
+        </div>
+    </div>
+    """.format("▼" if st.session_state.get("quick_access_open") else "▶"), unsafe_allow_html=True)
+    
+    if st.button("Toggle Quick Access", key="qa_toggle", use_container_width=True):
+        st.session_state["quick_access_open"] = not st.session_state.get("quick_access_open", False)
+        st.rerun()
+    
+    if st.session_state.get("quick_access_open", False):
+        st.markdown('<div class="qa-grid">', unsafe_allow_html=True)
+        quick_items = [
+            ("🚀", "FACTORY", "🚀 Zovix Mass Factory"),
+            ("💎", "CREDITS", "💎 Buy Credits"),
+            ("📂", "PORTFOLIO", "📂 My Portfolio"),
+            ("👤", "PROFILE", "👤 My Premium Profile"),
+            ("👥", "SUB-USERS", "👥 SUB-USER ACCESS MANAGEMENT"),
+            ("📅", "SCHEDULER", "📅 ADVANCED AI CONTENT SCHEDULER")
+        ]
+        cols = st.columns(6)
+        for i, (icon, label, tab) in enumerate(quick_items):
+            with cols[i]:
+                if st.button(f"{icon} {label}", key=f"qa_{label}", use_container_width=True):
+                    st.session_state["sidebar_tab"] = tab
                     st.rerun()
-        st.markdown("<hr style='border-color: rgba(255,255,255,0.08); margin: 15px 0 20px 0;'>", unsafe_allow_html=True)    
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    # ========================================================
+    # MODE SELECTOR - PREMIUM
+    # ========================================================
+    st.markdown('<p class="mode-selector-label">🎯 ACTIVE STUDIO WORKSPACE MODE</p>', unsafe_allow_html=True)
+    
+    modes = [
+        ("👤", "FACE VIDEO", "Face Video Mode"),
+        ("🎬", "CINEMATIC", "Cinematic Engine"),
+        ("🎨", "CREATIVE", "Creative Workshop Mode"),
+        ("🎞️", "EDITOR", "Video Editor Mode"),
+        ("📐", "BLUEPRINTS", "Blueprints Mode"),
+        ("⚡", "UPSCALER", "Upscaler Mode"),
+        ("✏️", "DRAW", "Draw Mode"),
+        ("🤖", "AI AGENT", "AI Agent Mode"),
+        ("🎙️", "SALES", "AI Sales Mode"),
+        ("🧠", "DYNAMIC UI", "Dynamic UI Mode"),
+        ("🎤", "LIVE VOICE", "Live Emotion Mode")
+    ]
+    
+    for i in range(0, len(modes), 6):
+        row_modes = modes[i:i+6]
+        cols = st.columns(len(row_modes))
+        for j, (icon, label, mode_value) in enumerate(row_modes):
+            with cols[j]:
+                is_active = (st.session_state["studio_active_mode"] == mode_value)
+                
+                if st.button(f"{icon}\n{label}", key=f"mode_{i+j}", use_container_width=True):
+                    handle_engine_access_request(mode_value)
+                
+                if is_active:
+                    st.markdown(f"""
+                    <style>
+                        div[data-testid="stButton"] button[key="mode_{i+j}"] {{
+                            background: #EC4899 !important;
+                            color: #FFFFFF !important;
+                            border-color: #EC4899 !important;
+                            box-shadow: 0 0 25px rgba(236,72,153,0.2) !important;
+                            font-family: 'Orbitron', sans-serif !important;
+                            font-weight: 700 !important;
+                            letter-spacing: 0.5px !important;
+                        }}
+                    </style>
+                    """, unsafe_allow_html=True)
+    
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    # ========================================================
+    # SIDEBAR TABS - SAME CODE
+    # ========================================================
+    
     if st.session_state["sidebar_tab"] == "💎 Buy Credits":
         render_enhanced_payment_ui()
     
@@ -10319,7 +10742,6 @@ elif st.session_state["current_page"] == "studio":
                         st.rerun()
                     finally:
                         conn.close()
-
     
     if st.session_state["sidebar_tab"] == "👥 SUB-USER ACCESS MANAGEMENT":
         st.markdown("<h4 style='font-family: Orbitron; color: #FFC0CB;'>👥 SUB-USER ACCESS MANAGEMENT</h4>", unsafe_allow_html=True)
@@ -10404,57 +10826,9 @@ elif st.session_state["current_page"] == "studio":
                             </div>
                         """, unsafe_allow_html=True)
     
-    st.markdown("<div class='compact-label' style='margin-bottom: 8px;'>Active Studio Workspace Mode</div>", unsafe_allow_html=True)
-    
-    mode_buttons = ["👤 Face Video", "🎬 Cinematic", "🎨 Creative", "🎬 Editor", "📐 Blueprints", "⚡ Upscaler", "🎨 Draw", "🤖 AI Agent", "🎙️ Sales", "🧠 Dynamic UI", "🎤 Live Voice"]
-    
-    mode_mapping = {
-        "Face Video": "Face Video Mode",
-        "Cinematic": "Cinematic Engine",
-        "Creative": "Creative Workshop Mode",
-        "Editor": "Video Editor Mode",
-        "Blueprints": "Blueprints Mode",
-        "Upscaler": "Upscaler Mode",
-        "Draw": "Draw Mode",
-        "AI Agent": "AI Agent Mode",
-        "Sales": "AI Sales Mode",
-        "Dynamic UI": "Dynamic UI Mode",
-        "Live Voice": "Live Emotion Mode"
-    }
-    
-    mode_cols = st.columns(len(mode_buttons), gap="small")
-    
-    for idx, btn_label in enumerate(mode_buttons):
-        with mode_cols[idx]:
-            for display_name, mode_value in mode_mapping.items():
-                if display_name in btn_label:
-                    actual_mode = mode_value
-                    break
-            else:
-                actual_mode = btn_label.replace("👤 ", "").replace("🎬 ", "").replace("🎨 ", "").replace("📐 ", "").replace("⚡ ", "").replace("🤖 ", "").replace("🎙️ ", "").replace("🧠 ", "").replace("🎤 ", "")
-            
-            clean_label = btn_label.replace("👤 ", "").replace("🎬 ", "").replace("🎨 ", "").replace("📐 ", "").replace("⚡ ", "").replace("🤖 ", "").replace("🎙️ ", "").replace("🧠 ", "").replace("🎤 ", "")
-            
-            is_selected = (st.session_state["studio_active_mode"] == actual_mode)
-            
-            if is_selected:
-                st.markdown(f"""
-                    <div style="background: #EC4899; border-radius: 6px; padding: 2px; box-shadow: 0 0 12px rgba(236,72,153,0.4);">
-                        <div style="background: #EC4899; border-radius: 5px; padding: 4px 6px; text-align: center;">
-                            <span style="color: #FFFFFF; font-family: 'Orbitron'; font-size: 11px; font-weight: 700; white-space: nowrap;">{clean_label}</span>
-                        </div>
-                    </div>
-                """, unsafe_allow_html=True)
-            else:
-                if st.button(clean_label, key=f"mode_btn_{idx}_{actual_mode.replace(' ', '_')}", use_container_width=True):
-                    handle_engine_access_request(actual_mode)
-    
-    st.markdown("""
-        </div>
-    """, unsafe_allow_html=True)
-    
-    st.markdown("<br>", unsafe_allow_html=True)
-    
+    # ========================================================
+    # ENGINE OUTPUT - SAME CODE
+    # ========================================================
     if st.session_state["studio_active_mode"] == "Cinematic Engine":
         run_cinematic_engine()
     elif st.session_state["studio_active_mode"] == "Creative Workshop Mode":
@@ -10480,6 +10854,9 @@ elif st.session_state["current_page"] == "studio":
     elif st.session_state["studio_active_mode"] == "Live Emotion Mode":
         render_live_emotion_voice()
     
+    # ========================================================
+    # REST OF THE CODE (PORTFOLIO, HISTORY, TRENDING, FOOTER)
+    # ========================================================
     st.markdown("<hr style='border-color: rgba(255,255,255,0.08); margin: 30px 0;'>", unsafe_allow_html=True)
 
     current_mode = st.session_state["studio_active_mode"]
@@ -10488,16 +10865,6 @@ elif st.session_state["current_page"] == "studio":
         portfolio_renders_list = st.session_state.get("history_renders", [])
         face_video_list = st.session_state.get("face_video_history", [])
         valid_items = []
-        # Map modes to their generation_type for DB filtering
-        mode_type_map = {
-            "Cinematic Engine": "Cinematic Engine",
-            "Video Editor Mode": "Video Editor",
-            "Creative Workshop Mode": "Creative Workshop",
-            "Blueprints Mode": "General",
-            "Upscaler Mode": "General",
-            "Draw Mode": "General",
-            "Image-to-Video Mode": "Image-to-Video",
-        }
         gallery_title = ""
         no_items_msg = ""
         display_type = "image"
@@ -10527,12 +10894,6 @@ elif st.session_state["current_page"] == "studio":
                 if os.path.exists(file_path) and "cinematic" in file_name.lower():
                     valid_items.append(item)
             gallery_title = "🎬 CINEMATIC ENGINE VIDEOS"
-            for item in portfolio_renders_list:
-                file_path = item.get("path", "")
-                file_name = item.get("file_name", "")
-                if os.path.exists(file_path) and "cinematic" in file_name.lower():
-                    valid_items.append(item)
-            gallery_title = "🎬 CINEMATIC ENGINE VIDEOS"
             no_items_msg = "No cinematic videos created yet. Generate your first cinematic video!"
             display_type = "video"
         elif current_mode == "Creative Workshop Mode":
@@ -10542,12 +10903,6 @@ elif st.session_state["current_page"] == "studio":
                 if gen_type and gen_type != "Creative Workshop":
                     continue
                 if os.path.exists(file_path):
-                    valid_items.append(item)
-            gallery_title = "🖌️ CREATIVE WORKSHOP ART"
-            for item in portfolio_renders_list:
-                file_path = item.get("path", "")
-                file_name = item.get("file_name", "")
-                if os.path.exists(file_path) and "image" in file_name.lower():
                     valid_items.append(item)
             gallery_title = "🎨 CREATIVE WORKSHOP IMAGES"
             no_items_msg = "No workshop images created yet. Generate your first masterpiece!"
@@ -10559,12 +10914,6 @@ elif st.session_state["current_page"] == "studio":
                 if gen_type and gen_type != "Video Editor":
                     continue
                 if os.path.exists(file_path):
-                    valid_items.append(item)
-            gallery_title = "🎞️ VIDEO EDITOR EXPORTS"
-            for item in portfolio_renders_list:
-                file_path = item.get("path", "")
-                file_name = item.get("file_name", "")
-                if os.path.exists(file_path) and "editor" in file_name.lower():
                     valid_items.append(item)
             gallery_title = "🎬 VIDEO EDITOR OUTPUTS"
             no_items_msg = "No edited videos created yet. Upload media and process!"
@@ -10578,12 +10927,6 @@ elif st.session_state["current_page"] == "studio":
                 if os.path.exists(file_path):
                     valid_items.append(item)
             gallery_title = "📐 BLUEPRINT GENERATIONS"
-            for item in portfolio_renders_list:
-                file_path = item.get("path", "")
-                file_name = item.get("file_name", "")
-                if os.path.exists(file_path) and "blueprint" in file_name.lower():
-                    valid_items.append(item)
-            gallery_title = "📐 BLUEPRINT GENERATIONS"
             no_items_msg = "No blueprints created yet. Generate your first architectural blueprint!"
             display_type = "image"
         elif current_mode == "Upscaler Mode":
@@ -10593,12 +10936,6 @@ elif st.session_state["current_page"] == "studio":
                 if gen_type and gen_type != "General":
                     continue
                 if os.path.exists(file_path):
-                    valid_items.append(item)
-            gallery_title = "🔍 UPSCALED IMAGES"
-            for item in portfolio_renders_list:
-                file_path = item.get("path", "")
-                file_name = item.get("file_name", "")
-                if os.path.exists(file_path) and "upscaled" in file_name.lower():
                     valid_items.append(item)
             gallery_title = "⚡ UPSCALED IMAGES"
             no_items_msg = "No upscaled images created yet. Upload an image to upscale!"
@@ -10610,12 +10947,6 @@ elif st.session_state["current_page"] == "studio":
                 if gen_type and gen_type != "General":
                     continue
                 if os.path.exists(file_path):
-                    valid_items.append(item)
-            gallery_title = "✏️ DRAW MODE OUTPUTS"
-            for item in portfolio_renders_list:
-                file_path = item.get("path", "")
-                file_name = item.get("file_name", "")
-                if os.path.exists(file_path) and "drawing" in file_name.lower():
                     valid_items.append(item)
             gallery_title = "🎨 DRAWING OUTPUTS"
             no_items_msg = "No drawings created yet. Generate your first sketch!"
@@ -10686,11 +11017,6 @@ elif st.session_state["current_page"] == "studio":
                                 "{item.get('prompt', '')[:60]}"
                             </p>
                         """, unsafe_allow_html=True)
-                        if st.button(f"📥 Download Audio", key=f"audio_dl_{idx}_{current_mode}", use_container_width=True):
-                            if os.path.exists(item.get("path", "")):
-                                with open(item["path"], "rb") as f:
-                                    audio_bytes = f.read()
-                                st.download_button(label="Click to Save", data=audio_bytes, file_name=f"zovix_voice_{uuid.uuid4().hex[:8]}.mp3", mime="audio/mp3", key=f"audio_dl_btn_{idx}")
         elif display_type == "text":
             text_cols = st.columns(2)
             for idx, item in enumerate(valid_items):
@@ -10706,11 +11032,6 @@ elif st.session_state["current_page"] == "studio":
                                 {item.get("content", "")[:500]}
                             </div>
                         """, unsafe_allow_html=True)
-                        if len(item.get("content", "")) > 500:
-                            st.caption(f"... and {len(item['content']) - 500} more characters")
-                        if st.button(f"📋 Copy Text", key=f"text_copy_{idx}_{current_mode}", use_container_width=True):
-                            st.toast("Text copied to clipboard!")
-                            st.code(item.get("content", ""))
         elif display_type == "video":
             video_cols = st.columns(3)
             for idx, item in enumerate(valid_items[:9]):
@@ -10755,16 +11076,6 @@ elif st.session_state["current_page"] == "studio":
                                 "{prompt[:60]}"
                             </p>
                         """, unsafe_allow_html=True)
-                        col_btn1, col_btn2 = st.columns(2)
-                        with col_btn1:
-                            if st.button("▶️ Play", key=f"vid_play_{idx}_{current_mode}", use_container_width=True):
-                                if os.path.exists(file_path):
-                                    open_preview_modal(file_path)
-                        with col_btn2:
-                            if st.button("🔄 Remix", key=f"vid_remix_{idx}_{current_mode}", use_container_width=True):
-                                st.session_state["studio_prompt_value"] = prompt
-                                st.toast("Prompt copied!")
-                                st.rerun()
         else:
             image_cols = st.columns(4)
             for idx, item in enumerate(valid_items[:8]):
@@ -10801,77 +11112,6 @@ elif st.session_state["current_page"] == "studio":
                                 "{prompt[:60]}"
                             </p>
                         """, unsafe_allow_html=True)
-                        col_btn1, col_btn2 = st.columns(2)
-                        with col_btn1:
-                            if st.button("🔎 View", key=f"img_view_{idx}_{current_mode}", use_container_width=True):
-                                st.session_state["workshop_active_image"] = file_path
-                                st.session_state["studio_active_mode"] = "Creative Workshop Mode"
-                                st.rerun()
-                        with col_btn2:
-                            if st.button("🔄 Remix", key=f"img_remix_{idx}_{current_mode}", use_container_width=True):
-                                st.session_state["studio_prompt_value"] = prompt
-                                st.toast("Prompt copied!")
-                                st.rerun()
-                        if os.path.splitext(file_path)[1].lower() in [".png", ".jpg", ".jpeg", ".webm", ".gif"]:
-                            st.markdown("<div style='margin-top: 5px;'></div>", unsafe_allow_html=True)
-                            if st.button("🎬 Convert to Video", key=f"img_i2v_{idx}_{current_mode}", use_container_width=True):
-                                with st.spinner("Synthesizing Motion Vector Layers... Please wait..."):
-                                    motion_val = st.session_state.get("workshop_motion_bucket_slider", 127)
-                                    video_out = convert_image_to_video_svd_robust(file_path, motion_bucket_id=motion_val)
-                                    if video_out and os.path.exists(video_out):
-                                        st.session_state["active_svd_video"] = video_out
-                                        st.session_state["studio_active_mode"] = "Creative Workshop Mode"
-                                        saved_vid_name = f"svd_render_{int(time.time())}.mp4"
-                                        save_render_to_db(st.session_state.get("logged_user"), saved_vid_name, f"[I2V Motion of]: {prompt}", video_out, "Image-to-Video")
-                                        save_to_json_history(st.session_state.get("logged_user"), saved_vid_name, f"[I2V Motion of]: {prompt}", video_out)
-                                        st.session_state["history_renders"] = load_renders_history_db(st.session_state.get("logged_user"))
-                                        st.toast("Video compiled successfully!")
-                                        st.rerun()
-                                    else:
-                                        st.error("Image to video pipeline execution failed.")
-                        if st.button("📢 Public Share", key=f"img_share_{idx}_{current_mode}", use_container_width=True):
-                            img_thumb_path = file_path if os.path.splitext(file_path)[1].lower() in [".png", ".jpg"] else "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=300"
-                            add_showcase_item(st.session_state["logged_user"], prompt, img_thumb_path)
-                            st.toast("Success! Project shared to community viral showcase board.")
-    
-    if st.session_state["studio_active_mode"] in {"Face Video Mode", "Expressive Face Video Mode"}:
-        st.markdown("<hr style='border-color: rgba(255,255,255,0.08); margin: 30px 0;'>", unsafe_allow_html=True)
-        history_title = "👤 FACE VIDEO HISTORY" if st.session_state["studio_active_mode"] == "Face Video Mode" else "🧬 EXPRESSIVE FACE VIDEO HISTORY"
-        st.markdown(f"<h3 style='font-family: Orbitron; font-size: 18px; color: #FFFFFF; margin-bottom: 20px; letter-spacing: 1px;'>{history_title}</h3>", unsafe_allow_html=True)
-        face_videos = st.session_state.get("face_video_history", [])
-        if st.session_state["studio_active_mode"] == "Expressive Face Video Mode":
-            face_videos = [fv for fv in face_videos if "expressive_face_video" in fv.get("file_name", "").lower()]
-        else:
-            face_videos = [fv for fv in face_videos if "expressive_face_video" not in fv.get("file_name", "").lower()]
-        if not face_videos:
-            if st.session_state["studio_active_mode"] == "Expressive Face Video Mode":
-                st.info("No expressive face videos generated yet. Upload a face image and create your first expressive face video!")
-            else:
-                st.info("No face videos generated yet. Upload a face image and create your first face video!")
-        else:
-            fv_grid = st.columns(3)
-            for idx, fv_item in enumerate(face_videos[:6]):
-                with fv_grid[idx % 3]:
-                    with st.container(border=True):
-                        quality_label = fv_item.get("quality", "Standard")
-                        st.markdown(f"""
-                            <div style="font-family: 'Orbitron'; font-size: 10px; color: #FFC0CB; font-weight: bold; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                📁 {fv_item.get("file_name", "Untitled")}
-                                <span style="font-size: 8px; color: #45f3ff; margin-left: 5px;">[{quality_label}]</span>
-                            </div>
-                        """, unsafe_allow_html=True)
-                        if os.path.exists(fv_item.get("path", "")):
-                            st.video(fv_item["path"], format="video/mp4", autoplay=False, loop=True, muted=False)
-                        st.markdown(f"""
-                            <p style="font-size: 9px; color: #94a3b8; line-height: 1.3; height: 30px; overflow: hidden; text-overflow: ellipsis; margin: 4px 0 6px 0; font-weight: 300;">
-                                "{fv_item.get('prompt', '')[:60]}..."
-                            </p>
-                        """, unsafe_allow_html=True)
-                        if st.button(f"▶️ Play Face Video", key=f"fv_play_btn_{idx}", use_container_width=True):
-                            if os.path.exists(fv_item.get("path", "")):
-                                open_preview_modal(fv_item["path"])
-                            else:
-                                st.error("Video file not found.")
     
     st.markdown("<hr style='border-color: rgba(255,255,255,0.08); margin: 30px 0;'>", unsafe_allow_html=True)
     st.markdown("<h3 style='font-family: Orbitron; font-size: 18px; color: #FFFFFF; margin-bottom: 20px; letter-spacing: 1px;'>📈 GLOBAL TRENDING HOT TOPICS (ONE-CLICK IMPORT)</h3>", unsafe_allow_html=True)
