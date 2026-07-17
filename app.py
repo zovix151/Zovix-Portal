@@ -6490,33 +6490,143 @@ def validate_and_deduct_tokens(mode_name: str, quality: str):
     return True, required_tokens, f"✅ Deducted {required_tokens} credits for {mode_name}"
 
 def render_ai_agent_ui():
+    """AI Agent - Matching Studio Style"""
+    
+    # ========================================================
+    # HEADER - STUDIO STYLE MATCH
+    # ========================================================
     st.markdown("""
-        <div style="background: rgba(18, 19, 26, 0.85); border-radius: 12px; border: 1px solid rgba(69, 243, 255, 0.3); padding: 20px; margin-bottom: 20px;">
-            <h3 style="font-family: 'Orbitron'; font-size: 16px; color: #45f3ff; margin: 0 0 5px 0;">🤖 AI Cyber-Agent for Small Businesses</h3>
-            <p style="color: #94a3b8; font-size: 12px; margin: 0;"> Auto-pilot your business with AI - Generate content, manage orders, collect payments </p>
-        </div>
+    <div style="
+        background: linear-gradient(135deg, rgba(236,72,153,0.06), rgba(69,243,255,0.06));
+        border-radius: 16px;
+        border: 1px solid rgba(69,243,255,0.08);
+        padding: 16px 20px;
+        margin-bottom: 18px;
+        text-align: center;
+    ">
+        <span style="
+            display: inline-block;
+            background: rgba(236,72,153,0.12);
+            color: #EC4899;
+            padding: 4px 14px;
+            border-radius: 16px;
+            font-size: 9px;
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 1px;
+            border: 1px solid rgba(236,72,153,0.15);
+            margin-bottom: 6px;
+        ">🤖 BUSINESS AI</span>
+        <h2 style="
+            font-family: 'Orbitron', sans-serif;
+            font-size: 20px;
+            color: #FFFFFF;
+            margin: 0;
+        ">
+            AI <span style="
+                background: linear-gradient(135deg, #45f3ff, #EC4899);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            ">Cyber-Agent</span>
+        </h2>
+        <p style="
+            font-family: 'Inter', sans-serif;
+            color: #94a3b8;
+            font-size: 12px;
+            margin: 4px 0 0 0;
+        ">
+            Auto-pilot your business • Generate content • Manage orders • Collect payments
+        </p>
+    </div>
     """, unsafe_allow_html=True)
+    
     agent_col1, agent_col2 = st.columns([1.1, 1.4], gap="medium")
+    
     with agent_col1:
         with st.container(border=True):
-            st.markdown("<h4 style='font-family: Orbitron; font-size: 13px; color: #45f3ff; margin-bottom: 15px;'>⚙️ AGENT CONFIGURATION</h4>", unsafe_allow_html=True)
-            st.markdown("<div class='compact-label'>Business Details</div>", unsafe_allow_html=True)
-            business_name = st.text_input("Business Name", placeholder="Your Shop/Brand Name", key="agent_business_name_input")
-            business_category = st.selectbox("Business Category:", ["Retail Store", "Restaurant/Cafe", "Clothing Brand", "Tech Services", "Beauty/Salon", "Other"], key="agent_category")
-            st.markdown("<div class='compact-label'>Products/Services (one per line)</div>", unsafe_allow_html=True)
-            products_text = st.text_area("List your products or services", placeholder="e.g.\n₹499 - T-Shirt\n₹999 - Jeans\n₹1499 - Jacket", height=100, key="agent_products_input")
-            st.markdown("<div class='compact-label'>Business Hours</div>", unsafe_allow_html=True)
+            st.markdown("""
+            <h4 style="
+                font-family: 'Orbitron', sans-serif;
+                font-size: 12px;
+                color: #EC4899;
+                margin-bottom: 12px;
+                letter-spacing: 0.5px;
+            ">
+                ⚙️ AGENT CONFIGURATION
+            </h4>
+            """, unsafe_allow_html=True)
+            
+            # Business Details
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">🏪 Business Details</p>', unsafe_allow_html=True)
+            business_name = st.text_input(
+                "Business Name",
+                placeholder="Your Shop/Brand Name",
+                key="agent_business_name_input",
+                label_visibility="collapsed"
+            )
+            
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">📂 Business Category</p>', unsafe_allow_html=True)
+            business_category = st.selectbox(
+                "Category",
+                ["Retail Store", "Restaurant/Cafe", "Clothing Brand", "Tech Services", "Beauty/Salon", "Other"],
+                key="agent_category",
+                label_visibility="collapsed"
+            )
+            
+            # Products
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">📦 Products/Services (one per line)</p>', unsafe_allow_html=True)
+            products_text = st.text_area(
+                "Products",
+                placeholder="e.g.\n₹499 - T-Shirt\n₹999 - Jeans\n₹1499 - Jacket",
+                height=100,
+                key="agent_products_input",
+                label_visibility="collapsed"
+            )
+            
+            # Business Hours
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">🕐 Business Hours</p>', unsafe_allow_html=True)
             col_time1, col_time2 = st.columns(2)
             with col_time1:
-                opening_time = st.time_input("Opening Time", value=datetime.strptime("09:00", "%H:%M").time(), key="agent_open_time")
+                opening_time = st.time_input(
+                    "Opening Time",
+                    value=datetime.strptime("09:00", "%H:%M").time(),
+                    key="agent_open_time",
+                    label_visibility="collapsed"
+                )
             with col_time2:
-                closing_time = st.time_input("Closing Time", value=datetime.strptime("21:00", "%H:%M").time(), key="agent_close_time")
-            st.markdown("<div class='compact-label'>Social Media Accounts</div>", unsafe_allow_html=True)
-            instagram_handle = st.text_input("Instagram Handle", placeholder="@your_business", key="agent_instagram")
-            whatsapp_number = st.text_input("WhatsApp Number", placeholder="+91XXXXXXXXXX", key="agent_whatsapp")
-            st.write("")
-            st.markdown("<div class='compact-label'>📊 Agent Quality</div>", unsafe_allow_html=True)
-            agent_quality = st.selectbox("Select Quality", ["Standard", "Pro"], key="agent_quality")
+                closing_time = st.time_input(
+                    "Closing Time",
+                    value=datetime.strptime("21:00", "%H:%M").time(),
+                    key="agent_close_time",
+                    label_visibility="collapsed"
+                )
+            
+            # Social Media
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">📱 Social Media Accounts</p>', unsafe_allow_html=True)
+            instagram_handle = st.text_input(
+                "Instagram Handle",
+                placeholder="@your_business",
+                key="agent_instagram",
+                label_visibility="collapsed"
+            )
+            whatsapp_number = st.text_input(
+                "WhatsApp Number",
+                placeholder="+91XXXXXXXXXX",
+                key="agent_whatsapp",
+                label_visibility="collapsed"
+            )
+            
+            st.markdown("<br>", unsafe_allow_html=True)
+            
+            # Quality
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">📊 Agent Quality</p>', unsafe_allow_html=True)
+            agent_quality = st.selectbox(
+                "Quality",
+                ["Standard", "Pro"],
+                key="agent_quality",
+                label_visibility="collapsed"
+            )
+            
             if st.button("🚀 Activate AI Agent", key="agent_activate_btn", use_container_width=True):
                 success, required_tokens, message = validate_and_deduct_tokens("AI Agent", agent_quality)
                 if not success:
@@ -6531,11 +6641,20 @@ def render_ai_agent_ui():
                         with st.spinner("🔄 Configuring AI Agent for your business..."):
                             st.session_state["agent_business_name"] = business_name
                             st.session_state["agent_products"] = [p.strip() for p in products_text.split("\n") if p.strip()]
-                            st.session_state["agent_schedule"] = {"open": str(opening_time), "close": str(closing_time), "instagram": instagram_handle, "whatsapp": whatsapp_number, "category": business_category}
+                            st.session_state["agent_schedule"] = {
+                                "open": str(opening_time),
+                                "close": str(closing_time),
+                                "instagram": instagram_handle,
+                                "whatsapp": whatsapp_number,
+                                "category": business_category
+                            }
                             conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
                             cursor = conn.cursor()
                             try:
-                                cursor.execute("INSERT OR REPLACE INTO ai_agent_config (username, business_name, products, schedule) VALUES (?, ?, ?, ?)", (st.session_state["logged_user"], business_name, json.dumps(st.session_state["agent_products"]), json.dumps(st.session_state["agent_schedule"])))
+                                cursor.execute(
+                                    "INSERT OR REPLACE INTO ai_agent_config (username, business_name, products, schedule) VALUES (?, ?, ?, ?)",
+                                    (st.session_state["logged_user"], business_name, json.dumps(st.session_state["agent_products"]), json.dumps(st.session_state["agent_schedule"]))
+                                )
                                 conn.commit()
                             except Exception:
                                 pass
@@ -6544,34 +6663,89 @@ def render_ai_agent_ui():
                             st.toast("✅ AI Agent activated successfully!")
                             st.session_state["ai_agent_mode"] = True
                             st.rerun()
+    
     with agent_col2:
         with st.container(border=True):
-            st.markdown("<h3 style='font-family: Orbitron; font-size: 15px; color: #45f3ff; margin-bottom: 15px; letter-spacing: 0.5px;'>📊 AGENT DASHBOARD</h3>", unsafe_allow_html=True)
+            st.markdown("""
+            <h3 style="
+                font-family: 'Orbitron', sans-serif;
+                font-size: 13px;
+                color: #EC4899;
+                margin-bottom: 12px;
+                letter-spacing: 0.5px;
+            ">
+                📊 AGENT DASHBOARD
+            </h3>
+            """, unsafe_allow_html=True)
+            
             if st.session_state.get("ai_agent_mode") and st.session_state.get("agent_business_name"):
                 st.markdown(f"""
-                    <div style="background: rgba(69, 243, 255, 0.05); border: 1px solid rgba(69, 243, 255, 0.2); border-radius: 12px; padding: 15px; margin-bottom: 15px;">
-                        <h4 style="font-family: 'Orbitron'; font-size: 13px; color: #45f3ff; margin: 0 0 5px 0;">🟢 ACTIVE</h4>
-                        <p style="font-size: 18px; font-weight: bold; color: #ffffff; margin: 0;">{st.session_state['agent_business_name']}</p>
-                        <p style="font-size: 11px; color: #94a3b8; margin: 0;">Category: {st.session_state.get('agent_schedule', {}).get('category', 'N/A')}</p>
-                    </div>
+                <div style="
+                    background: rgba(69,243,255,0.04);
+                    border: 1px solid rgba(69,243,255,0.1);
+                    border-radius: 12px;
+                    padding: 14px;
+                    margin-bottom: 12px;
+                ">
+                    <h4 style="
+                        font-family: 'Orbitron', sans-serif;
+                        font-size: 11px;
+                        color: #45f3ff;
+                        margin: 0 0 4px 0;
+                    ">
+                        🟢 ACTIVE
+                    </h4>
+                    <p style="
+                        font-family: 'Inter', sans-serif;
+                        font-size: 16px;
+                        font-weight: bold;
+                        color: #FFFFFF;
+                        margin: 0;
+                    ">
+                        {st.session_state['agent_business_name']}
+                    </p>
+                    <p style="
+                        font-family: 'Inter', sans-serif;
+                        font-size: 11px;
+                        color: #94a3b8;
+                        margin: 0;
+                    ">
+                        Category: {st.session_state.get('agent_schedule', {}).get('category', 'N/A')}
+                    </p>
+                </div>
                 """, unsafe_allow_html=True)
+                
                 products = st.session_state.get("agent_products", [])
                 if products:
-                    st.markdown("**📦 Your Products/Services:**")
+                    st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">📦 Your Products/Services:</p>', unsafe_allow_html=True)
                     for p in products[:5]:
-                        st.markdown(f"- {p}")
+                        st.markdown(f'<p style="font-family: Inter; font-size: 12px; color: #e0e0e0; margin: 2px 0;">- {p}</p>', unsafe_allow_html=True)
                     if len(products) > 5:
                         st.caption(f"... and {len(products) - 5} more")
+                
                 schedule = st.session_state.get("agent_schedule", {})
                 st.markdown(f"""
-                    <div style="background: rgba(255,255,255,0.03); border-radius: 8px; padding: 10px; margin-top: 10px;">
-                        <p style="font-size: 11px; color: #94a3b8; margin: 0;">🕐 Hours: {schedule.get('open', 'N/A')} - {schedule.get('close', 'N/A')}</p>
-                        <p style="font-size: 11px; color: #94a3b8; margin: 0;">📱 WhatsApp: {schedule.get('whatsapp', 'N/A')}</p>
-                        <p style="font-size: 11px; color: #94a3b8; margin: 0;">📸 Instagram: {schedule.get('instagram', 'N/A')}</p>
-                    </div>
+                <div style="
+                    background: rgba(255,255,255,0.02);
+                    border-radius: 8px;
+                    padding: 10px;
+                    margin-top: 10px;
+                ">
+                    <p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 2px 0;">
+                        🕐 Hours: {schedule.get('open', 'N/A')} - {schedule.get('close', 'N/A')}
+                    </p>
+                    <p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 2px 0;">
+                        📱 WhatsApp: {schedule.get('whatsapp', 'N/A')}
+                    </p>
+                    <p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 2px 0;">
+                        📸 Instagram: {schedule.get('instagram', 'N/A')}
+                    </p>
+                </div>
                 """, unsafe_allow_html=True)
+                
                 st.markdown("<br>", unsafe_allow_html=True)
-                st.markdown("**⚡ Quick Actions:**")
+                st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 8px;">⚡ Quick Actions:</p>', unsafe_allow_html=True)
+                
                 col_qa1, col_qa2 = st.columns(2)
                 with col_qa1:
                     if st.button("📱 Generate WhatsApp Ad", key="agent_whatsapp_ad", use_container_width=True):
@@ -6586,6 +6760,7 @@ def render_ai_agent_ui():
                             st.session_state["agent_generated_ad"] = ad_text
                             st.toast("WhatsApp ad generated!")
                             st.rerun()
+                
                 with col_qa2:
                     if st.button("📸 Generate Instagram Post", key="agent_instagram_post", use_container_width=True):
                         with st.spinner("Generating Instagram post..."):
@@ -6603,59 +6778,209 @@ def render_ai_agent_ui():
                                 st.session_state["agent_instagram_caption"] = caption
                                 st.toast("Instagram post generated!")
                                 st.rerun()
+                
                 if st.session_state.get("agent_generated_ad"):
                     with st.expander("📱 WhatsApp Ad Preview", expanded=False):
                         st.text(st.session_state["agent_generated_ad"])
-                        st.download_button(label="📥 Copy Ad", data=st.session_state["agent_generated_ad"], file_name="whatsapp_ad.txt", mime="text/plain", key="agent_download_ad")
+                        st.download_button(
+                            label="📥 Copy Ad",
+                            data=st.session_state["agent_generated_ad"],
+                            file_name="whatsapp_ad.txt",
+                            mime="text/plain",
+                            key="agent_download_ad"
+                        )
+                
                 if st.session_state.get("agent_instagram_image") and os.path.exists(st.session_state["agent_instagram_image"]):
                     with st.expander("📸 Instagram Post Preview", expanded=False):
                         st.image(st.session_state["agent_instagram_image"], caption="Generated Post Image", use_container_width=True)
                         st.text(st.session_state.get("agent_instagram_caption", ""))
-                        st.download_button(label="📥 Download Image", data=open(st.session_state["agent_instagram_image"], "rb").read(), file_name="instagram_post.png", mime="image/png", key="agent_download_ig")
+                        st.download_button(
+                            label="📥 Download Image",
+                            data=open(st.session_state["agent_instagram_image"], "rb").read(),
+                            file_name="instagram_post.png",
+                            mime="image/png",
+                            key="agent_download_ig"
+                        )
             else:
                 st.markdown("""
-                    <div class="canvas-container-box" style="height: 380px; min-height: 380px; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #64748b; text-align: center; padding: 12px; overflow: hidden;">
-                        <span style="font-size: 50px; margin-bottom: 12px; filter: drop-shadow(0 0 10px rgba(69, 243, 255, 0.3));">🤖</span>
-                        <p style="font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 500; color: #45f3ff; margin: 0;">AI Agent Inactive</p>
-                        <p style="font-size: 11px; color: #a0a0a0; max-width:400px; text-align:center; margin-top: 5px; line-height: 1.4;">Configure your business details and activate the agent.</p>
+                    <div style="
+                        height: 380px;
+                        min-height: 380px;
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: center;
+                        align-items: center;
+                        color: #64748b;
+                        text-align: center;
+                        padding: 12px;
+                        overflow: hidden;
+                        background: rgba(10,10,12,0.4);
+                        border-radius: 12px;
+                        border: 1px dashed rgba(69,243,255,0.12);
+                    ">
+                        <span style="font-size: 48px; margin-bottom: 10px;">🤖</span>
+                        <p style="
+                            font-family: 'Inter', sans-serif;
+                            font-size: 13px;
+                            font-weight: 500;
+                            color: #EC4899;
+                            margin: 0;
+                        ">
+                            AI Agent Inactive
+                        </p>
+                        <p style="
+                            font-family: 'Inter', sans-serif;
+                            font-size: 11px;
+                            color: #94a3b8;
+                            max-width: 400px;
+                            text-align: center;
+                            margin-top: 4px;
+                            line-height: 1.4;
+                        ">
+                            Configure your business details and activate the agent.
+                        </p>
                     </div>
                 """, unsafe_allow_html=True)
 
 def render_ai_sales_ui():
+    """AI Sales - Matching Studio Style"""
+    
+    # ========================================================
+    # HEADER - STUDIO STYLE MATCH
+    # ========================================================
     st.markdown("""
-        <div style="background: rgba(18, 19, 26, 0.85); border-radius: 12px; border: 1px solid rgba(236, 72, 153, 0.3); padding: 20px; margin-bottom: 20px;">
-            <h3 style="font-family: 'Orbitron'; font-size: 16px; color: #EC4899; margin: 0 0 5px 0;">🎙️ AI Voice & Video Sales Engine</h3>
-            <p style="color: #94a3b8; font-size: 12px; margin: 0;"> Create AI sales videos in any language with realistic avatars </p>
-        </div>
+    <div style="
+        background: linear-gradient(135deg, rgba(236,72,153,0.06), rgba(69,243,255,0.06));
+        border-radius: 16px;
+        border: 1px solid rgba(69,243,255,0.08);
+        padding: 16px 20px;
+        margin-bottom: 18px;
+        text-align: center;
+    ">
+        <span style="
+            display: inline-block;
+            background: rgba(236,72,153,0.12);
+            color: #EC4899;
+            padding: 4px 14px;
+            border-radius: 16px;
+            font-size: 9px;
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 1px;
+            border: 1px solid rgba(236,72,153,0.15);
+            margin-bottom: 6px;
+        ">🎙️ SALES AI</span>
+        <h2 style="
+            font-family: 'Orbitron', sans-serif;
+            font-size: 20px;
+            color: #FFFFFF;
+            margin: 0;
+        ">
+            AI Voice & Video <span style="
+                background: linear-gradient(135deg, #45f3ff, #EC4899);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            ">Sales Engine</span>
+        </h2>
+        <p style="
+            font-family: 'Inter', sans-serif;
+            color: #94a3b8;
+            font-size: 12px;
+            margin: 4px 0 0 0;
+        ">
+            Create AI sales videos in any language with realistic avatars
+        </p>
+    </div>
     """, unsafe_allow_html=True)
+    
     sales_col1, sales_col2 = st.columns([1.1, 1.4], gap="medium")
+    
     with sales_col1:
         with st.container(border=True):
-            st.markdown("<h4 style='font-family: Orbitron; font-size: 13px; color: #EC4899; margin-bottom: 15px;'>⚙️ SALES VIDEO PARAMETERS</h4>", unsafe_allow_html=True)
-            st.markdown("<div class='compact-label'>Product Details</div>", unsafe_allow_html=True)
-            product_name = st.text_input("Product Name", placeholder="e.g. Smart Watch Pro", key="sales_product_name_input")
-            product_price = st.text_input("Product Price", placeholder="e.g. ₹4999", key="sales_product_price_input")
-            st.markdown("<div class='compact-label'>Product Image</div>", unsafe_allow_html=True)
-            product_image = st.file_uploader("Upload Product Image", type=['jpg', 'jpeg', 'png', 'webp'], key="sales_image_upload")
+            st.markdown("""
+            <h4 style="
+                font-family: 'Orbitron', sans-serif;
+                font-size: 12px;
+                color: #EC4899;
+                margin-bottom: 12px;
+                letter-spacing: 0.5px;
+            ">
+                ⚙️ SALES VIDEO PARAMETERS
+            </h4>
+            """, unsafe_allow_html=True)
+            
+            # Product Details
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">📦 Product Details</p>', unsafe_allow_html=True)
+            product_name = st.text_input(
+                "Product Name",
+                placeholder="e.g. Smart Watch Pro",
+                key="sales_product_name_input",
+                label_visibility="collapsed"
+            )
+            product_price = st.text_input(
+                "Product Price",
+                placeholder="e.g. ₹4999",
+                key="sales_product_price_input",
+                label_visibility="collapsed"
+            )
+            
+            # Product Image
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">📷 Product Image</p>', unsafe_allow_html=True)
+            product_image = st.file_uploader(
+                "Upload Product Image",
+                type=['jpg', 'jpeg', 'png', 'webp'],
+                key="sales_image_upload",
+                label_visibility="collapsed"
+            )
             if product_image:
                 img_path = f"ai_sales_videos/product_{uuid.uuid4().hex[:8]}.png"
                 with open(img_path, "wb") as f:
                     f.write(product_image.getbuffer())
                 st.session_state["sales_product_image"] = img_path
                 st.image(img_path, caption="Product Image", use_container_width=True)
-            st.markdown("<div class='compact-label'>Language & Voice</div>", unsafe_allow_html=True)
-            sales_language = st.selectbox("Sales Language:", ["Hindi", "Bhojpuri", "Maithili", "Tamil", "Telugu", "English", "Hinglish"], key="sales_language_select")
-            sales_voice = st.selectbox("Voice Profile:", ["Male (Drew)", "Female (Rachel)", "Male (Deep)", "Female (Aria)"], key="sales_voice_select")
-            st.markdown("<div class='compact-label'>Sales Script / Pitch</div>", unsafe_allow_html=True)
-            sales_script = st.text_area("Write your sales script or use auto-generate", placeholder="e.g. Namaste! Aaj hum aapke liye laye hain ek zabardast offer...", height=100, key="sales_script_input")
+            
+            # Language & Voice
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">🌐 Language & Voice</p>', unsafe_allow_html=True)
+            sales_language = st.selectbox(
+                "Sales Language",
+                ["Hindi", "Bhojpuri", "Maithili", "Tamil", "Telugu", "English", "Hinglish"],
+                key="sales_language_select",
+                label_visibility="collapsed"
+            )
+            sales_voice = st.selectbox(
+                "Voice Profile",
+                ["Male (Drew)", "Female (Rachel)", "Male (Deep)", "Female (Aria)"],
+                key="sales_voice_select",
+                label_visibility="collapsed"
+            )
+            
+            # Sales Script
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">📝 Sales Script / Pitch</p>', unsafe_allow_html=True)
+            sales_script = st.text_area(
+                "Script",
+                placeholder="e.g. Namaste! Aaj hum aapke liye laye hain ek zabardast offer...",
+                height=100,
+                key="sales_script_input",
+                label_visibility="collapsed"
+            )
+            
             if st.button("📝 Auto-Generate Sales Script", key="sales_gen_script", use_container_width=True):
                 if product_name.strip():
-                    lang_map = {"Hindi": "Hindi", "Bhojpuri": "Bhojpuri", "Maithili": "Maithili", "Tamil": "Tamil", "Telugu": "Telugu", "English": "English", "Hinglish": "Hinglish"}
+                    lang_map = {
+                        "Hindi": "Hindi",
+                        "Bhojpuri": "Bhojpuri",
+                        "Maithili": "Maithili",
+                        "Tamil": "Tamil",
+                        "Telugu": "Telugu",
+                        "English": "English",
+                        "Hinglish": "Hinglish"
+                    }
                     lang = lang_map.get(sales_language, "Hinglish")
                     script = f"Namaste! Aaj hum aapke liye laye hain {product_name} ka ek zabardast offer."
                     script += f" Yeh product hai sirf {product_price} mein."
                     script += " Quality aur performance dono mein number one. Limited stock hai, toh jaldi karein."
                     script += f" Aaj hi order karein apna {product_name}."
+                    
                     if sales_language == "Bhojpuri":
                         script = f"Pranam! Aaj hum aapan lave hai {product_name} ka ek dhansu offer."
                         script += f" Ee product hai sirf {product_price} mein."
@@ -6666,14 +6991,24 @@ def render_ai_sales_ui():
                         script += f" Indha product vilaiku {product_price} mattum."
                         script += " Quality la Number One. Limited stock, seekiram order pannunga."
                         script += f" Ingaikkave ungaloda {product_name} order pannunga."
+                    
                     st.session_state["sales_script_input"] = script
                     st.toast("Script generated in " + sales_language + "!")
                     st.rerun()
                 else:
                     st.error("Please enter product name first.")
-            st.markdown("<div class='compact-label'>📊 Sales Video Quality</div>", unsafe_allow_html=True)
-            sales_quality = st.selectbox("Select Quality", ["Standard", "HD", "4K"], key="sales_quality")
-            st.write("")
+            
+            # Quality
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">📊 Sales Video Quality</p>', unsafe_allow_html=True)
+            sales_quality = st.selectbox(
+                "Quality",
+                ["Standard", "HD", "4K"],
+                key="sales_quality",
+                label_visibility="collapsed"
+            )
+            
+            st.markdown("<br>", unsafe_allow_html=True)
+            
             if st.button("🎬 Generate AI Sales Video", key="sales_generate_btn", use_container_width=True):
                 success, required_tokens, message = validate_and_deduct_tokens("AI Sales", sales_quality)
                 if not success:
@@ -6690,6 +7025,7 @@ def render_ai_sales_ui():
                         with st.spinner(f"🎬 Generating AI Sales Video in {sales_language}..."):
                             script_text = st.session_state["sales_script_input"]
                             face_img_path = st.session_state["sales_product_image"]
+                            
                             sales_lang_to_face_lang = {
                                 "Hindi": "Hindi",
                                 "Bhojpuri": "Hindi",
@@ -6705,8 +7041,10 @@ def render_ai_sales_ui():
                                 "Male (Deep)": "Antoni (Deep Male)",
                                 "Female (Aria)": "Emily (Professional Female)",
                             }
+                            
                             face_voice_language = sales_lang_to_face_lang.get(sales_language, "English")
                             face_voice_label = sales_voice_to_label.get(sales_voice, "Adam (Premium Male)")
+                            
                             video_path = generate_face_video(
                                 script_text,
                                 face_img_path,
@@ -6717,6 +7055,7 @@ def render_ai_sales_ui():
                                 voice_language=face_voice_language,
                                 voice_label=face_voice_label,
                             )
+                            
                             if video_path and (is_remote_url(video_path) or os.path.exists(video_path)):
                                 st.session_state["sales_video_output"] = video_path
                                 st.session_state["sales_product_name"] = product_name
@@ -6724,36 +7063,69 @@ def render_ai_sales_ui():
                                 st.session_state["sales_language"] = sales_language
                                 st.session_state["sales_voice"] = sales_voice
                                 st.session_state["sales_script"] = script_text
+                                
                                 conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
                                 cursor = conn.cursor()
                                 try:
-                                    cursor.execute("INSERT INTO ai_sales_videos (username, product_name, product_price, language, video_path, script) VALUES (?, ?, ?, ?, ?, ?)", (st.session_state["logged_user"], product_name, product_price, sales_language, video_path, script_text))
+                                    cursor.execute(
+                                        "INSERT INTO ai_sales_videos (username, product_name, product_price, language, video_path, script) VALUES (?, ?, ?, ?, ?, ?)",
+                                        (st.session_state["logged_user"], product_name, product_price, sales_language, video_path, script_text)
+                                    )
                                     conn.commit()
                                 except Exception:
                                     pass
                                 finally:
                                     conn.close()
+                                
                                 st.toast("🎉 AI Sales Video generated successfully!")
                                 st.rerun()
                             else:
                                 st.error("Sales video generation failed. Please try again.")
+    
     with sales_col2:
         with st.container(border=True):
-            st.markdown("<h3 style='font-family: Orbitron; font-size: 15px; color: #EC4899; margin-bottom: 15px; letter-spacing: 0.5px;'>🎬 SALES VIDEO PLAYER</h3>", unsafe_allow_html=True)
+            st.markdown("""
+            <h3 style="
+                font-family: 'Orbitron', sans-serif;
+                font-size: 13px;
+                color: #EC4899;
+                margin-bottom: 12px;
+                letter-spacing: 0.5px;
+            ">
+                🎬 SALES VIDEO PLAYER
+            </h3>
+            """, unsafe_allow_html=True)
+            
             sales_video = st.session_state.get("sales_video_output")
             if sales_video and (is_remote_url(sales_video) or os.path.exists(sales_video)):
                 st.video(sales_video, format="video/mp4", autoplay=True, loop=True, muted=False)
                 st.markdown("<br>", unsafe_allow_html=True)
+                
                 st.markdown(f"""
-                    <div style="background: rgba(236, 72, 153, 0.05); border: 1px solid rgba(236, 72, 153, 0.2); border-radius: 8px; padding: 10px;">
-                        <p style="font-size: 12px; color: #94a3b8; margin: 0;">📦 {st.session_state.get('sales_product_name', 'Product')}</p>
-                        <p style="font-size: 14px; font-weight: bold; color: #EC4899; margin: 0;">💰 {st.session_state.get('sales_product_price', 'N/A')}</p>
-                        <p style="font-size: 11px; color: #94a3b8; margin: 0;">🎙️ {st.session_state.get('sales_language', 'N/A')}</p>
-                        <p style="font-size: 11px; color: #94a3b8; margin: 0;">🎤 {st.session_state.get('sales_voice', 'N/A')}</p>
-                    </div>
+                <div style="
+                    background: rgba(236,72,153,0.04);
+                    border: 1px solid rgba(236,72,153,0.1);
+                    border-radius: 8px;
+                    padding: 10px;
+                ">
+                    <p style="font-family: Inter; font-size: 12px; color: #94a3b8; margin: 2px 0;">
+                        📦 {st.session_state.get('sales_product_name', 'Product')}
+                    </p>
+                    <p style="font-family: Orbitron; font-size: 14px; font-weight: bold; color: #EC4899; margin: 2px 0;">
+                        💰 {st.session_state.get('sales_product_price', 'N/A')}
+                    </p>
+                    <p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 2px 0;">
+                        🎙️ {st.session_state.get('sales_language', 'N/A')}
+                    </p>
+                    <p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 2px 0;">
+                        🎤 {st.session_state.get('sales_voice', 'N/A')}
+                    </p>
+                </div>
                 """, unsafe_allow_html=True)
+                
                 st.markdown("<br>", unsafe_allow_html=True)
                 col_dl, col_share, col_clr = st.columns(3)
+                
                 with col_dl:
                     video_bytes = None
                     if is_remote_url(sales_video):
@@ -6766,64 +7138,175 @@ def render_ai_sales_ui():
                     else:
                         with open(sales_video, "rb") as f:
                             video_bytes = f.read()
-
+                    
                     if video_bytes:
-                        st.download_button(label="📥 Download Sales Video", data=video_bytes, file_name=f"sales_video_{uuid.uuid4().hex[:8]}.mp4", mime="video/mp4", use_container_width=True, key="sales_download_btn")
+                        st.download_button(
+                            label="📥 Download Sales Video",
+                            data=video_bytes,
+                            file_name=f"sales_video_{uuid.uuid4().hex[:8]}.mp4",
+                            mime="video/mp4",
+                            use_container_width=True,
+                            key="sales_download_btn"
+                        )
                     else:
                         st.info("Download unavailable for current cloud render.")
+                
                 with col_share:
-                    if st.button("📤 Share on WhatsApp", key="sales_share_wa", use_container_width=True):
-                        wa_msg = f"🎬 Check out this amazing product! {st.session_state.get('sales_product_name', 'Product')} - Only {st.session_state.get('sales_product_price', 'N/A')}!"
-                        wa_url = f"https://api.whatsapp.com/send?text={urllib.parse.quote(wa_msg)}"
-                        st.markdown(f'<a href="{wa_url}" target="_blank" style="text-decoration:none;width:100%;"><button style="width:100%;padding:10px;background:#25D366;color:white;border:none;border-radius:6px;font-family:Orbitron;font-size:11px;cursor:pointer;">💬 Share</button></a>', unsafe_allow_html=True)
+                    wa_msg = f"🎬 Check out this amazing product! {st.session_state.get('sales_product_name', 'Product')} - Only {st.session_state.get('sales_product_price', 'N/A')}!"
+                    wa_url = f"https://api.whatsapp.com/send?text={urllib.parse.quote(wa_msg)}"
+                    st.link_button("💬 Share on WhatsApp", wa_url, use_container_width=True)
+                
                 with col_clr:
                     if st.button("🧹 Clear Video", key="sales_clear_btn", use_container_width=True):
                         if not is_remote_url(sales_video):
                             safe_remove_file(sales_video)
                         st.session_state["sales_video_output"] = None
                         st.rerun()
+                
                 with st.expander("📝 View Sales Script", expanded=False):
                     st.text(st.session_state.get("sales_script", ""))
+            
             else:
                 st.markdown("""
-                    <div class="canvas-container-box" style="height: 380px; min-height: 380px; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #64748b; text-align: center; padding: 12px; overflow: hidden;">
-                        <span style="font-size: 50px; margin-bottom: 12px; filter: drop-shadow(0 0 10px rgba(236, 72, 153, 0.3));">🎙️</span>
-                        <p style="font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 500; color: #EC4899; margin: 0;">AI Sales Video will render here</p>
-                        <p style="font-size: 11px; color: #a0a0a0; max-width:400px; text-align:center; margin-top: 5px; line-height: 1.4;">Upload product image, set language, and generate AI sales video.</p>
+                    <div style="
+                        height: 380px;
+                        min-height: 380px;
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: center;
+                        align-items: center;
+                        color: #64748b;
+                        text-align: center;
+                        padding: 12px;
+                        overflow: hidden;
+                        background: rgba(10,10,12,0.4);
+                        border-radius: 12px;
+                        border: 1px dashed rgba(236,72,153,0.12);
+                    ">
+                        <span style="font-size: 48px; margin-bottom: 10px;">🎙️</span>
+                        <p style="
+                            font-family: 'Inter', sans-serif;
+                            font-size: 13px;
+                            font-weight: 500;
+                            color: #EC4899;
+                            margin: 0;
+                        ">
+                            AI Sales Video will render here
+                        </p>
+                        <p style="
+                            font-family: 'Inter', sans-serif;
+                            font-size: 11px;
+                            color: #94a3b8;
+                            max-width: 400px;
+                            text-align: center;
+                            margin-top: 4px;
+                            line-height: 1.4;
+                        ">
+                            Upload product image, set language, and generate AI sales video.
+                        </p>
                     </div>
                 """, unsafe_allow_html=True)
 
 def generate_dynamic_ui():
+    """Dynamic UI - Matching Studio Style"""
+    
+    # ========================================================
+    # HEADER - STUDIO STYLE MATCH
+    # ========================================================
     st.markdown("""
-        <div style="background:linear-gradient(135deg,rgba(18,19,26,0.95),rgba(10,10,15,0.98));border-radius:16px;border:2px solid rgba(69,243,255,0.3);padding:20px;margin-bottom:20px;">
-            <div style="display:flex;align-items:center;gap:15px;">
-                <span style="font-size:30px;">🧠</span>
-                <div>
-                    <h3 style="font-family:'Orbitron';font-size:18px;color:#45f3ff;margin:0;">Dynamic Context-Aware UI</h3>
-                    <p style="color:#94a3b8;font-size:11px;margin:0;">⚡ Real-time interface adaptation based on user behavior</p>
-                </div>
-            </div>
-        </div>
+    <div style="
+        background: linear-gradient(135deg, rgba(236,72,153,0.06), rgba(69,243,255,0.06));
+        border-radius: 16px;
+        border: 1px solid rgba(69,243,255,0.08);
+        padding: 16px 20px;
+        margin-bottom: 18px;
+        text-align: center;
+    ">
+        <span style="
+            display: inline-block;
+            background: rgba(236,72,153,0.12);
+            color: #EC4899;
+            padding: 4px 14px;
+            border-radius: 16px;
+            font-size: 9px;
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 1px;
+            border: 1px solid rgba(236,72,153,0.15);
+            margin-bottom: 6px;
+        ">🧠 ADAPTIVE UI</span>
+        <h2 style="
+            font-family: 'Orbitron', sans-serif;
+            font-size: 20px;
+            color: #FFFFFF;
+            margin: 0;
+        ">
+            Dynamic Context-Aware <span style="
+                background: linear-gradient(135deg, #45f3ff, #EC4899);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            ">UI</span>
+        </h2>
+        <p style="
+            font-family: 'Inter', sans-serif;
+            color: #94a3b8;
+            font-size: 12px;
+            margin: 4px 0 0 0;
+        ">
+            Real-time interface adaptation based on user behavior
+        </p>
+    </div>
     """, unsafe_allow_html=True)
+    
+    # ========================================================
+    # SESSION STATE INIT
+    # ========================================================
     if "dynamic_ui_uploaded_file" not in st.session_state:
         st.session_state["dynamic_ui_uploaded_file"] = None
     if "dynamic_ui_project_files" not in st.session_state:
         st.session_state["dynamic_ui_project_files"] = []
     if "dynamic_ui_current_project" not in st.session_state:
         st.session_state["dynamic_ui_current_project"] = ""
+    
     col1, col2 = st.columns([1.1, 1.4], gap="medium")
+    
     with col1:
         with st.container(border=True):
-            st.markdown("<h4 style='font-family: Orbitron; font-size: 13px; color: #45f3ff; margin-bottom: 15px;'>⚙️ UI CONFIGURATION</h4>", unsafe_allow_html=True)
-            st.markdown("<div class='compact-label'>👤 SELECT PROFILE MODE</div>", unsafe_allow_html=True)
+            st.markdown("""
+            <h4 style="
+                font-family: 'Orbitron', sans-serif;
+                font-size: 12px;
+                color: #EC4899;
+                margin-bottom: 12px;
+                letter-spacing: 0.5px;
+            ">
+                ⚙️ UI CONFIGURATION
+            </h4>
+            """, unsafe_allow_html=True)
+            
+            # Profile Mode
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">👤 SELECT PROFILE MODE</p>', unsafe_allow_html=True)
             profile_options = ["🟢 Novice / Simple Mode", "🟡 Intermediate Mode", "🔴 Expert / Developer Mode"]
-            profile_map = {"🟢 Novice / Simple Mode": "beginner", "🟡 Intermediate Mode": "intermediate", "🔴 Expert / Developer Mode": "advanced"}
+            profile_map = {
+                "🟢 Novice / Simple Mode": "beginner",
+                "🟡 Intermediate Mode": "intermediate",
+                "🔴 Expert / Developer Mode": "advanced"
+            }
+            
             current_profile_label = "🟡 Intermediate Mode"
             for label, value in profile_map.items():
                 if st.session_state.get("dynamic_ui_profile_mode") == value:
                     current_profile_label = label
                     break
-            selected_profile = st.selectbox("Choose UI Profile", profile_options, index=profile_options.index(current_profile_label) if current_profile_label in profile_options else 1, key="dynamic_ui_profile_selector")
+            
+            selected_profile = st.selectbox(
+                "Choose UI Profile",
+                profile_options,
+                index=profile_options.index(current_profile_label) if current_profile_label in profile_options else 1,
+                key="dynamic_ui_profile_selector",
+                label_visibility="collapsed"
+            )
+            
             new_profile = profile_map.get(selected_profile, "intermediate")
             if new_profile != st.session_state.get("dynamic_ui_profile_mode"):
                 success, required_tokens, message = validate_and_deduct_tokens("Dynamic UI", "Standard")
@@ -6832,10 +7315,14 @@ def generate_dynamic_ui():
                     st.session_state["user_behavior_profile"] = new_profile
                     st.session_state["dynamic_ui_token_charged"] = True
                     st.success(message)
+                    
                     conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
                     cursor = conn.cursor()
                     try:
-                        cursor.execute("INSERT OR REPLACE INTO dynamic_ui_profiles (username, behavior_profile, ui_preferences) VALUES (?, ?, ?)", (st.session_state.get("logged_user", "user"), new_profile, json.dumps({"profile": new_profile, "timestamp": time.time()})))
+                        cursor.execute(
+                            "INSERT OR REPLACE INTO dynamic_ui_profiles (username, behavior_profile, ui_preferences) VALUES (?, ?, ?)",
+                            (st.session_state.get("logged_user", "user"), new_profile, json.dumps({"profile": new_profile, "timestamp": time.time()}))
+                        )
                         conn.commit()
                     except Exception:
                         pass
@@ -6845,28 +7332,65 @@ def generate_dynamic_ui():
                 else:
                     st.error(message)
                     st.session_state["dynamic_ui_profile_mode"] = st.session_state.get("dynamic_ui_profile_mode", "intermediate")
+            
+            # Current Profile Display
             profile_display = st.session_state.get("dynamic_ui_profile_mode", "intermediate")
             profile_icons = {"beginner": "🟢", "intermediate": "🟡", "advanced": "🔴"}
-            profile_names = {"beginner": "Novice / Simple Mode", "intermediate": "Intermediate Mode", "advanced": "Expert / Developer Mode"}
+            profile_names = {
+                "beginner": "Novice / Simple Mode",
+                "intermediate": "Intermediate Mode",
+                "advanced": "Expert / Developer Mode"
+            }
             st.info(f"📊 Current Profile: {profile_icons.get(profile_display, '🟡')} {profile_names.get(profile_display, 'Intermediate Mode')}")
-            st.markdown("---")
-            st.markdown("<h4 style='font-family: Orbitron; font-size: 12px; color: #45f3ff; margin-bottom: 10px;'>🔧 UI ACTIONS</h4>", unsafe_allow_html=True)
+            
+            st.markdown("<hr style='border-color: rgba(255,255,255,0.06); margin: 12px 0;'>", unsafe_allow_html=True)
+            
+            # UI Actions
+            st.markdown("""
+            <h4 style="
+                font-family: 'Orbitron', sans-serif;
+                font-size: 11px;
+                color: #EC4899;
+                margin-bottom: 8px;
+                letter-spacing: 0.5px;
+            ">
+                🔧 UI ACTIONS
+            </h4>
+            """, unsafe_allow_html=True)
+            
             if st.button("📝 New Project", key="ui_new_project", use_container_width=True):
                 project_name = f"Project_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
                 st.session_state["dynamic_ui_current_project"] = project_name
                 st.session_state["dynamic_ui_project_files"] = []
                 st.toast(f"✅ New project created: {project_name}")
                 st.rerun()
+            
             if st.button("📂 Open Project", key="ui_open_project", use_container_width=True):
                 st.session_state["dynamic_ui_open_project"] = True
                 st.rerun()
+            
             if st.session_state.get("dynamic_ui_open_project", False):
                 st.markdown("""
-                    <div style="background: rgba(69, 243, 255, 0.05); border: 1px solid rgba(69, 243, 255, 0.2); border-radius: 8px; padding: 15px; margin-bottom: 10px;">
-                        <p style="font-size: 11px; color: #94a3b8; margin: 0 0 10px 0;">📂 Select a project file to open:</p>
-                    </div>
+                <div style="
+                    background: rgba(69,243,255,0.04);
+                    border: 1px solid rgba(69,243,255,0.08);
+                    border-radius: 8px;
+                    padding: 12px;
+                    margin-bottom: 10px;
+                ">
+                    <p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 0 0 8px 0;">
+                        📂 Select a project file to open:
+                    </p>
+                </div>
                 """, unsafe_allow_html=True)
-                uploaded_file = st.file_uploader("Choose a project file", type=['json', 'txt', 'mp4', 'png', 'jpg', 'jpeg', 'webp', 'mp3', 'wav'], key="dynamic_ui_file_uploader", label_visibility="collapsed")
+                
+                uploaded_file = st.file_uploader(
+                    "Choose a project file",
+                    type=['json', 'txt', 'mp4', 'png', 'jpg', 'jpeg', 'webp', 'mp3', 'wav'],
+                    key="dynamic_ui_file_uploader",
+                    label_visibility="collapsed"
+                )
+                
                 if uploaded_file is not None:
                     file_path = os.path.join("temp_scenes", f"uploaded_{uuid.uuid4().hex[:8]}_{uploaded_file.name}")
                     with open(file_path, "wb") as f:
@@ -6877,9 +7401,11 @@ def generate_dynamic_ui():
                     st.success(f"✅ Project opened: {uploaded_file.name}")
                     st.toast(f"📂 File loaded: {uploaded_file.name}")
                     st.rerun()
+                
                 if st.button("❌ Close File Browser", key="ui_close_browser", use_container_width=True):
                     st.session_state["dynamic_ui_open_project"] = False
                     st.rerun()
+            
             if st.button("⚡ Quick Render", key="ui_quick_render", use_container_width=True):
                 if st.session_state.get("dynamic_ui_uploaded_file"):
                     st.toast("🔄 Rendering project...")
@@ -6887,6 +7413,7 @@ def generate_dynamic_ui():
                     st.success("✅ Quick render completed!")
                 else:
                     st.warning("⚠️ No project loaded. Please open a project first.")
+            
             if st.button("📊 Analytics", key="ui_analytics", use_container_width=True):
                 if st.session_state.get("dynamic_ui_current_project"):
                     st.info(f"📊 Project: {st.session_state['dynamic_ui_current_project']}")
@@ -6894,6 +7421,7 @@ def generate_dynamic_ui():
                     st.info(f"👤 Profile: {st.session_state.get('dynamic_ui_profile_mode', 'intermediate')}")
                 else:
                     st.warning("⚠️ No active project.")
+            
             if st.button("🔧 Advanced Settings", key="ui_advanced_settings", use_container_width=True):
                 with st.expander("⚙️ Advanced Settings", expanded=True):
                     st.selectbox("Theme Mode", ["auto", "dark", "light"], key="ui_theme_mode")
@@ -6901,69 +7429,249 @@ def generate_dynamic_ui():
                     st.toggle("Auto-save", value=True)
                     st.toggle("Show Grid", value=True)
                     st.toggle("Dark Mode", value=True)
+            
             if st.button("🧩 Plugins", key="ui_plugins", use_container_width=True):
                 with st.expander("🧩 Plugin Manager", expanded=True):
-                    st.markdown("**Available Plugins:**")
+                    st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 8px;">Available Plugins:</p>', unsafe_allow_html=True)
                     st.checkbox("🎨 AI Image Generator", value=True)
                     st.checkbox("🎬 Video Editor Pro", value=True)
                     st.checkbox("🗣️ Voice Synthesizer", value=True)
                     st.checkbox("📐 Blueprint Creator", value=True)
                     if st.button("🔄 Refresh Plugins", use_container_width=True):
                         st.toast("Plugins refreshed!")
+    
     with col2:
         with st.container(border=True):
-            st.markdown("<h3 style='font-family: Orbitron; font-size: 15px; color: #45f3ff; margin-bottom: 15px; letter-spacing: 0.5px;'>🖥️ UI PREVIEW</h3>", unsafe_allow_html=True)
+            st.markdown("""
+            <h3 style="
+                font-family: 'Orbitron', sans-serif;
+                font-size: 13px;
+                color: #EC4899;
+                margin-bottom: 12px;
+                letter-spacing: 0.5px;
+            ">
+                🖥️ UI PREVIEW
+            </h3>
+            """, unsafe_allow_html=True)
+            
             profile_display = st.session_state.get("dynamic_ui_profile_mode", "intermediate")
             current_project = st.session_state.get("dynamic_ui_current_project", "No project loaded")
+            
             st.markdown(f"""
-                <div style="background: rgba(69, 243, 255, 0.05); border-radius: 8px; padding: 8px 12px; margin-bottom: 10px; border: 1px solid rgba(69, 243, 255, 0.1);">
-                    <p style="font-size: 10px; color: #94a3b8; margin: 0;">
-                        📂 <span style="color: #45f3ff;">{current_project}</span>
-                    </p>
-                </div>
+            <div style="
+                background: rgba(69,243,255,0.04);
+                border-radius: 8px;
+                padding: 6px 12px;
+                margin-bottom: 10px;
+                border: 1px solid rgba(69,243,255,0.06);
+            ">
+                <p style="font-family: Inter; font-size: 10px; color: #94a3b8; margin: 0;">
+                    📂 <span style="color: #EC4899;">{current_project}</span>
+                </p>
+            </div>
             """, unsafe_allow_html=True)
+            
             if profile_display == "beginner":
                 st.markdown("""
-                    <div style="background: rgba(18, 19, 26, 0.85); border-radius: 12px; padding: 20px; border: 2px solid rgba(69, 243, 255, 0.3); transition: all 0.3s ease;">
-                        <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
-                            <span style="background: #45f3ff; color: #000; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: bold;">📝 New</span>
-                            <span style="background: #45f3ff; color: #000; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: bold;">📂 Open</span>
-                            <span style="background: #45f3ff; color: #000; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: bold;">🎓 Tutorial</span>
-                        </div>
-                        <p style="text-align: center; color: #94a3b8; font-size: 12px; margin-top: 15px;">🟢 Simple, clean interface with large buttons</p>
+                <div style="
+                    background: rgba(18,19,26,0.8);
+                    border-radius: 12px;
+                    padding: 20px;
+                    border: 2px solid rgba(69,243,255,0.2);
+                ">
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
+                        <span style="
+                            background: #EC4899;
+                            color: #000;
+                            padding: 10px 20px;
+                            border-radius: 8px;
+                            font-family: 'Orbitron', sans-serif;
+                            font-size: 12px;
+                            font-weight: bold;
+                        ">📝 New</span>
+                        <span style="
+                            background: #EC4899;
+                            color: #000;
+                            padding: 10px 20px;
+                            border-radius: 8px;
+                            font-family: 'Orbitron', sans-serif;
+                            font-size: 12px;
+                            font-weight: bold;
+                        ">📂 Open</span>
+                        <span style="
+                            background: #EC4899;
+                            color: #000;
+                            padding: 10px 20px;
+                            border-radius: 8px;
+                            font-family: 'Orbitron', sans-serif;
+                            font-size: 12px;
+                            font-weight: bold;
+                        ">🎓 Tutorial</span>
                     </div>
+                    <p style="
+                        text-align: center;
+                        color: #EC4899;
+                        font-family: 'Inter', sans-serif;
+                        font-size: 12px;
+                        margin-top: 15px;
+                    ">
+                        🟢 Simple, clean interface with large buttons
+                    </p>
+                </div>
                 """, unsafe_allow_html=True)
+            
             elif profile_display == "intermediate":
                 st.markdown("""
-                    <div style="background: rgba(18, 19, 26, 0.85); border-radius: 12px; padding: 20px; border: 2px solid rgba(255, 192, 203, 0.3); transition: all 0.3s ease;">
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                            <span style="background: #FFC0CB; color: #000; padding: 10px; border-radius: 6px; font-size: 12px; font-weight: bold; text-align: center;">📝 New</span>
-                            <span style="background: #FFC0CB; color: #000; padding: 10px; border-radius: 6px; font-size: 12px; font-weight: bold; text-align: center;">📂 Open</span>
-                            <span style="background: #FFC0CB; color: #000; padding: 10px; border-radius: 6px; font-size: 12px; font-weight: bold; text-align: center;">⚡ Quick Render</span>
-                            <span style="background: #FFC0CB; color: #000; padding: 10px; border-radius: 6px; font-size: 12px; font-weight: bold; text-align: center;">🔧 Settings</span>
-                        </div>
-                        <p style="text-align: center; color: #94a3b8; font-size: 12px; margin-top: 15px;">🟡 Balanced interface with quick actions</p>
+                <div style="
+                    background: rgba(18,19,26,0.8);
+                    border-radius: 12px;
+                    padding: 20px;
+                    border: 2px solid rgba(255,192,203,0.2);
+                ">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                        <span style="
+                            background: #FFC0CB;
+                            color: #000;
+                            padding: 10px;
+                            border-radius: 6px;
+                            font-family: 'Orbitron', sans-serif;
+                            font-size: 11px;
+                            font-weight: bold;
+                            text-align: center;
+                        ">📝 New</span>
+                        <span style="
+                            background: #FFC0CB;
+                            color: #000;
+                            padding: 10px;
+                            border-radius: 6px;
+                            font-family: 'Orbitron', sans-serif;
+                            font-size: 11px;
+                            font-weight: bold;
+                            text-align: center;
+                        ">📂 Open</span>
+                        <span style="
+                            background: #FFC0CB;
+                            color: #000;
+                            padding: 10px;
+                            border-radius: 6px;
+                            font-family: 'Orbitron', sans-serif;
+                            font-size: 11px;
+                            font-weight: bold;
+                            text-align: center;
+                        ">⚡ Quick Render</span>
+                        <span style="
+                            background: #FFC0CB;
+                            color: #000;
+                            padding: 10px;
+                            border-radius: 6px;
+                            font-family: 'Orbitron', sans-serif;
+                            font-size: 11px;
+                            font-weight: bold;
+                            text-align: center;
+                        ">🔧 Settings</span>
                     </div>
+                    <p style="
+                        text-align: center;
+                        color: #94a3b8;
+                        font-family: 'Inter', sans-serif;
+                        font-size: 12px;
+                        margin-top: 15px;
+                    ">
+                        🟡 Balanced interface with quick actions
+                    </p>
+                </div>
                 """, unsafe_allow_html=True)
+            
             else:
                 st.markdown("""
-                    <div style="background: rgba(18, 19, 26, 0.85); border-radius: 12px; padding: 20px; border: 2px solid rgba(236, 72, 153, 0.3); transition: all 0.3s ease;">
-                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px;">
-                            <span style="background: #EC4899; color: #fff; padding: 8px; border-radius: 6px; font-size: 11px; font-weight: bold; text-align: center;">📝 New</span>
-                            <span style="background: #EC4899; color: #fff; padding: 8px; border-radius: 6px; font-size: 11px; font-weight: bold; text-align: center;">📂 Open</span>
-                            <span style="background: #EC4899; color: #fff; padding: 8px; border-radius: 6px; font-size: 11px; font-weight: bold; text-align: center;">⚡ Render</span>
-                            <span style="background: #EC4899; color: #fff; padding: 8px; border-radius: 6px; font-size: 11px; font-weight: bold; text-align: center;">🔧 Advanced</span>
-                            <span style="background: #EC4899; color: #fff; padding: 8px; border-radius: 6px; font-size: 11px; font-weight: bold; text-align: center;">📊 Analytics</span>
-                            <span style="background: #EC4899; color: #fff; padding: 8px; border-radius: 6px; font-size: 11px; font-weight: bold; text-align: center;">🧩 Plugins</span>
-                        </div>
-                        <p style="text-align: center; color: #94a3b8; font-size: 12px; margin-top: 15px;">🔴 Professional interface with all tools</p>
+                <div style="
+                    background: rgba(18,19,26,0.8);
+                    border-radius: 12px;
+                    padding: 20px;
+                    border: 2px solid rgba(236,72,153,0.2);
+                ">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px;">
+                        <span style="
+                            background: #EC4899;
+                            color: #fff;
+                            padding: 8px;
+                            border-radius: 6px;
+                            font-family: 'Orbitron', sans-serif;
+                            font-size: 10px;
+                            font-weight: bold;
+                            text-align: center;
+                        ">📝 New</span>
+                        <span style="
+                            background: #EC4899;
+                            color: #fff;
+                            padding: 8px;
+                            border-radius: 6px;
+                            font-family: 'Orbitron', sans-serif;
+                            font-size: 10px;
+                            font-weight: bold;
+                            text-align: center;
+                        ">📂 Open</span>
+                        <span style="
+                            background: #EC4899;
+                            color: #fff;
+                            padding: 8px;
+                            border-radius: 6px;
+                            font-family: 'Orbitron', sans-serif;
+                            font-size: 10px;
+                            font-weight: bold;
+                            text-align: center;
+                        ">⚡ Render</span>
+                        <span style="
+                            background: #EC4899;
+                            color: #fff;
+                            padding: 8px;
+                            border-radius: 6px;
+                            font-family: 'Orbitron', sans-serif;
+                            font-size: 10px;
+                            font-weight: bold;
+                            text-align: center;
+                        ">🔧 Advanced</span>
+                        <span style="
+                            background: #EC4899;
+                            color: #fff;
+                            padding: 8px;
+                            border-radius: 6px;
+                            font-family: 'Orbitron', sans-serif;
+                            font-size: 10px;
+                            font-weight: bold;
+                            text-align: center;
+                        ">📊 Analytics</span>
+                        <span style="
+                            background: #EC4899;
+                            color: #fff;
+                            padding: 8px;
+                            border-radius: 6px;
+                            font-family: 'Orbitron', sans-serif;
+                            font-size: 10px;
+                            font-weight: bold;
+                            text-align: center;
+                        ">🧩 Plugins</span>
                     </div>
+                    <p style="
+                        text-align: center;
+                        color: #94a3b8;
+                        font-family: 'Inter', sans-serif;
+                        font-size: 12px;
+                        margin-top: 15px;
+                    ">
+                        🔴 Professional interface with all tools
+                    </p>
+                </div>
                 """, unsafe_allow_html=True)
+            
+            # Loaded File Preview
             if st.session_state.get("dynamic_ui_uploaded_file") and os.path.exists(st.session_state["dynamic_ui_uploaded_file"]):
                 file_path = st.session_state["dynamic_ui_uploaded_file"]
                 ext = os.path.splitext(file_path)[1].lower()
-                st.markdown("---")
-                st.markdown("**📁 Loaded File:**")
+                
+                st.markdown("<hr style='border-color: rgba(255,255,255,0.06); margin: 12px 0;'>", unsafe_allow_html=True)
+                st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 6px;">📁 Loaded File:</p>', unsafe_allow_html=True)
+                
                 if ext in ['.png', '.jpg', '.jpeg', '.webp', '.gif']:
                     st.image(file_path, use_container_width=True)
                 elif ext in ['.mp4', '.mov', '.avi', '.webm']:
@@ -6978,75 +7686,184 @@ def generate_dynamic_ui():
                     st.text(content[:500])
                 else:
                     st.info(f"📄 File loaded: {os.path.basename(file_path)}")
+                
                 if st.button("🧹 Clear Loaded File", key="ui_clear_file", use_container_width=True):
                     safe_remove_file(file_path)
                     st.session_state["dynamic_ui_uploaded_file"] = None
                     st.session_state["dynamic_ui_current_project"] = ""
                     st.rerun()
-            st.markdown("---")
+            
+            # Credits Info
             st.markdown("""
-                <div style="background: rgba(69, 243, 255, 0.05); border-radius: 8px; padding: 10px; margin-top: 10px;">
-                    <p style="font-size: 11px; color: #94a3b8; margin: 0; text-align: center;">
-                        ⚡ Profile change costs <span style="color: #45f3ff; font-weight: bold;">2 Credits</span> per switch
-                        <br>
-                        <span style="font-size: 9px; color: #64748b;">Current balance: <span style="color: #45f3ff;">{:.1f}</span> Credits</span>
-                    </p>
-                </div>
+            <hr style='border-color: rgba(255,255,255,0.06); margin: 12px 0;'>
+            <div style="
+                background: rgba(69,243,255,0.04);
+                border-radius: 8px;
+                padding: 10px;
+                margin-top: 10px;
+            ">
+                <p style="
+                    font-family: 'Inter', sans-serif;
+                    font-size: 11px;
+                    color: #94a3b8;
+                    margin: 0;
+                    text-align: center;
+                ">
+                    ⚡ Profile change costs <span style="color: #45f3ff; font-weight: bold;">2 Credits</span> per switch
+                    <br>
+                    <span style="font-size: 9px; color: #64748b;">
+                        Current balance: <span style="color: #45f3ff;">{:.1f}</span> Credits
+                    </span>
+                </p>
+            </div>
             """.format(st.session_state.get('user_credits', 0)), unsafe_allow_html=True)
 
 def render_live_emotion_voice():
+    """Live Emotion Voice - Matching Studio Style"""
+    
+    # ========================================================
+    # HEADER - STUDIO STYLE MATCH
+    # ========================================================
     st.markdown("""
-        <div style="background:linear-gradient(135deg,rgba(18,19,26,0.95),rgba(10,10,15,0.98));border-radius:16px;border:2px solid rgba(236,72,153,0.3);padding:20px;margin-bottom:20px;">
-            <div style="display:flex;align-items:center;gap:15px;">
-                <span style="font-size:30px;">🎤</span>
-                <div>
-                    <h3 style="font-family:'Orbitron';font-size:18px;color:#EC4899;margin:0;">Live-Emotion Voice & Personality Doppelgänger</h3>
-                    <p style="color:#94a3b8;font-size:11px;margin:0;">⚡ Hyper-realistic voice with real human emotional dynamics</p>
-                </div>
-            </div>
-        </div>
+    <div style="
+        background: linear-gradient(135deg, rgba(236,72,153,0.06), rgba(69,243,255,0.06));
+        border-radius: 16px;
+        border: 1px solid rgba(69,243,255,0.08);
+        padding: 16px 20px;
+        margin-bottom: 18px;
+        text-align: center;
+    ">
+        <span style="
+            display: inline-block;
+            background: rgba(236,72,153,0.12);
+            color: #EC4899;
+            padding: 4px 14px;
+            border-radius: 16px;
+            font-size: 9px;
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 1px;
+            border: 1px solid rgba(236,72,153,0.15);
+            margin-bottom: 6px;
+        ">🎤 EMOTION AI</span>
+        <h2 style="
+            font-family: 'Orbitron', sans-serif;
+            font-size: 20px;
+            color: #FFFFFF;
+            margin: 0;
+        ">
+            Live-Emotion <span style="
+                background: linear-gradient(135deg, #45f3ff, #EC4899);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            ">Voice</span>
+        </h2>
+        <p style="
+            font-family: 'Inter', sans-serif;
+            color: #94a3b8;
+            font-size: 12px;
+            margin: 4px 0 0 0;
+        ">
+            Hyper-realistic voice with real human emotional dynamics
+        </p>
+    </div>
     """, unsafe_allow_html=True)
+    
     col1, col2 = st.columns([1.1, 1.4], gap="medium")
+    
     with col1:
         with st.container(border=True):
-            st.markdown("<h4 style='font-family: Orbitron; font-size: 13px; color: #EC4899; margin-bottom: 15px;'>⚙️ VOICE PARAMETERS</h4>", unsafe_allow_html=True)
-            st.markdown("<div class='compact-label'>📝 Text to Speak</div>", unsafe_allow_html=True)
-            voice_text = st.text_area("Enter text for voice generation", placeholder="Write the script you want to convert to emotion-rich voice...", height=100, key="emotion_voice_text_area")
-            st.markdown("<div class='compact-label'>🌐 Select Language</div>", unsafe_allow_html=True)
+            st.markdown("""
+            <h4 style="
+                font-family: 'Orbitron', sans-serif;
+                font-size: 12px;
+                color: #EC4899;
+                margin-bottom: 12px;
+                letter-spacing: 0.5px;
+            ">
+                ⚙️ VOICE PARAMETERS
+            </h4>
+            """, unsafe_allow_html=True)
+            
+            # Text Input
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">📝 Text to Speak</p>', unsafe_allow_html=True)
+            voice_text = st.text_area(
+                "Text",
+                placeholder="Write the script you want to convert to emotion-rich voice...",
+                height=100,
+                key="emotion_voice_text_area",
+                label_visibility="collapsed"
+            )
+            
+            # Language
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">🌐 Select Language</p>', unsafe_allow_html=True)
             language_options = ["English", "Hindi", "Bhojpuri", "French", "Japanese"]
-            selected_language = st.selectbox("Choose Language", language_options, key="emotion_voice_language")
-            st.markdown("<div class='compact-label'>😊 Emotion Profile</div>", unsafe_allow_html=True)
+            selected_language = st.selectbox(
+                "Language",
+                language_options,
+                key="emotion_voice_language",
+                label_visibility="collapsed"
+            )
+            
+            # Emotion
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">😊 Emotion Profile</p>', unsafe_allow_html=True)
             emotion_options = ["neutral", "happy", "sad", "angry", "excited", "serious", "mysterious"]
             current_emotion = st.session_state.get("emotion_voice_emotion", "neutral")
             if current_emotion not in emotion_options:
                 current_emotion = "neutral"
-            selected_emotion = st.selectbox("Select Emotion", emotion_options, index=emotion_options.index(current_emotion), key="emotion_voice_emotion")
-            st.markdown("<div class='compact-label'>🎤 Zovix Professional Voice Selection</div>", unsafe_allow_html=True)
+            selected_emotion = st.selectbox(
+                "Emotion",
+                emotion_options,
+                index=emotion_options.index(current_emotion),
+                key="emotion_voice_emotion",
+                label_visibility="collapsed"
+            )
+            
+            # Voice Selection
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">🎤 Professional Voice</p>', unsafe_allow_html=True)
             available_voices = LANGUAGE_VOICE_MAP.get(selected_language, ["Adam (Premium Male)"])
             show_all_voices = st.checkbox("Show All Voices", key="emotion_show_all_voices")
+            
             if show_all_voices:
                 voice_options = list(ELEVENLABS_VOICES.keys())
             else:
                 voice_options = available_voices
+            
             current_voice = st.session_state.get("selected_elevenlabs_voice", "Adam (Premium Male)")
             if current_voice not in voice_options:
                 current_voice = voice_options[0] if voice_options else "Adam (Premium Male)"
-            selected_voice_label = st.selectbox("Choose Professional Voice", voice_options, index=voice_options.index(current_voice) if current_voice in voice_options else 0, key="emotion_voice_elevenlabs_select")
+            
+            selected_voice_label = st.selectbox(
+                "Choose Voice",
+                voice_options,
+                index=voice_options.index(current_voice) if current_voice in voice_options else 0,
+                key="emotion_voice_elevenlabs_select",
+                label_visibility="collapsed"
+            )
+            
             if selected_voice_label != st.session_state.get("selected_elevenlabs_voice"):
                 st.session_state["selected_elevenlabs_voice"] = selected_voice_label
+            
             voice_info = ELEVENLABS_VOICES.get(selected_voice_label, {})
             st.markdown(f"""
-                <div style="background: rgba(236, 72, 153, 0.05); border: 1px solid rgba(236, 72, 153, 0.2); border-radius: 8px; padding: 10px; margin-bottom: 15px;">
-                    <p style="font-size: 11px; color: #94a3b8; margin: 0;">
-                        🎤 {selected_voice_label} <br>
-                        🧑‍🎤 {voice_info.get('gender', 'Unknown').capitalize()} • 
-                        🌍 {voice_info.get('accent', 'Unknown')} • 
-                        🌐 {voice_info.get('language', 'Unknown')}
-                    </p>
-                </div>
+            <div style="
+                background: rgba(236,72,153,0.04);
+                border: 1px solid rgba(236,72,153,0.08);
+                border-radius: 8px;
+                padding: 8px 12px;
+                margin-bottom: 12px;
+            ">
+                <p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 0;">
+                    🎤 {selected_voice_label} <br>
+                    🧑‍🎤 {voice_info.get('gender', 'Unknown').capitalize()} • 
+                    🌍 {voice_info.get('accent', 'Unknown')} • 
+                    🌐 {voice_info.get('language', 'Unknown')}
+                </p>
+            </div>
             """, unsafe_allow_html=True)
-            st.markdown("---")
-            st.markdown("**Quick Emotion Presets:**")
+            
+            # Quick Emotion Presets
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 6px;">Quick Emotion Presets:</p>', unsafe_allow_html=True)
             emoji_map = {"neutral": "😐", "happy": "😊", "sad": "😢", "angry": "😡", "excited": "🤩", "serious": "😤", "mysterious": "🕵️"}
             emotion_cols = st.columns(7)
             for i, (emotion, emoji) in enumerate(emoji_map.items()):
@@ -7057,7 +7874,10 @@ def render_live_emotion_voice():
                         return callback
                     if st.button(f"{emoji}", key=f"emotion_quick_{emotion}_{i}", use_container_width=True, on_click=make_emotion_callback(emotion)):
                         pass
-            st.markdown("---")
+            
+            st.markdown("<br>", unsafe_allow_html=True)
+            
+            # Voice Sample
             if st.button("🔊 Preview Voice Sample", key="emotion_preview_voice", use_container_width=True):
                 st.info(f"🎵 Voice sample for {selected_voice_label} will play here.")
                 sample_path = "assets/audio/sample.mp3"
@@ -7067,8 +7887,18 @@ def render_live_emotion_voice():
                     st.audio(sample_bytes, format="audio/mp3")
                 else:
                     st.warning("Sample audio not found. Please add a sample.mp3 file to assets/audio/")
-            st.markdown("<div class='compact-label'>📊 Voice Quality</div>", unsafe_allow_html=True)
-            voice_quality = st.selectbox("Select Quality", ["Standard", "HD", "Premium"], key="emotion_voice_quality")
+            
+            # Quality
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">📊 Voice Quality</p>', unsafe_allow_html=True)
+            voice_quality = st.selectbox(
+                "Quality",
+                ["Standard", "HD", "Premium"],
+                key="emotion_voice_quality",
+                label_visibility="collapsed"
+            )
+            
+            st.markdown("<br>", unsafe_allow_html=True)
+            
             if st.button("🎤 Generate Emotion Voice", key="emotion_voice_generate", use_container_width=True):
                 if not voice_text.strip():
                     st.error("Please enter some text to speak.")
@@ -7080,81 +7910,199 @@ def render_live_emotion_voice():
                         st.success(message)
                         with st.spinner(f"🎤 Generating {selected_emotion} voice with {selected_voice_label} in {selected_language}..."):
                             voice_id = ELEVENLABS_VOICES.get(selected_voice_label, {}).get("id", "pNInz6obpgDQ5IdwJg7p")
-                            output_path = generate_emotion_voice(voice_text, emotion=selected_emotion, voice_type="male" if voice_info.get("gender") == "male" else "female", elevenlabs_voice_id=voice_id)
+                            output_path = generate_emotion_voice(
+                                voice_text,
+                                emotion=selected_emotion,
+                                voice_type="male" if voice_info.get("gender") == "male" else "female",
+                                elevenlabs_voice_id=voice_id
+                            )
                             if output_path and os.path.exists(output_path) and os.path.getsize(output_path) > 0:
                                 st.session_state["emotion_voice_output"] = output_path
                                 st.session_state["emotion_voice_text"] = voice_text
+                                
                                 conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
                                 cursor = conn.cursor()
                                 try:
-                                    cursor.execute("INSERT INTO emotion_voice_history (username, text, emotion, audio_path, voice_id) VALUES (?, ?, ?, ?, ?)", (st.session_state.get("logged_user", "user"), voice_text[:200], selected_emotion, output_path, selected_voice_label))
+                                    cursor.execute(
+                                        "INSERT INTO emotion_voice_history (username, text, emotion, audio_path, voice_id) VALUES (?, ?, ?, ?, ?)",
+                                        (st.session_state.get("logged_user", "user"), voice_text[:200], selected_emotion, output_path, selected_voice_label)
+                                    )
                                     conn.commit()
                                 except Exception:
                                     pass
                                 finally:
                                     conn.close()
+                                
                                 st.toast("✅ Voice generated successfully!")
                                 st.rerun()
                             else:
                                 st.error("Voice generation failed. Please try again.")
+    
     with col2:
         with st.container(border=True):
-            st.markdown("<h3 style='font-family: Orbitron; font-size: 15px; color: #EC4899; margin-bottom: 15px; letter-spacing: 0.5px;'>🎧 VOICE PLAYER</h3>", unsafe_allow_html=True)
+            st.markdown("""
+            <h3 style="
+                font-family: 'Orbitron', sans-serif;
+                font-size: 13px;
+                color: #EC4899;
+                margin-bottom: 12px;
+                letter-spacing: 0.5px;
+            ">
+                🎧 VOICE PLAYER
+            </h3>
+            """, unsafe_allow_html=True)
+            
             audio_output = st.session_state.get("emotion_voice_output")
             if audio_output and os.path.exists(audio_output):
                 emotion = st.session_state.get("emotion_voice_emotion", "neutral")
                 emoji_map = {"neutral": "😐", "happy": "😊", "sad": "😢", "angry": "😡", "excited": "🤩", "serious": "😤", "mysterious": "🕵️"}
                 emotion_emoji = emoji_map.get(emotion, "😐")
                 selected_voice = st.session_state.get("selected_elevenlabs_voice", "Adam (Premium Male)")
+                
                 st.markdown(f"""
-                    <div style="background: rgba(236, 72, 153, 0.05); border: 1px solid rgba(236, 72, 153, 0.2); border-radius: 12px; padding: 15px; margin-bottom: 15px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
-                            <span style="font-size: 14px; color: #ffffff;">{emotion_emoji} {emotion.capitalize()} Voice</span>
-                            <span style="font-size: 12px; color: #EC4899; font-weight: bold;">{selected_voice}</span>
-                        </div>
-                        <div style="display: flex; gap: 8px; margin-top: 5px; flex-wrap: wrap;">
-                            <span style="font-size: 9px; color: #94a3b8; background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 10px;">🎯 {emotion}</span>
-                            <span style="font-size: 9px; color: #94a3b8; background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 10px;">🎤 Professional Voice</span>
-                            <span style="font-size: 9px; color: #94a3b8; background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 10px;">🌐 {st.session_state.get('emotion_voice_language', 'English')}</span>
-                        </div>
+                <div style="
+                    background: rgba(236,72,153,0.04);
+                    border: 1px solid rgba(236,72,153,0.08);
+                    border-radius: 10px;
+                    padding: 12px;
+                    margin-bottom: 12px;
+                ">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+                        <span style="font-family: Inter; font-size: 13px; color: #FFFFFF;">
+                            {emotion_emoji} {emotion.capitalize()} Voice
+                        </span>
+                        <span style="font-family: Orbitron; font-size: 11px; color: #EC4899; font-weight: bold;">
+                            {selected_voice}
+                        </span>
                     </div>
+                    <div style="display: flex; gap: 6px; margin-top: 4px; flex-wrap: wrap;">
+                        <span style="
+                            font-family: Inter;
+                            font-size: 9px;
+                            color: #94a3b8;
+                            background: rgba(255,255,255,0.04);
+                            padding: 2px 8px;
+                            border-radius: 10px;
+                        ">🎯 {emotion}</span>
+                        <span style="
+                            font-family: Inter;
+                            font-size: 9px;
+                            color: #94a3b8;
+                            background: rgba(255,255,255,0.04);
+                            padding: 2px 8px;
+                            border-radius: 10px;
+                        ">🎤 Professional Voice</span>
+                        <span style="
+                            font-family: Inter;
+                            font-size: 9px;
+                            color: #94a3b8;
+                            background: rgba(255,255,255,0.04);
+                            padding: 2px 8px;
+                            border-radius: 10px;
+                        ">🌐 {st.session_state.get('emotion_voice_language', 'English')}</span>
+                    </div>
+                </div>
                 """, unsafe_allow_html=True)
+                
                 with open(audio_output, "rb") as f:
                     audio_bytes = f.read()
                 st.audio(audio_bytes, format="audio/mp3")
+                
                 if st.session_state.get("emotion_voice_text"):
                     with st.expander("📝 View Script", expanded=False):
                         st.text(st.session_state["emotion_voice_text"])
+                
                 st.markdown("<br>", unsafe_allow_html=True)
                 col_dl, col_clr = st.columns(2)
                 with col_dl:
-                    st.download_button(label="📥 Download Voice (MP3)", data=audio_bytes, file_name=f"zovix_voice_{uuid.uuid4().hex[:8]}.mp3", mime="audio/mp3", use_container_width=True, key="emotion_download_btn")
+                    st.download_button(
+                        label="📥 Download Voice (MP3)",
+                        data=audio_bytes,
+                        file_name=f"zovix_voice_{uuid.uuid4().hex[:8]}.mp3",
+                        mime="audio/mp3",
+                        use_container_width=True,
+                        key="emotion_download_btn"
+                    )
                 with col_clr:
                     if st.button("🧹 Clear Voice", key="emotion_clear_btn", use_container_width=True):
                         safe_remove_file(audio_output)
                         st.session_state["emotion_voice_output"] = None
                         st.session_state["emotion_voice_text"] = ""
                         st.rerun()
+                
                 with st.expander("📊 Voice Analytics", expanded=False):
                     st.markdown(f"""
-                        <div style="background: rgba(255,255,255,0.02); border-radius: 8px; padding: 10px;">
-                            <p style="font-size: 11px; color: #94a3b8; margin: 2px 0;">🎯 Emotion: <span style="color: #EC4899;">{emotion.capitalize()}</span></p>
-                            <p style="font-size: 11px; color: #94a3b8; margin: 2px 0;">🎤 Voice: <span style="color: #EC4899;">{selected_voice}</span></p>
-                            <p style="font-size: 11px; color: #94a3b8; margin: 2px 0;">🌐 Language: <span style="color: #EC4899;">{st.session_state.get('emotion_voice_language', 'English')}</span></p>
-                            <p style="font-size: 11px; color: #94a3b8; margin: 2px 0;">📝 Text Length: <span style="color: #EC4899;">{len(st.session_state.get('emotion_voice_text', ''))} characters</span></p>
-                            <p style="font-size: 11px; color: #94a3b8; margin: 2px 0;">🎵 Audio Size: <span style="color: #EC4899;">{len(audio_bytes)/1024:.1f} KB</span></p>
-                        </div>
+                    <div style="
+                        background: rgba(255,255,255,0.02);
+                        border-radius: 8px;
+                        padding: 10px;
+                    ">
+                        <p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 2px 0;">
+                            🎯 Emotion: <span style="color: #EC4899;">{emotion.capitalize()}</span>
+                        </p>
+                        <p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 2px 0;">
+                            🎤 Voice: <span style="color: #EC4899;">{selected_voice}</span>
+                        </p>
+                        <p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 2px 0;">
+                            🌐 Language: <span style="color: #EC4899;">{st.session_state.get('emotion_voice_language', 'English')}</span>
+                        </p>
+                        <p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 2px 0;">
+                            📝 Text Length: <span style="color: #EC4899;">{len(st.session_state.get('emotion_voice_text', ''))} characters</span>
+                        </p>
+                        <p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 2px 0;">
+                            🎵 Audio Size: <span style="color: #EC4899;">{len(audio_bytes)/1024:.1f} KB</span>
+                        </p>
+                    </div>
                     """, unsafe_allow_html=True)
+            
             else:
                 st.markdown("""
-                    <div class="canvas-container-box" style="height: 380px; min-height: 380px; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #64748b; text-align: center; padding: 12px; overflow: hidden;">
-                        <span style="font-size: 50px; margin-bottom: 12px; filter: drop-shadow(0 0 10px rgba(236, 72, 153, 0.3));">🎤</span>
-                        <p style="font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 500; color: #EC4899; margin: 0;">Emotion voice will render here</p>
-                        <p style="font-size: 11px; color: #a0a0a0; max-width:400px; text-align:center; margin-top: 5px; line-height: 1.4;">Select emotion, voice type, and generate hyper-realistic voice.</p>
-                        <p style="font-size: 10px; color: #45f3ff; margin-top: 5px;">⚡ Real human emotional dynamics</p>
+                    <div style="
+                        height: 380px;
+                        min-height: 380px;
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: center;
+                        align-items: center;
+                        color: #64748b;
+                        text-align: center;
+                        padding: 12px;
+                        overflow: hidden;
+                        background: rgba(10,10,12,0.4);
+                        border-radius: 12px;
+                        border: 1px dashed rgba(236,72,153,0.12);
+                    ">
+                        <span style="font-size: 48px; margin-bottom: 10px;">🎤</span>
+                        <p style="
+                            font-family: 'Inter', sans-serif;
+                            font-size: 13px;
+                            font-weight: 500;
+                            color: #EC4899;
+                            margin: 0;
+                        ">
+                            Emotion voice will render here
+                        </p>
+                        <p style="
+                            font-family: 'Inter', sans-serif;
+                            font-size: 11px;
+                            color: #94a3b8;
+                            max-width: 400px;
+                            text-align: center;
+                            margin-top: 4px;
+                            line-height: 1.4;
+                        ">
+                            Select emotion, voice type, and generate hyper-realistic voice.
+                        </p>
+                        <p style="
+                            font-family: 'Inter', sans-serif;
+                            font-size: 10px;
+                            color: #45f3ff;
+                            margin-top: 4px;
+                        ">
+                            ⚡ Real human emotional dynamics
+                        </p>
                     </div>
                 """, unsafe_allow_html=True)
-
 def generate_emotion_voice(text, emotion="neutral", voice_type="male", output_path=None, elevenlabs_voice_id=None):
     if not output_path:
         output_path = f"emotion_voice_outputs/emotion_{uuid.uuid4().hex[:8]}.mp3"
@@ -7241,26 +8189,124 @@ def generate_emotion_voice(text, emotion="neutral", voice_type="male", output_pa
 # ========================================================
 
 def run_creative_workshop():
+    """Creative Workshop - Matching Studio Style"""
+    
+    # ========================================================
+    # HEADER - STUDIO STYLE MATCH
+    # ========================================================
     st.markdown("""
-        <div style="background: rgba(18, 19, 26, 0.85); border-radius: 12px; border: 1px solid rgba(255,192,203,0.15); padding: 20px; margin-bottom: 20px;">
-            <h3 style="font-family: 'Orbitron'; font-size: 16px; color: #FFC0CB; margin: 0 0 5px 0;">🎨 Creative Image Synthesis Hub</h3>
-            <p style="color: #94a3b8; font-size: 12px; margin: 0;"> High-Quality Thumbnail Banner Poster Generator </p>
-        </div>
+    <div style="
+        background: linear-gradient(135deg, rgba(236,72,153,0.06), rgba(69,243,255,0.06));
+        border-radius: 16px;
+        border: 1px solid rgba(69,243,255,0.08);
+        padding: 16px 20px;
+        margin-bottom: 18px;
+        text-align: center;
+    ">
+        <span style="
+            display: inline-block;
+            background: rgba(236,72,153,0.12);
+            color: #EC4899;
+            padding: 4px 14px;
+            border-radius: 16px;
+            font-size: 9px;
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 1px;
+            border: 1px solid rgba(236,72,153,0.15);
+            margin-bottom: 6px;
+        ">🎨 AI GENERATOR</span>
+        <h2 style="
+            font-family: 'Orbitron', sans-serif;
+            font-size: 20px;
+            color: #FFFFFF;
+            margin: 0;
+        ">
+            Creative <span style="
+                background: linear-gradient(135deg, #45f3ff, #EC4899);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            ">Synthesis Hub</span>
+        </h2>
+        <p style="
+            font-family: 'Inter', sans-serif;
+            color: #94a3b8;
+            font-size: 12px;
+            margin: 4px 0 0 0;
+        ">
+            High-Quality Thumbnail • Banner • Poster Generator
+        </p>
+    </div>
     """, unsafe_allow_html=True)
+    
     w_col1, w_col2 = st.columns([1.1, 1.4], gap="medium")
+    
     with w_col1:
         with st.container(border=True):
-            st.markdown("<h4 style='font-family: Orbitron; font-size: 13px; color: #FFC0CB; margin-bottom: 15px;'>⚙️ WORKSHOP PARAMETERS</h4>", unsafe_allow_html=True)
-            workshop_ar = st.selectbox("Select Aspect Ratio:", ["16:9", "9:16", "1:1", "21:9", "4:5", "3:2"], key="workshop_aspect_ratio_choice")
-            st.markdown("<div class='compact-label'>Masterpiece Prompt Input</div>", unsafe_allow_html=True)
-            workshop_prompt_str = st.text_area("Image Description Prompt", placeholder="E.g. A gorgeous cyberpunk temple with pink neon aurora, hyperrealistic, 8k resolution, cinematic lighting...", height=120, label_visibility="collapsed", key="workshop_prompt_str_area")
-            st.markdown("<div class='compact-label'>Negative Prompt</div>", unsafe_allow_html=True)
-            workshop_neg_prompt_str = st.text_area("Negative Prompt", placeholder="E.g. blurry, low quality, distorted, extra limbs, bad anatomy, text, watermark...", height=80, label_visibility="collapsed", key="workshop_neg_prompt_str_area")
-            st.markdown("<div class='compact-label'>Stable Video Diffusion (I2V) settings</div>", unsafe_allow_html=True)
-            motion_bucket_val = st.slider("Motion Bucket ID (Animation Intensity)", min_value=1, max_value=255, value=127, key="workshop_motion_bucket_slider")
-            st.markdown("<div class='compact-label'>📊 Image Quality</div>", unsafe_allow_html=True)
-            workshop_quality = st.selectbox("Select Quality", ["Standard", "HD", "Pro"], key="workshop_quality")
-            st.write("")
+            st.markdown("""
+                <h4 style="
+                    font-family: 'Orbitron', sans-serif;
+                    font-size: 12px;
+                    color: #EC4899; /* Zovix Signature Neon Pink */
+                    text-shadow: 0 0 10px rgba(236, 72, 153, 0.6); /* Premium Cyberpunk Glow */
+                    margin-bottom: 12px;
+                    letter-spacing: 1px;
+                ">
+                    ⚪ WORKSHOP PARAMETERS 
+                </h4>
+                """, unsafe_allow_html=True)
+            
+            # Aspect Ratio
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">📐 Select Aspect Ratio</p>', unsafe_allow_html=True)
+            workshop_ar = st.selectbox(
+                "Aspect Ratio",
+                ["16:9", "9:16", "1:1", "21:9", "4:5", "3:2"],
+                key="workshop_aspect_ratio_choice",
+                label_visibility="collapsed"
+            )
+            
+            # Prompt
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 10px 0 4px 0;">🎨 Masterpiece Prompt Input</p>', unsafe_allow_html=True)
+            workshop_prompt_str = st.text_area(
+                "Prompt",
+                placeholder="E.g. A gorgeous cyberpunk temple with pink neon aurora, hyperrealistic, 8k resolution, cinematic lighting...",
+                height=100,
+                key="workshop_prompt_str_area",
+                label_visibility="collapsed"
+            )
+            
+            # Negative Prompt
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">🚫 Negative Prompt</p>', unsafe_allow_html=True)
+            workshop_neg_prompt_str = st.text_area(
+                "Negative Prompt",
+                placeholder="E.g. blurry, low quality, distorted, extra limbs, bad anatomy, text, watermark...",
+                height=60,
+                key="workshop_neg_prompt_str_area",
+                label_visibility="collapsed"
+            )
+            
+            # Motion Bucket
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">🎬 Motion Bucket ID (Animation Intensity)</p>', unsafe_allow_html=True)
+            motion_bucket_val = st.slider(
+                "Motion Bucket",
+                min_value=1,
+                max_value=255,
+                value=127,
+                key="workshop_motion_bucket_slider",
+                label_visibility="collapsed"
+            )
+            
+            # Quality
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">📊 Image Quality</p>', unsafe_allow_html=True)
+            workshop_quality = st.selectbox(
+                "Quality",
+                ["Standard", "HD", "Pro"],
+                key="workshop_quality",
+                label_visibility="collapsed"
+            )
+            
+            st.markdown("<br>", unsafe_allow_html=True)
+            
             if st.button("🚀 Generate Workshop Image", key="workshop_generation_action_btn", use_container_width=True):
                 success, required_tokens, message = validate_and_deduct_tokens("Creative Workshop", workshop_quality)
                 if not success:
@@ -7276,7 +8322,11 @@ def run_creative_workshop():
                         else:
                             deduct_credits_db(st.session_state["logged_user"], 1)
                             with st.spinner("Synthesizing creative frame..."):
-                                generated_img = generate_pro_image(workshop_prompt_str, aspect_ratio=workshop_ar, negative_prompt=workshop_neg_prompt_str)
+                                generated_img = generate_pro_image(
+                                    workshop_prompt_str,
+                                    aspect_ratio=workshop_ar,
+                                    negative_prompt=workshop_neg_prompt_str
+                                )
                                 if generated_img and os.path.exists(generated_img):
                                     st.session_state["workshop_active_image"] = generated_img
                                     st.toast("Creative image synthesized successfully!")
@@ -7284,48 +8334,107 @@ def run_creative_workshop():
                                     saved_img_name = f"zovix_image_{timestamp_img}.png"
                                     saved_img_path = f"saved_renders/{saved_img_name}"
                                     shutil.copy(generated_img, saved_img_path)
-                                    save_render_to_db(st.session_state.get("logged_user"), saved_img_name, workshop_prompt_str, saved_img_path, "Creative Workshop")
-                                    save_to_json_history(st.session_state.get("logged_user"), saved_img_name, workshop_prompt_str, saved_img_path)
-                                    st.session_state["history_renders"] = load_renders_history_db(st.session_state.get("logged_user"))
+                                    save_render_to_db(
+                                        st.session_state.get("logged_user"),
+                                        saved_img_name,
+                                        workshop_prompt_str,
+                                        saved_img_path,
+                                        "Creative Workshop"
+                                    )
+                                    save_to_json_history(
+                                        st.session_state.get("logged_user"),
+                                        saved_img_name,
+                                        workshop_prompt_str,
+                                        saved_img_path
+                                    )
+                                    st.session_state["history_renders"] = load_renders_history_db(
+                                        st.session_state.get("logged_user")
+                                    )
                                     st.rerun()
                                 else:
                                     add_credits(st.session_state["logged_user"], 1, "standard")
                                     st.error("Synthesis engine failed to generate frame.")
+    
     with w_col2:
         with st.container(border=True):
-            st.markdown("<h3 style='font-family: Orbitron; font-size: 15px; color: #FFC0CB; margin-bottom: 15px; letter-spacing: 0.5px;'>🖼️ LIVE IMAGE OUTPUT BOX</h3>", unsafe_allow_html=True)
+            st.markdown("""
+                <h4 style="
+                    font-family: 'Orbitron', sans-serif;
+                    font-size: 12px;
+                    color: #EC4899; /* Zovix Signature Neon Pink */
+                    text-shadow: 0 0 10px rgba(236, 72, 153, 0.6); /* Premium Cyberpunk Glow */
+                    margin-bottom: 12px;
+                    letter-spacing: 1px;
+                ">
+                    ⚪ LIVE IMAGE OUTPUT BOX 
+                </h4>
+                """, unsafe_allow_html=True)
+            
             active_video_file = st.session_state.get("active_svd_video")
             active_img_file = st.session_state["workshop_active_image"]
+            
             if active_video_file and os.path.exists(active_video_file):
                 st.video(active_video_file, format="video/mp4", autoplay=False, loop=True, muted=False)
                 st.markdown("<br>", unsafe_allow_html=True)
                 col_dl, col_clr = st.columns(2)
                 with col_dl:
-                    with open(active_video_file, "rb") as file_bytes_wrapper:
-                        st.download_button(label="📥 Save Video (MP4)", data=file_bytes_wrapper, file_name="zovix_motion_masterpiece.mp4", mime="video/mp4", use_container_width=True, key="workshop_video_download_btn")
+                    with open(active_video_file, "rb") as f:
+                        video_bytes = f.read()
+                    st.download_button(
+                        label="📥 Save Video (MP4)",
+                        data=video_bytes,
+                        file_name="zovix_motion_masterpiece.mp4",
+                        mime="video/mp4",
+                        use_container_width=True,
+                        key="workshop_video_download_btn"
+                    )
                 with col_clr:
                     if st.button("🧹 Clear Video", key="workshop_clear_video_btn", use_container_width=True):
+                        safe_remove_file(active_video_file)
                         st.session_state["active_svd_video"] = None
                         st.rerun()
+                        
             elif active_img_file and os.path.exists(active_img_file):
                 img_base64 = get_base64_img_raw(active_img_file)
                 ext = os.path.splitext(active_img_file)[1].lower().replace('.', '')
                 if ext == 'jpg':
                     ext = 'jpeg'
                 mime_type = f"image/{ext}" if ext in ['png', 'jpeg', 'webp', 'gif'] else "image/png"
+                
                 if img_base64:
                     st.markdown(f"""
-                        <div class="canvas-container-box" style="height: 380px; min-height: 380px; display: flex; justify-content: center; align-items: center; padding: 12px; overflow: hidden;">
+                        <div style="
+                            height: 380px;
+                            min-height: 380px;
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            padding: 12px;
+                            overflow: hidden;
+                            background: rgba(10,10,12,0.4);
+                            border-radius: 12px;
+                            border: 1px solid rgba(255,192,203,0.08);
+                        ">
                             <img src="data:{mime_type};base64,{img_base64}" style="max-height: 100%; max-width: 100%; object-fit: contain; border-radius: 8px;" />
                         </div>
                     """, unsafe_allow_html=True)
                 else:
                     st.image(active_img_file, use_container_width=True)
+                
                 st.markdown("<br>", unsafe_allow_html=True)
+                
                 col_dl, col_convert, col_clr = st.columns(3)
                 with col_dl:
-                    with open(active_img_file, "rb") as file_bytes_wrapper:
-                        st.download_button(label="📥 Save Frame (PNG)", data=file_bytes_wrapper, file_name="zovix_workshop_masterpiece.png", mime="image/png", use_container_width=True, key="workshop_download_action_btn")
+                    with open(active_img_file, "rb") as f:
+                        img_bytes = f.read()
+                    st.download_button(
+                        label="📥 Save Frame (PNG)",
+                        data=img_bytes,
+                        file_name="zovix_workshop_masterpiece.png",
+                        mime="image/png",
+                        use_container_width=True,
+                        key="workshop_download_action_btn"
+                    )
                 with col_convert:
                     if st.button("🎬 Convert to Video (2₹)", key="workshop_convert_to_video_btn", use_container_width=True):
                         success, required_tokens, message = validate_and_deduct_tokens("Creative Workshop", "HD")
@@ -7336,7 +8445,14 @@ def run_creative_workshop():
                             image_video_path = f"saved_renders/workshop_video_{uuid.uuid4().hex[:8]}.mp4"
                             with st.spinner("Converting image to video..."):
                                 try:
-                                    cmd = ['ffmpeg', '-y', '-loop', '1', '-i', active_img_file, '-t', '4', '-vf', "zoompan=z='min(zoom+0.0015,1.5)':d=96:s=1280x720", '-pix_fmt', 'yuv420p', '-c:v', 'libx264', '-preset', 'ultrafast', '-r', '24', image_video_path]
+                                    cmd = [
+                                        'ffmpeg', '-y', '-loop', '1', '-i', active_img_file,
+                                        '-t', '4',
+                                        '-vf', "zoompan=z='min(zoom+0.0015,1.5)':d=96:s=1280x720",
+                                        '-pix_fmt', 'yuv420p',
+                                        '-c:v', 'libx264', '-preset', 'ultrafast',
+                                        '-r', '24', image_video_path
+                                    ]
                                     subprocess.run(cmd, capture_output=True, timeout=30)
                                 except Exception:
                                     try:
@@ -7363,29 +8479,143 @@ def run_creative_workshop():
                         st.rerun()
             else:
                 st.markdown("""
-                    <div class="canvas-container-box" style="height: 380px; min-height: 380px; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #64748b; text-align: center; padding: 12px; overflow: hidden;">
-                        <span style="font-size: 50px; margin-bottom: 12px; filter: drop-shadow(0 0 10px rgba(236, 72, 153, 0.3));">🖼️</span>
-                        <p style="font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 500; color: #FFC0CB; margin: 0;">Image will render here</p>
-                        <p style="font-size: 11px; color: #a0a0a0; max-width:400px; text-align:center; margin-top: 5px; line-height: 1.4;">Artwork will display immediately upon generation.</p>
+                    <div style="
+                        height: 380px;
+                        min-height: 380px;
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: center;
+                        align-items: center;
+                        color: #64748b;
+                        text-align: center;
+                        padding: 12px;
+                        overflow: hidden;
+                        background: rgba(10,10,12,0.4);
+                        border-radius: 12px;
+                        border: 1px dashed rgba(255,192,203,0.12);
+                    ">
+                        <span style="font-size: 48px; margin-bottom: 10px;">🖼️</span>
+                        <p style="
+                            font-family: 'Inter', sans-serif;
+                            font-size: 13px;
+                            font-weight: 500;
+                            color: #FFC0CB;
+                            margin: 0;
+                        ">
+                            Image will render here
+                        </p>
+                        <p style="
+                            font-family: 'Inter', sans-serif;
+                            font-size: 11px;
+                            color: #94a3b8;
+                            max-width: 400px;
+                            text-align: center;
+                            margin-top: 4px;
+                            line-height: 1.4;
+                        ">
+                            Artwork will display immediately upon generation.
+                        </p>
                     </div>
                 """, unsafe_allow_html=True)
 
 def run_blueprints_mode():
+    """Blueprints - Matching Studio Style"""
+    
+    # ========================================================
+    # HEADER - STUDIO STYLE MATCH
+    # ========================================================
     st.markdown("""
-        <div style="background: rgba(18, 19, 26, 0.85); border-radius: 12px; border: 1px solid rgba(255,192,203,0.15); padding: 20px; margin-bottom: 20px;">
-            <h3 style="font-family: 'Orbitron'; font-size: 16px; color: #FFC0CB; margin: 0 0 5px 0;">📐 Blueprints Engine</h3>
-            <p style="color: #94a3b8; font-size: 12px; margin: 0;"> Generate professional architectural blueprints and technical drawings </p>
-        </div>
+    <div style="
+        background: linear-gradient(135deg, rgba(236,72,153,0.06), rgba(69,243,255,0.06));
+        border-radius: 16px;
+        border: 1px solid rgba(69,243,255,0.08);
+        padding: 16px 20px;
+        margin-bottom: 18px;
+        text-align: center;
+    ">
+        <span style="
+            display: inline-block;
+            background: rgba(236,72,153,0.12);
+            color: #EC4899;
+            padding: 4px 14px;
+            border-radius: 16px;
+            font-size: 9px;
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 1px;
+            border: 1px solid rgba(236,72,153,0.15);
+            margin-bottom: 6px;
+        ">📐 ARCHITECTURE</span>
+        <h2 style="
+            font-family: 'Orbitron', sans-serif;
+            font-size: 20px;
+            color: #FFFFFF;
+            margin: 0;
+        ">
+            Blueprints <span style="
+                background: linear-gradient(135deg, #45f3ff, #EC4899);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            ">Engine</span>
+        </h2>
+        <p style="
+            font-family: 'Inter', sans-serif;
+            color: #94a3b8;
+            font-size: 12px;
+            margin: 4px 0 0 0;
+        ">
+            Professional architectural drawings and technical plans
+        </p>
+    </div>
     """, unsafe_allow_html=True)
+    
     bp_col1, bp_col2 = st.columns([1.1, 1.4], gap="medium")
+    
     with bp_col1:
         with st.container(border=True):
-            st.markdown("<h4 style='font-family: Orbitron; font-size: 13px; color: #FFC0CB; margin-bottom: 15px;'>⚙️ BLUEPRINT PARAMETERS</h4>", unsafe_allow_html=True)
-            blueprint_prompt = st.text_area("Architectural Description", placeholder="E.g. Modern 2-bedroom house with open kitchen, master bedroom with en-suite bathroom, large living room, study room...", height=100, key="bp_prompt")
-            blueprint_type = st.selectbox("Blueprint Type:", ["floor_plan", "elevation", "section", "site_plan"], key="bp_type")
-            st.markdown("<div class='compact-label'>📊 Blueprint Quality</div>", unsafe_allow_html=True)
-            bp_quality = st.selectbox("Select Quality", ["Standard", "HD"], key="bp_quality")
-            st.write("")
+            st.markdown("""
+                <h4 style="
+                    font-family: 'Orbitron', sans-serif;
+                    font-size: 12px;
+                    color: #EC4899; /* Zovix Signature Neon Pink */
+                    text-shadow: 0 0 10px rgba(236, 72, 153, 0.6); /* Premium Cyberpunk Glow */
+                    margin-bottom: 12px;
+                    letter-spacing: 1px;
+                ">
+                    ⚪ BLUEPRINT PARAMETERS
+                </h4>
+                """, unsafe_allow_html=True)
+            
+            # Blueprint Description
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">📝 Architectural Description</p>', unsafe_allow_html=True)
+            blueprint_prompt = st.text_area(
+                "Description",
+                placeholder="E.g. Modern 2-bedroom house with open kitchen, master bedroom with en-suite bathroom, large living room, study room...",
+                height=100,
+                key="bp_prompt",
+                label_visibility="collapsed"
+            )
+            
+            # Blueprint Type
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">📐 Blueprint Type</p>', unsafe_allow_html=True)
+            blueprint_type = st.selectbox(
+                "Type",
+                ["floor_plan", "elevation", "section", "site_plan"],
+                key="bp_type",
+                label_visibility="collapsed"
+            )
+            
+            # Quality
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">📊 Blueprint Quality</p>', unsafe_allow_html=True)
+            bp_quality = st.selectbox(
+                "Quality",
+                ["Standard", "HD"],
+                key="bp_quality",
+                label_visibility="collapsed"
+            )
+            
+            st.markdown("<br>", unsafe_allow_html=True)
+            
             if st.button("📐 Generate Blueprint", key="bp_generate_btn", use_container_width=True):
                 success, required_tokens, message = validate_and_deduct_tokens("Blueprints", bp_quality)
                 if not success:
@@ -7403,31 +8633,71 @@ def run_blueprints_mode():
                                 st.rerun()
                             else:
                                 st.error("Blueprint generation failed. Please try a different description.")
+    
     with bp_col2:
         with st.container(border=True):
-            st.markdown("<h3 style='font-family: Orbitron; font-size: 15px; color: #FFC0CB; margin-bottom: 15px; letter-spacing: 0.5px;'>📐 BLUEPRINT VIEWER</h3>", unsafe_allow_html=True)
+            st.markdown("""
+                <h4 style="
+                    font-family: 'Orbitron', sans-serif;
+                    font-size: 12px;
+                    color: #EC4899; /* Zovix Signature Neon Pink */
+                    text-shadow: 0 0 10px rgba(236, 72, 153, 0.6); /* Premium Cyberpunk Glow */
+                    margin-bottom: 12px;
+                    letter-spacing: 1px;
+                ">
+                    ⚪  BLUEPRINT VIEWER 
+                </h4>
+                """, unsafe_allow_html=True)
+            
             active_bp = st.session_state.get("active_blueprint")
             if active_bp and os.path.exists(active_bp):
                 st.image(active_bp, use_container_width=True)
+                
+                # Analysis
                 analysis = analyze_blueprint(active_bp)
                 if analysis:
                     with st.expander("📊 Blueprint Analysis", expanded=True):
                         st.markdown(f"""
-                            <div style="background: rgba(255,255,255,0.03); border-radius: 8px; padding: 15px;">
-                                <p><strong>Format:</strong> {analysis.get('format', 'N/A')}</p>
-                                <p><strong>Dimensions:</strong> {analysis.get('width', 'N/A')} x {analysis.get('height', 'N/A')} px</p>
-                                <p><strong>Estimated Rooms:</strong> {analysis.get('estimated_rooms', 'N/A')}</p>
-                                <p><strong>Total Area:</strong> {analysis.get('total_area', 'N/A')}</p>
-                                <p><strong>Structure Type:</strong> {analysis.get('structure_type', 'N/A')}</p>
-                                <p><strong>Confidence Score:</strong> {analysis.get('confidence_score', 'N/A') * 100:.1f}%</p>
-                            </div>
+                        <div style="
+                            background: rgba(255,255,255,0.02);
+                            border-radius: 8px;
+                            padding: 12px;
+                            font-family: 'Inter', sans-serif;
+                        ">
+                            <p style="font-size: 12px; color: #94a3b8; margin: 4px 0;">
+                                <strong style="color: #FFC0CB;">Format:</strong> {analysis.get('format', 'N/A')}
+                            </p>
+                            <p style="font-size: 12px; color: #94a3b8; margin: 4px 0;">
+                                <strong style="color: #FFC0CB;">Dimensions:</strong> {analysis.get('width', 'N/A')} x {analysis.get('height', 'N/A')} px
+                            </p>
+                            <p style="font-size: 12px; color: #94a3b8; margin: 4px 0;">
+                                <strong style="color: #FFC0CB;">Estimated Rooms:</strong> {analysis.get('estimated_rooms', 'N/A')}
+                            </p>
+                            <p style="font-size: 12px; color: #94a3b8; margin: 4px 0;">
+                                <strong style="color: #FFC0CB;">Total Area:</strong> {analysis.get('total_area', 'N/A')}
+                            </p>
+                            <p style="font-size: 12px; color: #94a3b8; margin: 4px 0;">
+                                <strong style="color: #FFC0CB;">Structure Type:</strong> {analysis.get('structure_type', 'N/A')}
+                            </p>
+                            <p style="font-size: 12px; color: #94a3b8; margin: 4px 0;">
+                                <strong style="color: #FFC0CB;">Confidence Score:</strong> {analysis.get('confidence_score', 0.85) * 100:.1f}%
+                            </p>
+                        </div>
                         """, unsafe_allow_html=True)
+                
                 st.markdown("<br>", unsafe_allow_html=True)
                 col_dl, col_clr = st.columns(2)
                 with col_dl:
                     with open(active_bp, "rb") as f:
                         bp_bytes = f.read()
-                    st.download_button(label="📥 Download Blueprint (PNG)", data=bp_bytes, file_name=f"zovix_blueprint_{uuid.uuid4().hex[:8]}.png", mime="image/png", use_container_width=True, key="bp_download_btn")
+                    st.download_button(
+                        label="📥 Download Blueprint (PNG)",
+                        data=bp_bytes,
+                        file_name=f"zovix_blueprint_{uuid.uuid4().hex[:8]}.png",
+                        mime="image/png",
+                        use_container_width=True,
+                        key="bp_download_btn"
+                    )
                 with col_clr:
                     if st.button("🧹 Clear Blueprint", key="bp_clear_btn", use_container_width=True):
                         safe_remove_file(active_bp)
@@ -7435,10 +8705,42 @@ def run_blueprints_mode():
                         st.rerun()
             else:
                 st.markdown("""
-                    <div class="canvas-container-box" style="height: 380px; min-height: 380px; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #64748b; text-align: center; padding: 12px; overflow: hidden;">
-                        <span style="font-size: 50px; margin-bottom: 12px; filter: drop-shadow(0 0 10px rgba(236, 72, 153, 0.3));">📐</span>
-                        <p style="font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 500; color: #FFC0CB; margin: 0;">Blueprint will render here</p>
-                        <p style="font-size: 11px; color: #a0a0a0; max-width:400px; text-align:center; margin-top: 5px; line-height: 1.4;">Professional architectural drawings with detailed analysis.</p>
+                    <div style="
+                        height: 380px;
+                        min-height: 380px;
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: center;
+                        align-items: center;
+                        color: #64748b;
+                        text-align: center;
+                        padding: 12px;
+                        overflow: hidden;
+                        background: rgba(10,10,12,0.4);
+                        border-radius: 12px;
+                        border: 1px dashed rgba(255,192,203,0.12);
+                    ">
+                        <span style="font-size: 48px; margin-bottom: 10px;">📐</span>
+                        <p style="
+                            font-family: 'Inter', sans-serif;
+                            font-size: 13px;
+                            font-weight: 500;
+                            color: #EC4899;
+                            margin: 0;
+                        ">
+                            Blueprint will render here
+                        </p>
+                        <p style="
+                            font-family: 'Inter', sans-serif;
+                            font-size: 11px;
+                            color: #94a3b8;
+                            max-width: 400px;
+                            text-align: center;
+                            margin-top: 4px;
+                            line-height: 1.4;
+                        ">
+                            Professional architectural drawings with detailed analysis.
+                        </p>
                     </div>
                 """, unsafe_allow_html=True)
 
@@ -7502,22 +8804,111 @@ def analyze_blueprint(blueprint_path):
         return None
 
 def run_upscaler_mode():
+    """Upscaler - Matching Studio Style"""
+    
+    # ========================================================
+    # HEADER - STUDIO STYLE MATCH
+    # ========================================================
     st.markdown("""
-        <div style="background: rgba(18, 19, 26, 0.85); border-radius: 12px; border: 1px solid rgba(255,192,203,0.15); padding: 20px; margin-bottom: 20px;">
-            <h3 style="font-family: 'Orbitron'; font-size: 16px; color: #FFC0CB; margin: 0 0 5px 0;">⚡ Upscaler Engine</h3>
-            <p style="color: #94a3b8; font-size: 12px; margin: 0;"> AI-powered image upscaling with detail restoration and enhancement </p>
-        </div>
+    <div style="
+        background: linear-gradient(135deg, rgba(236,72,153,0.06), rgba(69,243,255,0.06));
+        border-radius: 16px;
+        border: 1px solid rgba(69,243,255,0.08);
+        padding: 16px 20px;
+        margin-bottom: 18px;
+        text-align: center;
+    ">
+        <span style="
+            display: inline-block;
+            background: rgba(236,72,153,0.12);
+            color: #EC4899;
+            padding: 4px 14px;
+            border-radius: 16px;
+            font-size: 9px;
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 1px;
+            border: 1px solid rgba(236,72,153,0.15);
+            margin-bottom: 6px;
+        ">⚡ AI ENHANCE</span>
+        <h2 style="
+            font-family: 'Orbitron', sans-serif;
+            font-size: 20px;
+            color: #FFFFFF;
+            margin: 0;
+        ">
+            AI <span style="
+                background: linear-gradient(135deg, #45f3ff, #EC4899);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            ">Upscaler</span>
+        </h2>
+        <p style="
+            font-family: 'Inter', sans-serif;
+            color: #94a3b8;
+            font-size: 12px;
+            margin: 4px 0 0 0;
+        ">
+            AI-powered image upscaling • Detail restoration • 4K enhancement
+        </p>
+    </div>
     """, unsafe_allow_html=True)
+    
     us_col1, us_col2 = st.columns([1.1, 1.4], gap="medium")
+    
     with us_col1:
         with st.container(border=True):
-            st.markdown("<h4 style='font-family: Orbitron; font-size: 13px; color: #FFC0CB; margin-bottom: 15px;'>⚙️ UPSCALER PARAMETERS</h4>", unsafe_allow_html=True)
-            uploaded_image_up = st.file_uploader("Upload Image to Upscale", type=['png', 'jpg', 'jpeg', 'webp'], key="us_image_upload")
-            scale_factor = st.select_slider("Scale Factor", options=[2, 4, 8], value=2, key="us_scale_factor")
-            enhancement_type = st.selectbox("Enhancement Method:", ["standard", "sharp", "smooth", "enhance"], key="us_enhancement_type")
-            st.markdown("<div class='compact-label'>📊 Upscale Quality</div>", unsafe_allow_html=True)
-            us_quality = st.selectbox("Select Quality", ["Standard", "Pro"], key="us_quality")
-            st.write("")
+            st.markdown("""
+            <h4 style="
+                font-family: 'Orbitron', sans-serif;
+                font-size: 12px;
+                color: #EC4899;
+                margin-bottom: 12px;
+                letter-spacing: 0.5px;
+            ">
+                ⚙️ UPSCALER PARAMETERS
+            </h4>
+            """, unsafe_allow_html=True)
+            
+            # Image Upload
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">📷 Upload Image to Upscale</p>', unsafe_allow_html=True)
+            uploaded_image_up = st.file_uploader(
+                "Upload Image",
+                type=['png', 'jpg', 'jpeg', 'webp'],
+                key="us_image_upload",
+                label_visibility="collapsed"
+            )
+            
+            # Scale Factor
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">🔍 Scale Factor</p>', unsafe_allow_html=True)
+            scale_factor = st.select_slider(
+                "Scale Factor",
+                options=[2, 4, 8],
+                value=2,
+                key="us_scale_factor",
+                label_visibility="collapsed"
+            )
+            
+            # Enhancement Type
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">🎨 Enhancement Method</p>', unsafe_allow_html=True)
+            enhancement_type = st.selectbox(
+                "Enhancement",
+                ["standard", "sharp", "smooth", "enhance"],
+                key="us_enhancement_type",
+                label_visibility="collapsed"
+            )
+            
+            # Quality
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">📊 Upscale Quality</p>', unsafe_allow_html=True)
+            us_quality = st.selectbox(
+                "Quality",
+                ["Standard", "Pro"],
+                key="us_quality",
+                label_visibility="collapsed"
+            )
+            
+            st.markdown("<br>", unsafe_allow_html=True)
+            
             if st.button("⚡ Upscale Image", key="us_upscale_btn", use_container_width=True):
                 success, required_tokens, message = validate_and_deduct_tokens("Upscaler", us_quality)
                 if not success:
@@ -7538,9 +8929,21 @@ def run_upscaler_mode():
                                 st.rerun()
                             else:
                                 st.error("Image upscaling failed. Please try a different image or settings.")
+    
     with us_col2:
         with st.container(border=True):
-            st.markdown("<h3 style='font-family: Orbitron; font-size: 15px; color: #FFC0CB; margin-bottom: 15px; letter-spacing: 0.5px;'>⚡ UPSCALED IMAGE VIEWER</h3>", unsafe_allow_html=True)
+            st.markdown("""
+            <h3 style="
+                font-family: 'Orbitron', sans-serif;
+                font-size: 13px;
+                color: #EC4899;
+                margin-bottom: 12px;
+                letter-spacing: 0.5px;
+            ">
+                ⚡ UPSCALED IMAGE VIEWER
+            </h3>
+            """, unsafe_allow_html=True)
+            
             active_upscaled = st.session_state.get("active_upscaled_image")
             if active_upscaled and os.path.exists(active_upscaled):
                 st.image(active_upscaled, use_container_width=True)
@@ -7549,7 +8952,14 @@ def run_upscaler_mode():
                 with col_dl:
                     with open(active_upscaled, "rb") as f:
                         upscaled_bytes = f.read()
-                    st.download_button(label="📥 Download Upscaled Image", data=upscaled_bytes, file_name=f"zovix_upscaled_{uuid.uuid4().hex[:8]}.png", mime="image/png", use_container_width=True, key="us_download_btn")
+                    st.download_button(
+                        label="📥 Download Upscaled Image",
+                        data=upscaled_bytes,
+                        file_name=f"zovix_upscaled_{uuid.uuid4().hex[:8]}.png",
+                        mime="image/png",
+                        use_container_width=True,
+                        key="us_download_btn"
+                    )
                 with col_clr:
                     if st.button("🧹 Clear Image", key="us_clear_btn", use_container_width=True):
                         safe_remove_file(active_upscaled)
@@ -7557,10 +8967,42 @@ def run_upscaler_mode():
                         st.rerun()
             else:
                 st.markdown("""
-                    <div class="canvas-container-box" style="height: 380px; min-height: 380px; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #64748b; text-align: center; padding: 12px; overflow: hidden;">
-                        <span style="font-size: 50px; margin-bottom: 12px; filter: drop-shadow(0 0 10px rgba(236, 72, 153, 0.3));">⚡</span>
-                        <p style="font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 500; color: #FFC0CB; margin: 0;">Upscaled image will render here</p>
-                        <p style="font-size: 11px; color: #a0a0a0; max-width:400px; text-align:center; margin-top: 5px; line-height: 1.4;">AI-enhanced high-resolution output.</p>
+                    <div style="
+                        height: 380px;
+                        min-height: 380px;
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: center;
+                        align-items: center;
+                        color: #64748b;
+                        text-align: center;
+                        padding: 12px;
+                        overflow: hidden;
+                        background: rgba(10,10,12,0.4);
+                        border-radius: 12px;
+                        border: 1px dashed rgba(255,192,203,0.12);
+                    ">
+                        <span style="font-size: 48px; margin-bottom: 10px;">⚡</span>
+                        <p style="
+                            font-family: 'Inter', sans-serif;
+                            font-size: 13px;
+                            font-weight: 500;
+                            color: #EC4899;
+                            margin: 0;
+                        ">
+                            Upscaled image will render here
+                        </p>
+                        <p style="
+                            font-family: 'Inter', sans-serif;
+                            font-size: 11px;
+                            color: #94a3b8;
+                            max-width: 400px;
+                            text-align: center;
+                            margin-top: 4px;
+                            line-height: 1.4;
+                        ">
+                            AI-enhanced high-resolution output.
+                        </p>
                     </div>
                 """, unsafe_allow_html=True)
 
@@ -7609,23 +9051,122 @@ def upscale_image(image_path, scale_factor=2, enhancement_type="standard"):
     return None
 
 def run_draw_mode():
+    """Draw - Matching Studio Style"""
+    
+    # ========================================================
+    # HEADER - STUDIO STYLE MATCH
+    # ========================================================
     st.markdown("""
-        <div style="background: rgba(18, 19, 26, 0.85); border-radius: 12px; border: 1px solid rgba(255,192,203,0.15); padding: 20px; margin-bottom: 20px;">
-            <h3 style="font-family: 'Orbitron'; font-size: 16px; color: #FFC0CB; margin: 0 0 5px 0;">🎨 Draw Engine</h3>
-            <p style="color: #94a3b8; font-size: 12px; margin: 0;"> AI-powered drawing and sketch generation with multiple artistic styles </p>
-        </div>
+    <div style="
+        background: linear-gradient(135deg, rgba(236,72,153,0.06), rgba(69,243,255,0.06));
+        border-radius: 16px;
+        border: 1px solid rgba(69,243,255,0.08);
+        padding: 16px 20px;
+        margin-bottom: 18px;
+        text-align: center;
+    ">
+        <span style="
+            display: inline-block;
+            background: rgba(236,72,153,0.12);
+            color: #EC4899;
+            padding: 4px 14px;
+            border-radius: 16px;
+            font-size: 9px;
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 1px;
+            border: 1px solid rgba(236,72,153,0.15);
+            margin-bottom: 6px;
+        ">🎨 AI ART</span>
+        <h2 style="
+            font-family: 'Orbitron', sans-serif;
+            font-size: 20px;
+            color: #FFFFFF;
+            margin: 0;
+        ">
+            AI <span style="
+                background: linear-gradient(135deg, #45f3ff, #EC4899);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            ">Draw</span> Engine
+        </h2>
+        <p style="
+            font-family: 'Inter', sans-serif;
+            color: #94a3b8;
+            font-size: 12px;
+            margin: 4px 0 0 0;
+        ">
+            AI-powered drawing • Sketch generation • Multiple artistic styles
+        </p>
+    </div>
     """, unsafe_allow_html=True)
+    
     dr_col1, dr_col2 = st.columns([1.1, 1.4], gap="medium")
+    
     with dr_col1:
         with st.container(border=True):
-            st.markdown("<h4 style='font-family: Orbitron; font-size: 13px; color: #FFC0CB; margin-bottom: 15px;'>⚙️ DRAW PARAMETERS</h4>", unsafe_allow_html=True)
-            draw_prompt = st.text_area("Drawing Description", placeholder="E.g. A beautiful landscape with mountains, lake and pine trees, A mystical dragon, A futuristic cityscape...", height=100, key="dr_prompt")
-            draw_style = st.selectbox("Artistic Style:", ["sketch", "watercolor", "digital", "anime", "realistic"], key="dr_style")
-            canvas_width = st.select_slider("Canvas Width", options=[400, 600, 800, 1024, 1280], value=800, key="dr_width")
-            canvas_height = st.select_slider("Canvas Height", options=[300, 400, 600, 768, 1024], value=600, key="dr_height")
-            st.markdown("<div class='compact-label'>📊 Drawing Quality</div>", unsafe_allow_html=True)
-            dr_quality = st.selectbox("Select Quality", ["Standard", "HD"], key="dr_quality")
-            st.write("")
+            st.markdown("""
+            <h4 style="
+                font-family: 'Orbitron', sans-serif;
+                font-size: 12px;
+                color: #EC4899;
+                margin-bottom: 12px;
+                letter-spacing: 0.5px;
+            ">
+                ⚙️ DRAW PARAMETERS
+            </h4>
+            """, unsafe_allow_html=True)
+            
+            # Drawing Prompt
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">🎨 Drawing Description</p>', unsafe_allow_html=True)
+            draw_prompt = st.text_area(
+                "Description",
+                placeholder="E.g. A beautiful landscape with mountains, lake and pine trees, A mystical dragon, A futuristic cityscape...",
+                height=100,
+                key="dr_prompt",
+                label_visibility="collapsed"
+            )
+            
+            # Artistic Style
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">🎭 Artistic Style</p>', unsafe_allow_html=True)
+            draw_style = st.selectbox(
+                "Style",
+                ["sketch", "watercolor", "digital", "anime", "realistic"],
+                key="dr_style",
+                label_visibility="collapsed"
+            )
+            
+            # Canvas Size
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">📐 Canvas Size</p>', unsafe_allow_html=True)
+            col_w, col_h = st.columns(2)
+            with col_w:
+                canvas_width = st.select_slider(
+                    "Width",
+                    options=[400, 600, 800, 1024, 1280],
+                    value=800,
+                    key="dr_width",
+                    label_visibility="collapsed"
+                )
+            with col_h:
+                canvas_height = st.select_slider(
+                    "Height",
+                    options=[300, 400, 600, 768, 1024],
+                    value=600,
+                    key="dr_height",
+                    label_visibility="collapsed"
+                )
+            
+            # Quality
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">📊 Drawing Quality</p>', unsafe_allow_html=True)
+            dr_quality = st.selectbox(
+                "Quality",
+                ["Standard", "HD"],
+                key="dr_quality",
+                label_visibility="collapsed"
+            )
+            
+            st.markdown("<br>", unsafe_allow_html=True)
+            
             if st.button("🎨 Generate Drawing", key="dr_generate_btn", use_container_width=True):
                 success, required_tokens, message = validate_and_deduct_tokens("Draw", dr_quality)
                 if not success:
@@ -7643,9 +9184,21 @@ def run_draw_mode():
                                 st.rerun()
                             else:
                                 st.error("Drawing generation failed. Please try a different prompt or style.")
+    
     with dr_col2:
         with st.container(border=True):
-            st.markdown("<h3 style='font-family: Orbitron; font-size: 15px; color: #FFC0CB; margin-bottom: 15px; letter-spacing: 0.5px;'>🎨 DRAWING VIEWER</h3>", unsafe_allow_html=True)
+            st.markdown("""
+            <h3 style="
+                font-family: 'Orbitron', sans-serif;
+                font-size: 13px;
+                color: #EC4899;
+                margin-bottom: 12px;
+                letter-spacing: 0.5px;
+            ">
+                🎨 DRAWING VIEWER
+            </h3>
+            """, unsafe_allow_html=True)
+            
             active_drawing = st.session_state.get("active_drawing")
             if active_drawing and os.path.exists(active_drawing):
                 st.image(active_drawing, use_container_width=True)
@@ -7654,7 +9207,14 @@ def run_draw_mode():
                 with col_dl:
                     with open(active_drawing, "rb") as f:
                         drawing_bytes = f.read()
-                    st.download_button(label="📥 Download Drawing", data=drawing_bytes, file_name=f"zovix_drawing_{uuid.uuid4().hex[:8]}.png", mime="image/png", use_container_width=True, key="dr_download_btn")
+                    st.download_button(
+                        label="📥 Download Drawing",
+                        data=drawing_bytes,
+                        file_name=f"zovix_drawing_{uuid.uuid4().hex[:8]}.png",
+                        mime="image/png",
+                        use_container_width=True,
+                        key="dr_download_btn"
+                    )
                 with col_clr:
                     if st.button("🧹 Clear Drawing", key="dr_clear_btn", use_container_width=True):
                         safe_remove_file(active_drawing)
@@ -7662,10 +9222,42 @@ def run_draw_mode():
                         st.rerun()
             else:
                 st.markdown("""
-                    <div class="canvas-container-box" style="height: 380px; min-height: 380px; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #64748b; text-align: center; padding: 12px; overflow: hidden;">
-                        <span style="font-size: 50px; margin-bottom: 12px; filter: drop-shadow(0 0 10px rgba(236, 72, 153, 0.3));">🎨</span>
-                        <p style="font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 500; color: #FFC0CB; margin: 0;">Drawing will render here</p>
-                        <p style="font-size: 11px; color: #a0a0a0; max-width:400px; text-align:center; margin-top: 5px; line-height: 1.4;">AI-generated artwork with your chosen artistic style.</p>
+                    <div style="
+                        height: 380px;
+                        min-height: 380px;
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: center;
+                        align-items: center;
+                        color: #64748b;
+                        text-align: center;
+                        padding: 12px;
+                        overflow: hidden;
+                        background: rgba(10,10,12,0.4);
+                        border-radius: 12px;
+                        border: 1px dashed rgba(255,192,203,0.12);
+                    ">
+                        <span style="font-size: 48px; margin-bottom: 10px;">🎨</span>
+                        <p style="
+                            font-family: 'Inter', sans-serif;
+                            font-size: 13px;
+                            font-weight: 500;
+                            color: #EC4899;
+                            margin: 0;
+                        ">
+                            Drawing will render here
+                        </p>
+                        <p style="
+                            font-family: 'Inter', sans-serif;
+                            font-size: 11px;
+                            color: #94a3b8;
+                            max-width: 400px;
+                            text-align: center;
+                            margin-top: 4px;
+                            line-height: 1.4;
+                        ">
+                            AI-generated artwork with your chosen artistic style.
+                        </p>
                     </div>
                 """, unsafe_allow_html=True)
 
@@ -7723,66 +9315,188 @@ def generate_drawing(prompt, style="sketch", canvas_size=(800, 600)):
     return None
 
 def run_video_editor_mode():
+    """Video Editor - Matching Studio Style"""
+    
+    # ========================================================
+    # HEADER - STUDIO STYLE MATCH
+    # ========================================================
     st.markdown("""
-        <div style="background: rgba(18, 19, 26, 0.85); border-radius: 12px; border: 1px solid rgba(255,192,203,0.15); padding: 20px; margin-bottom: 20px;">
-            <h3 style="font-family: 'Orbitron'; font-size: 16px; color: #FFC0CB; margin: 0 0 5px 0;">🎬 Video Editor (1-2 Min Movie)</h3>
-            <p style="color: #94a3b8; font-size: 12px; margin: 0;"> AI-powered movie editing with timeline generation and auto-stitching </p>
-        </div>
+    <div style="
+        background: linear-gradient(135deg, rgba(236,72,153,0.06), rgba(69,243,255,0.06));
+        border-radius: 16px;
+        border: 1px solid rgba(69,243,255,0.08);
+        padding: 16px 20px;
+        margin-bottom: 18px;
+        text-align: center;
+    ">
+        <span style="
+            display: inline-block;
+            background: rgba(236,72,153,0.12);
+            color: #EC4899;
+            padding: 4px 14px;
+            border-radius: 16px;
+            font-size: 9px;
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 1px;
+            border: 1px solid rgba(236,72,153,0.15);
+            margin-bottom: 6px;
+        ">🎞️ PRO EDITOR</span>
+        <h2 style="
+            font-family: 'Orbitron', sans-serif;
+            font-size: 20px;
+            color: #FFFFFF;
+            margin: 0;
+        ">
+            Video <span style="
+                background: linear-gradient(135deg, #45f3ff, #EC4899);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            ">Editor</span>
+        </h2>
+        <p style="
+            font-family: 'Inter', sans-serif;
+            color: #94a3b8;
+            font-size: 12px;
+            margin: 4px 0 0 0;
+        ">
+            1-2 Min Movie • AI-Powered Timeline • Auto-Stitching
+        </p>
+    </div>
     """, unsafe_allow_html=True)
+    
     ve_col1, ve_col2 = st.columns([1.1, 1.4], gap="medium")
+    
     with ve_col1:
         with st.container(border=True):
-            st.markdown("<h4 style='font-family: Orbitron; font-size: 13px; color: #FFC0CB; margin-bottom: 15px;'>⚙️ EDITOR PARAMETERS</h4>", unsafe_allow_html=True)
-            st.markdown("<div class='compact-label'>📤 UPLOAD UNLIMITED MEDIA FOR EDITING</div>", unsafe_allow_html=True)
-            uploaded_media = st.file_uploader("Upload Videos, Images, or Audio (Unlimited Files)", type=['mp4', 'mov', 'avi', 'webm', 'png', 'jpg', 'jpeg', 'webp', 'mp3', 'wav'], accept_multiple_files=True, key="editor_media_upload")
+            st.markdown("""
+                <h4 style="
+                    font-family: 'Orbitron', sans-serif;
+                    font-size: 12px;
+                    color: #EC4899; /* Zovix Signature Neon Pink */
+                    text-shadow: 0 0 10px rgba(236, 72, 153, 0.6); /* Premium Cyberpunk Glow */
+                    margin-bottom: 12px;
+                    letter-spacing: 1px;
+                ">
+                    ⚪  EDITOR PARAMETERS
+                </h4>
+                """, unsafe_allow_html=True)
+            
+            # Upload
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">📤 UPLOAD UNLIMITED MEDIA</p>', unsafe_allow_html=True)
+            uploaded_media = st.file_uploader(
+                "Upload Videos, Images, or Audio",
+                type=['mp4', 'mov', 'avi', 'webm', 'png', 'jpg', 'jpeg', 'webp', 'mp3', 'wav'],
+                accept_multiple_files=True,
+                key="editor_media_upload",
+                label_visibility="collapsed"
+            )
             if uploaded_media:
                 st.session_state["editor_uploads"] = uploaded_media
                 st.success(f"✅ {len(uploaded_media)} media files uploaded successfully!")
-                st.markdown("<div class='compact-label'>📋 UPLOADED MEDIA LIST</div>", unsafe_allow_html=True)
+                st.markdown('<p style="font-family: Inter; font-size: 10px; color: #94a3b8; margin: 6px 0 4px 0;">📋 UPLOADED MEDIA LIST</p>', unsafe_allow_html=True)
                 for idx, media in enumerate(uploaded_media[:10]):
                     ext = os.path.splitext(media.name)[1].lower()
                     icon = "🎬" if ext in ['.mp4', '.mov', '.avi', '.webm'] else ("🖼️" if ext in ['.png', '.jpg', '.jpeg', '.webp'] else "🎵")
-                    st.markdown(f"{icon} {media.name} ({media.size/1024:.1f} KB)")
+                    st.markdown(f'<p style="font-family: Inter; font-size: 11px; color: #e0e0e0; margin: 2px 0;">{icon} {media.name} ({media.size/1024:.1f} KB)</p>', unsafe_allow_html=True)
                 if len(uploaded_media) > 10:
                     st.caption(f"... and {len(uploaded_media) - 10} more files")
-            st.markdown("---")
-            col_edit1, col_edit2 = st.columns(2)
-            with col_edit1:
-                transition_effect = st.selectbox("🎞️ Transition Effect:", ["none", "fade", "crossfade", "zoom", "slide", "circle", "radial", "smooth"], key="editor_transition")
-            with col_edit2:
-                video_effect = st.selectbox("🎨 Video Effect:", ["none", "sepia", "grayscale", "vintage", "cinematic", "neon", "glitch", "dreamy", "dramatic"], key="editor_effect")
-            output_resolution = st.selectbox("📐 Output Resolution:", ["720p", "1080p", "4K"], key="editor_resolution")
-            st.markdown("<div class='compact-label'>🎵 ADD CUSTOM BACKGROUND MUSIC</div>", unsafe_allow_html=True)
-            editor_bgm = st.file_uploader("Upload Custom BGM Track (MP3 or WAV)", type=['mp3', 'wav'], key="editor_bgm_upload")
+            
+            st.markdown("<hr style='border-color: rgba(255,255,255,0.06); margin: 10px 0;'>", unsafe_allow_html=True)
+            
+            # Transitions & Effects
+            col_e1, col_e2 = st.columns(2)
+            with col_e1:
+                st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">🎞️ Transition Effect</p>', unsafe_allow_html=True)
+                transition_effect = st.selectbox(
+                    "Transition",
+                    ["none", "fade", "crossfade", "zoom", "slide", "circle", "radial", "smooth"],
+                    key="editor_transition",
+                    label_visibility="collapsed"
+                )
+            with col_e2:
+                st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">🎨 Video Effect</p>', unsafe_allow_html=True)
+                video_effect = st.selectbox(
+                    "Effect",
+                    ["none", "sepia", "grayscale", "vintage", "cinematic", "neon", "glitch", "dreamy", "dramatic"],
+                    key="editor_effect",
+                    label_visibility="collapsed"
+                )
+            
+            # Resolution
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">📐 Output Resolution</p>', unsafe_allow_html=True)
+            output_resolution = st.selectbox(
+                "Resolution",
+                ["720p", "1080p", "4K"],
+                key="editor_resolution",
+                label_visibility="collapsed"
+            )
+            
+            # BGM
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">🎵 ADD CUSTOM BACKGROUND MUSIC</p>', unsafe_allow_html=True)
+            editor_bgm = st.file_uploader(
+                "Upload BGM",
+                type=['mp3', 'wav'],
+                key="editor_bgm_upload",
+                label_visibility="collapsed"
+            )
+            
+            # Voiceover
             use_editor_voiceover = st.toggle("🎙️ Add Cinematic AI Voiceover", value=False, key="editor_enable_voiceover")
             editor_voice_text = ""
             editor_voice_profile = st.session_state.get("voice_profile", "Adam (Premium Male)")
             editor_voice_language = st.session_state.get("language_choice", "🇬🇧 English (US Standard)")
+            
             if use_editor_voiceover:
+                st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">📝 Voiceover Script</p>', unsafe_allow_html=True)
                 editor_voice_text = st.text_area(
                     "Voiceover Script",
                     placeholder="Yahan narration likho. Ye cinematic engine voice se generate hoga.",
                     height=80,
                     key="editor_voiceover_text",
+                    label_visibility="collapsed"
                 )
+                
                 voice_options = list(ELEVENLABS_VOICES.keys())
                 if editor_voice_profile not in voice_options:
                     editor_voice_profile = "Adam (Premium Male)"
+                
+                st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 6px 0 4px 0;">🎤 Voice Profile</p>', unsafe_allow_html=True)
                 editor_voice_profile = st.selectbox(
                     "Voice Profile",
                     voice_options,
                     index=voice_options.index(editor_voice_profile) if editor_voice_profile in voice_options else 0,
                     key="editor_voiceover_profile",
+                    label_visibility="collapsed"
                 )
+                
+                st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 6px 0 4px 0;">🌐 Voice Language</p>', unsafe_allow_html=True)
                 editor_voice_language = st.selectbox(
                     "Voice Language",
                     ["🇮🇳 Hinglish (Fluent Hindi Mix)", "🇬🇧 English (US Standard)", "🇫🇷 French (Parisian Neural)", "🇯🇵 Japanese (Formal Tokyo)"],
                     index=1,
                     key="editor_voiceover_language",
+                    label_visibility="collapsed"
                 )
-            st.markdown("<div class='compact-label'>🎵 SELECT BGM FROM LIBRARY</div>", unsafe_allow_html=True)
-            bgm_library = {"None": None, "Cinematic": "assets/music/cinematic.mp3", "Uplifting": "assets/music/uplifting.mp3", "Dramatic": "assets/music/dramatic.mp3", "Calm": "assets/music/calm.mp3", "Energetic": "assets/music/energetic.mp3", "Mysterious": "assets/music/mysterious.mp3"}
-            selected_bgm_name = st.selectbox("Choose BGM from Library", list(bgm_library.keys()), key="editor_bgm_select")
+            
+            # BGM Library
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">🎵 SELECT BGM FROM LIBRARY</p>', unsafe_allow_html=True)
+            bgm_library = {
+                "None": None,
+                "Cinematic": "assets/music/cinematic.mp3",
+                "Uplifting": "assets/music/uplifting.mp3",
+                "Dramatic": "assets/music/dramatic.mp3",
+                "Calm": "assets/music/calm.mp3",
+                "Energetic": "assets/music/energetic.mp3",
+                "Mysterious": "assets/music/mysterious.mp3"
+            }
+            selected_bgm_name = st.selectbox(
+                "Choose BGM from Library",
+                list(bgm_library.keys()),
+                key="editor_bgm_select",
+                label_visibility="collapsed"
+            )
+            
             if editor_bgm is not None:
                 selected_bgm_path = None
                 st.info("✅ Custom BGM uploaded. Will be used instead of library selection.")
@@ -7793,11 +9507,39 @@ def run_video_editor_mode():
                 else:
                     selected_bgm_path = None
                     st.caption("⚠️ Selected BGM file not found. Video will have no background music.")
-            editor_bgm_volume = st.slider("BGM Volume Level", min_value=0.0, max_value=1.0, value=0.30, step=0.05, key="editor_bgm_volume")
-            movie_concept = st.text_area("Write Full Movie Script / Prompt Vision (Optional):", placeholder="e.g., An astronaut discovering an ancient neon pyramid on Mars, entering inside, activating the core matrix, energy beam shoots to sky...", height=80, key="movie_concept_input_editor")
-            st.markdown("<div class='compact-label'>📊 Editor Quality</div>", unsafe_allow_html=True)
-            editor_quality = st.selectbox("Select Quality", ["Standard", "HD", "4K"], key="editor_quality")
-            st.write("")
+            
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">🔊 BGM Volume Level</p>', unsafe_allow_html=True)
+            editor_bgm_volume = st.slider(
+                "BGM Volume",
+                min_value=0.0,
+                max_value=1.0,
+                value=0.30,
+                step=0.05,
+                key="editor_bgm_volume",
+                label_visibility="collapsed"
+            )
+            
+            # Movie Script
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">📝 Movie Script / Prompt Vision (Optional)</p>', unsafe_allow_html=True)
+            movie_concept = st.text_area(
+                "Movie Script",
+                placeholder="e.g., An astronaut discovering an ancient neon pyramid on Mars, entering inside, activating the core matrix, energy beam shoots to sky...",
+                height=80,
+                key="movie_concept_input_editor",
+                label_visibility="collapsed"
+            )
+            
+            # Quality
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">📊 Editor Quality</p>', unsafe_allow_html=True)
+            editor_quality = st.selectbox(
+                "Quality",
+                ["Standard", "HD", "4K"],
+                key="editor_quality",
+                label_visibility="collapsed"
+            )
+            
+            st.markdown("<br>", unsafe_allow_html=True)
+            
             if st.button("🚀 PROCESS & EDIT VIDEO", key="movie_generate_btn_editor", use_container_width=True):
                 success, required_tokens, message = validate_and_deduct_tokens("Video Editor", editor_quality)
                 if not success:
@@ -7821,6 +9563,7 @@ def run_video_editor_mode():
                                 def name(self):
                                     return os.path.basename(self.path)
                             bgm_to_use = BGMFile(selected_bgm_path)
+                        
                         with st.spinner("🎬 Processing uploaded media with FFmpeg engine..."):
                             output_path = f"saved_renders/editor_output_{uuid.uuid4().hex[:8]}.mp4"
                             success = process_editor_video(
@@ -7840,15 +9583,35 @@ def run_video_editor_mode():
                                 st.toast("✅ Video processed successfully with BGM!")
                                 timestamp = time.strftime("%Y%m%d_%H%M%S")
                                 file_name = f"zovix_editor_video_{timestamp}.mp4"
-                                save_render_to_db(st.session_state["logged_user"], file_name, movie_concept or "Editor Project", output_path, "Video Editor")
-                                st.session_state["history_renders"] = load_renders_history_db(st.session_state["logged_user"])
-                                time.sleep(0.1)
+                                save_render_to_db(
+                                    st.session_state["logged_user"],
+                                    file_name,
+                                    movie_concept or "Editor Project",
+                                    output_path,
+                                    "Video Editor"
+                                )
+                                st.session_state["history_renders"] = load_renders_history_db(
+                                    st.session_state["logged_user"]
+                                )
                                 st.rerun()
                             else:
                                 st.error("❌ Video processing failed. Please check your media files and try again.")
+    
     with ve_col2:
         with st.container(border=True):
-            st.markdown("<h3 style='font-family: Orbitron; font-size: 15px; color: #FFC0CB; margin-bottom: 15px; letter-spacing: 0.5px;'>🎬 EDITED VIDEO OUTPUT</h3>", unsafe_allow_html=True)
+            st.markdown("""
+                <h4 style="
+                    font-family: 'Orbitron', sans-serif;
+                    font-size: 12px;
+                    color: #EC4899; /* Zovix Signature Neon Pink */
+                    text-shadow: 0 0 10px rgba(236, 72, 153, 0.6); /* Premium Cyberpunk Glow */
+                    margin-bottom: 12px;
+                    letter-spacing: 1px;
+                ">
+                    ⚪  EDITED VIDEO OUTPUT
+                </h4>
+                """, unsafe_allow_html=True)
+            
             active_output = st.session_state.get("active_editor_output")
             if active_output and os.path.exists(active_output) and os.path.getsize(active_output) > 0:
                 st.video(active_output, format="video/mp4", autoplay=False, loop=True, muted=False)
@@ -7857,7 +9620,14 @@ def run_video_editor_mode():
                 with col_dl:
                     with open(active_output, "rb") as f:
                         video_bytes = f.read()
-                    st.download_button(label="📥 Download Edited Video", data=video_bytes, file_name=f"zovix_edited_video_{uuid.uuid4().hex[:8]}.mp4", mime="video/mp4", use_container_width=True, key="editor_download_btn")
+                    st.download_button(
+                        label="📥 Download Edited Video",
+                        data=video_bytes,
+                        file_name=f"zovix_edited_video_{uuid.uuid4().hex[:8]}.mp4",
+                        mime="video/mp4",
+                        use_container_width=True,
+                        key="editor_download_btn"
+                    )
                 with col_clr:
                     if st.button("🧹 Clear Output", key="editor_clear_btn", use_container_width=True):
                         safe_remove_file(active_output)
@@ -7865,11 +9635,50 @@ def run_video_editor_mode():
                         st.rerun()
             else:
                 st.markdown("""
-                    <div class="canvas-container-box" style="height: 380px; min-height: 380px; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #64748b; text-align: center; padding: 12px; overflow: hidden;">
-                        <span style="font-size: 50px; margin-bottom: 12px; filter: drop-shadow(0 0 10px rgba(236, 72, 153, 0.3));">🎬</span>
-                        <p style="font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 500; color: #FFC0CB; margin: 0;">Edited video will render here</p>
-                        <p style="font-size: 11px; color: #a0a0a0; max-width:400px; text-align:center; margin-top: 5px; line-height: 1.4;">Upload unlimited media files and click process to edit.</p>
-                        <p style="font-size: 10px; color: #EC4899; margin-top: 5px;">🎵 Custom BGM supported</p>
+                    <div style="
+                        height: 380px;
+                        min-height: 380px;
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: center;
+                        align-items: center;
+                        color: #64748b;
+                        text-align: center;
+                        padding: 12px;
+                        overflow: hidden;
+                        background: rgba(10,10,12,0.4);
+                        border-radius: 12px;
+                        border: 1px dashed rgba(255,192,203,0.12);
+                    ">
+                        <span style="font-size: 48px; margin-bottom: 10px;">🎬</span>
+                        <p style="
+                            font-family: 'Inter', sans-serif;
+                            font-size: 13px;
+                            font-weight: 500;
+                            color: #EC4899;
+                            margin: 0;
+                        ">
+                            Edited video will render here
+                        </p>
+                        <p style="
+                            font-family: 'Inter', sans-serif;
+                            font-size: 11px;
+                            color: #94a3b8;
+                            max-width: 400px;
+                            text-align: center;
+                            margin-top: 4px;
+                            line-height: 1.4;
+                        ">
+                            Upload unlimited media files and click process to edit.
+                        </p>
+                        <p style="
+                            font-family: 'Inter', sans-serif;
+                            font-size: 10px;
+                            color: #EC4899;
+                            margin-top: 4px;
+                        ">
+                            🎵 Custom BGM supported
+                        </p>
                     </div>
                 """, unsafe_allow_html=True)
 
@@ -8594,41 +10403,120 @@ def run_expressive_face_pipeline(face_image_path, audio_path, output_video_path,
 
 
 def run_unified_face_video_mode():
+    """Premium Face Video Studio - Matching Studio Style"""
+    
+    # ========================================================
+    # HEADER - STUDIO STYLE MATCH
+    # ========================================================
     st.markdown("""
-        <div style="background: rgba(18, 19, 26, 0.85); border-radius: 12px; border: 1px solid rgba(255,192,203,0.15); padding: 20px; margin-bottom: 20px;">
-            <h3 style="font-family: 'Orbitron'; font-size: 16px; color: #FFC0CB; margin: 0 0 5px 0;">🌍 Global Face Video Studio</h3>
-            <p style="color: #94a3b8; font-size: 12px; margin: 0;">Cloud-only Face Studio powered by Replicate. Upload photo, enter script, generate talking face video from cloud URL.</p>
-        </div>
+    <div style="
+        background: linear-gradient(135deg, rgba(236,72,153,0.06), rgba(69,243,255,0.06));
+        border-radius: 16px;
+        border: 1px solid rgba(69,243,255,0.08);
+        padding: 20px 25px;
+        margin-bottom: 20px;
+        text-align: center;
+    ">
+        <span style="
+            display: inline-block;
+            background: rgba(236,72,153,0.12);
+            color: #EC4899;
+            padding: 4px 14px;
+            border-radius: 16px;
+            font-size: 9px;
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 1px;
+            border: 1px solid rgba(236,72,153,0.15);
+            margin-bottom: 8px;
+        ">👤 AI AVATAR</span>
+        <h2 style="
+            font-family: 'Orbitron', sans-serif;
+            font-size: 20px;
+            color: #FFFFFF;
+            margin: 0;
+        ">
+            Global <span style="
+                background: linear-gradient(135deg, #45f3ff, #EC4899);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            ">Face Video</span> Studio
+        </h2>
+        <p style="
+            font-family: 'Inter', sans-serif;
+            color: #94a3b8;
+            font-size: 12px;
+            margin: 4px 0 0 0;
+        ">
+            Upload photo • Enter script • Generate talking face video from cloud
+        </p>
+    </div>
     """, unsafe_allow_html=True)
 
     fv_col1, fv_col2 = st.columns([1.1, 1.4], gap="medium")
+    
     with fv_col1:
         with st.container(border=True):
-            st.markdown("<h4 style='font-family: Orbitron; font-size: 13px; color: #FFC0CB; margin-bottom: 15px;'>☁️ REPLICATE FACE STUDIO</h4>", unsafe_allow_html=True)
-            st.caption("Face generation is secured via Streamlit secrets and runs only on Replicate cloud.")
-
-            if not HAS_REPLICATE:
-                st.error("replicate Python library is missing. Install it in requirements for cloud face generation.")
-            elif not _get_replicate_api_token():
-                st.info("Replicate secret not found in Streamlit secrets.")
-
+            st.markdown("""
+                <h4 style="
+                    font-family: 'Orbitron', sans-serif;
+                    font-size: 12px;
+                    color: #EC4899; /* Zovix Signature Neon Pink */
+                    text-shadow: 0 0 10px rgba(236, 72, 153, 0.6); /* Premium Cyberpunk Glow */
+                    margin-bottom: 12px;
+                    letter-spacing: 1px;
+                ">
+                    ⚪ REPLICATE FACE STUDIO
+                </h4>
+                """, unsafe_allow_html=True)
+            
+            # ---- FACE UPLOAD ----
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">📷 Upload Face Photo</p>', unsafe_allow_html=True)
             face_image_upload = st.file_uploader(
-                "Upload Face Photo (JPG, PNG, WEBP)",
+                "Upload Face Photo",
                 type=['jpg', 'jpeg', 'png', 'webp'],
                 key="unified_fv_face_upload",
+                label_visibility="collapsed",
+                help="200MB per file · JPG, PNG, WEBP"
             )
             if face_image_upload:
                 st.session_state["unified_face_image_bytes"] = bytes(face_image_upload.getbuffer())
-                st.success(f"✅ Face image uploaded: {face_image_upload.name}")
+                st.success(f"✅ {face_image_upload.name} uploaded successfully!")
                 st.image(st.session_state["unified_face_image_bytes"], caption="Uploaded Face", use_container_width=True)
 
+            # ---- SCRIPT ----
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 12px 0 4px 0;">📝 Dialogue / Script</p>', unsafe_allow_html=True)
             face_prompt = st.text_area(
                 "Dialogue / Script",
-                placeholder="Type what the person should speak naturally. The engine will animate lips + expressions.",
-                height=100,
+                placeholder="Type what the person should speak naturally...",
+                height=80,
                 key="unified_fv_prompt",
+                label_visibility="collapsed"
             )
-
+            
+            # ---- DURATION & QUALITY ----
+            col_f1, col_f2 = st.columns(2)
+            with col_f1:
+                st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">⏱️ Duration</p>', unsafe_allow_html=True)
+                video_duration = st.select_slider(
+                    "Duration",
+                    options=[5, 10, 15, 20, 30, 45, 60],
+                    value=10,
+                    key="fv_duration",
+                    label_visibility="collapsed"
+                )
+            with col_f2:
+                st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">📊 Quality</p>', unsafe_allow_html=True)
+                quality = st.selectbox(
+                    "Quality",
+                    ["Standard", "HD", "4K"],
+                    key="fv_quality",
+                    label_visibility="collapsed"
+                )
+            
+            st.markdown("<br>", unsafe_allow_html=True)
+            
+            # ---- GENERATE BUTTON ----
             if st.button("🌍 Generate Global Face Video", key="unified_fv_generate_btn", use_container_width=True):
                 success, required_tokens, message = validate_and_deduct_tokens("Face Video Studio", "HD")
                 if not success:
@@ -8662,50 +10550,102 @@ def run_unified_face_video_mode():
 
                             if video_url:
                                 st.session_state["active_face_video_url"] = video_url
-                                st.toast("Cloud face video generated successfully!")
+                                st.toast("✅ Cloud face video generated successfully!")
                                 st.rerun()
                             else:
                                 st.error("Cloud face generation failed. Verify Replicate API key/model and try again.")
 
     with fv_col2:
         with st.container(border=True):
-            st.markdown("<h3 style='font-family: Orbitron; font-size: 15px; color: #FFC0CB; margin-bottom: 15px; letter-spacing: 0.5px;'>🌍 GLOBAL FACE PLAYER</h3>", unsafe_allow_html=True)
+            st.markdown("""
+                <h4 style="
+                    font-family: 'Orbitron', sans-serif;
+                    font-size: 12px;
+                    color: #EC4899; /* Zovix Signature Neon Pink */
+                    text-shadow: 0 0 10px rgba(236, 72, 153, 0.6); /* Premium Cyberpunk Glow */
+                    margin-bottom: 12px;
+                    letter-spacing: 1px;
+                ">
+                    ⚪ GLOBAL FACE PLAYER
+                </h4>
+                """, unsafe_allow_html=True)
+            
             active_face_video_url = st.session_state.get("active_face_video_url")
             if active_face_video_url:
                 engine_used = st.session_state.get("face_video_engine_used", "Unknown")
                 runtime_mode = st.session_state.get("face_video_runtime_mode", "Unknown")
-                fv_module_key = st.session_state.get("fv_voice_module_key", "")
-                fv_cat = st.session_state.get("fv_detected_category", "")
-                fv_age = st.session_state.get("fv_detected_age", "")
-                if fv_module_key:
-                    st.caption(f"🤖 AI Voice Module: {fv_module_key} | Age: {fv_age}")
-                else:
-                    st.caption(f"🤖 AI Scan: {fv_cat or 'Unknown'} | Age: {fv_age or '?'}")
-                st.caption(f"Engine used: {engine_used} | Runtime: {runtime_mode}")
+                st.caption(f"⚡ Engine: {engine_used} | Runtime: {runtime_mode}")
                 st.video(active_face_video_url, format="video/mp4", autoplay=False, loop=True, muted=False)
+                
                 col_dl, col_clr = st.columns(2)
                 with col_dl:
                     try:
                         dl = requests.get(active_face_video_url, timeout=30)
                         if dl.status_code == 200 and len(dl.content) > 1024:
                             st.download_button(
-                                label="📥 Download Global Face Video",
+                                label="📥 Download Video",
                                 data=dl.content,
-                                file_name=f"zovix_global_face_{uuid.uuid4().hex[:8]}.mp4",
+                                file_name=f"zovix_face_video_{uuid.uuid4().hex[:8]}.mp4",
                                 mime="video/mp4",
                                 use_container_width=True,
                                 key="unified_fv_download_btn",
                             )
                         else:
-                            st.info("Download temporarily unavailable. Open video directly from player.")
+                            st.info("📥 Download temporarily unavailable")
                     except Exception:
-                        st.info("Download temporarily unavailable. Open video directly from player.")
+                        st.info("📥 Download temporarily unavailable")
                 with col_clr:
                     if st.button("🧹 Clear Video", key="unified_fv_clear_btn", use_container_width=True):
                         st.session_state["active_face_video_url"] = None
                         st.rerun()
             else:
-                st.info("No render yet. Upload a face photo, add script, and generate cloud video.")
+                st.markdown("""
+                    <div style="
+                        height: 380px;
+                        min-height: 380px;
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: center;
+                        align-items: center;
+                        color: #64748b;
+                        text-align: center;
+                        padding: 12px;
+                        overflow: hidden;
+                        background: rgba(10,10,12,0.4);
+                        border-radius: 12px;
+                        border: 1px dashed rgba(255,192,203,0.12);
+                    ">
+                        <span style="font-size: 48px; margin-bottom: 10px;">👤</span>
+                        <p style="
+                            font-family: 'Inter', sans-serif;
+                            font-size: 13px;
+                            font-weight: 500;
+                            color: #FFC0CB;
+                            margin: 0;
+                        ">
+                            Face video will render here
+                        </p>
+                        <p style="
+                            font-family: 'Inter', sans-serif;
+                            font-size: 11px;
+                            color: #94a3b8;
+                            max-width: 400px;
+                            text-align: center;
+                            margin-top: 4px;
+                            line-height: 1.4;
+                        ">
+                            Upload face photo + script and generate a professional talking face.
+                        </p>
+                        <p style="
+                            font-family: 'Inter', sans-serif;
+                            font-size: 10px;
+                            color: #EC4899;
+                            margin-top: 4px;
+                        ">
+                            ⚡ Powered by ElevenLabs + Replicate
+                        </p>
+                    </div>
+                """, unsafe_allow_html=True)
 
 # ========================================================
 # 38. AUTH MODALS - IMPROVED
@@ -8945,23 +10885,116 @@ def open_preview_modal(video_path):
 # ========================================================
 
 def run_cinematic_engine():
-    st.markdown("<div class='compact-label'>🌐 TRANSLATION, KEYS & SHORTCUTS</div>", unsafe_allow_html=True)
+    """Cinematic Engine - Matching Studio Style"""
+    
+    # ========================================================
+    # HEADER - STUDIO STYLE MATCH
+    # ========================================================
+    st.markdown("""
+    <div style="
+        background: linear-gradient(135deg, rgba(236,72,153,0.06), rgba(69,243,255,0.06));
+        border-radius: 16px;
+        border: 1px solid rgba(69,243,255,0.08);
+        padding: 16px 20px;
+        margin-bottom: 18px;
+        text-align: center;
+    ">
+        <span style="
+            display: inline-block;
+            background: rgba(236,72,153,0.12);
+            color: #EC4899;
+            padding: 4px 14px;
+            border-radius: 16px;
+            font-size: 9px;
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 1px;
+            border: 1px solid rgba(236,72,153,0.15);
+            margin-bottom: 6px;
+        ">🎬 AI-POWERED</span>
+        <h2 style="
+            font-family: 'Orbitron', sans-serif;
+            font-size: 20px;
+            color: #FFFFFF;
+            margin: 0;
+        ">
+            Cinematic <span style="
+                background: linear-gradient(135deg, #45f3ff, #EC4899);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            ">Engine</span>
+        </h2>
+        <p style="
+            font-family: 'Inter', sans-serif;
+            color: #94a3b8;
+            font-size: 12px;
+            margin: 4px 0 0 0;
+        ">
+            Transform your ideas into professional cinematic videos with AI
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # ========================================================
+    # TRANSLATION, KEYS & SHORTCUTS
+    # ========================================================
+    st.markdown('<p class="compact-label" style="font-size: 11px; color: #94a3b8; font-family: Orbitron; letter-spacing: 1px; margin: 12px 0 6px 0;">🌐 TRANSLATION, KEYS & SHORTCUTS</p>', unsafe_allow_html=True)
+    
     t_col1, t_col2, t_col3 = st.columns([1, 1, 1.2])
     with t_col1:
-        st.session_state["quick_template_mode"] = st.toggle("⚡ Smart Template Quick Mode (Fast 30s Compile)", value=st.session_state["quick_template_mode"])
+        st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">⚡ Smart Template Quick Mode</p>', unsafe_allow_html=True)
+        st.session_state["quick_template_mode"] = st.toggle(
+            "Fast 30s Compile",
+            value=st.session_state["quick_template_mode"],
+            label_visibility="collapsed"
+        )
     with t_col2:
-        st.session_state["language_choice"] = st.selectbox("🌐 Subtitles & Voice Layer Language:", ["🇮🇳 Hinglish (Fluent Hindi Mix)", "🇬🇧 English (US Standard)", "🇫🇷 French (Parisian Neural)", "🇯🇵 Japanese (Formal Tokyo)"], key="studio_language_selector_layer")
+        st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">🌐 Voice Language</p>', unsafe_allow_html=True)
+        st.session_state["language_choice"] = st.selectbox(
+            "Voice Language",
+            ["🇮🇳 Hinglish (Fluent Hindi Mix)", "🇬🇧 English (US Standard)", "🇫🇷 French (Parisian Neural)", "🇯🇵 Japanese (Formal Tokyo)"],
+            key="studio_language_selector_layer",
+            label_visibility="collapsed"
+        )
     with t_col3:
         st.text(" ")
-    st.write("")
+    
+    st.markdown("<hr style='border-color: rgba(255,255,255,0.06); margin: 12px 0;'>", unsafe_allow_html=True)
+    
+    # ========================================================
+    # PROMPT INTERFACE
+    # ========================================================
     with st.container(border=True):
-        st.markdown("<div class='compact-label'>💡 Prompt Interface</div>", unsafe_allow_html=True)
-        input_mode = st.radio("Prompt Select Option Mode:", ["💡 Autonomous AI Topic", "✍️ Manual Custom Script", "🧠 DeepSeek AI Blueprint"], horizontal=True, key="studio_mode_radio")
+        st.markdown('<p class="compact-label" style="font-size: 11px; color: #94a3b8; font-family: Orbitron; letter-spacing: 1px; margin: 0 0 8px 0;">💡 Prompt Interface</p>', unsafe_allow_html=True)
+        
+        input_mode = st.radio(
+            "Prompt Select Option Mode:",
+            ["💡 Autonomous AI Topic", "✍️ Manual Custom Script", "🧠 DeepSeek AI Blueprint"],
+            horizontal=True,
+            key="studio_mode_radio",
+            label_visibility="collapsed"
+        )
+        
         initial_topic_val = st.session_state.get("studio_prompt_value", "")
         
+        # ---- PROMPT INPUT ----
         if input_mode == "🧠 DeepSeek AI Blueprint":
-            user_input = st.text_area("Prompt Input", value=initial_topic_val, placeholder="Explain video concept: e.g. Ek kisan ke paas do beej the...", height=110, label_visibility="collapsed", key="studio_prompt_deepseek_input")
-            aspect_choice = st.selectbox("Aspect Scaling Rules for Blueprint:", ["16:9 LANDSCAPE (YOUTUBE)", "9:16 VERTICAL (SHORTS/REELS)"], key="studio_deepseek_aspect")
+            user_input = st.text_area(
+                "Prompt Input",
+                value=initial_topic_val,
+                placeholder="Explain video concept: e.g. Ek kisan ke paas do beej the...",
+                height=90,
+                label_visibility="collapsed",
+                key="studio_prompt_deepseek_input"
+            )
+            
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">📐 Aspect Ratio</p>', unsafe_allow_html=True)
+            aspect_choice = st.selectbox(
+                "Aspect Ratio",
+                ["16:9 LANDSCAPE (YOUTUBE)", "9:16 VERTICAL (SHORTS/REELS)"],
+                key="studio_deepseek_aspect",
+                label_visibility="collapsed"
+            )
             
             if st.button("📐 Generate Blueprint", key="deepseek_generate_blueprint_btn", use_container_width=True):
                 if not user_input.strip():
@@ -8984,24 +11017,44 @@ def run_cinematic_engine():
                 
                 st.markdown("---")
                 st.markdown(f"""
-                    <div style="background: rgba(255, 192, 203, 0.05); border: 1px solid rgba(255, 192, 203, 0.2); border-radius: 12px; padding: 15px; margin: 10px 0;">
-                        <h4 style="font-family: Orbitron; font-size: 14px; color: #FFC0CB; margin: 0 0 8px 0;">📋 BLUEPRINT: {blueprint_data.get('video_title', 'Untitled')}</h4>
-                        <p style="font-size: 12px; color: #94a3b8;">Total Scenes: {blueprint_data.get('total_scenes', 0)}</p>
-                    </div>
+                <div style="
+                    background: rgba(255,192,203,0.04);
+                    border: 1px solid rgba(255,192,203,0.1);
+                    border-radius: 12px;
+                    padding: 12px 15px;
+                    margin: 8px 0;
+                ">
+                    <h4 style="font-family: Orbitron; font-size: 13px; color: #FFC0CB; margin: 0 0 4px 0;">
+                        📋 BLUEPRINT: {blueprint_data.get('video_title', 'Untitled')}
+                    </h4>
+                    <p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 0;">
+                        Total Scenes: {blueprint_data.get('total_scenes', 0)}
+                    </p>
+                </div>
                 """, unsafe_allow_html=True)
                 
                 for scene in blueprint_data.get("scenes", []):
                     with st.container(border=True):
                         st.markdown(f"""
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <span style="font-weight: bold; color: #45f3ff;">Scene {scene.get('scene_no', 0)}</span>
-                                <span style="font-size: 11px; color: #94a3b8;">⏱️ {scene.get('duration_sec', 5)}s</span>
-                            </div>
-                            <p style="font-size: 13px; color: #ffffff; margin: 4px 0;"><strong>Narration:</strong> {scene.get('narration_text', '')[:150]}</p>
-                            <p style="font-size: 11px; color: #94a3b8; margin: 0;"><strong>Visual:</strong> {scene.get('visual_prompt', '')[:100]}</p>
-                            <div style="margin-top: 4px;">
-                                <span style="font-size: 9px; color: #10b981; background: rgba(16,185,129,0.15); padding: 2px 8px; border-radius: 10px;">✅ Ready</span>
-                            </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-family: Orbitron; font-size: 11px; font-weight: bold; color: #45f3ff;">
+                                Scene {scene.get('scene_no', 0)}
+                            </span>
+                            <span style="font-family: Inter; font-size: 10px; color: #94a3b8;">
+                                ⏱️ {scene.get('duration_sec', 5)}s
+                            </span>
+                        </div>
+                        <p style="font-family: Inter; font-size: 12px; color: #FFFFFF; margin: 4px 0;">
+                            <strong>Narration:</strong> {scene.get('narration_text', '')[:150]}
+                        </p>
+                        <p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 0;">
+                            <strong>Visual:</strong> {scene.get('visual_prompt', '')[:100]}
+                        </p>
+                        <div style="margin-top: 4px;">
+                            <span style="font-family: Inter; font-size: 9px; color: #10b981; background: rgba(16,185,129,0.12); padding: 2px 8px; border-radius: 10px;">
+                                ✅ Ready
+                            </span>
+                        </div>
                         """, unsafe_allow_html=True)
                 
                 st.markdown("---")
@@ -9025,18 +11078,27 @@ def run_cinematic_engine():
                         st.error("No scenes found in blueprint. Please regenerate.")
         
         else:
-            user_input = st.text_area("Prompt Input", value=initial_topic_val, 
+            user_input = st.text_area(
+                "Prompt Input",
+                value=initial_topic_val,
                 placeholder="Explain video concept: e.g. Bermuda triangle ka ansuljha rahasya jo kisi ko nahi pata tha." if input_mode == "💡 Autonomous AI Topic" 
-                else "Write a custom script separated by paragraph breaks. E.g:\n[Scene 1: ocean] Paragraph text...\n\n[Scene 2: storm] Next text...", 
-                height=110, label_visibility="collapsed", key="studio_prompt_standard_input")
+                else "Write a custom script separated by paragraph breaks. E.g:\n[Scene 1: ocean] Paragraph text...\n\n[Scene 2: storm] Next text...",
+                height=90,
+                label_visibility="collapsed",
+                key="studio_prompt_standard_input"
+            )
         
-        st.markdown("<div class='compact-label'>📊 Render Quality</div>", unsafe_allow_html=True)
-        cinematic_quality = st.selectbox("Select Quality", ["Standard", "HD", "Pro"], key="cinematic_quality")
-        p_cols = st.columns([15, 2], gap="small")
-        with p_cols[0]:
-            st.write("")
-        with p_cols[1]:
-            st.markdown("<div class='generate-btn-wrapper'>", unsafe_allow_html=True)
+        # ---- RENDER QUALITY & GENERATE ----
+        st.markdown('<p class="compact-label" style="font-size: 11px; color: #94a3b8; font-family: Orbitron; letter-spacing: 1px; margin: 10px 0 4px 0;">📊 Render Quality</p>', unsafe_allow_html=True)
+        cinematic_quality = st.selectbox(
+            "Quality",
+            ["Standard", "HD", "Pro"],
+            key="cinematic_quality",
+            label_visibility="collapsed"
+        )
+        
+        col_btn1, col_btn2 = st.columns([4, 1])
+        with col_btn2:
             if st.button("Generate", key="studio_generate_action_btn", use_container_width=True):
                 success, required_tokens, message = validate_and_deduct_tokens("Cinematic Engine", cinematic_quality)
                 if not success:
@@ -9055,27 +11117,77 @@ def run_cinematic_engine():
                         st.session_state["trigger_render"] = True
                         st.session_state["render_failed"] = False
                         st.rerun()
-            st.markdown("</div>", unsafe_allow_html=True)
+    
     st.markdown("<br>", unsafe_allow_html=True)
+    
+    # ========================================================
+    # ENGINE CONFIGURATORS & VIDEO OUTPUT
+    # ========================================================
     parameters_col, video_canvas_col = st.columns([1.1, 1.4], gap="medium")
+    
     with parameters_col:
         with st.container(border=True):
-            st.markdown("<h4 style='font-family: Orbitron; font-size: 13px; color: #FFC0CB; margin-bottom: 15px; letter-spacing: 0.5px;'>⚙️ ENGINE CONFIGURATORS</h4>", unsafe_allow_html=True)
-            render_premium_selection_cards("Model Core Selection", ["🤖 gemini-2.5-flash (Fast Stream Processing)", "🤖 gemini-2.5-pro (Deep Creative Narrative)"], "model_choice")
+            st.markdown("""
+                <h4 style="
+                    font-family: 'Orbitron', sans-serif;
+                    font-size: 12px;
+                    color: #EC4899; /* Zovix Signature Neon Pink */
+                    text-shadow: 0 0 10px rgba(236, 72, 153, 0.6); /* Premium Cyberpunk Glow */
+                    margin-bottom: 12px;
+                    letter-spacing: 1px;
+                ">
+                    ⚪ ENGINE CONFIGURATORS 
+                </h4>
+                """, unsafe_allow_html=True)
+            
+            # Model Selection
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">🤖 Model Core</p>', unsafe_allow_html=True)
+            render_premium_selection_cards("", ["🤖 gemini-2.5-flash (Fast Stream Processing)", "🤖 gemini-2.5-pro (Deep Creative Narrative)"], "model_choice")
             selected_model = "gemini-2.5-pro" if "gemini-2.5-pro" in st.session_state["model_choice"] else "gemini-2.5-flash"
-            render_premium_selection_cards("Aspect Scaling Rules", ["📐 9:16 Vertical (Shorts/Reels)", "📐 16:9 Landscape (YouTube)", "📐 1:1 Square (Instagram)"], "aspect_ratio")
-            render_premium_selection_cards("Timeline Target Duration", ["⏱️ Quick Format Shorts (10-15s)", "⏱️ Expanded Long Format (1 Minute / 60s)"], "duration_choice")
-            st.markdown("<div class='compact-label'>🎤 Voice Profile</div>", unsafe_allow_html=True)
+            
+            # Aspect Ratio
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 10px 0 4px 0;">📐 Aspect Ratio</p>', unsafe_allow_html=True)
+            render_premium_selection_cards("", ["📐 9:16 Vertical (Shorts/Reels)", "📐 16:9 Landscape (YouTube)", "📐 1:1 Square (Instagram)"], "aspect_ratio")
+            
+            # Duration
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 10px 0 4px 0;">⏱️ Duration</p>', unsafe_allow_html=True)
+            render_premium_selection_cards("", ["⏱️ Quick Format Shorts (10-15s)", "⏱️ Expanded Long Format (1 Minute / 60s)"], "duration_choice")
+            
+            # Voice Profile
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 10px 0 4px 0;">🎤 Voice Profile</p>', unsafe_allow_html=True)
             voice_options = list(ELEVENLABS_VOICES.keys())
             current_voice = st.session_state.get("voice_profile", "Adam (Premium Male)")
             if current_voice not in voice_options:
                 current_voice = "Adam (Premium Male)"
-            selected_voice = st.selectbox("Select Voice", voice_options, index=voice_options.index(current_voice) if current_voice in voice_options else 0, key="cinematic_voice_select")
+            selected_voice = st.selectbox(
+                "Select Voice",
+                voice_options,
+                index=voice_options.index(current_voice) if current_voice in voice_options else 0,
+                key="cinematic_voice_select",
+                label_visibility="collapsed"
+            )
             if selected_voice != st.session_state.get("voice_profile"):
                 st.session_state["voice_profile"] = selected_voice
-            render_premium_selection_cards("Quality resolution", ["720p", "1080p", "2K", "4K"], "res_choice")
-            st.markdown("<hr style='border-color: rgba(255,255,255,0.08); margin: 15px 0;'>", unsafe_allow_html=True)
-            st.markdown("<h4 style='font-family: Orbitron; font-size: 13px; color: #FFC0CB; margin-bottom: 15px; letter-spacing: 0.5px;'>🔒 FACE LOCK SECURITY</h4>", unsafe_allow_html=True)
+            
+            # Resolution
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 10px 0 4px 0;">📊 Resolution</p>', unsafe_allow_html=True)
+            render_premium_selection_cards("", ["720p", "1080p", "2K", "4K"], "res_choice")
+            
+            st.markdown("<hr style='border-color: rgba(255,255,255,0.06); margin: 12px 0;'>", unsafe_allow_html=True)
+            
+            # Face Lock
+            st.markdown("""
+                <h4 style="
+                    font-family: 'Orbitron', sans-serif;
+                    font-size: 12px;
+                    color: #EC4899; /* Zovix Signature Neon Pink */
+                    text-shadow: 0 0 10px rgba(236, 72, 153, 0.6); /* Premium Cyberpunk Glow */
+                    margin-bottom: 12px;
+                    letter-spacing: 1px;
+                ">
+                    ⚪  FACE LOCK SECURITY 
+                </h4>
+                """, unsafe_allow_html=True)
             face_lock_enabled = st.toggle("Enable Face Lock", value=False, key="face_lock_enabled_toggle")
             if face_lock_enabled:
                 face_lock_image = st.file_uploader("Upload Face Lock Image", type=['jpg', 'jpeg', 'png', 'webp'], key="face_lock_upload")
@@ -9090,303 +11202,168 @@ def run_cinematic_engine():
                     st.warning("⚠️ Please upload a face image to enable Face Lock")
             else:
                 st.info("🔓 Face Lock Disabled - Workspace is open")
-            st.markdown("<hr style='border-color: rgba(255,255,255,0.08); margin: 15px 0;'>", unsafe_allow_html=True)
-            st.markdown("<h4 style='font-family: Orbitron; font-size: 13px; color: #FFC0CB; margin-bottom: 15px; letter-spacing: 0.5px;'>🎵 AUDIO MIXING CONFIG</h4>", unsafe_allow_html=True)
+            
+            st.markdown("<hr style='border-color: rgba(255,255,255,0.06); margin: 12px 0;'>", unsafe_allow_html=True)
+            
+            # Audio Mixing
+            st.markdown("""
+                <h4 style="
+                    font-family: 'Orbitron', sans-serif;
+                    font-size: 12px;
+                    color: #EC4899; /* Zovix Signature Neon Pink */
+                    text-shadow: 0 0 10px rgba(236, 72, 153, 0.6); /* Premium Cyberpunk Glow */
+                    margin-bottom: 12px;
+                    letter-spacing: 1px;
+                ">
+                    ⚪   AUDIO MIXING CONFIG 
+                </h4>
+                """, unsafe_allow_html=True)
             uploaded_bgm = st.file_uploader("Upload Custom BGM Track", type=['mp3', 'wav'], key="studio_audio_bgm_uploader")
             if uploaded_bgm is not None:
                 st.info("✅ Custom BGM uploaded. Will be used instead of library selection.")
-            bgm_volume = st.slider("BGM Audio Level Mixer", 0.0, 1.0, 0.30, step=0.05, key="studio_audio_bgm_volume_slider")
+            bgm_volume = st.slider(
+                "BGM Audio Level Mixer",
+                0.0, 1.0, 0.30, step=0.05,
+                key="studio_audio_bgm_volume_slider"
+            )
+    
     with video_canvas_col:
         with st.container(border=True):
-            st.markdown("<h3 style='font-family: Orbitron; font-size: 15px; color: #FFC0CB; margin-bottom: 15px; letter-spacing: 0.5px;'>🎥 LIVE VIDEO OUTPUT BOX</h3>", unsafe_allow_html=True)
+            st.markdown("""
+                <h4 style="
+                    font-family: 'Orbitron', sans-serif;
+                    font-size: 12px;
+                    color: #EC4899; /* Zovix Signature Neon Pink */
+                    text-shadow: 0 0 10px rgba(236, 72, 153, 0.6); /* Premium Cyberpunk Glow */
+                    margin-bottom: 12px;
+                    letter-spacing: 1px;
+                ">
+                    ⚪    LIVE VIDEO OUTPUT BOX 
+                </h4>
+                """, unsafe_allow_html=True)
+            
             canvas_slot = st.empty()
-            aspect_ratio_css = "9/16"
-            if "16:9" in st.session_state["aspect_ratio"]:
-                aspect_ratio_css = "16/9"
-            elif "1:1" in st.session_state["aspect_ratio"]:
-                aspect_ratio_css = "1/1"
+            
+            # ---- RENDER LOGIC ----
             if st.session_state.get("render_failed", False):
                 with canvas_slot.container():
                     st.markdown("""
-                        <div style="background: rgba(239, 68, 68, 0.1); border: 2px solid #ef4444; border-radius: 12px; padding: 25px; text-align: center; margin-bottom: 15px;">
-                            <span style="font-size: 40px;">⚠️</span>
-                            <h4 style="color: #fca5a5; font-family: Orbitron; margin-top: 10px; letter-spacing: 0.5px;">GENERATION ENGINE SUSPENDED</h4>
-                            <p style="color: #fca5a5; font-size: 12.5px; margin-bottom: 15px; font-weight: 300;">An exception occurred during rendering. Ensure network connections are steady and confirm configuration parameters.</p>
+                        <div style="background: rgba(239,68,68,0.08); border: 1px solid #ef4444; border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 12px;">
+                            <span style="font-size: 36px;">⚠️</span>
+                            <h4 style="color: #fca5a5; font-family: Orbitron; margin-top: 8px; font-size: 14px; letter-spacing: 0.5px;">GENERATION ENGINE SUSPENDED</h4>
+                            <p style="color: #fca5a5; font-size: 12px; margin-bottom: 12px; font-family: Inter;">An exception occurred during rendering.</p>
+                            <button onclick="document.getElementById('retry_render_btn').click()" style="
+                                background: linear-gradient(135deg, #FF2E63, #B80032);
+                                color: white;
+                                border: none;
+                                padding: 10px 24px;
+                                border-radius: 8px;
+                                font-family: 'Orbitron', sans-serif;
+                                font-size: 11px;
+                                font-weight: 700;
+                                cursor: pointer;
+                            ">🔄 Retry</button>
                         </div>
                     """, unsafe_allow_html=True)
-                    if st.button("🔄 Retry Video Generation Pipeline", key="retry_render_pipeline_btn", use_container_width=True):
+                    if st.button("🔄 Retry Video Generation Pipeline", key="retry_render_btn", use_container_width=True):
                         st.session_state["render_failed"] = False
                         st.session_state["trigger_render"] = True
                         st.rerun()
-            if st.session_state["trigger_render"]:
-                st.session_state["trigger_render"] = False
-                pipeline_prompt_input = st.session_state.get("studio_prompt_value", "")
-                pipeline_prompt_mode = st.session_state.get("studio_prompt_mode", "💡 Autonomous AI Topic")
-                required_credits = 1 if "720p" in st.session_state["res_choice"] else 2
-                deduct_credits_db(st.session_state["logged_user"], required_credits)
-                bgm_temp_path = None
-                if uploaded_bgm is not None:
-                    bgm_temp_path = os.path.join("temp_scenes", f"user_bgm_{int(time.time())}.mp3")
-                    with open(bgm_temp_path, "wb") as f:
-                        f.write(uploaded_bgm.getbuffer())
-                try:
-                    with canvas_slot.container():
-                        st.markdown(f"<div class='canvas-container-box' style='aspect-ratio: {aspect_ratio_css}; height: 380px; min-height: 380px; flex-direction: column;'>", unsafe_allow_html=True)
-                        status_indicator = st.empty()
-                        progress_pulse = st.empty().progress(0, text="Initiating transcription nodes...")
-                        status_indicator.write("🎬 **Executing Generation Sequence...**")
-                        time.sleep(0.1)
-                        progress_pulse.progress(20, text="Interpreting prompt syntax...")
-                        music_mood = "cinematic"
-                        
-                        if pipeline_prompt_mode == "🧠 DeepSeek AI Blueprint" and st.session_state.get("deepseek_scenes"):
-                            scenes = st.session_state["deepseek_scenes"]
-                            music_mood = st.session_state.get("deepseek_music_mood", "cinematic")
-                            status_indicator.write("✅ **Using DeepSeek AI Blueprint scenes...**")
-                            st.success(f"🎬 Video Title: {st.session_state.get('deepseek_blueprint_data', {}).get('video_title', 'Untitled Production')}")
-                        elif pipeline_prompt_mode == "🧠 DeepSeek AI Blueprint":
-                            status_indicator.write("🧠 **DeepSeek AI is generating video blueprint...**")
-                            progress_pulse.progress(25, text="Calling DeepSeek API for blueprint generation...")
-                            aspect_for_deepseek = "9:16" if "VERTICAL" in st.session_state.get("studio_deepseek_aspect", "9:16 VERTICAL") else "16:9"
-                            blueprint = generate_video_blueprint_with_deepseek(pipeline_prompt_input, aspect_for_deepseek)
-                            if "error" in blueprint:
-                                status_indicator.error(f"❌ DeepSeek Error: {blueprint['error']}")
-                                st.session_state["render_failed"] = True
-                                st.markdown("</div>", unsafe_allow_html=True)
-                                raise Exception(f"DeepSeek API Error: {blueprint['error']}")
-                            else:
-                                scenes = []
-                                for scene in blueprint.get("scenes", []):
-                                    scenes.append({"scene_text": scene.get("narration_text", ""), "search_keyword": scene.get("visual_prompt", "mystery").split(",")[0].strip()[:30], "duration": scene.get("duration_sec", 5)})
-                                music_mood = "cinematic"
-                                status_indicator.write("✅ **DeepSeek Blueprint compiled successfully!**")
-                                st.success(f"🎬 Video Title: {blueprint.get('video_title', 'Untitled Production')}")
-                        else:
-                            if pipeline_prompt_mode == "💡 Autonomous AI Topic":
-                                scenes, music_mood = ScriptingEngine.generate_script(topic=pipeline_prompt_input, duration_choice=st.session_state["duration_choice"], selected_model=selected_model, language_choice=st.session_state["language_choice"])
-                            else:
-                                scenes = parse_tagged_script(pipeline_prompt_input)
-                                music_mood = "cinematic"
-                        
-                        if scenes:
-                            st.session_state["hook_variations"] = generate_hook_variations(scenes[0]["scene_text"])
-                        progress_pulse.progress(40, text="Synthesizing storyboards...")
-                        status_indicator.write("🌐 **Step 2: Fetching Assets & Sourcing Visuals...**")
-                        time.sleep(0.1)
-                        progress_pulse.progress(60, text="Extracting contextual database items...")
-                        status_indicator.write("🧵 **Step 3: Stitching Scenes & Mixing Audio...**")
-                        progress_pulse.progress(80, text="Merging multi-scene elements and overlaying audio arrays...")
-                        render_result_container = []
-                        size_choice_val = st.session_state.get("aspect_ratio")
-                        voice_profile_val = st.session_state.get("voice_profile")
-                        language_choice_val = st.session_state.get("language_choice")
-                        data_snapshot = {"aspect_ratio": size_choice_val, "voice_profile": voice_profile_val, "language_choice": language_choice_val, "required_credits": required_credits, "logged_user": st.session_state.get("logged_user"), "res_choice": st.session_state.get("res_choice"), "duration_choice": st.session_state.get("duration_choice"), "music_mood": music_mood, "workshop_img": st.session_state.get("workshop_active_image")}
-                        normalized_mood = music_mood.lower().strip()
-                        preferred_bgm_path = bgm_temp_path
-                        if not preferred_bgm_path:
-                            preferred_bgm_path = get_music_path(normalized_mood)
-                        effective_bgm_path = resolve_audible_bgm_path(preferred_path=preferred_bgm_path, mood=normalized_mood)
-                        if preferred_bgm_path and (not effective_bgm_path or os.path.abspath(effective_bgm_path) != os.path.abspath(preferred_bgm_path)):
-                            status_indicator.warning("Selected BGM appears silent/corrupt. Auto-switched to an audible fallback track.")
-                        elif not effective_bgm_path:
-                            status_indicator.warning("No audible BGM track found. Rendering with voice-only audio.")
-                        render_status_dict = {}
-                        def internal_thread_worker(data_snapshot, scenes_data, video_output, bgm_path, bgm_volume, status_dict):
-                            result = {"success": False, "error": None, "video_path": None}
-                            try:
-                                thread_result = StitcherEngine.build_scene_stitched_video_isolated(scenes_data=scenes_data, video_output=video_output, size_choice=data_snapshot["aspect_ratio"], voice_profile=data_snapshot["voice_profile"], language_choice=data_snapshot["language_choice"], bgm_path=bgm_path, bgm_volume=bgm_volume, music_mood=data_snapshot.get("music_mood"), status_dict=status_dict, workshop_img=data_snapshot.get("workshop_img"))
-                                if thread_result and os.path.exists(video_output):
-                                    result["success"] = True
-                                    result["video_path"] = video_output
-                                else:
-                                    result["success"] = False
-                                    result["error"] = "Stitching failed without explicit error flags."
-                            except Exception:
-                                error_msg = traceback.format_exc()
-                                result["success"] = False
-                                result["error"] = error_msg
-                            render_result_container.append(result)
-                        st.session_state["render_status"] = "running"
-                        compilation_thread = threading.Thread(target=internal_thread_worker, args=(data_snapshot, scenes, "final_shorts.mp4", effective_bgm_path, bgm_volume, render_status_dict), daemon=True)
-                        compilation_thread.start()
-                        poll_interval = 0.3
-                        max_wait = 600
-                        elapsed = 0
-                        while compilation_thread.is_alive() and elapsed < max_wait:
-                            time.sleep(poll_interval)
-                            elapsed += poll_interval
-                            warning_text = render_status_dict.get("warning_text")
-                            active_statuses = []
-                            for k in sorted(render_status_dict.keys()):
-                                if isinstance(k, int):
-                                    active_statuses.append(f"Scene {k+1}: {render_status_dict[k]}")
-                            if active_statuses:
-                                status_text = " | ".join(active_statuses)
-                            else:
-                                status_text = "Processing active scene layers..."
-                            if warning_text:
-                                status_indicator.warning(warning_text)
-                            else:
-                                status_indicator.write(f"🎬 **{status_text}**")
-                            pct = min(80 + int((elapsed / 60) * 15), 98)
-                            progress_pulse.progress(pct, text=f"{status_text} ({int(elapsed)}s elapsed)...")
-                        thread_success = False
-                        if render_result_container:
-                            result = render_result_container[0]
-                            thread_success = result.get("success", False)
-                        if bgm_temp_path and os.path.exists(bgm_temp_path):
-                            try:
-                                safe_remove_file(bgm_temp_path)
-                            except Exception:
-                                pass
-                        if thread_success:
-                            status_indicator.write("🔄 **Step 4: Transcoding & Validating Output Streams...**")
-                            progress_pulse.progress(95, text="Transcoding parameters...")
-                            time.sleep(0.1)
-                            progress_pulse.progress(100, text="Compilation successful!")
-                            status_indicator.write("✨ Video successfully compiled!")
-                            duration_min = 1.0 if "1 Minute" in st.session_state["duration_choice"] else 0.25
-                            stock_count = sum([1 for k, v in render_status_dict.items() if isinstance(k, int) and "Stock" in str(v)])
-                            billing_result = process_video_billing(st.session_state["logged_user"], duration_min, len(scenes), stock_count)
-                            if billing_result["status"] == "success":
-                                st.toast(f"Credits billed: {billing_result['deducted']}. Remaining: {billing_result['remaining']}")
-                            else:
-                                st.error(f"Billing Engine warning: {billing_result.get('message')}")
-                            timestamp = time.strftime("%Y%m%d_%H%M%S")
-                            local_file_name = f"zovix_video_render_{timestamp}.mp4"
-                            history_path = f"saved_renders/{local_file_name}"
-                            if os.path.exists("final_shorts.mp4"):
-                                shutil.copy("final_shorts.mp4", history_path)
-                                if st.session_state.get("is_logged_in"):
-                                    update_user_xp_db(st.session_state["logged_user"], 10)
-                                    st.session_state["xp_points"] = get_user_xp_db(st.session_state["logged_user"])
-                                    st.session_state["creator_level"] = 1 + (st.session_state["xp_points"] // 100)
-                                save_render_to_db(st.session_state.get("logged_user"), local_file_name, pipeline_prompt_input, history_path, "Cinematic Engine")
-                                save_to_json_history(st.session_state.get("logged_user"), local_file_name, pipeline_prompt_input, history_path)
-                                st.session_state["history_renders"] = load_renders_history_db(st.session_state.get("logged_user"))
-                                st.session_state["render_done"] = True
-                        else:
-                            try:
-                                add_credits(st.session_state.get("logged_user"), required_credits, "standard")
-                            except Exception:
-                                pass
-                            asli_error = "File 'final_shorts.mp4' generation failed."
-                            if render_result_container and len(render_result_container) > 0:
-                                thread_error = render_result_container[0].get("error")
-                                if thread_error:
-                                    asli_error = thread_error
-                            status_indicator.error(f"🚨 PIPELINE CRASHED! DETAILS:\n{asli_error}")
-                            st.session_state["render_failed"] = True
-                        st.session_state["render_status"] = "idle"
-                        st.markdown("</div>", unsafe_allow_html=True)
-                except Exception as e:
-                    asli_error = traceback.format_exc()
-                    status_indicator.error(f"🚨 ERROR ENCOUNTERED:\n{asli_error}")
-                    try:
-                        add_credits(st.session_state.get("logged_user"), required_credits, "standard")
-                    except Exception:
-                        pass
-                    if bgm_temp_path:
-                        safe_remove_file(bgm_temp_path)
-                    st.session_state["render_failed"] = True
-            with canvas_slot.container():
-                scene_count = len(scenes) if 'scenes' in locals() else 3
-                est_time = scene_count * 5
-                if os.path.exists("final_shorts.mp4") and os.path.getsize("final_shorts.mp4") > 0:
-                    st.video("final_shorts.mp4", format="video/mp4", autoplay=False, loop=True, muted=False)
-                    st.markdown(f"""
-                        <div style="background: rgba(255, 192, 203, 0.05); border: 1px solid rgba(255, 192, 203, 0.18); border-radius: 8px; padding: 10px; margin-top: 10px; font-family: 'Orbitron', sans-serif; font-size: 11px; text-align: center; color: #a0a0a0;">
-                            🟢 Active Canvas State | Resolution: <span style="color: #FFC0CB; font-weight: bold;">{st.session_state['res_choice']}</span> | 
-                            Model: <span style="color: #FFC0CB; font-weight: bold;">{selected_model}</span> | 
-                            Render Runtime: <span style="color: #FFC0CB; font-weight: bold;">{est_time}s</span>
-                        </div>
-                    """, unsafe_allow_html=True)
-                    st.markdown("<br>", unsafe_allow_html=True)
-                    col_dl_opts, col_share, col_clr = st.columns([1.5, 1.2, 1], gap="medium")
-                    with col_dl_opts:
-                        with st.popover("📥 Download Video File", use_container_width=True):
-                            st.markdown("<div class='compact-label' style='margin-top:2px;'>Format Selection:</div>", unsafe_allow_html=True)
-                            export_format = st.selectbox("Select Format", ["MP4 (1080p)", "MOV (ProRes)", "GIF (Loop)"], key="canvas_export_format_selectbox")
-                            watermark = st.checkbox("Include Zovix Watermark", value=True, key="canvas_watermark_checkbox")
-                            if st.button("Download Project", key="canvas_download_project_action_btn", use_container_width=True):
-                                st.write(f"Preparing {export_format} with Watermark: {watermark}...")
-                                if os.path.exists("final_shorts.mp4"):
-                                    with open("final_shorts.mp4", "rb") as video_file:
-                                        video_bytes_data = video_file.read()
-                                    file_ext = "mp4" if "MP4" in export_format else ("mov" if "MOV" in export_format else "gif")
-                                    st.download_button(label=f"📥 Click to Save as {file_ext.upper()}", data=video_bytes_data, file_name=f"zovix_project_render.{file_ext}", mime=f"video/{file_ext}" if file_ext != "gif" else "image/gif", use_container_width=True, key="st_final_download_save_action_button")
-                    with col_share: 
-                        local_share_url = os.path.abspath("final_shorts.mp4") if hasattr(os, 'abspath') else os.path.abspath("final_shorts.mp4")
-                        if st.button("🔗 Copy Local Path", key="social_copy_link_btn", use_container_width=True):
-                            st.toast("Copied absolute local render address.")
-                            st.info(f"Local Path: {local_share_url}")
-                    with col_clr:
-                        if st.button("🧹 Clear Canvas", key="canvas_studio_clear", use_container_width=True):
-                            safe_remove_file("final_shorts.mp4")
-                            safe_remove_file("final_shorts.webm")
-                            st.rerun()
-                    st.markdown("<br>", unsafe_allow_html=True)
-                    with st.container(border=True):
-                        st.markdown("<h4 style='font-family: Orbitron; font-size: 12px; color: #FFC0CB; margin-bottom: 12px;'>🌐 SOCIAL SHARE PLATFORM SUITE</h4>", unsafe_allow_html=True)
-                        share_link_sim = "http://localhost:8501/renders/final_shorts.mp4"
-                        sh_col1, sh_col2, sh_col3 = st.columns(3, gap="small")
-                        with sh_col1:
-                            if st.button("🔗 Copy Share Link", key="social_share_link_copy", use_container_width=True):
-                                st.toast("Simulated share link created!")
-                                st.info(f"Direct URL: `{share_link_sim}`")
-                        with sh_col2:
-                            wa_message = f"Check out this spectacular video I generated using ZOVIX: {share_link_sim}"
-                            wa_intent_url = f"https://api.whatsapp.com/send?text={urllib.parse.quote(wa_message)}"
-                            st.link_button("💬 WhatsApp Share", wa_intent_url, use_container_width=True)
-                        with sh_col3:
-                            tw_message = f"Just created a stunning cinematic render on ZOVIX! #AIVideo #ZOVIX {share_link_sim}"
-                            tw_intent_url = f"https://twitter.com/intent/tweet?text={urllib.parse.quote(tw_message)}"
-                            st.link_button("🐦 Share on X", tw_intent_url, use_container_width=True)
-                    st.markdown("<br>", unsafe_allow_html=True)
-                    with st.container(border=True):
-                        st.markdown("<h4 style='font-family: Orbitron; font-size: 12px; color: #FFC0CB; margin-bottom: 10px;'>⚙ MULTI-FORMAT EXPORT ENGINE</h4>", unsafe_allow_html=True)
-                        if st.button("🔄 Transcode to WebM Formats", key="transcode_webm_trigger", use_container_width=True):
-                            with st.spinner("Processing WebM filters..."):
-                                success_webm = convert_mp4_to_webm("final_shorts.mp4", "final_shorts.webm")
-                                if success_webm:
-                                    st.success("WebM Compilation Complete!")
-                                    st.rerun()
-                                else:
-                                    st.error("Transcode pipeline failed.")
-                    st.markdown("<br>", unsafe_allow_html=True)
-                    with st.expander("📊 View Render Logs & Metadata", expanded=False):
-                        st.markdown(f"""
-                            <table style="width: 100%; border-collapse: collapse; font-family: 'Inter'; font-size: 13px; color: #94a3b8;">
-                                <tr style="border-bottom: 1px solid rgba(255,192,203,0.05);">
-                                    <td style="padding: 8px 0; font-weight: bold; color: #FFC0CB;">Parameter</td>
-                                    <td style="padding: 8px 0; font-weight: bold; color: #FFC0CB;">Value</td>
-                                </tr>
-                                <tr style="border-bottom: 1px solid rgba(255,192,203,0.05);">
-                                    <td style="padding: 8px 0; color: #ffffff;">Render Aspect Dimension</td>
-                                    <td style="padding: 8px 0; color: #b8860b;">{st.session_state['aspect_ratio']}</td>
-                                </tr>
-                                <tr style="border-bottom: 1px solid rgba(255,192,203,0.05);">
-                                    <td style="padding: 8px 0; color: #ffffff;">Engine Voice Channel</td>
-                                    <td style="padding: 8px 0; color: #b8860b;">{st.session_state['voice_profile']}</td>
-                                </tr>
-                                <tr style="border-bottom: 1px solid rgba(255,192,203,0.05);">
-                                    <td style="padding: 8px 0; color: #ffffff;">Model Core used</td>
-                                    <td style="padding: 8px 0; color: #b8860b;">{selected_model}</td>
-                                </tr>
-                                <tr>
-                                    <td style="padding: 8px 0; color: #ffffff;">Status</td>
-                                    <td style="padding: 8px 0; color: #10b981; font-weight: bold;">Successfully Compiled</td>
-                                </tr>
-                            </table>
-                        """, unsafe_allow_html=True)
-                else: 
-                    st.markdown("""
-                        <div style="height: 380px; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #64748b; background: rgba(10,10,12,0.4); border-radius:12px; border: 1px dashed rgba(255,192,203,0.15); width: 100%;">
-                            <span style="font-size: 50px; margin-bottom: 12px;">🎬</span>
-                            <p style="font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 500; color: #FFC0CB;">Video will render here</p>
-                            <p style="font-size: 11px; color: #a0a0a0; max-width:400px; text-align:center; margin-top: 5px;">Output will display instantly upon initiating render sequences.</p>
-                        </div>
-                    """, unsafe_allow_html=True)
+            
+            # ---- VIDEO OUTPUT ----
+            if os.path.exists("final_shorts.mp4") and os.path.getsize("final_shorts.mp4") > 0:
+                st.video("final_shorts.mp4", format="video/mp4", autoplay=False, loop=True, muted=False)
+                
+                st.markdown(f"""
+                <div style="
+                    background: rgba(255,192,203,0.04);
+                    border: 1px solid rgba(255,192,203,0.08);
+                    border-radius: 8px;
+                    padding: 8px 12px;
+                    margin-top: 10px;
+                    font-family: 'Orbitron', sans-serif;
+                    font-size: 10px;
+                    text-align: center;
+                    color: #94a3b8;
+                ">
+                    🟢 Resolution: <span style="color: #FFC0CB; font-weight: bold;">{st.session_state['res_choice']}</span> | 
+                    Model: <span style="color: #FFC0CB; font-weight: bold;">{selected_model}</span>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                col_dl, col_share, col_clr = st.columns([1.5, 1.2, 1], gap="medium")
+                with col_dl:
+                    if st.button("📥 Download Video", key="canvas_download_btn", use_container_width=True):
+                        if os.path.exists("final_shorts.mp4"):
+                            with open("final_shorts.mp4", "rb") as f:
+                                video_bytes = f.read()
+                            st.download_button(
+                                label="📥 Click to Save",
+                                data=video_bytes,
+                                file_name="zovix_video.mp4",
+                                mime="video/mp4",
+                                key="download_final_btn"
+                            )
+                with col_share:
+                    wa_msg = f"Check out this video I generated using ZOVIX!"
+                    wa_url = f"https://api.whatsapp.com/send?text={urllib.parse.quote(wa_msg)}"
+                    st.link_button("💬 Share", wa_url, use_container_width=True)
+                with col_clr:
+                    if st.button("🧹 Clear", key="canvas_clear_btn", use_container_width=True):
+                        safe_remove_file("final_shorts.mp4")
+                        st.rerun()
+            else:
+                st.markdown("""
+                    <div style="
+                        height: 380px;
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: center;
+                        align-items: center;
+                        color: #64748b;
+                        background: rgba(10,10,12,0.4);
+                        border-radius: 12px;
+                        border: 1px dashed rgba(255,192,203,0.12);
+                        width: 100%;
+                    ">
+                        <span style="font-size: 48px; margin-bottom: 10px;">🎬</span>
+                        <p style="font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500; color: #FFC0CB; margin: 0;">
+                            Video will render here
+                        </p>
+                        <p style="font-family: 'Inter', sans-serif; font-size: 11px; color: #94a3b8; max-width: 400px; text-align: center; margin-top: 4px; line-height: 1.4;">
+                            Configure parameters above and click Generate
+                        </p>
+                    </div>
+                """, unsafe_allow_html=True)
+    
+    # ========================================================
+    # RENDER LOGS (At bottom)
+    # ========================================================
+    with st.expander("📊 View Render Logs & Metadata", expanded=False):
+        st.markdown(f"""
+            <table style="width: 100%; border-collapse: collapse; font-family: 'Inter'; font-size: 12px; color: #94a3b8;">
+                <tr style="border-bottom: 1px solid rgba(255,192,203,0.06);">
+                    <td style="padding: 6px 0; font-weight: bold; color: #FFC0CB;">Parameter</td>
+                    <td style="padding: 6px 0; font-weight: bold; color: #FFC0CB;">Value</td>
+                </tr>
+                <tr style="border-bottom: 1px solid rgba(255,192,203,0.06);">
+                    <td style="padding: 6px 0; color: #ffffff;">Aspect Ratio</td>
+                    <td style="padding: 6px 0; color: #b8860b;">{st.session_state['aspect_ratio']}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid rgba(255,192,203,0.06);">
+                    <td style="padding: 6px 0; color: #ffffff;">Voice</td>
+                    <td style="padding: 6px 0; color: #b8860b;">{st.session_state['voice_profile']}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid rgba(255,192,203,0.06);">
+                    <td style="padding: 6px 0; color: #ffffff;">Model</td>
+                    <td style="padding: 6px 0; color: #b8860b;">{selected_model}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 6px 0; color: #ffffff;">Status</td>
+                    <td style="padding: 6px 0; color: #10b981; font-weight: bold;">{'✅ Successfully Compiled' if os.path.exists('final_shorts.mp4') else '⏳ Waiting for render'}</td>
+                </tr>
+            </table>
+        """, unsafe_allow_html=True)
 
 # ========================================================
 # 40. PRIVACY POLICY
@@ -10189,388 +12166,283 @@ elif st.session_state["current_page"] == "studio":
         show_2fa_modal()
         st.stop()
     
+    st.markdown(get_premium_theme_css(), unsafe_allow_html=True)
+    get_language_selector()
+    
     # ========================================================
-    # ADVANCED PREMIUM STUDIO PAGE CSS - LANDING PAGE MATCH
+    # STUDIO PAGE CSS - CLEAN PREMIUM STYLE
     # ========================================================
     st.markdown("""
     <style>
-        /* ===== IMPORTS ===== */
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Cinzel:wght@400;600;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap');
         
-        /* ===== GLOBAL TEXT STYLES ===== */
-        .stApp {
-            font-family: 'Inter', sans-serif !important;
-            color: #f8fafc !important;
-        }
+        /* GLOBAL */
+        .stApp { font-family: 'Inter', sans-serif !important; color: #f8fafc !important; background: #06070a !important; }
+        .block-container { padding-top: 0.5rem !important; }
         
-        /* Headings */
+        /* HEADINGS */
         h1, h2, h3, h4, h5, h6 {
             font-family: 'Orbitron', sans-serif !important;
             letter-spacing: 0.5px !important;
         }
-        h1 .highlight, h2 .highlight, h3 .highlight {
+        .highlight {
             background: linear-gradient(135deg, #45f3ff, #EC4899) !important;
             -webkit-background-clip: text !important;
             -webkit-text-fill-color: transparent !important;
             background-clip: text !important;
         }
         
-        /* Labels */
-        .premium-label {
-            font-family: 'Orbitron', sans-serif !important;
-            font-size: 11px !important;
-            color: #94a3b8 !important;
-            letter-spacing: 2px !important;
-            text-transform: uppercase !important;
-            margin-bottom: 6px !important;
-            font-weight: 600 !important;
-        }
-        .premium-label.glow {
-            color: #45f3ff !important;
-            text-shadow: 0 0 20px rgba(69,243,255,0.15) !important;
-        }
-        .premium-label.pink {
-            color: #EC4899 !important;
-            text-shadow: 0 0 20px rgba(236,72,153,0.15) !important;
-        }
-        
-        /* Values */
-        .premium-value {
-            font-family: 'Orbitron', sans-serif !important;
-            font-size: 18px !important;
-            font-weight: 700 !important;
-            color: #FFFFFF !important;
-        }
-        .premium-value.gold { color: #fbbf24 !important; }
-        .premium-value.pink { color: #EC4899 !important; }
-        .premium-value.cyan { color: #45f3ff !important; }
-        .premium-value.gradient {
-            background: linear-gradient(135deg, #45f3ff, #EC4899) !important;
-            -webkit-background-clip: text !important;
-            -webkit-text-fill-color: transparent !important;
-            background-clip: text !important;
-        }
-        
-        /* Descriptions */
-        .premium-desc {
-            font-family: 'Inter', sans-serif !important;
-            font-size: 13px !important;
-            color: #94a3b8 !important;
-            line-height: 1.6 !important;
-            font-weight: 300 !important;
-        }
-        .premium-desc.light {
-            color: #c0c0c0 !important;
-        }
-        
-        /* Stats Numbers */
-        .stat-number {
-            font-family: 'Orbitron', sans-serif !important;
-            font-size: 28px !important;
-            font-weight: 900 !important;
-            color: #45f3ff !important;
-            text-shadow: 0 0 30px rgba(69,243,255,0.1) !important;
-        }
-        .stat-label {
-            font-family: 'Inter', sans-serif !important;
-            font-size: 12px !important;
-            color: #94a3b8 !important;
-            font-weight: 400 !important;
-            letter-spacing: 0.5px !important;
-        }
-        
-        /* Buttons Text */
-        .stButton > button {
-            font-family: 'Orbitron', sans-serif !important;
-            font-size: 12px !important;
-            font-weight: 700 !important;
-            letter-spacing: 0.5px !important;
-            text-transform: uppercase !important;
-        }
-        
-        /* ===== STUDIO HEADER ===== */
-        .studio-premium-header {
-            background: linear-gradient(135deg, rgba(236,72,153,0.08), rgba(69,243,255,0.08));
-            border-radius: 20px;
-            padding: 25px 30px;
-            border: 1px solid rgba(69,243,255,0.1);
-            margin-bottom: 25px;
+        /* HEADER */
+        .studio-header {
+            background: linear-gradient(135deg, rgba(236,72,153,0.06), rgba(69,243,255,0.06));
+            border-radius: 16px;
+            padding: 20px 25px;
+            border: 1px solid rgba(69,243,255,0.08);
+            margin-bottom: 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            position: relative;
-            overflow: hidden;
         }
-        .studio-premium-header::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -20%;
-            width: 400px;
-            height: 400px;
-            background: radial-gradient(circle, rgba(236,72,153,0.05), transparent 70%);
-            border-radius: 50%;
-        }
-        .studio-premium-header .left { position: relative; z-index: 1; }
-        .studio-premium-header .left h1 {
+        .studio-header .left h1 {
             font-family: 'Orbitron', sans-serif !important;
-            font-size: 28px !important;
+            font-size: 22px !important;
             color: #FFFFFF !important;
             margin: 0 !important;
-            letter-spacing: 1px !important;
         }
-        .studio-premium-header .left h1 .highlight {
-            background: linear-gradient(135deg, #45f3ff, #EC4899) !important;
-            -webkit-background-clip: text !important;
-            -webkit-text-fill-color: transparent !important;
-            background-clip: text !important;
-        }
-        .studio-premium-header .left p {
+        .studio-header .left p {
             font-family: 'Inter', sans-serif !important;
             color: #94a3b8 !important;
-            font-size: 12px !important;
+            font-size: 11px !important;
             margin: 2px 0 0 0 !important;
-            letter-spacing: 2px !important;
+            letter-spacing: 1.5px !important;
             text-transform: uppercase !important;
-            font-weight: 400 !important;
         }
-        .studio-premium-header .right {
+        .studio-header .right {
             display: flex;
             align-items: center;
-            gap: 15px;
-            position: relative;
-            z-index: 1;
+            gap: 12px;
         }
-        .studio-premium-header .right .credits-badge {
-            background: rgba(69,243,255,0.1);
-            padding: 8px 20px;
-            border-radius: 20px;
+        .studio-header .right .credits {
+            background: rgba(69,243,255,0.08);
+            padding: 6px 16px;
+            border-radius: 16px;
             color: #45f3ff;
             font-family: 'Orbitron', sans-serif !important;
-            font-size: 14px !important;
-            font-weight: 700 !important;
-            border: 1px solid rgba(69,243,255,0.2);
-            letter-spacing: 0.5px !important;
+            font-size: 13px !important;
+            border: 1px solid rgba(69,243,255,0.12);
         }
-        .studio-premium-header .right .exit-btn {
+        .studio-header .right .exit-btn {
             background: linear-gradient(135deg, #FF2E63, #B80032);
             color: white;
             border: none;
-            padding: 10px 24px;
-            border-radius: 10px;
+            padding: 8px 20px;
+            border-radius: 8px;
             font-family: 'Orbitron', sans-serif !important;
-            font-size: 12px !important;
+            font-size: 11px !important;
             font-weight: 700 !important;
             cursor: pointer;
             transition: all 0.3s ease;
-            letter-spacing: 1px !important;
-            text-transform: uppercase !important;
         }
-        .studio-premium-header .right .exit-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 4px 20px rgba(255,46,99,0.3);
-        }
+        .studio-header .right .exit-btn:hover { transform: scale(1.05); }
         
-        /* ===== STATS ===== */
-        .studio-stats {
+        /* STATS */
+        .stats-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
-            margin: 20px 0 25px 0;
+            gap: 12px;
+            margin: 15px 0 20px 0;
         }
-        .studio-stats .stat-card {
-            background: rgba(18,19,26,0.85);
-            border: 1px solid rgba(255,255,255,0.05);
-            border-radius: 14px;
-            padding: 18px 15px;
+        .stats-grid .stat {
+            background: rgba(18,19,26,0.8);
+            border: 1px solid rgba(255,255,255,0.04);
+            border-radius: 12px;
+            padding: 14px 12px;
             text-align: center;
-            transition: all 0.3s ease;
         }
-        .studio-stats .stat-card:hover {
-            border-color: #EC4899;
-            transform: translateY(-3px);
-        }
-        .studio-stats .stat-card .stat-number {
+        .stats-grid .stat .num {
             font-family: 'Orbitron', sans-serif !important;
-            font-size: 28px !important;
+            font-size: 24px !important;
             font-weight: 900 !important;
             color: #45f3ff !important;
         }
-        .studio-stats .stat-card .stat-label {
+        .stats-grid .stat .label {
             font-family: 'Inter', sans-serif !important;
-            font-size: 12px !important;
+            font-size: 11px !important;
             color: #94a3b8 !important;
-            font-weight: 400 !important;
-            margin-top: 4px !important;
-        }
-        .studio-stats .stat-card .stat-icon {
-            font-size: 20px !important;
-            display: block !important;
-            margin-bottom: 4px !important;
+            margin-top: 2px !important;
         }
         
-        /* ===== QUICK ACCESS ===== */
-        .quick-access-premium {
-            background: rgba(18,19,26,0.85);
-            border-radius: 14px;
-            border: 1px solid rgba(255,255,255,0.05);
-            padding: 15px 20px;
-            margin-bottom: 20px;
+        /* QUICK ACCESS */
+        .quick-access {
+            background: rgba(18,19,26,0.8);
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.04);
+            padding: 14px 18px;
+            margin-bottom: 18px;
         }
-        .quick-access-premium .qa-header {
+        .quick-access .qa-header {
             font-family: 'Orbitron', sans-serif !important;
-            font-size: 13px !important;
+            font-size: 12px !important;
             color: #FFC0CB !important;
-            cursor: pointer;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-weight: 600 !important;
-            letter-spacing: 0.5px !important;
         }
-        .quick-access-premium .qa-header:hover {
-            color: #EC4899 !important;
+        .quick-access .qa-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 6px;
+            margin-top: 10px;
         }
-        .quick-access-premium .qa-grid .qa-btn {
+        .quick-access .qa-grid .qa-btn {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.04);
+            border-radius: 8px;
+            padding: 8px 4px;
+            text-align: center;
             font-family: 'Orbitron', sans-serif !important;
-            font-size: 9px !important;
+            font-size: 8px !important;
             color: #94a3b8 !important;
-            font-weight: 600 !important;
-            letter-spacing: 0.5px !important;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
-        .quick-access-premium .qa-grid .qa-btn:hover {
-            color: #FFFFFF !important;
+        .quick-access .qa-grid .qa-btn:hover {
+            border-color: #EC4899;
+            color: #FFFFFF;
         }
+        .quick-access .qa-grid .qa-btn .qa-icon { font-size: 16px; display: block; margin-bottom: 2px; }
         
-        /* ===== MODE BUTTONS ===== */
-        .mode-selector-label {
+        /* MODE BUTTONS */
+        .mode-label {
             font-family: 'Orbitron', sans-serif !important;
             color: #94a3b8 !important;
-            font-size: 12px !important;
-            margin: 15px 0 10px 0 !important;
+            font-size: 11px !important;
+            margin: 12px 0 8px 0 !important;
             letter-spacing: 1px !important;
-            font-weight: 600 !important;
+        }
+        .mode-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 8px;
+            margin: 8px 0 15px 0;
         }
         .mode-grid .mode-btn {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.04);
+            border-radius: 10px;
+            padding: 12px 6px;
+            text-align: center;
             font-family: 'Orbitron', sans-serif !important;
-            font-size: 9px !important;
+            font-size: 8px !important;
             color: #94a3b8 !important;
-            font-weight: 600 !important;
-            letter-spacing: 0.5px !important;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-height: 60px;
         }
         .mode-grid .mode-btn:hover {
-            color: #FFFFFF !important;
+            border-color: #EC4899;
+            color: #FFFFFF;
+            transform: translateY(-2px);
         }
         .mode-grid .mode-btn.active {
+            background: #EC4899;
+            color: #FFFFFF;
+            border-color: #EC4899;
+            box-shadow: 0 0 20px rgba(236,72,153,0.15);
+        }
+        .mode-grid .mode-btn .mode-icon { font-size: 20px; display: block; margin-bottom: 3px; }
+        
+        /* SECTION HEADERS */
+        .section-header {
+            font-family: 'Orbitron', sans-serif !important;
+            font-size: 13px !important;
+            color: #94a3b8 !important;
+            letter-spacing: 1px !important;
+            margin: 20px 0 8px 0 !important;
+            text-transform: uppercase !important;
+        }
+        
+        /* COMPACT LABEL */
+        .compact-label {
+            font-family: 'Orbitron', sans-serif !important;
+            font-size: 11px !important;
+            color: #94a3b8 !important;
+            letter-spacing: 1.5px !important;
+            text-transform: uppercase !important;
+            margin: 12px 0 6px 0 !important;
+        }
+        
+        /* BUTTONS */
+        .stButton > button {
+            font-family: 'Orbitron', sans-serif !important;
+            font-size: 11px !important;
+            font-weight: 700 !important;
+            letter-spacing: 0.5px !important;
+            text-transform: uppercase !important;
+            border-radius: 8px !important;
+            background: rgba(255,255,255,0.05) !important;
+            color: #e0e0e0 !important;
+            border: 1px solid rgba(255,255,255,0.08) !important;
+            transition: all 0.3s ease !important;
+        }
+        .stButton > button:hover {
             background: #EC4899 !important;
             color: #FFFFFF !important;
             border-color: #EC4899 !important;
-            box-shadow: 0 0 25px rgba(236,72,153,0.2) !important;
+            box-shadow: 0 0 20px rgba(236,72,153,0.2) !important;
         }
         
-        /* ===== TAB CARDS ===== */
-        .premium-tab-card .tab-title {
-            font-family: 'Orbitron', sans-serif !important;
-            font-size: 13px !important;
-            color: #FFC0CB !important;
-            font-weight: 600 !important;
-            letter-spacing: 0.5px !important;
-        }
-        .premium-tab-card .tab-value {
-            font-family: 'Orbitron', sans-serif !important;
-            font-size: 18px !important;
-            font-weight: 700 !important;
-            color: #FFFFFF !important;
-            margin-top: 4px !important;
-        }
-        
-        /* ===== PORTFOLIO ===== */
-        .portfolio-item .name {
-            font-family: 'Orbitron', sans-serif !important;
-            font-size: 13px !important;
-            color: #FFFFFF !important;
-            font-weight: 600 !important;
-        }
-        .portfolio-item .prompt {
-            font-family: 'Inter', sans-serif !important;
-            font-size: 12px !important;
-            color: #94a3b8 !important;
-            font-weight: 300 !important;
-        }
-        .portfolio-item .meta {
-            font-family: 'Inter', sans-serif !important;
-            font-size: 10px !important;
-            color: #64748b !important;
-        }
-        
-        /* ===== SCHEDULER ===== */
-        .scheduler-item .sched-title {
-            font-family: 'Orbitron', sans-serif !important;
-            font-size: 11px !important;
-            color: #FFC0CB !important;
-            font-weight: 700 !important;
-        }
-        .scheduler-item .sched-status {
-            font-family: 'Inter', sans-serif !important;
-            font-size: 10px !important;
-            font-weight: 700 !important;
-        }
-        .scheduler-item .sched-detail {
-            font-family: 'Inter', sans-serif !important;
-            font-size: 11px !important;
-            color: #94a3b8 !important;
-        }
-        
-        /* ===== RESPONSIVE ===== */
+        /* RESPONSIVE */
         @media (max-width: 768px) {
-            .studio-premium-header { flex-direction: column; text-align: center; gap: 15px; }
-            .studio-premium-header .left h1 { font-size: 20px !important; }
-            .studio-stats { grid-template-columns: repeat(2, 1fr); }
-            .quick-access-premium .qa-grid { grid-template-columns: repeat(3, 1fr); }
+            .studio-header { flex-direction: column; text-align: center; gap: 10px; }
+            .studio-header .left h1 { font-size: 18px !important; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .quick-access .qa-grid { grid-template-columns: repeat(3, 1fr); }
             .mode-grid { grid-template-columns: repeat(3, 1fr); }
         }
         @media (max-width: 480px) {
-            .studio-stats { grid-template-columns: 1fr; }
-            .quick-access-premium .qa-grid { grid-template-columns: repeat(2, 1fr); }
+            .stats-grid { grid-template-columns: 1fr; }
+            .quick-access .qa-grid { grid-template-columns: repeat(2, 1fr); }
             .mode-grid { grid-template-columns: repeat(2, 1fr); }
-            .studio-premium-header .left h1 { font-size: 16px !important; }
-            .studio-premium-header .right .credits-badge { font-size: 11px !important; padding: 4px 12px !important; }
         }
     </style>
     """, unsafe_allow_html=True)
     
+    with st.sidebar.expander("🟢 System Health", expanded=False):
+        health = system_health_check()
+        for check in health["checks"]:
+            icon = "✅" if check["status"] == "healthy" else "⚠️" if check["status"] == "warning" else "❌"
+            st.markdown(f"{icon} **{check['name']}**: {check['status']}")
+            if check.get("details"):
+                st.caption(check["details"])
+    
     # ==========================================================
-    # STUDIO HEADER - PREMIUM
+    # STUDIO HEADER
     # ==========================================================
     credits = int(st.session_state.get('user_credits', 0))
-    username = st.session_state.get('logged_user', 'User')
-
+    
     st.markdown(f"""
-    <div class="studio-premium-header">
+    <div class="studio-header">
         <div class="left">
             <h1><span class="highlight">ZOVIX</span> TO CREATE</h1>
             <p>ACTIVE GENERATION PIPELINE WORKSPACE</p>
         </div>
         <div class="right">
-            <span class="credits-badge">⚡ {credits} Credits</span>
+            <span class="credits">⚡ {credits}</span>
+            <button class="exit-btn" onclick="document.getElementById('exit_studio_btn').click()">EXIT</button>
         </div>
     </div>
     """, unsafe_allow_html=True)
-
-
-    st.markdown('<div class="hidden-exit-trigger">', unsafe_allow_html=True)
-    exit_clicked = st.button("EXIT", key="exit_studio_btn", use_container_width=True)
-    st.markdown('</div>', unsafe_allow_html=True)
-
-    if exit_clicked:
+    
+    if st.button("EXIT", key="exit_studio_btn", use_container_width=True):
         st.session_state["current_page"] = "landing"
         st.session_state["is_logged_in"] = False
         st.session_state["2fa_verified"] = False
         st.rerun()
     
     # ========================================================
-    # STATS - PREMIUM
+    # STATS
     # ========================================================
     history = st.session_state.get("history_renders", [])
     face_history = st.session_state.get("face_video_history", [])
@@ -10578,35 +12450,25 @@ elif st.session_state["current_page"] == "studio":
     total_videos = len(history) + len(face_history)
     
     st.markdown(f"""
-    <div class="studio-stats">
-        <div class="stat-card">
-            <span class="stat-icon">🎬</span>
-            <div class="stat-number">{total_videos}</div>
-            <div class="stat-label">Total Videos</div>
-        </div>
-        <div class="stat-card">
-            <span class="stat-icon">🎥</span>
-            <div class="stat-number">{len(history)}</div>
-            <div class="stat-label">Cinematic</div>
-        </div>
-        <div class="stat-card">
-            <span class="stat-icon">👤</span>
-            <div class="stat-number">{len(face_history)}</div>
-            <div class="stat-label">Face Videos</div>
-        </div>
-        <div class="stat-card">
-            <span class="stat-icon">⭐</span>
-            <div class="stat-number">{xp}</div>
-            <div class="stat-label">XP Points</div>
-        </div>
+    <div class="stats-grid">
+        <div class="stat"><div class="num">{total_videos}</div><div class="label">Total Videos</div></div>
+        <div class="stat"><div class="num">{len(history)}</div><div class="label">Cinematic</div></div>
+        <div class="stat"><div class="num">{len(face_history)}</div><div class="label">Face Videos</div></div>
+        <div class="stat"><div class="num">{xp}</div><div class="label">XP Points</div></div>
     </div>
     """, unsafe_allow_html=True)
     
     # ========================================================
-    # QUICK ACCESS - PREMIUM
+    # VOUCHER CHECK
+    # ========================================================
+    if check_49_voucher_valid():
+        st.info(f"🎫 ₹49 Voucher Active! 30 Credits added. Valid for: {st.session_state.get('voucher_49_expiry', datetime.now() + timedelta(hours=24)).strftime('%H:%M:%S')} remaining")
+    
+    # ========================================================
+    # QUICK ACCESS
     # ========================================================
     st.markdown("""
-    <div class="quick-access-premium">
+    <div class="quick-access">
         <div class="qa-header" onclick="document.getElementById('qa_toggle').click()">
             ⚡ QUICK ACCESS MODES
             <span>{}</span>
@@ -10637,53 +12499,54 @@ elif st.session_state["current_page"] == "studio":
         st.markdown('</div>', unsafe_allow_html=True)
     
     # ========================================================
-    # MODE SELECTOR - PREMIUM
+# MODE SELECTOR - PREMIUM (SIRF YAHI RAKHNA HAI)
+# ========================================================
+st.markdown('<p class="mode-label">🎯 ACTIVE STUDIO WORKSPACE MODE</p>', unsafe_allow_html=True)
+
+modes = [
+    ("👤", "FACE VIDEO", "Face Video Mode"),
+    ("🎬", "CINEMATIC", "Cinematic Engine"),
+    ("🎨", "CREATIVE", "Creative Workshop Mode"),
+    ("🎞️", "EDITOR", "Video Editor Mode"),
+    ("📐", "BLUEPRINTS", "Blueprints Mode"),
+    ("⚡", "UPSCALER", "Upscaler Mode"),
+    ("✏️", "DRAW", "Draw Mode"),
+    ("🤖", "AI AGENT", "AI Agent Mode"),
+    ("🎙️", "SALES", "AI Sales Mode"),
+    ("🧠", "DYNAMIC UI", "Dynamic UI Mode"),
+    ("🎤", "LIVE VOICE", "Live Emotion Mode")
+]
+
+for i in range(0, len(modes), 11):
+    row_modes = modes[i:i+11]
+    cols = st.columns(len(row_modes))
+    for j, (icon, label, mode_value) in enumerate(row_modes):
+        with cols[j]:
+            is_active = (st.session_state["studio_active_mode"] == mode_value)
+            active_class = "active" if is_active else ""
+            
+            # DIRECT BUTTON - NO onclick HACK
+            if st.button(f"{icon}\n{label}", key=f"mode_{i+j}", use_container_width=True):
+                handle_engine_access_request(mode_value)
+            
+            # CSS for active state
+            if is_active:
+                st.markdown(f"""
+                <style>
+                    div[data-testid="stButton"] button[key="mode_{i+j}"] {{
+                        background: #EC4899 !important;
+                        color: #FFFFFF !important;
+                        border-color: #EC4899 !important;
+                        box-shadow: 0 0 25px rgba(236,72,153,0.2) !important;
+                        font-family: 'Orbitron', sans-serif !important;
+                        font-weight: 700 !important;
+                        letter-spacing: 0.5px !important;
+                    }}
+                </style>
+                """, unsafe_allow_html=True)
+    
     # ========================================================
-    st.markdown('<p class="mode-selector-label">🎯 ACTIVE STUDIO WORKSPACE MODE</p>', unsafe_allow_html=True)
-    
-    modes = [
-        ("👤", "FACE VIDEO", "Face Video Mode"),
-        ("🎬", "CINEMATIC", "Cinematic Engine"),
-        ("🎨", "CREATIVE", "Creative Workshop Mode"),
-        ("🎞️", "EDITOR", "Video Editor Mode"),
-        ("📐", "BLUEPRINTS", "Blueprints Mode"),
-        ("⚡", "UPSCALER", "Upscaler Mode"),
-        ("✏️", "DRAW", "Draw Mode"),
-        ("🤖", "AI AGENT", "AI Agent Mode"),
-        ("🎙️", "SALES", "AI Sales Mode"),
-        ("🧠", "DYNAMIC UI", "Dynamic UI Mode"),
-        ("🎤", "LIVE VOICE", "Live Emotion Mode")
-    ]
-    
-    for i in range(0, len(modes), 6):
-        row_modes = modes[i:i+6]
-        cols = st.columns(len(row_modes))
-        for j, (icon, label, mode_value) in enumerate(row_modes):
-            with cols[j]:
-                is_active = (st.session_state["studio_active_mode"] == mode_value)
-                
-                if st.button(f"{icon}\n{label}", key=f"mode_{i+j}", use_container_width=True):
-                    handle_engine_access_request(mode_value)
-                
-                if is_active:
-                    st.markdown(f"""
-                    <style>
-                        div[data-testid="stButton"] button[key="mode_{i+j}"] {{
-                            background: #EC4899 !important;
-                            color: #FFFFFF !important;
-                            border-color: #EC4899 !important;
-                            box-shadow: 0 0 25px rgba(236,72,153,0.2) !important;
-                            font-family: 'Orbitron', sans-serif !important;
-                            font-weight: 700 !important;
-                            letter-spacing: 0.5px !important;
-                        }}
-                    </style>
-                    """, unsafe_allow_html=True)
-    
-    st.markdown("<br>", unsafe_allow_html=True)
-    
-    # ========================================================
-    # SIDEBAR TABS - SAME CODE
+    # SIDEBAR TABS
     # ========================================================
     
     if st.session_state["sidebar_tab"] == "💎 Buy Credits":
@@ -10827,7 +12690,7 @@ elif st.session_state["current_page"] == "studio":
                         """, unsafe_allow_html=True)
     
     # ========================================================
-    # ENGINE OUTPUT - SAME CODE
+    # ENGINE OUTPUT
     # ========================================================
     if st.session_state["studio_active_mode"] == "Cinematic Engine":
         run_cinematic_engine()
@@ -10855,9 +12718,9 @@ elif st.session_state["current_page"] == "studio":
         render_live_emotion_voice()
     
     # ========================================================
-    # REST OF THE CODE (PORTFOLIO, HISTORY, TRENDING, FOOTER)
+    # PORTFOLIO, HISTORY, TRENDING, FOOTER
     # ========================================================
-    st.markdown("<hr style='border-color: rgba(255,255,255,0.08); margin: 30px 0;'>", unsafe_allow_html=True)
+    st.markdown("<hr style='border-color: rgba(255,255,255,0.06); margin: 25px 0;'>", unsafe_allow_html=True)
 
     current_mode = st.session_state["studio_active_mode"]
 
@@ -10990,7 +12853,7 @@ elif st.session_state["current_page"] == "studio":
         return valid_items, gallery_title, no_items_msg, display_type
 
     valid_items, gallery_title, no_items_msg, display_type = get_mode_portfolio(current_mode)
-    st.markdown(f"<h3 style='font-family: Orbitron; font-size: 18px; color: #FFFFFF; margin-bottom: 20px; letter-spacing: 1px;'>{gallery_title}</h3>", unsafe_allow_html=True)
+    st.markdown(f"<h3 style='font-family: Orbitron; font-size: 16px; color: #FFFFFF; margin-bottom: 15px; letter-spacing: 0.5px;'>{gallery_title}</h3>", unsafe_allow_html=True)
 
     if not valid_items:
         st.info(no_items_msg)
@@ -11004,7 +12867,7 @@ elif st.session_state["current_page"] == "studio":
                         emoji_map = {"neutral": "😐", "happy": "😊", "sad": "😢", "angry": "😡", "excited": "🤩", "serious": "😤", "mysterious": "🕵️"}
                         emotion_emoji = emoji_map.get(emotion, "😐")
                         st.markdown(f"""
-                            <div style="font-family: 'Orbitron'; font-size: 11px; color: #EC4899; font-weight: bold; margin-bottom: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            <div style="font-family: 'Orbitron'; font-size: 10px; color: #EC4899; font-weight: bold; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                                 {emotion_emoji} {item.get("file_name", "Voice")[:30]}
                             </div>
                         """, unsafe_allow_html=True)
@@ -11023,12 +12886,12 @@ elif st.session_state["current_page"] == "studio":
                 with text_cols[idx % 2]:
                     with st.container(border=True):
                         st.markdown(f"""
-                            <div style="font-family: 'Orbitron'; font-size: 11px; color: #45f3ff; font-weight: bold; margin-bottom: 6px;">
+                            <div style="font-family: 'Orbitron'; font-size: 10px; color: #45f3ff; font-weight: bold; margin-bottom: 4px;">
                                 📝 {item.get("file_name", "Output")}
                             </div>
                         """, unsafe_allow_html=True)
                         st.markdown(f"""
-                            <div style="background: rgba(18, 19, 26, 0.85); border-radius: 8px; padding: 12px; max-height: 150px; overflow-y: auto; font-size: 12px; color: #94a3b8; font-family: monospace; line-height: 1.5; border: 1px solid rgba(255,255,255,0.05);">
+                            <div style="background: rgba(18, 19, 26, 0.85); border-radius: 8px; padding: 10px; max-height: 150px; overflow-y: auto; font-size: 11px; color: #94a3b8; font-family: monospace; line-height: 1.5; border: 1px solid rgba(255,255,255,0.04);">
                                 {item.get("content", "")[:500]}
                             </div>
                         """, unsafe_allow_html=True)
@@ -11085,7 +12948,7 @@ elif st.session_state["current_page"] == "studio":
                         file_name = item.get("file_name", "Untitled")
                         prompt = item.get("prompt", "")
                         st.markdown(f"""
-                            <div style="font-family: 'Orbitron'; font-size: 10px; color: #FFC0CB; font-weight: bold; margin-bottom: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            <div style="font-family: 'Orbitron'; font-size: 10px; color: #FFC0CB; font-weight: bold; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                                 📁 {file_name[:30]}
                             </div>
                         """, unsafe_allow_html=True)
@@ -11113,8 +12976,8 @@ elif st.session_state["current_page"] == "studio":
                             </p>
                         """, unsafe_allow_html=True)
     
-    st.markdown("<hr style='border-color: rgba(255,255,255,0.08); margin: 30px 0;'>", unsafe_allow_html=True)
-    st.markdown("<h3 style='font-family: Orbitron; font-size: 18px; color: #FFFFFF; margin-bottom: 20px; letter-spacing: 1px;'>📈 GLOBAL TRENDING HOT TOPICS (ONE-CLICK IMPORT)</h3>", unsafe_allow_html=True)
+    st.markdown("<hr style='border-color: rgba(255,255,255,0.06); margin: 25px 0;'>", unsafe_allow_html=True)
+    st.markdown("<h3 style='font-family: Orbitron; font-size: 16px; color: #FFFFFF; margin-bottom: 15px; letter-spacing: 0.5px;'>📈 GLOBAL TRENDING HOT TOPICS (ONE-CLICK IMPORT)</h3>", unsafe_allow_html=True)
     trend_cols = st.columns(3)
     mock_trends = [
         {"hashtag": "#InterstellarVoid", "category": "Space Mysteries", "title": "Astronomers record unexplained radio whispers emitting from interstellar coordinates.", "clicks": "142K views/hr"},
@@ -11126,11 +12989,11 @@ elif st.session_state["current_page"] == "studio":
             with st.container(border=True):
                 st.markdown(f"""
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                        <span style="font-family:'Orbitron'; font-size:11px; font-weight:bold; color:#fbbf24;">{trend["hashtag"]}</span>
-                        <span style="font-size:10px; color:#EC4899; font-weight:bold;">🔥 {trend["clicks"]}</span>
+                        <span style="font-family:'Orbitron'; font-size: 10px; font-weight:bold; color:#fbbf24;">{trend["hashtag"]}</span>
+                        <span style="font-size: 9px; color:#EC4899; font-weight:bold;">🔥 {trend["clicks"]}</span>
                     </div>
-                    <div style="font-size:12px; color:#ffffff; font-weight:bold; height: 38px; overflow:hidden;">{trend["title"]}</div>
-                    <div style="font-size:11px; color:#94a3b8; margin-bottom:12px;">Channel: {trend["category"]}</div>
+                    <div style="font-size: 11px; color:#ffffff; font-weight:bold; height: 38px; overflow:hidden;">{trend["title"]}</div>
+                    <div style="font-size: 10px; color:#94a3b8; margin-bottom: 10px;">Channel: {trend["category"]}</div>
                 """, unsafe_allow_html=True)
                 if st.button(f"One-Click Import Trend", key=f"import_trend_action_btn_{idx_t}", use_container_width=True):
                     st.session_state["studio_prompt_value"] = trend["title"]
@@ -11140,61 +13003,61 @@ elif st.session_state["current_page"] == "studio":
     
     st.markdown("<br>", unsafe_allow_html=True)
     with st.expander("ℹ Engine Technical Specs & Policies", expanded=False):
-        st.markdown("<h4 style='font-family:Orbitron; font-size:15px; color:#ffffff; margin-bottom: 15px;'>🚀 INTEGRATED WORKFLOW PIPELINE</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='font-family:Orbitron; font-size:13px; color:#ffffff; margin-bottom: 12px;'>🚀 INTEGRATED WORKFLOW PIPELINE</h4>", unsafe_allow_html=True)
         col_step1, col_step2, col_step3 = st.columns(3)
         with col_step1:
             st.markdown("""
-                <div style="background: rgba(18, 19, 26, 0.85); border: 1px solid rgba(255, 192, 203, 0.12); border-radius: 12px; padding: 14px; height: 100%;">
-                    <div style="font-size: 18px; font-weight: bold; color: #ffd700; margin-bottom: 10px; font-family: 'Orbitron';">01</div>
-                    <h5 style="color: #ffffff; font-family: Orbitron; font-size: 13px; margin-bottom: 8px;">1. Structured Scripting</h5>
-                    <p style="color: #94a3b8; font-size: 11.5px; line-height: 1.5;">Constructs structured scripts with scene-by-scene keyword parameters using the LLM engine.</p>
+                <div style="background: rgba(18, 19, 26, 0.85); border: 1px solid rgba(255, 192, 203, 0.12); border-radius: 12px; padding: 12px; height: 100%;">
+                    <div style="font-size: 16px; font-weight: bold; color: #ffd700; margin-bottom: 8px; font-family: 'Orbitron';">01</div>
+                    <h5 style="color: #ffffff; font-family: Orbitron; font-size: 11px; margin-bottom: 6px;">1. Structured Scripting</h5>
+                    <p style="color: #94a3b8; font-size: 10px; line-height: 1.5;">Constructs structured scripts with scene-by-scene keyword parameters using the LLM engine.</p>
                 </div>
             """, unsafe_allow_html=True)
         with col_step2:
             st.markdown("""
-                <div style="background: rgba(18, 19, 26, 0.85); border: 1px solid rgba(255, 192, 203, 0.12); border-radius: 12px; padding: 14px; height: 100%;">
-                    <div style="font-size: 18px; font-weight: bold; color: #ffd700; margin-bottom: 10px; font-family: 'Orbitron';">02</div>
-                    <h5 style="color: #ffffff; font-family: Orbitron; font-size: 13px; margin-bottom: 8px;">2. Voice Segment Synthetics</h5>
-                    <p style="color: #94a3b8; font-size: 11.5px; line-height: 1.5;">Generates specific voice streams per scene block and calculates precise audio timelines.</p>
+                <div style="background: rgba(18, 19, 26, 0.85); border: 1px solid rgba(255, 192, 203, 0.12); border-radius: 12px; padding: 12px; height: 100%;">
+                    <div style="font-size: 16px; font-weight: bold; color: #ffd700; margin-bottom: 8px; font-family: 'Orbitron';">02</div>
+                    <h5 style="color: #ffffff; font-family: Orbitron; font-size: 11px; margin-bottom: 6px;">2. Voice Segment Synthetics</h5>
+                    <p style="color: #94a3b8; font-size: 10px; line-height: 1.5;">Generates specific voice streams per scene block and calculates precise audio timelines.</p>
                 </div>
             """, unsafe_allow_html=True)
         with col_step3:
             st.markdown("""
-                <div style="background: rgba(18, 19, 26, 0.85); border: 1px solid rgba(255, 192, 203, 0.12); border-radius: 12px; padding: 14px; height: 100%;">
-                    <div style="font-size: 18px; font-weight: bold; color: #ffd700; margin-bottom: 10px; font-family: 'Orbitron';">03</div>
-                    <h5 style="color: #ffffff; font-family: Orbitron; font-size: 13px; margin-bottom: 8px;">3. Multi-Scene Stitching</h5>
-                    <p style="color: #94a3b8; font-size: 11.5px; line-height: 1.5;">Trims visual assets to matching segment runtimes and compiles them together into final outputs.</p>
+                <div style="background: rgba(18, 19, 26, 0.85); border: 1px solid rgba(255, 192, 203, 0.12); border-radius: 12px; padding: 12px; height: 100%;">
+                    <div style="font-size: 16px; font-weight: bold; color: #ffd700; margin-bottom: 8px; font-family: 'Orbitron';">03</div>
+                    <h5 style="color: #ffffff; font-family: Orbitron; font-size: 11px; margin-bottom: 6px;">3. Multi-Scene Stitching</h5>
+                    <p style="color: #94a3b8; font-size: 10px; line-height: 1.5;">Trims visual assets to matching segment runtimes and compiles them together into final outputs.</p>
                 </div>
             """, unsafe_allow_html=True)
-        st.markdown("<hr style='border-color: rgba(255,255,255,0.08); margin: 20px 0;'>", unsafe_allow_html=True)
-        st.markdown("<h4 style='font-family:Orbitron; font-size:15px; color:#ffffff; margin-bottom: 15px;'>🚨 DISCLAIMER & PLATFORM POLICIES</h4>", unsafe_allow_html=True)
+        st.markdown("<hr style='border-color: rgba(255,255,255,0.06); margin: 15px 0;'>", unsafe_allow_html=True)
+        st.markdown("<h4 style='font-family:Orbitron; font-size:13px; color:#ffffff; margin-bottom: 12px;'>🚨 DISCLAIMER & PLATFORM POLICIES</h4>", unsafe_allow_html=True)
         disc_col1, disc_col2 = st.columns(2)
         with disc_col1:
             st.markdown("""
-                <div style="background: rgba(18, 19, 26, 0.85); border: 1px solid rgba(255, 192, 203, 0.12); border-radius: 12px; padding: 14px; height: 100%;">
-                    <h5 style="color: #FFC0CB; font-family: Orbitron; font-size: 12px; margin-bottom: 10px;">Generative Media Policy</h5>
-                    <p style="color: #94a3b8; font-size: 11.5px; line-height: 1.6;">ZOVIX operates as an automated synthesis tool. We do not claim ownership over stock materials retrieved from third-party APIs.</p>
+                <div style="background: rgba(18, 19, 26, 0.85); border: 1px solid rgba(255, 192, 203, 0.12); border-radius: 12px; padding: 12px; height: 100%;">
+                    <h5 style="color: #FFC0CB; font-family: Orbitron; font-size: 10px; margin-bottom: 8px;">Generative Media Policy</h5>
+                    <p style="color: #94a3b8; font-size: 10px; line-height: 1.5;">ZOVIX operates as an automated synthesis tool. We do not claim ownership over stock materials retrieved from third-party APIs.</p>
                 </div>
             """, unsafe_allow_html=True)
         with disc_col2:
             st.markdown("""
-                <div style="background: rgba(18, 19, 26, 0.85); border: 1px solid rgba(255, 192, 203, 0.12); border-radius: 12px; padding: 14px; height: 100%;">
-                    <h5 style="color: #FFC0CB; font-family: Orbitron; font-size: 12px; margin-bottom: 10px;">Usage & Credit Terms</h5>
-                    <p style="color: #94a3b8; font-size: 11.5px; line-height: 1.6;">Access to processing nodes requires active credits. Standard 720p generations consume 1 credit.</p>
+                <div style="background: rgba(18, 19, 26, 0.85); border: 1px solid rgba(255, 192, 203, 0.12); border-radius: 12px; padding: 12px; height: 100%;">
+                    <h5 style="color: #FFC0CB; font-family: Orbitron; font-size: 10px; margin-bottom: 8px;">Usage & Credit Terms</h5>
+                    <p style="color: #94a3b8; font-size: 10px; line-height: 1.5;">Access to processing nodes requires active credits. Standard 720p generations consume 1 credit.</p>
                 </div>
             """, unsafe_allow_html=True)
     
     show_privacy_policy()
     
-    st.markdown("<hr style='border-color: rgba(255,255,255,0.08); margin: 40px 0 20px 0;'>", unsafe_allow_html=True)
+    st.markdown("<hr style='border-color: rgba(255,255,255,0.06); margin: 30px 0 15px 0;'>", unsafe_allow_html=True)
     st.markdown("""
-        <div style="text-align: center; padding: 10px 0 20px 0; color: #404040; font-family: 'Inter'; font-size: 13px;">
-            <p style="margin-bottom: 10px; font-weight: 400; color: #404040;">© 2026 ZOVIX. All rights reserved.</p>
-            <div style="display: flex; justify-content: center; gap: 20px; font-family: 'Orbitron'; font-size: 11px; letter-spacing: 1px;">
+        <div style="text-align: center; padding: 10px 0 20px 0; color: #404040; font-family: 'Inter'; font-size: 12px;">
+            <p style="margin-bottom: 8px; font-weight: 400; color: #404040;">© 2026 ZOVIX. All rights reserved.</p>
+            <div style="display: flex; justify-content: center; gap: 15px; font-family: 'Orbitron'; font-size: 10px; letter-spacing: 0.5px;">
                 <a href="#" style="color: #FFC0CB; text-decoration: none;">SUPPORT</a>
-                <span style="color: rgba(255,255,255,0.1);">|</span>
+                <span style="color: rgba(255,255,255,0.08);">|</span>
                 <a href="#" style="color: #FFC0CB; text-decoration: none;">DOCUMENTATION</a>
-                <span style="color: rgba(255,255,255,0.1);">|</span>
+                <span style="color: rgba(255,255,255,0.08);">|</span>
                 <a href="#" style="color: #FFC0CB; text-decoration: none;">API ACCESS</a>
             </div>
         </div>
