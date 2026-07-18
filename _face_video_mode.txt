@@ -1,0 +1,356 @@
+emale)"],
+        "description": "Young girl voice - warm and gentle"
+    },
+    "Adult_Male": {
+        "label": "👨 Adult Male (>= 14)",
+        "category": "Adult Male",
+        "min_age": 14,
+        "max_age": 99,
+        "gender": "male",
+        "default_voice": "Adam (Premium Male)",
+        "default_voice_id": "21m00Tcm4TlvDq8ikWAM",
+        "recommended_voices": ["Adam (Premium Male)", "Drew (Professional Male)", "Antoni (Deep Male)", "James (Narrator Male)", "Arjun (Hindi Male)", "Ravi (Hindi Professional Male)", "Pierre (French Male)", "Kenji (Japanese Male)", "Vikram (Bhojpuri Male)", "Adit (Youthful Hindi Male)"],
+        "description": "Adult male voice - professional and authoritative"
+    },
+    "Adult_Female": {
+        "label": "👩 Adult Female (>= 14)",
+        "category": "Adult Female",
+        "min_age": 14,
+        "max_age": 99,
+        "gender": "female",
+        "default_voice": "Rachel (Premium Female)",
+        "default_voice_id": "pNInz6obpgDQ5IdwJg7p",
+        "recommended_voices": ["Rachel (Premium Female)", "Bella (Warm Female)", "Charlotte (Elegant Female)", "Emily (Professional Female)", "Sarah (Soothing Female)", "Priya (Hindi Female)", "Anjura (Expressive Hindi Female)", "Anvi (Soft Hindi Female)", "Sophie (French Female)", "Yuki (Japanese Female)", "Sita (Bhojpuri Female)"],
+        "description": "Adult female voice - clear and expressive"
+    },
+}
+
+def get_voice_module_by_age_gender(age, gender):
+    """Return the VOICE_MODULE_SPLIT entry matching age and gender."""
+    if gender == 'male' and age < 14:
+        return VOICE_MODULE_SPLIT["Boy"]
+    elif gender == 'female' and age < 14:
+        return VOICE_MODULE_SPLIT["Girl"]
+    elif gender == 'male' and age >= 14:
+        return VOICE_MODULE_SPLIT["Adult_Male"]
+    elif gender == 'female' and age >= 14:
+        return VOICE_MODULE_SPLIT["Adult_Female"]
+    return None
+
+def get_voice_module_by_category(category_str):
+    """Return the VOICE_MODULE_SPLIT entry by category string."""
+    for key, val in VOICE_MODULE_SPLIT.items():
+        if val.get("category") == category_str:
+            return val
+    return None
+
+LANGUAGE_VOICE_MAP = {
+    "English": ["Adam (Premium Male)", "Rachel (Premium Female)", "Drew (Professional Male)", "Bella (Warm Female)", "Antoni (Deep Male)", "Charlotte (Elegant Female)", "Josh (Young Male)", "Emily (Professional Female)", "James (Narrator Male)", "Sarah (Soothing Female)"],
+    "Hindi": ["Arjun (Hindi Male)", "Priya (Hindi Female)", "Ravi (Hindi Professional Male)", "Anjura (Expressive Hindi Female)", "Adit (Youthful Hindi Male)", "Anvi (Soft Hindi Female)"],
+    "Bhojpuri": ["Vikram (Bhojpuri Male)", "Sita (Bhojpuri Female)"],
+    "French": ["Pierre (French Male)", "Sophie (French Female)"],
+    "Japanese": ["Kenji (Japanese Male)", "Yuki (Japanese Female)"],
+}
+
+# ========================================================
+# 11. TOKEN BURN RATE
+# ========================================================
+
+BASE_BURN_RATE = {
+    "Face Video Generator": 4,
+    "Face Video Studio": 5,
+    "Expressive Face Video": 5,
+    "Cinematic Engine": 4,
+    "Creative Workshop": 3,
+    "AI Agent": 2,
+    "AI Sales": 2,
+    "Dynamic UI": 2,
+    "Live Emotion": 4,
+    "Blueprints": 2,
+    "Upscaler": 2,
+    "Draw": 2,
+    "Video Editor": 4,
+}
+
+def calculate_tokens(mode_name: str, selected_quality: str) -> int:
+    base_cost = BASE_BURN_RATE.get(mode_name, 2)
+    heavy_engines = ["Face Video Generator", "Face Video Studio", "Expressive Face Video", "Cinematic Engine", "Live Emotion", "Video Editor"]
+    if selected_quality in ["High", "Pro", "Ultra-HD", "4K"]:
+        return base_cost + 2 if mode_name in heavy_engines else base_cost + 1
+    elif selected_quality in ["HD", "Premium"]:
+        return base_cost + 1 if mode_name in heavy_engines else base_cost
+    return base_cost
+
+# ========================================================
+# 12. MULTI-LANGUAGE SUPPORT
+# ========================================================
+
+LANGUAGES = {
+    "en": {"name": "English", "flag": "🇬🇧", "rtl": False},
+    "hi": {"name": "Hindi", "flag": "🇮🇳", "rtl": False},
+    "fr": {"name": "French", "flag": "🇫🇷", "rtl": False},
+    "es": {"name": "Spanish", "flag": "🇪🇸", "rtl": False},
+    "de": {"name": "German", "flag": "🇩🇪", "rtl": False},
+    "ja": {"name": "Japanese", "flag": "🇯🇵", "rtl": False},
+    "zh": {"name": "Chinese", "flag": "🇨🇳", "rtl": False},
+    "ar": {"name": "Arabic", "flag": "🇸🇦", "rtl": True},
+    "ru": {"name": "Russian", "flag": "🇷🇺", "rtl": False},
+    "pt": {"name": "Portuguese", "flag": "🇵🇹", "rtl": False},
+    "it": {"name": "Italian", "flag": "🇮🇹", "rtl": False},
+    "ko": {"name": "Korean", "flag": "🇰🇷", "rtl": False},
+    "tr": {"name": "Turkish", "flag": "🇹🇷", "rtl": False},
+    "nl": {"name": "Dutch", "flag": "🇳🇱", "rtl": False},
+    "sv": {"name": "Swedish", "flag": "🇸🇪", "rtl": False},
+    "pl": {"name": "Polish", "flag": "🇵🇱", "rtl": False},
+    "vi": {"name": "Vietnamese", "flag": "🇻🇳", "rtl": False},
+    "th": {"name": "Thai", "flag": "🇹🇭", "rtl": False},
+    "id": {"name": "Indonesian", "flag": "🇮🇩", "rtl": False},
+    "ms": {"name": "Malay", "flag": "🇲🇾", "rtl": False},
+    "fil": {"name": "Filipino", "flag": "🇵🇭", "rtl": False}
+}
+
+def get_translation(text: str, target_lang: str = "en") -> str:
+    if target_lang == "en" or not text:
+        return text
+    
+    cache_key = f"translation:{hashlib.md5(f'{text}:{target_lang}'.encode()).hexdigest()}"
+    cached = cache_manager.get(cache_key)
+    if cached:
+        return cached
+    
+    try:
+        api_key = os.getenv("GOOGLE_TRANSLATE_API_KEY", "")
+        if api_key:
+            url = "https://translation.googleapis.com/language/translate/v2"
+            params = {
+                "q": text,
+                "target": target_lang,
+                "key": api_key
+            }
+            response = requests.post(url, json=params, timeout=5)
+            if response.status_code == 200:
+                result = response.json()["data"]["translations"][0]["translatedText"]
+                cache_manager.set(cache_key, result, ttl=86400)
+                return result
+    except Exception as e:
+        logger.warning(f"Translation error: {e}")
+    
+    return text
+
+def get_rtl_css(language: str) -> str:
+    if LANGUAGES.get(language, {}).get("rtl", False):
+        return """
+            .block-container {
+                direction: rtl !important;
+            }
+            .stButton > button {
+                direction: rtl !important;
+            }
+        """
+    return ""
+
+def get_language_selector():
+    st.sidebar.markdown("### 🌐 Language")
+    current_lang = st.session_state.get("language", "en")
+    
+    selected_lang = st.sidebar.selectbox(
+        "Select Language",
+        options=list(LANGUAGES.keys()),
+        format_func=lambda x: f"{LANGUAGES[x]['flag']} {LANGUAGES[x]['name']}",
+        index=list(LANGUAGES.keys()).index(current_lang) if current_lang in LANGUAGES else 0
+    )
+    
+    if selected_lang != st.session_state.get("language"):
+        st.session_state["language"] = selected_lang
+        st.rerun()
+    
+    return selected_lang
+
+# ========================================================
+# 13. PAYMENT GATEWAYS CONFIGURATION
+# ========================================================
+
+PAYMENT_GATEWAYS = {
+    "razorpay": {
+        "name": "Razorpay",
+        "icon": "💳",
+        "countries": ["IN", "US", "GB", "CA", "AU", "EU", "AE", "SA", "SG", "JP"],
+        "currencies": ["INR", "USD", "EUR"],
+        "enabled": True,
+        "description": "Credit/Debit Cards, UPI, Net Banking"
+    },
+    "crypto": {
+        "name": "Crypto",
+        "icon": "₿",
+        "countries": ["Global"],
+        "currencies": ["BTC", "ETH", "USDT", "USDC", "SOL", "BNB", "DOGE"],
+        "enabled": True,
+        "description": "Bitcoin, Ethereum, USDT, USDC, Solana, BNB, DOGE"
+    },
+    "binance": {
+        "name": "Binance",
+        "icon": "🟡",
+        "countries": ["Global"],
+        "currencies": ["BUSD", "USDT", "BNB", "BTC", "ETH"],
+        "enabled": True,
+        "description": "Binance Pay, Crypto, Cards"
+    }
+}
+
+DISPLAYED_PAYMENT_GATEWAYS = ["razorpay", "crypto", "binance"]
+
+
+def get_available_gateway_keys(user_country: str) -> list:
+    gateways = []
+    for key in DISPLAYED_PAYMENT_GATEWAYS:
+        gateway = PAYMENT_GATEWAYS.get(key)
+        if not gateway:
+            continue
+        if gateway["enabled"] and ("Global" in gateway["countries"] or user_country in gateway["countries"]):
+            gateways.append(key)
+    return gateways
+
+
+def convert_price(price_inr: float, to_currency: str = "USD") -> float:
+    rates = {
+        "USD": 0.012,
+        "EUR": 0.011,
+        "GBP": 0.0095,
+        "AED": 0.044,
+        "SAR": 0.045,
+        "SGD": 0.016,
+        "JPY": 1.8,
+        "INR": 1.0,
+        "CAD": 0.016,
+        "AUD": 0.018,
+        "CHF": 0.011,
+        "CNY": 0.087,
+        "RUB": 1.1,
+        "BRL": 0.06,
+        "ZAR": 0.22,
+        "KRW": 16.5,
+        "TRY": 0.39,
+        "VND": 304,
+        "THB": 0.43,
+        "IDR": 195,
+        "MYR": 0.056,
+        "PHP": 0.68
+    }
+    return price_inr * rates.get(to_currency, 0.012)
+
+# ========================================================
+# 14. ALL PLANS - SUBSCRIPTIONS + ONE-TIME TOP-UPS
+# ========================================================
+
+GLOBAL_PLANS = {
+    "subscriptions": {
+        "free": {
+            "name": "Free",
+            "price": 0,
+            "tokens": 10,
+            "amount_paise": 0,
+            "emoji": "🆓",
+            "features": ["10 Free Tokens Monthly", "Watermark", "Basic AI Features"],
+            "type": "monthly",
+            "badge": "",
+            "color": "#64748b",
+            "description": "Free plan with limited features"
+        },
+        "starter": {
+            "name": "Starter",
+            "price": 49,
+            "tokens": 30,
+            "amount_paise": 4900,
+            "emoji": "🌱",
+            "features": ["30 Tokens Monthly", "No Watermark", "All AI Features"],
+            "type": "monthly",
+            "badge": "🎫 VOUCHER",
+            "color": "#10b981",
+            "description": "Best for beginners"
+        },
+        "standard": {
+            "name": "Standard",
+            "price": 99,
+            "tokens": 60+10,
+            "amount_paise": 9900,
+            "emoji": "🥇",
+            "features": ["70 Tokens Monthly", "No Watermark", "All AI Features"],
+            "type": "monthly",
+            "badge": "POPULAR",
+            "color": "#f59e0b",
+            "description": "Best value plan"
+        },
+        "cinematic": {
+            "name": "Cinematic",
+            "price": 299,
+            "tokens": 180+50,
+            "amount_paise": 29900,
+            "emoji": "🥈",
+            "features": ["230 Tokens Monthly", "No Watermark", "All AI Features"],
+            "type": "monthly",
+            "badge": "",
+            "color": "#8b5cf6",
+            "description": "For serious creators"
+        },
+        "premium": {
+            "name": "Premium",
+            "price": 499,
+            "tokens": 310+90,
+            "amount_paise": 49900,
+            "emoji": "💎",
+            "features": ["400 Tokens Monthly", "No Watermark", "All AI Features"],
+            "type": "monthly",
+            "badge": "",
+            "color": "#ec4899",
+            "description": "Professional creators"
+        },
+        "pro": {
+            "name": "Pro",
+            "price": 999,
+            "tokens": 620+220,
+            "amount_paise": 99900,
+            "emoji": "👑",
+            "features": ["850 Tokens Monthly", "No Watermark", "All AI Features"],
+            "type": "monthly",
+            "badge": "⭐ BEST VALUE",
+            "color": "#f43f5e",
+            "description": "Unlimited potential"
+        },
+        "enterprise": {
+            "name": "Enterprise",
+            "price": 1999,
+            "tokens": 1250+500,
+            "amount_paise": 199900,
+            "emoji": "🏢",
+            "features": ["1750 Tokens Monthly", "No Watermark", "All AI Features", "Priority Support", "Custom AI Models"],
+            "type": "monthly",
+            "badge": "⭐ ENTERPRISE",
+            "color": "#8b5cf6",
+            "description": "Complete business solution"
+        }
+    },
+    "one_time": {
+        "topup_49": {
+            "name": "Token Top-up",
+            "price": 49,
+            "tokens": 30,
+            "amount_paise": 4900,
+            "emoji": "🎯",
+            "type": "prepaid",
+            "badge": "💫 ONE-TIME",
+            "color": "#45f3ff",
+            "description": "One-time token purchase"
+        },
+        "topup_99": {
+            "name": "Token Top-up",
+            "price": 99,
+            "tokens": 65,
+            "amount_paise": 9900,
+            "emoji": "🎯",
+            "type": "prepaid",
+            "badge": "💫 ONE-TIME",
+            "color": "#45f3ff",
+            "description": "One-time token purchase"
+        },
+        "topup_299": {
+          

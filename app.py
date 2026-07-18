@@ -5072,14 +5072,60 @@ def generate_face_video_real(image_path, audio_path=None, output_width=512, outp
                 if os.path.exists(temp_processed_img):
                     os.remove(temp_processed_img)
                 return output_video_path
-            logger.warning("Strict lip-sync mode active: video not generated because lip-sync engine failed.")
+            
+            # FALLBACK: Lip-sync failed, create a simple video with image + audio
+            logger.warning("Lip-sync engine failed. Creating fallback video (image + audio only).")
+            fallback_video = output_video_path.replace(".mp4", "_fallback.mp4")
+            try:
+                subprocess.run(
+                    ['ffmpeg', '-y', '-loop', '1', '-i', temp_processed_img,
+                     '-i', audio_path,
+                     '-t', str(max(1.0, float(get_audio_duration(audio_path) or duration))),
+                     '-vf', f'scale={out_w}:{out_h}:force_original_aspect_ratio=decrease,pad={out_w}:{out_h}:(ow-iw)/2:(oh-ih)/2,setsar=1',
+                     '-c:v', 'libx264', '-preset', 'fast', '-crf', '20',
+                     '-c:a', 'aac', '-shortest',
+                     fallback_video],
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True
+                )
+                if os.path.exists(fallback_video) and os.path.getsize(fallback_video) > 1000:
+                    shutil.move(fallback_video, output_video_path)
+                    st.session_state["face_video_engine_used"] = "Fallback (Image+Audio)"
+                    st.session_state["face_video_runtime_mode"] = "CPU"
+                    if os.path.exists(temp_processed_img):
+                        os.remove(temp_processed_img)
+                    return output_video_path
+            except Exception as fb_e:
+                logger.warning(f"Fallback video creation also failed: {fb_e}")
+            
             if os.path.exists(temp_processed_img):
                 os.remove(temp_processed_img)
             return None
-
-        logger.warning("Strict lip-sync mode requires driving audio. No audio path found.")
+        
+        # No audio provided - try creating a silent video
+        logger.warning("No audio path found, creating silent face video.")
+        try:
+            subprocess.run(
+                ['ffmpeg', '-y', '-loop', '1', '-i', temp_processed_img,
+                 '-t', str(duration),
+                 '-vf', f'scale={out_w}:{out_h}:force_original_aspect_ratio=decrease,pad={out_w}:{out_h}:(ow-iw)/2:(oh-ih)/2,setsar=1',
+                 '-c:v', 'libx264', '-preset', 'fast', '-crf', '20',
+                 output_video_path],
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True
+            )
+            if os.path.exists(output_video_path) and os.path.getsize(output_video_path) > 1000:
+                st.session_state["face_video_engine_used"] = "Silent Image Video"
+                st.session_state["face_video_runtime_mode"] = "CPU"
+                if os.path.exists(temp_processed_img):
+                    os.remove(temp_processed_img)
+                return output_video_path
+        except Exception as silent_e:
+            logger.warning(f"Silent video creation failed: {silent_e}")
+            
         if os.path.exists(temp_processed_img):
-            os.remove(temp_processed_img)
+            try:
+                os.remove(temp_processed_img)
+            except:
+                pass
         return None
     except Exception as e:
         logger.error(f"Generate face video real error: {e}")
@@ -6132,6 +6178,7 @@ def deepface_scan_face_and_select_voice(face_image_path):
     return result
 
 def generate_face_video(prompt, face_image_path, duration=30, emotion="neutral", camera_angle="front", quality="Standard", voice_language=None, voice_label=None):
+    """Pure Cloud Face Video Generation via Replicate API."""
     if not face_image_path or not os.path.exists(face_image_path):
         return None
 
@@ -6142,7 +6189,6 @@ def generate_face_video(prompt, face_image_path, duration=30, emotion="neutral",
         detected_age = scan_result.get("age", 25)
         detected_gender = scan_result.get("gender", "Male")
         
-        # Auto-select voice based on scan (unless manual voice_label)
         if voice_label is None or voice_label == "":
             auto_voice = st.session_state.get("fv_auto_selected_voice")
             if auto_voice:
@@ -6155,35 +6201,32 @@ def generate_face_video(prompt, face_image_path, duration=30, emotion="neutral",
         st.session_state["fv_detected_gender"] = detected_gender
         st.session_state["fv_detected_age"] = detected_age
         st.session_state["fv_detected_category"] = detected_category
-        
         logger.info(f"DeepFace Auto-Voice: {detected_category} (Age:{detected_age}) -> {voice_label}")
     except Exception as scan_e:
         logger.warning(f"DeepFace auto-scan error (proceeding with default voice): {scan_e}")
     # --- End DeepFace Auto-Scan --- #
 
-    voice_cfg = _resolve_face_voice_config(voice_language=voice_language, voice_label=voice_label, preferred_gender=st.session_state.get('fv_detected_gender') if st.session_state.get('fv_gender_auto', False) else None)
-    audio_path = f"face_videos/voice_{uuid.uuid4().hex[:8]}.mp3"
-    audio_success = _synthesize_face_audio_strict(prompt, audio_path, voice_cfg, duration_hint=duration)
-    output_path = None
-    if audio_success:
-        output_path = generate_face_video_real(face_image_path, audio_path, 512, 512, duration, quality=quality, emotion=emotion, camera_angle=camera_angle)
+    # Resolve voice config
+    voice_cfg = _resolve_face_voice_config(
+        voice_language=voice_language, 
+        voice_label=voice_label, 
+        preferred_gender=st.session_state.get('fv_detected_gender') if st.session_state.get('fv_gender_auto', False) else None
+    )
 
-    if not output_path:
-        output_path = generate_world_face_video(
-            prompt,
-            face_image_path,
-            duration=duration,
-            quality=quality,
-            voice_language=voice_cfg.get("language", "English"),
-            voice_label=voice_cfg.get("voice_label", "Adam (Premium Male)"),
-        )
-    if os.path.exists(audio_path):
-        try:
-            os.remove(audio_path)
-        except:
-            pass
-    if output_path:
-        return output_path
+    # --- Cloud-Only: Directly call Replicate API --- #
+    video_result = generate_world_face_video(
+        prompt=prompt,
+        face_image_path=face_image_path,
+        duration=duration,
+        quality=quality,
+        voice_language=voice_cfg.get("language", "English"),
+        voice_label=voice_cfg.get("voice_label", "Adam (Premium Male)"),
+    )
+    
+    if video_result:
+        return video_result
+    
+    logger.error("All Replicate cloud models failed. No local fallback available.")
     return None
 
 def generate_elevenlabs_audio_for_face(text, output_path, voice_id="21m00Tcm4TlvDq8ikWAM"):
@@ -11091,43 +11134,129 @@ def run_unified_face_video_mode():
             
             st.markdown("<br>", unsafe_allow_html=True)
             
-            # Generate Button
+                        # Generate Button - Pure Replicate Cloud Engine ☁️
             if st.button("🌍 Generate Global Face Video", key="unified_fv_generate_btn", use_container_width=True):
-                # ... generate logic ...
-                pass
+                            if not face_prompt or not face_prompt.strip():
+                                st.error("Please enter a dialogue/script for the face video.")
+                            elif not face_image_upload:
+                                st.error("Please upload a face photo first.")
+                            else:
+                                # Save uploaded file to temp
+                                face_bytes = st.session_state.get("unified_face_image_bytes")
+                                temp_face_path = None
+                                if face_bytes:
+                                    temp_face_path = f"face_videos/temp_unified_face_{uuid.uuid4().hex[:8]}.png"
+                                    os.makedirs("face_videos", exist_ok=True)
+                                    with open(temp_face_path, 'wb') as f:
+                                        f.write(face_bytes)
+                    
+                                # Step 1: DeepFace gender auto-detect
+                                with st.spinner("🔍 AI scanning face for voice selection..."):
+                                    try:
+                                        scan_result = deepface_scan_face_and_select_voice(temp_face_path)
+                                        if scan_result:
+                                            detected_gender = scan_result.get("gender", "Male")
+                                            detected_age = scan_result.get("age", 25)
+                                            auto_voice = scan_result.get("voice_label", "Adam (Premium Male)")
+                                            st.session_state["fv_detected_gender"] = detected_gender
+                                            st.session_state["fv_detected_age"] = detected_age
+                                            st.session_state["fv_auto_selected_voice"] = auto_voice
+                                            st.session_state["fv_detected_category"] = scan_result.get("category", "Adult Male")
+                                            st.toast(f"🎯 {scan_result.get('category', '')} (Age: {detected_age}) → {auto_voice}")
+                                    except Exception as scan_err:
+                                        logger.warning(f"Face scan error: {scan_err}")
+                                        st.toast("Face scan unavailable. Using default voice.", icon="🤖")
+                    
+                                # Step 2: Token validation
+                                success, required_tokens, message = validate_and_deduct_tokens("Face Video Generator", quality)
+                                if not success:
+                                    st.error(message)
+                                else:
+                                    st.success(f"✓ {message}")
+                        
+                                    # Step 3: Generate via Replicate Cloud directly ☁️
+                                    with st.spinner(f"☁️ Generating {quality} face video on Replicate Cloud GPU..."):
+                                        try:
+                                            video_url = generate_world_face_video(
+                                                prompt=face_prompt,
+                                                face_image_path=temp_face_path,
+                                                duration=video_duration,
+                                                quality=quality,
+                                                voice_language="English",
+                                                voice_label=st.session_state.get("fv_auto_selected_voice", None),
+                                            )
+                                
+                                            if video_url:
+                                                st.session_state["active_face_video_url"] = video_url
+                                                st.session_state["active_face_video"] = None  # Clear local path
+                                                timestamp = time.strftime("%Y%m%d_%H%M%S")
+                                                file_name = f"zovix_face_video_{quality.lower()}_{timestamp}.mp4"
+                                                save_face_video_to_db(
+                                                    st.session_state.get("logged_user", "guest"),
+                                                    file_name, face_prompt, video_url,
+                                                    temp_face_path or "", quality
+                                                )
+                                                st.session_state["face_video_history"] = load_face_video_history_db(st.session_state.get("logged_user", "guest"))
+                                                st.balloons()
+                                                st.toast(f"✅ Face video generated successfully on Cloud GPU!")
+                                                st.rerun()
+                                            else:
+                                                st.error("❌ Replicate Cloud generation failed. Check API key and try again.")
+                                        except Exception as e:
+                                            st.error(f"❌ Cloud Generation Error: {str(e)}")
+                                            logger.error(f"Unified face video error: {e}")
     
     with fv_col2:
         with st.container(border=True):
             st.markdown("<style>.face-title { color: #EC4899; !important; }</style>", unsafe_allow_html=True)
             st.markdown('<h4 class="face-title"><span style="color: #EC4899; !important;">🌍 GLOBAL FACE PLAYER</span></h4>', unsafe_allow_html=True)
             
+                        # Show both URL-based (cloud) and local file-based face videos
             active_face_video_url = st.session_state.get("active_face_video_url")
-            if active_face_video_url:
+            active_face_video_local = st.session_state.get("active_face_video")
+            video_to_show = active_face_video_url or active_face_video_local
+            
+            if video_to_show and (isinstance(video_to_show, str) and (video_to_show.startswith("http") or os.path.exists(video_to_show))):
                 engine_used = st.session_state.get("face_video_engine_used", "Unknown")
                 runtime_mode = st.session_state.get("face_video_runtime_mode", "Unknown")
                 st.caption(f"⚡ Engine: {engine_used} | Runtime: {runtime_mode}")
-                st.video(active_face_video_url, format="video/mp4", autoplay=False, loop=True, muted=False)
+                st.video(video_to_show, format="video/mp4", autoplay=False, loop=True, muted=False)
                 
                 col_dl, col_clr = st.columns(2)
                 with col_dl:
-                    try:
-                        dl = requests.get(active_face_video_url, timeout=30)
-                        if dl.status_code == 200 and len(dl.content) > 1024:
-                            st.download_button(
-                                label="📥 Download Video",
-                                data=dl.content,
-                                file_name=f"zovix_face_video_{uuid.uuid4().hex[:8]}.mp4",
-                                mime="video/mp4",
-                                use_container_width=True,
-                                key="unified_fv_download_btn",
-                            )
-                        else:
-                            st.info("📥 Download temporarily unavailable")
-                    except Exception:
+                    download_available = False
+                    download_data = None
+                    if isinstance(video_to_show, str) and video_to_show.startswith("http"):
+                        try:
+                            dl = requests.get(video_to_show, timeout=30)
+                            if dl.status_code == 200 and len(dl.content) > 1024:
+                                download_data = dl.content
+                                download_available = True
+                        except Exception:
+                            pass
+                    elif isinstance(video_to_show, str) and os.path.exists(video_to_show):
+                        try:
+                            with open(video_to_show, 'rb') as f:
+                                download_data = f.read()
+                            download_available = True
+                        except Exception:
+                            pass
+                    
+                    if download_available and download_data:
+                        st.download_button(
+                            label="📥 Download Video",
+                            data=download_data,
+                            file_name=f"zovix_face_video_{uuid.uuid4().hex[:8]}.mp4",
+                            mime="video/mp4",
+                            use_container_width=True,
+                            key="unified_fv_download_btn",
+                        )
+                    else:
                         st.info("📥 Download temporarily unavailable")
                 with col_clr:
                     if st.button("🧹 Clear Video", key="unified_fv_clear_btn", use_container_width=True):
                         st.session_state["active_face_video_url"] = None
+                        st.session_state["active_face_video"] = None
                         st.rerun()
             else:
                 st.markdown("""
@@ -11994,6 +12123,28 @@ def run_cinematic_engine():
 # ========================================================
 # 40. PRIVACY POLICY
 # ========================================================
+
+@st.dialog("⚠️ Confirm Data Deletion", width="small")
+def show_confirm_delete_dialog():
+    """Yeh function alag se popup/modal kholega bina kisi error ke"""
+    st.markdown("""
+        ### ⚠️ Warning!
+        This action will permanently delete:
+        - All your generated content
+        - Account history and preferences
+        - Personal data and settings
+        
+        **This action cannot be undone.**
+    """)
+    if st.button("✅ Yes, Delete All My Data", use_container_width=True):
+        if gdpr_manager.delete_user_data(st.session_state["logged_user"]):
+            st.success("All your data has been deleted. You will be logged out.")
+            st.session_state["is_logged_in"] = False
+            st.session_state["current_page"] = "landing"
+            st.rerun()
+        else:
+            st.error("Failed to delete data. Please contact support.")
+
 
 def show_privacy_policy():
     st.markdown("---")
