@@ -12023,13 +12023,12 @@ def show_privacy_policy():
         
         #### 4. Data Retention
         - We retain your data as long as your account is active
-        - You can request permanent data deletion at any time
         - Payment records are kept for 7 years as per regulatory requirements
         
         #### 5. Your Rights (GDPR & CCPA Compliance)
         - **Right to Access**: View all data we hold about you
         - **Right to Rectification**: Correct inaccurate data
-        - **Right to Erasure**: Request complete deletion of your data
+        - **Right to Erasure**: Request complete deletion of your data by emailing us at zovixenterprises@gmail.com
         - **Right to Data Portability**: Export your data in a machine-readable format
         - **Right to Object**: Opt-out of non-essential data processing
         
@@ -12046,40 +12045,15 @@ def show_privacy_policy():
         
         #### 8. Contact Information
         - **Email**: zovixenterprises@gmail.com
-        - **Response Time**: Within 48 hours for privacy-related inquiries
+        - **Response Time**: Within 48 hours for privacy-related inquiries or data deletion requests
         
         #### 9. Changes to This Policy
         - We will notify you of any material changes via email or in-app notification
         - Continued use of the platform constitutes acceptance of the updated policy
         
         #### 10. Consent
-        By using Zovix, you consent to this Privacy Policy. You may withdraw consent at any time by deleting your account.
+        By using Zovix, you consent to this Privacy Policy.
         """)
-        
-        if st.session_state.get("is_logged_in"):
-            st.markdown("---")
-            st.markdown("### 🗑️ Data Management")
-            col1, col2 = st.columns(2)
-            with col1:
-                if st.button("🗑️ Request Data Deletion", use_container_width=True):
-                    with st.dialog("⚠️ Confirm Data Deletion", width="small"):
-                        st.markdown("""
-                            ### ⚠️ Warning!
-                            This action will permanently delete:
-                            - All your generated content
-                            - Account history and preferences
-                            - Personal data and settings
-                            
-                            **This action cannot be undone.**
-                        """)
-                        if st.button("✅ Yes, Delete All My Data", use_container_width=True):
-                            if gdpr_manager.delete_user_data(st.session_state["logged_user"]):
-                                st.success("All your data has been deleted. You will be logged out.")
-                                st.session_state["is_logged_in"] = False
-                                st.session_state["current_page"] = "landing"
-                                st.rerun()
-                            else:
-                                st.error("Failed to delete data. Please contact support.")
 
 # ========================================================
 # 41. GET PREMIUM THEME CSS
