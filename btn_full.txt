@@ -1,0 +1,87 @@
+col_btn1, col_btn2 = st.columns([4, 1])
+        with col_btn2:
+            if st.button("Generate", key="studio_generate_action_btn", use_container_width=True):
+                # Cinematic Video Generation Logic
+                if not user_input.strip():
+                    st.error("Please enter a video topic or script.")
+                else:
+                    try:
+                        # Step 1: Validate tokens
+                        burn_rate = BASE_BURN_RATE.get("Cinematic Engine", 4)
+                        if cinematic_quality in ["HD", "Pro"]:
+                            burn_rate += 1 if cinematic_quality == "HD" else 2
+                        token_check = validate_and_deduct_tokens("Cinematic Engine", burn_rate)
+                        if token_check is not True:
+                            st.error(token_check)
+                            st.stop()
+                        
+                        # Step 2: Parse parameters
+                        selected_size = st.session_state.get("aspect_ratio", "9:16 Vertical (Shorts/Reels)")
+                        dur_choice = st.session_state.get("duration_choice", "Short (10-15s)")
+                        voice_profile = st.session_state.get("voice_profile", "Adam (Premium Male)")
+                        lang_choice = st.session_state.get("language_choice", "🇮🇳 Hinglish (Fluent Hindi Mix)")
+                        selected_model = "gemini-2.5-pro" if "gemini-2.5-pro" in st.session_state.get("model_choice", "") else "gemini-2.5-flash"
+                        
+                        # Step 3: Generate script from topic
+                        with st.spinner("📝 Generating script using AI..."):
+                            scenes_data, music_mood = generate_script(
+                                topic=user_input,
+                                duration_choice=dur_choice,
+                                selected_model=selected_model,
+                                language_choice=lang_choice
+                            )
+                            if not scenes_data:
+                                st.error("Failed to generate script. Please try again.")
+                                st.stop()
+                            st.success(f"✅ Script generated: {len(scenes_data)} scenes, mood: {music_mood}")
+                        
+                        # Step 4: Get BGM
+                        bgm_path = get_music_path(music_mood) if 'get_music_path' in dir() else None
+                        if uploaded_bgm is not None:
+                            bgm_path = f"face_videos/custom_bgm_{uuid.uuid4().hex[:8]}.mp3"
+                            with open(bgm_path, "wb") as f:
+                                f.write(uploaded_bgm.getbuffer())
+                        
+                        # Step 5: Build video using the engine pipeline
+                        with st.spinner("🎬 Generating cinematic video..."):
+                            status_dict = {"status_text": "Initializing..."}
+                            progress_bar = st.progress(0, text="Starting cinematic engine...")
+                            
+                            # Create a status display
+                            status_placeholder = st.empty()
+                            
+                            def update_status(text, progress=None):
+                                status_placeholder.info(text)
+                                if progress is not None:
+                                    progress_bar.progress(progress, text=text)
+                            
+                            update_status("Building scenes with visuals and voiceover...", 0.3)
+                            
+                            # Import StitcherEngine from engine module
+                            from engine import StitcherEngine, VisualEngine, AudioEngine
+                            
+                            success = StitcherEngine.build_scene_stitched_video_isolated(
+                                scenes_data=scenes_data,
+                                video_output="final_shorts.mp4",
+                                size_choice=selected_size,
+                                voice_profile=voice_profile,
+                                language_choice=lang_choice,
+                                bgm_path=bgm_path,
+                                bgm_volume=bgm_volume,
+                                music_mood=music_mood
+                            )
+                            
+                            if success and os.path.exists("final_shorts.mp4") and os.path.getsize("final_shorts.mp4") > 1000:
+                                update_status("✅ Cinematic video created successfully!", 1.0)
+                                st.balloons()
+                                st.rerun()
+                            else:
+                                update_status("❌ Video compilation failed. Try again.", None)
+                                st.error("Failed to generate video. Check your API keys and try again.")
+                    
+                    except Exception as e:
+                        st.error(f"❌ Cinematic Engine Error: {str(e)}")
+                        import traceback
+                        st.error(traceback.format_exc())
+    
+    

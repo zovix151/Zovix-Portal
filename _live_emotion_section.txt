@@ -1,0 +1,385 @@
+def render_live_emotion_voice():
+    """Live Emotion Voice - Matching Studio Style"""
+    
+    # ========================================================
+    # HEADER - STUDIO STYLE MATCH
+    # ========================================================
+    st.markdown("""
+    <div style="
+        background: linear-gradient(135deg, rgba(236,72,153,0.06), rgba(69,243,255,0.06));
+        border-radius: 16px;
+        border: 1px solid rgba(69,243,255,0.08);
+        padding: 16px 20px;
+        margin-bottom: 18px;
+        text-align: center;
+    ">
+        <span style="
+            display: inline-block;
+            background: rgba(236,72,153,0.12);
+            color: #EC4899;
+            padding: 4px 14px;
+            border-radius: 16px;
+            font-size: 9px;
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 1px;
+            border: 1px solid rgba(236,72,153,0.15);
+            margin-bottom: 6px;
+        ">🎤 EMOTION AI</span>
+        <h2 style="
+            font-family: 'Orbitron', sans-serif;
+            font-size: 20px;
+            color: #FFFFFF;
+            margin: 0;
+        ">
+            Live-Emotion <span style="
+                background: linear-gradient(135deg, #45f3ff, #EC4899);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            ">Voice</span>
+        </h2>
+        <p style="
+            font-family: 'Inter', sans-serif;
+            color: #94a3b8;
+            font-size: 12px;
+            margin: 4px 0 0 0;
+        ">
+            Hyper-realistic voice with real human emotional dynamics
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    col1, col2 = st.columns([1.1, 1.4], gap="medium")
+    
+    with col1:
+        with st.container(border=True):
+            st.markdown("""
+            <h4 style="
+                font-family: 'Orbitron', sans-serif;
+                font-size: 12px;
+                color: #EC4899;
+                margin-bottom: 12px;
+                letter-spacing: 0.5px;
+            ">
+                ⚙️ VOICE PARAMETERS
+            </h4>
+            """, unsafe_allow_html=True)
+            
+            # Text Input
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">📝 Text to Speak</p>', unsafe_allow_html=True)
+            voice_text = st.text_area(
+                "Text",
+                placeholder="Write the script you want to convert to emotion-rich voice...",
+                height=100,
+                key="emotion_voice_text_area",
+                label_visibility="collapsed"
+            )
+            
+            # Language
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">🌐 Select Language</p>', unsafe_allow_html=True)
+            language_options = ["English", "Hindi", "Bhojpuri", "French", "Japanese"]
+            selected_language = st.selectbox(
+                "Language",
+                language_options,
+                key="emotion_voice_language",
+                label_visibility="collapsed"
+            )
+            
+            # Emotion
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">😊 Emotion Profile</p>', unsafe_allow_html=True)
+            emotion_options = ["neutral", "happy", "sad", "angry", "excited", "serious", "mysterious"]
+            current_emotion = st.session_state.get("emotion_voice_emotion", "neutral")
+            if current_emotion not in emotion_options:
+                current_emotion = "neutral"
+            selected_emotion = st.selectbox(
+                "Emotion",
+                emotion_options,
+                index=emotion_options.index(current_emotion),
+                key="emotion_voice_emotion",
+                label_visibility="collapsed"
+            )
+            
+            # Voice Selection
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">🎤 Professional Voice</p>', unsafe_allow_html=True)
+            available_voices = LANGUAGE_VOICE_MAP.get(selected_language, ["Adam (Premium Male)"])
+            show_all_voices = st.checkbox("Show All Voices", key="emotion_show_all_voices")
+            
+            if show_all_voices:
+                voice_options = list(ELEVENLABS_VOICES.keys())
+            else:
+                voice_options = available_voices
+            
+            current_voice = st.session_state.get("selected_elevenlabs_voice", "Adam (Premium Male)")
+            if current_voice not in voice_options:
+                current_voice = voice_options[0] if voice_options else "Adam (Premium Male)"
+            
+            selected_voice_label = st.selectbox(
+                "Choose Voice",
+                voice_options,
+                index=voice_options.index(current_voice) if current_voice in voice_options else 0,
+                key="emotion_voice_elevenlabs_select",
+                label_visibility="collapsed"
+            )
+            
+            if selected_voice_label != st.session_state.get("selected_elevenlabs_voice"):
+                st.session_state["selected_elevenlabs_voice"] = selected_voice_label
+            
+            voice_info = ELEVENLABS_VOICES.get(selected_voice_label, {})
+            st.markdown(f"""
+            <div style="
+                background: rgba(236,72,153,0.04);
+                border: 1px solid rgba(236,72,153,0.08);
+                border-radius: 8px;
+                padding: 8px 12px;
+                margin-bottom: 12px;
+            ">
+                <p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 0;">
+                    🎤 {selected_voice_label} <br>
+                    🧑‍🎤 {voice_info.get('gender', 'Unknown').capitalize()} • 
+                    🌍 {voice_info.get('accent', 'Unknown')} • 
+                    🌐 {voice_info.get('language', 'Unknown')}
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # Quick Emotion Presets
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 6px;">Quick Emotion Presets:</p>', unsafe_allow_html=True)
+            emoji_map = {"neutral": "😐", "happy": "😊", "sad": "😢", "angry": "😡", "excited": "🤩", "serious": "😤", "mysterious": "🕵️"}
+            emotion_cols = st.columns(7)
+            for i, (emotion, emoji) in enumerate(emoji_map.items()):
+                with emotion_cols[i]:
+                    def make_emotion_callback(em):
+                        def callback():
+                            st.session_state["emotion_voice_emotion"] = em
+                        return callback
+                    if st.button(f"{emoji}", key=f"emotion_quick_{emotion}_{i}", use_container_width=True, on_click=make_emotion_callback(emotion)):
+                        pass
+            
+            st.markdown("<br>", unsafe_allow_html=True)
+            
+            # Voice Sample
+            if st.button("🔊 Preview Voice Sample", key="emotion_preview_voice", use_container_width=True):
+                st.info(f"🎵 Voice sample for {selected_voice_label} will play here.")
+                sample_path = "assets/audio/sample.mp3"
+                if os.path.exists(sample_path):
+                    with open(sample_path, "rb") as f:
+                        sample_bytes = f.read()
+                    st.audio(sample_bytes, format="audio/mp3")
+                else:
+                    st.warning("Sample audio not found. Please add a sample.mp3 file to assets/audio/")
+            
+            # Quality
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">📊 Voice Quality</p>', unsafe_allow_html=True)
+            voice_quality = st.selectbox(
+                "Quality",
+                ["Standard", "HD", "Premium"],
+                key="emotion_voice_quality",
+                label_visibility="collapsed"
+            )
+            
+            st.markdown("<br>", unsafe_allow_html=True)
+            
+            if st.button("🎤 Generate Emotion Voice", key="emotion_voice_generate", use_container_width=True):
+                if not voice_text.strip():
+                    st.error("Please enter some text to speak.")
+                else:
+                    success, required_tokens, message = validate_and_deduct_tokens("Live Emotion", voice_quality)
+                    if not success:
+                        st.error(message)
+                    else:
+                        st.success(message)
+                        with st.spinner(f"🎤 Generating {selected_emotion} voice with {selected_voice_label} in {selected_language}..."):
+                            voice_id = ELEVENLABS_VOICES.get(selected_voice_label, {}).get("id", "pNInz6obpgDQ5IdwJg7p")
+                            output_path = generate_emotion_voice(
+                                voice_text,
+                                emotion=selected_emotion,
+                                voice_type="male" if voice_info.get("gender") == "male" else "female",
+                                elevenlabs_voice_id=voice_id
+                            )
+                            if output_path and os.path.exists(output_path) and os.path.getsize(output_path) > 0:
+                                st.session_state["emotion_voice_output"] = output_path
+                                st.session_state["emotion_voice_text"] = voice_text
+                                
+                                conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+                                cursor = conn.cursor()
+                                try:
+                                    cursor.execute(
+                                        "INSERT INTO emotion_voice_history (username, text, emotion, audio_path, voice_id) VALUES (?, ?, ?, ?, ?)",
+                                        (st.session_state.get("logged_user", "user"), voice_text[:200], selected_emotion, output_path, selected_voice_label)
+                                    )
+                                    conn.commit()
+                                except Exception:
+                                    pass
+                                finally:
+                                    conn.close()
+                                
+                                st.toast("✅ Voice generated successfully!")
+                                st.rerun()
+                            else:
+                                st.error("Voice generation failed. Please try again.")
+    
+    with col2:
+        with st.container(border=True):
+            st.markdown("""
+            <h3 style="
+                font-family: 'Orbitron', sans-serif;
+                font-size: 13px;
+                color: #EC4899;
+                margin-bottom: 12px;
+                letter-spacing: 0.5px;
+            ">
+                🎧 VOICE PLAYER
+            </h3>
+            """, unsafe_allow_html=True)
+            
+            audio_output = st.session_state.get("emotion_voice_output")
+            if audio_output and os.path.exists(audio_output):
+                emotion = st.session_state.get("emotion_voice_emotion", "neutral")
+                emoji_map = {"neutral": "😐", "happy": "😊", "sad": "😢", "angry": "😡", "excited": "🤩", "serious": "😤", "mysterious": "🕵️"}
+                emotion_emoji = emoji_map.get(emotion, "😐")
+                selected_voice = st.session_state.get("selected_elevenlabs_voice", "Adam (Premium Male)")
+                
+                st.markdown(f"""
+                <div style="
+                    background: rgba(236,72,153,0.04);
+                    border: 1px solid rgba(236,72,153,0.08);
+                    border-radius: 10px;
+                    padding: 12px;
+                    margin-bottom: 12px;
+                ">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+                        <span style="font-family: Inter; font-size: 13px; color: #FFFFFF;">
+                            {emotion_emoji} {emotion.capitalize()} Voice
+                        </span>
+                        <span style="font-family: Orbitron; font-size: 11px; color: #EC4899; font-weight: bold;">
+                            {selected_voice}
+                        </span>
+                    </div>
+                    <div style="display: flex; gap: 6px; margin-top: 4px; flex-wrap: wrap;">
+                        <span style="
+                            font-family: Inter;
+                            font-size: 9px;
+                            color: #94a3b8;
+                            background: rgba(255,255,255,0.04);
+                            padding: 2px 8px;
+                            border-radius: 10px;
+                        ">🎯 {emotion}</span>
+                        <span style="
+                            font-family: Inter;
+                            font-size: 9px;
+                            color: #94a3b8;
+                            background: rgba(255,255,255,0.04);
+                            padding: 2px 8px;
+                            border-radius: 10px;
+                        ">🎤 Professional Voice</span>
+                        <span style="
+                            font-family: Inter;
+                            font-size: 9px;
+                            color: #94a3b8;
+                            background: rgba(255,255,255,0.04);
+                            padding: 2px 8px;
+                            border-radius: 10px;
+                        ">🌐 {st.session_state.get('emotion_voice_language', 'English')}</span>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                with open(audio_output, "rb") as f:
+                    audio_bytes = f.read()
+                st.audio(audio_bytes, format="audio/mp3")
+                
+                if st.session_state.get("emotion_voice_text"):
+                    with st.expander("📝 View Script", expanded=False):
+                        st.text(st.session_state["emotion_voice_text"])
+                
+                st.markdown("<br>", unsafe_allow_html=True)
+                col_dl, col_clr = st.columns(2)
+                with col_dl:
+                    st.download_button(
+                        label="📥 Download Voice (MP3)",
+                        data=audio_bytes,
+                        file_name=f"zovix_voice_{uuid.uuid4().hex[:8]}.mp3",
+                        mime="audio/mp3",
+                        use_container_width=True,
+                        key="emotion_download_btn"
+                    )
+                with col_clr:
+                    if st.button("🧹 Clear Voice", key="emotion_clear_btn", use_container_width=True):
+                        safe_remove_file(audio_output)
+                        st.session_state["emotion_voice_output"] = None
+                        st.session_state["emotion_voice_text"] = ""
+                        st.rerun()
+                
+                with st.expander("📊 Voice Analytics", expanded=False):
+                    st.markdown(f"""
+                    <div style="
+                        background: rgba(255,255,255,0.02);
+                        border-radius: 8px;
+                        padding: 10px;
+                    ">
+                        <p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 2px 0;">
+                            🎯 Emotion: <span style="color: #EC4899;">{emotion.capitalize()}</span>
+                        </p>
+                        <p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 2px 0;">
+                            🎤 Voice: <span style="color: #EC4899;">{selected_voice}</span>
+                        </p>
+                        <p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 2px 0;">
+                            🌐 Language: <span style="color: #EC4899;">{st.session_state.get('emotion_voice_language', 'English')}</span>
+                        </p>
+                        <p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 2px 0;">
+                            📝 Text Length: <span style="color: #EC4899;">{len(st.session_state.get('emotion_voice_text', ''))} characters</span>
+                        </p>
+                        <p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 2px 0;">
+                            🎵 Audio Size: <span style="color: #EC4899;">{len(audio_bytes)/1024:.1f} KB</span>
+                        </p>
+                    </div>
+                    """, unsafe_allow_html=True)
+            
+            else:
+                st.markdown("""
+                    <div style="
+                        height: 380px;
+                        min-height: 380px;
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: center;
+                        align-items: center;
+                        color: #64748b;
+                        text-align: center;
+                        padding: 12px;
+                        overflow: hidden;
+                        background: rgba(10,10,12,0.4);
+                        border-radius: 12px;
+                        border: 1px dashed rgba(236,72,153,0.12);
+                    ">
+                        <span style="font-size: 48px; margin-bottom: 10px;">🎤</span>
+                        <p style="
+                            font-family: 'Inter', sans-serif;
+                            font-size: 13px;
+                            font-weight: 500;
+                            color: #EC4899;
+                            margin: 0;
+                        ">
+                            Emotion voice will render here
+                        </p>
+                        <p style="
+                            font-family: 'Inter', sans-serif;
+                            font-size: 11px;
+                            color: #94a3b8;
+                            max-width: 400px;
+                            text-align: center;
+                            margin-top: 4px;
+                            line-height: 1.4;
+                        ">
+                            Select emotion, voice type, and generate hyper-realistic voice.
+                        </p>
+                        <p style="
+                            font-family: 'Inter', sans-serif;
+                            font-size: 10px;
+                            color: #45f3ff;
+                            margin-top: 4px;
+                        ">
+                            ⚡ Real human emotional dynamics
+                        </p>
+                    </div>
+                """, unsafe_allow_html=True)

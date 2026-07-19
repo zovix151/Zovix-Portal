@@ -1,0 +1,311 @@
+if st.button("🧹 Clear Video", key="unified_fv_clear_btn", use_container_width=True):
+                        st.session_state["active_face_video_url"] = None
+                        st.session_state["active_face_video"] = None
+                        st.rerun()
+            else:
+                st.markdown("""
+                <div class="empty-state">
+                    <span class="icon">👤</span>
+                    <p class="title" style="color: #EC4899; !important;">Face video will render here</p>
+                    <p class="desc">Upload face photo + script and generate a professional talking face.</p>
+                    <p class="powered">⚡ Powered by Zovix</p>
+                </div>
+                """, unsafe_allow_html=True)
+# ========================================================
+# 38. AUTH MODALS - IMPROVED
+# ========================================================
+
+@st.dialog("🔐 Security Gateway Node Access", width="small")
+def show_auth_modal(mode="login"):
+    st.markdown(f"""
+        <div style="text-align: center; margin-bottom: 15px;">
+            <div style="font-family: 'Orbitron', sans-serif; font-size: 16px; color: #EC4899; text-transform: uppercase; letter-spacing: 1.5px;">
+                { '🔑 Sign In Portal' if mode == 'login' else '📝 Register Identity' }
+            </div>
+            <p style="font-size: 11px; color: #94a3b8; margin-top: 5px;">Secure access nodes dynamically configured.</p>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    username_val = st.text_input("Username / Email", placeholder="Enter your username or email", key="auth_modal_username_input").strip()
+    password_val = st.text_input("Password", type="password", placeholder="Enter your password", key="auth_modal_password_input").strip()
+    st.write("")
+    
+    if mode == "login":
+        col_login, col_register = st.columns(2)
+        with col_login:
+            if st.button("🔑 Sign In", key="auth_modal_login_btn", use_container_width=True):
+                # 🎯 Aapki asli keys se direct live data uthane ke liye fix
+                username_val = st.session_state.get("auth_modal_username_input", "").strip()
+                password_val = st.session_state.get("auth_modal_password_input", "").strip()
+                
+                if not username_val or not password_val:
+                    st.error("Please enter both username and password.")
+                else:
+                    auth_result, twofa_enabled = authenticate_user_db(username_val, password_val)
+                    if auth_result:
+                        if twofa_enabled and HAS_2FA:
+                            st.session_state["2fa_temp_user"] = username_val
+                            st.session_state["show_2fa"] = True
+                            st.rerun()
+                        else:
+                            st.session_state["is_logged_in"] = True
+                            st.session_state["logged_user"] = username_val
+                            st.session_state["xp_points"] = get_user_xp_db(username_val)
+                            st.session_state["creator_level"] = 1 + (st.session_state["xp_points"] // 100)
+                            st.session_state["history_renders"] = load_renders_history_db(username_val)
+                            st.session_state["face_video_history"] = load_face_video_history_db(username_val)
+                            st.session_state["current_page"] = "studio"
+                            st.session_state["user_credits"] = get_user_credits_db(username_val)
+                            st.session_state["credit_balance"] = st.session_state["user_credits"]
+                            
+                            if st.session_state.get("auth_redirect_mode"):
+                                st.session_state["studio_active_mode"] = st.session_state["auth_redirect_mode"]
+                                st.session_state["current_workspace_mode"] = st.session_state["auth_redirect_mode"]
+                            
+                            check_and_refresh_subscription(username_val)
+                            
+                            if st.session_state.get("pending_credits", 0) > 0:
+                                add_credits(username_val, st.session_state["pending_credits"])
+                                st.success(f"✅ Added {st.session_state['pending_credits']} credits from pending payment!")
+                                st.session_state["pending_credits"] = 0
+                                st.session_state["pending_pack_name"] = ""
+                                st.session_state["payment_verified"] = False
+                            
+                            if not gdpr_manager.get_consent(username_val):
+                                gdpr_manager.set_consent(username_val)
+                            
+                            st.toast(f"Welcome back, {username_val}! 🎉")
+                            st.rerun()
+                    else:
+                        st.error("❌ Invalid username or password. Please try again.")
+        
+        with col_register:
+            if st.button("📝 Register", key="auth_modal_register_btn", use_container_width=True):
+                if not username_val or not password_val:
+                    st.error("Please enter both username and password.")
+                elif len(password_val) < 4:
+                    st.error("Password must be at least 4 characters long.")
+                else:
+                    if register_user_db(username_val, password_val):
+                        st.session_state["is_logged_in"] = True
+                        st.session_state["logged_user"] = username_val
+                        st.session_state["xp_points"] = 0
+                        st.session_state["creator_level"] = 1
+                        st.session_state["history_renders"] = []
+                        st.session_state["face_video_history"] = []
+                        st.session_state["current_page"] = "studio"
+                        st.session_state['user_credits'] = get_user_credits_db(username_val)
+                        st.session_state['credit_balance'] = st.session_state['user_credits']
+                        
+                        if st.session_state.get("auth_redirect_mode"):
+                            st.session_state["studio_active_mode"] = st.session_state["auth_redirect_mode"]
+                            st.session_state["current_workspace_mode"] = st.session_state["auth_redirect_mode"]
+                        
+                        check_and_refresh_subscription(username_val)
+                        gdpr_manager.set_consent(username_val)
+                        
+                        st.toast(f"Welcome to ZOVIX, {username_val}! 🚀")
+                        st.rerun()
+                    else:
+                        st.error("Registration failed. Please try a different username.")
+        
+        st.markdown("<div style='text-align:center; font-size:10px; color:#64748b; margin: 15px 0;'>OR SIGN IN WITH SOCIAL PLATFORMS</div>", unsafe_allow_html=True)
+        col_g, col_f = st.columns(2)
+        with col_g:
+            if st.button("🔵 Google", key="modal_social_g", use_container_width=True):
+                st.session_state["active_social_login"] = "Google"
+        with col_f:
+            if st.button("🔵 Facebook", key="modal_social_f", use_container_width=True):
+                st.session_state["active_social_login"] = "Facebook"
+
+        if "active_social_login" in st.session_state:
+            social_login_dialog_box(st.session_state["active_social_login"])
+
+def social_login_dialog_box(platform):
+    st.markdown(f"""
+        <div style="background: rgba(18, 19, 26, 0.95); padding: 5px; border-radius: 12px; text-align: center;">
+            <div style="font-family: 'Orbitron', sans-serif; font-size: 14px; color: #FFC0CB; margin-bottom: 10px; letter-spacing: 1px; text-transform: uppercase;">Login with {platform}</div>
+            <p style="font-size:12px; color:#94a3b8; margin-bottom:15px;">Enter your email to continue</p>
+        </div>
+    """, unsafe_allow_html=True)
+    social_email = st.text_input("Email Address", placeholder="yourname@gmail.com", key="social_email_input").strip()
+    st.write("")
+    if st.button("Authenticate & Log In", key="social_confirm_btn", use_container_width=True):
+        if social_email and "@" in social_email:
+            success = login_or_register_social(social_email, platform)
+            if success:
+                st.session_state["is_logged_in"] = True
+                st.session_state["logged_user"] = social_email
+                st.session_state["xp_points"] = get_user_xp_db(social_email)
+                st.session_state["creator_level"] = 1 + (st.session_state["xp_points"] // 100)
+                st.session_state["history_renders"] = load_renders_history_db(social_email)
+                st.session_state["face_video_history"] = load_face_video_history_db(social_email)
+                st.session_state["current_page"] = "studio"
+                st.session_state['user_credits'] = get_user_credits_db(social_email)
+                st.session_state['credit_balance'] = st.session_state['user_credits']
+                
+                if st.session_state.get("auth_redirect_mode"):
+                    st.session_state["studio_active_mode"] = st.session_state["auth_redirect_mode"]
+                    st.session_state["current_workspace_mode"] = st.session_state["auth_redirect_mode"]
+                
+                check_and_refresh_subscription(social_email)
+                
+                if st.session_state.get("pending_credits", 0) > 0:
+                    add_credits(social_email, st.session_state["pending_credits"])
+                    st.success(f"✅ Added {st.session_state['pending_credits']} credits from pending payment!")
+                    st.session_state["pending_credits"] = 0
+                    st.session_state["pending_pack_name"] = ""
+                    st.session_state["payment_verified"] = False
+                
+                gdpr_manager.set_consent(social_email)
+                st.toast(f"Logged in successfully via {platform}! 🎉")
+                st.rerun()
+            else:
+                st.error("Authentication failed. Please try again.")
+        else:
+            st.error("Please enter a valid email address.")
+
+@st.dialog("🔐 Two-Factor Authentication", width="small")
+def show_2fa_modal():
+    st.markdown("""
+        <div style="text-align: center; margin-bottom: 15px;">
+            <div style="font-family: 'Orbitron', sans-serif; font-size: 16px; color: #FFC0CB; text-transform: uppercase; letter-spacing: 1.5px;">
+                🔐 Two-Factor Authentication
+            </div>
+            <p style="font-size: 11px; color: #94a3b8; margin-top: 5px;">Enter the 6-digit code from your authenticator app</p>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    code = st.text_input("Authentication Code", max_chars=6, type="password", key="2fa_code_input").strip()
+    st.write("")
+    
+    if st.button("✅ Verify", key="2fa_verify_btn", use_container_width=True):
+        if code and len(code) == 6:
+            username = st.session_state.get("2fa_temp_user", "")
+            if HAS_2FA and pyotp:
+                try:
+                    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+                    cursor = conn.cursor()
+                    cursor.execute("SELECT twofa_secret FROM users WHERE username = ?", (username,))
+                    row = cursor.fetchone()
+                    conn.close()
+                    
+                    if row and row[0]:
+                        totp = pyotp.TOTP(row[0])
+                        if totp.verify(code):
+                            st.session_state["2fa_verified"] = True
+                            st.session_state["is_logged_in"] = True
+                            st.session_state["logged_user"] = username
+                            st.session_state["xp_points"] = get_user_xp_db(username)
+                            st.session_state["creator_level"] = 1 + (st.session_state["xp_points"] // 100)
+                            st.session_state["history_renders"] = load_renders_history_db(username)
+                            st.session_state["face_video_history"] = load_face_video_history_db(username)
+                            st.session_state["current_page"] = "studio"
+                            st.session_state['user_credits'] = get_user_credits_db(username)
+                            st.session_state['credit_balance'] = st.session_state['user_credits']
+                            
+                            if st.session_state.get("auth_redirect_mode"):
+                                st.session_state["studio_active_mode"] = st.session_state["auth_redirect_mode"]
+                                st.session_state["current_workspace_mode"] = st.session_state["auth_redirect_mode"]
+                            
+                            check_and_refresh_subscription(username)
+                            
+                            if st.session_state.get("pending_credits", 0) > 0:
+                                add_credits(username, st.session_state["pending_credits"])
+                                st.success(f"✅ Added {st.session_state['pending_credits']} credits from pending payment!")
+                                st.session_state["pending_credits"] = 0
+                                st.session_state["pending_pack_name"] = ""
+                                st.session_state["payment_verified"] = False
+                            
+                            st.session_state["2fa_temp_user"] = None
+                            st.toast("2FA verified! Welcome back! 🎉")
+                            st.rerun()
+                        else:
+                            st.error("Invalid code. Please try again.")
+                    else:
+                        st.error("2FA not set up for this account.")
+                except Exception as e:
+                    logger.error(f"2FA verification error: {e}")
+                    st.error("Error verifying 2FA code.")
+            else:
+                st.error("2FA system not available.")
+        else:
+            st.error("Please enter a valid 6-digit code.")
+
+@st.dialog("🎬 Cinematic Production Monitor", width="large")
+def open_preview_modal(video_path):
+    st.markdown(f"""
+        <div style="background: rgba(18, 19, 26, 0.95); padding: 15px; border-radius: 12px; border: 1px solid rgba(255, 192, 203, 0.15);">
+            <div style="font-family: 'Orbitron', sans-serif; font-size: 14px; color: #FFC0CB; margin-bottom: 12px; letter-spacing: 1px;">🟢 THEATRICAL PLAYBACK MONITOR</div>
+        </div>
+    """, unsafe_allow_html=True)
+    st.video(video_path, format="video/mp4", autoplay=False, loop=True, muted=False)
+    st.markdown("<br>", unsafe_allow_html=True)
+    if st.button("Close Monitor", key="close_theatrical_monitor_btn", use_container_width=True):
+        st.rerun()
+
+# ========================================================
+# 39. RUN CINEMATIC ENGINE (FULL)
+# ========================================================
+if st.button("Generate", key="studio_generate_action_btn", use_container_width=True):
+    # 1. Validate input
+    if not user_input.strip():
+        st.error("Please enter a video concept or script.")
+        return
+    
+    # 2. Deduct credits
+    success, required_tokens, message = validate_and_deduct_tokens("Cinematic Engine", cinematic_quality)
+    if not success:
+        st.error(message)
+        return
+    st.success(message)
+    
+    # 3. Generate script
+    with st.spinner("🧠 Generating cinematic script..."):
+        scenes, music_mood = ScriptingEngine.generate_script(
+            topic=user_input,
+            duration_choice=st.session_state["duration_choice"],
+            selected_model=selected_model,
+            language_choice=st.session_state["language_choice"]
+        )
+    
+    if not scenes:
+        st.error("Script generation failed. Please try a different prompt.")
+        return
+    
+    # 4. Build video
+    with st.spinner("🎬 Compiling cinematic video..."):
+        bgm_path = resolve_audible_bgm_path(
+            preferred_path=uploaded_bgm, 
+            mood=music_mood
+        )
+        
+        result = StitcherEngine.build_scene_stitched_video_isolated(
+            scenes_data=scenes,
+            video_output="final_shorts.mp4",
+            size_choice=st.session_state["aspect_ratio"],
+            voice_profile=st.session_state["voice_profile"],
+            language_choice=st.session_state["language_choice"],
+            bgm_path=bgm_path,
+            bgm_volume=bgm_volume,
+            music_mood=music_mood,
+            workshop_img=None
+        )
+    
+    if result:
+        # 5. Save to history
+        file_name = f"cinematic_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mp4"
+        save_render_to_db(
+            st.session_state["logged_user"],
+            file_name,
+            user_input,
+            "final_shorts.mp4",
+            "Cinematic Engine",
+            required_tokens
+        )
+        st.session_state["history_renders"] = load_renders_history_db(st.session_state["logged_user"])
+        st.toast("🎉 Cinematic video generated successfully!")
+        st.rerun()
+    else:
+        st.error("Video compilation failed. Please try again.")
+

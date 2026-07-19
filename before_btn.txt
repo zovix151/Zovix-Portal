@@ -1,0 +1,13 @@
+dard_input"
+            )
+        
+        # Render Quality
+        st.markdown('<p class="compact-label" style="margin: 10px 0 4px 0;">📊 Render Quality</p>', unsafe_allow_html=True)
+        cinematic_quality = st.selectbox(
+            "Quality",
+            ["Standard", "HD", "Pro"],
+            key="cinematic_quality",
+            label_visibility="collapsed"
+        )
+        
+                

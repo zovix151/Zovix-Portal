@@ -1,0 +1,220 @@
+12531: |        initial_topic_val = st.session_state.get("studio_prompt_value", "")
+12532: |        
+12533: |        if input_mode == "🧠 DeepSeek AI Blueprint":
+12534: |            user_input = st.text_area(
+12535: |                "Prompt Input",
+12536: |                value=initial_topic_val,
+12537: |                placeholder="Explain video concept: e.g. Ek kisan ke paas do beej the...",
+12538: |                height=90,
+12539: |                label_visibility="collapsed",
+12540: |                key="studio_prompt_deepseek_input"
+12541: |            )
+12542: |            
+12543: |            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">📐 Aspect Ratio</p>', unsafe_allow_html=True)
+12544: |            aspect_choice = st.selectbox(
+12545: |                "Aspect Ratio",
+12546: |                ["16:9 LANDSCAPE (YOUTUBE)", "9:16 VERTICAL (SHORTS/REELS)"],
+12547: |                key="studio_deepseek_aspect",
+12548: |                label_visibility="collapsed"
+12549: |            )
+12550: |            
+12551: |            if st.button("📐 Generate Blueprint", key="deepseek_generate_blueprint_btn", use_container_width=True):
+12552: |                if not user_input.strip():
+12553: |                    st.error("Please enter a video concept.")
+12554: |                else:
+12555: |                    with st.spinner("🧠 DeepSeek AI is generating your video blueprint..."):
+12556: |                        aspect_for_deepseek = "9:16" if "VERTICAL" in st.session_state.get("studio_deepseek_aspect", "9:16 VERTICAL") else "16:9"
+12557: |                        blueprint = generate_video_blueprint_with_deepseek(user_input, aspect_for_deepseek)
+12558: |                        if "error" in blueprint:
+12559: |                            st.error(f"❌ DeepSeek Error: {blueprint['error']}")
+12560: |                        else:
+12561: |                            st.session_state["deepseek_blueprint_data"] = blueprint
+12562: |                            st.session_state["deepseek_blueprint_visible"] = True
+12563: |                            st.session_state["studio_prompt_value"] = user_input
+12564: |                            st.toast("✅ Blueprint generated successfully!")
+12565: |
+12566: |
+12567: |
+12568: |
+12569: |
+12570: |
+12571: |
+12572: |
+12573: |
+12574: |
+12575: |
+12576: |
+12577: |
+12578: |
+12579: |
+12580: |
+12581: |
+12582: |
+12583: |
+12584: |
+12585: |
+12586: |
+12587: |
+12588: |
+12589: |
+12590: |
+12591: |
+12592: |
+12593: |
+12594: |
+12595: |
+12596: |
+12597: |
+12598: |
+12599: |
+12600: |
+12601: |
+12602: |
+12603: |
+12604: |
+12605: |
+12606: |
+12607: |
+12608: |
+12609: |
+12610: |
+12611: |
+12612: |
+12613: |
+12614: |
+12615: |
+12616: |
+12617: |
+12618: |
+12619: |
+12620: |
+12621: |
+12622: |
+12623: |
+12624: |
+12625: |
+12626: |
+12627: |
+12628: |
+12629: |
+12630: |
+12631: |
+12632: |
+12633: |
+12634: |
+12635: |
+12636: |
+12637: |
+12638: |                                st.rerun()
+12639: |
+12640: |            if st.session_state.get("deepseek_blueprint_visible") and st.session_state.get("deepseek_blueprint_data"):
+12641: |                # Display the DeepSeek Blueprint
+12642: |                bp = st.session_state["deepseek_blueprint_data"]
+12643: |                st.markdown("""
+12644: |                <div style="background: linear-gradient(135deg, rgba(236,72,153,0.08), rgba(139,92,246,0.08)); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,192,203,0.15); margin: 10px 0;">
+12645: |                    <div style="font-family: 'Orbitron', sans-serif; font-size: 12px; color: #EC4899; letter-spacing: 1px; margin-bottom: 8px;">
+12646: |                        🧠 DEEPSEEK AI BLUEPRINT
+12647: |                    </div>
+12648: |                </div>
+12649: |                """, unsafe_allow_html=True)
+12650: |                
+12651: |                # Title
+12652: |                title = bp.get("title", "Untitled Blueprint")
+12653: |                st.markdown(f"### 🎬 {title}")
+12654: |                
+12655: |                # Description
+12656: |                description = bp.get("description", "")
+12657: |                if description:
+12658: |                    st.markdown(f"<p style='color: #94a3b8; font-size: 13px;'>{description}</p>", unsafe_allow_html=True)
+12659: |                
+12660: |                # Video Structure
+12661: |                structure = bp.get("video_structure", bp.get("structure", {}))
+12662: |                if structure:
+12663: |                    st.markdown("<h4 style='color: #FFC0CB; margin-top: 12px;'>📋 Video Structure</h4>", unsafe_allow_html=True)
+12664: |                    scenes = structure.get("scenes", structure.get("sections", []))
+12665: |                    if scenes:
+12666: |                        for i, scene in enumerate(scenes):
+12667: |                            scene_title = scene.get("title", scene.get("scene_text", f"Scene {i+1}"))
+12668: |                            scene_desc = scene.get("description", scene.get("text", ""))
+12669: |                            scene_keyword = scene.get("keyword", scene.get("search_keyword", ""))
+12670: |                            scene_dur = scene.get("duration", 5)
+12671: |                            with st.expander(f"🎬 Scene {i+1}: {scene_title}", expanded=(i==0)):
+12672: |                                st.markdown(f"<p style='color: #e2e8f0;'>{scene_desc}</p>", unsafe_allow_html=True)
+12673: |                                if scene_keyword:
+12674: |                                    st.markdown(f"<p style='color: #94a3b8; font-size: 11px;'>🔍 Keyword: <code>{scene_keyword}</code></p>", unsafe_allow_html=True)
+12675: |                                st.markdown(f"<p style='color: #94a3b8; font-size: 11px;'>⏱ Duration: {scene_dur}s</p>", unsafe_allow_html=True)
+12676: |                    else:
+12677: |                        st.info("No scenes found in blueprint structure")
+12678: |                
+12679: |                # Visual Style
+12680: |                style = bp.get("visual_style", bp.get("style", {}))
+12681: |                if style:
+12682: |                    st.markdown("<h4 style='color: #FFC0CB; margin-top: 12px;'>🎨 Visual Style</h4>", unsafe_allow_html=True)
+12683: |                    for key, val in style.items() if isinstance(style, dict) else []:
+12684: |                        st.markdown(f"<p style='color: #94a3b8; font-size: 12px; margin: 2px 0;'><b>{key.replace('_', ' ').title()}:</b> {val}</p>", unsafe_allow_html=True)
+12685: |                
+12686: |                # Music Mood
+12687: |                mood = bp.get("music_mood", bp.get("mood", ""))
+12688: |                if mood:
+12689: |                    st.markdown(f"<p style='color: #94a3b8; font-size: 12px; margin-top: 8px;'><b>🎵 Music Mood:</b> {mood}</p>", unsafe_allow_html=True)
+12690: |                
+12691: |                # Aspect Ratio
+12692: |                ar = bp.get("aspect_ratio", "")
+12693: |                if ar:
+12694: |                    st.markdown(f"<p style='color: #94a3b8; font-size: 12px;'><b>📐 Aspect Ratio:</b> {ar}</p>", unsafe_allow_html=True)
+12695: |                
+12696: |                # Use Blueprint button
+12697: |                st.markdown("<br>", unsafe_allow_html=True)
+12698: |                if st.button("🎬 Use This Blueprint for Generation", key="use_blueprint_btn", use_container_width=True):
+12699: |                    if structure and scenes:
+12700: |                        st.session_state["blueprint_scenes"] = scenes
+12701: |                        st.session_state["blueprint_mood"] = mood
+12702: |                        st.session_state["studio_prompt_value"] = description or title
+12703: |                    st.success("✅ Blueprint loaded! Now click Generate to create video.")
+12704: |                    st.toast("Blueprint ready for generation! 🚀")
+12705: |                
+12706: |                # Clear blueprint
+12707: |                if st.button("🗑 Clear Blueprint", key="clear_blueprint_btn", use_container_width=True):
+12708: |                    st.session_state["deepseek_blueprint_data"] = None
+12709: |                    st.session_state["deepseek_blueprint_visible"] = False
+12710: |                    st.rerun()
+12711: |        
+12712: |        else:
+12713: |            user_input = st.text_area(
+12714: |                "Prompt Input",
+12715: |                value=initial_topic_val,
+12716: |                placeholder="Explain video concept: e.g. Bermuda triangle ka ansuljha rahasya jo kisi ko nahi pata tha." if input_mode == "💡 Autonomous AI Topic" 
+12717: |                else "Write a custom script separated by paragraph breaks...",
+12718: |                height=90,
+12719: |                label_visibility="collapsed",
+12720: |                key="studio_prompt_standard_input"
+12721: |            )
+12722: |        
+12723: |        # Render Quality
+12724: |        st.markdown('<p class="compact-label" style="margin: 10px 0 4px 0;">📊 Render Quality</p>', unsafe_allow_html=True)
+12725: |        cinematic_quality = st.selectbox(
+12726: |            "Quality",
+12727: |            ["Standard", "HD", "Pro"],
+12728: |            key="cinematic_quality",
+12729: |                        label_visibility="collapsed"
+12730: |        )
+12731: |        
+12732: |        col_btn1, col_btn2 = st.columns([4, 1])
+12733: |        with col_btn2:
+12734: |            if st.button("Generate", key="studio_generate_action_btn", use_container_width=True):
+12735: |                # Cinematic Video Generation Logic
+12736: |                if not user_input.strip():
+12737: |                    st.error("Please enter a video topic or script.")
+12738: |                else:
+12739: |                    try:
+12740: |                        # Step 1: Validate tokens
+12741: |                        burn_rate = BASE_BURN_RATE.get("Cinematic Engine", 4)
+12742: |                        if cinematic_quality in ["HD", "Pro"]:
+12743: |                            burn_rate += 1 if cinematic_quality == "HD" else 2
+12744: |                        token_check = validate_and_deduct_tokens("Cinematic Engine", burn_rate)
+12745: |                        if token_check is not True:
+12746: |                            st.error(token_check)
+12747: |                            st.stop()
+12748: |                        
+12749: |                        # Step 2: Parse parameters
+12750: |                        selected_size = st.session_state.get("aspect_ratio", "9:16 Vertical (Shorts/Reels)")

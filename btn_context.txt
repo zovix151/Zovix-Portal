@@ -1,0 +1,9 @@
+_allow_html=True)
+            aspect_choice = st.selectbox(
+                "Aspect Ratio",
+                ["16:9 LANDSCAPE (YOUTUBE)", "9:16 VERTICAL (SHORTS/REELS)"],
+                key="studio_deepseek_aspect",
+                label_visibility="collapsed"
+            )
+            
+            if st.butt

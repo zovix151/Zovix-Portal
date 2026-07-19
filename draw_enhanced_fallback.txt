@@ -1,0 +1,184 @@
+def generate_enhanced_fallback_drawing(prompt, style="realistic", canvas_size=(1024, 768)):
+    """
+    🔥 DYNAMIC SEMANTIC FALLBACK ENGINE - GENERATIVE ART BASED ON PROMPT
+    Bina AI ke bhi prompt ke colors aur theme ko samajh kar satik art banata hai.
+    """
+    output_path = f"draw_outputs/drawing_{uuid.uuid4().hex[:8]}.png"
+    os.makedirs("draw_outputs", exist_ok=True)
+    
+    try:
+        width, height = canvas_size
+        prompt_lower = prompt.lower()
+        
+        # ========================================================
+        # 1. SMART COLOR & THEME DETECTOR (Prompt ke hisab se colors)
+        # ========================================================
+        # Default Dark Theme Colors
+        bg_color = (15, 15, 25, 255)
+        primary_colors = [(100, 100, 255), (255, 100, 100), (100, 255, 100)]
+        composition_style = "abstract" # Default
+        
+        # Cyberpunk / Neon / City Vibe
+        if any(w in prompt_lower for w in ["cyberpunk", "neon", "city", "street", "skyscraper", "tokyo", "night"]):
+            bg_color = (10, 10, 20, 255)
+            primary_colors = [(255, 0, 128), (0, 242, 254), (175, 0, 255), (255, 255, 0)]
+            composition_style = "grid_tech"
+            
+        # Nature / Forest / Jungle / Tree
+        elif any(w in prompt_lower for w in ["forest", "tree", "nature", "jungle", "garden", "green", "grass"]):
+            bg_color = (20, 40, 25, 255)
+            primary_colors = [(34, 139, 34), (46, 139, 87), (107, 142, 35), (218, 165, 32)]
+            composition_style = "organic"
+            
+        # Sunset / Fire / Volcano / Red Vibe
+        elif any(w in prompt_lower for w in ["sunset", "sunrise", "fire", "volcano", "red", "orange", "sun", "hot"]):
+            bg_color = (40, 15, 10, 255)
+            primary_colors = [(255, 69, 0), (255, 140, 0), (255, 215, 0), (128, 0, 32)]
+            composition_style = "landscape"
+            
+        # Ocean / Water / Sky / Blue Vibe
+        elif any(w in prompt_lower for w in ["ocean", "sea", "water", "beach", "sky", "blue", "river", "ice"]):
+            bg_color = (10, 30, 50, 255)
+            primary_colors = [(0, 191, 255), (30, 144, 255), (70, 130, 180), (240, 248, 255)]
+            composition_style = "waves"
+            
+        # Space / Galaxy / Sci-Fi
+        elif any(w in prompt_lower for w in ["space", "galaxy", "universe", "star", "alien", "sci-fi", "astronaut"]):
+            bg_color = (5, 5, 15, 255)
+            primary_colors = [(255, 255, 255), (147, 112, 219), (0, 255, 200), (255, 20, 147)]
+            composition_style = "cosmic"
+
+        # Anime / Bright / Colorful
+        elif "anime" in prompt_lower or "colorful" in prompt_lower:
+            bg_color = (240, 240, 250, 255)
+            primary_colors = [(255, 105, 180), (135, 206, 250), (255, 255, 100), (152, 251, 152)]
+            composition_style = "abstract"
+
+        # ========================================================
+        # 2. RENDER ENGINE (Theme ke hisab se geometry draw karna)
+        # ========================================================
+        img = Image.new("RGBA", (width, height), color=bg_color)
+        draw = ImageDraw.Draw(img)
+        
+        # A. COSMIC / SPACE STYLE
+        if composition_style == "cosmic":
+            # Draw nebula glow
+            for _ in range(5):
+                cx, cy = random.randint(0, width), random.randint(0, height)
+                r = random.randint(150, 350)
+                col = random.choice(primary_colors)
+                draw.ellipse([(cx-r, cy-r), (cx+r, cy+r)], fill=(col[0], col[1], col[2], 30))
+            # Draw stars
+            for _ in range(150):
+                sx, sy = random.randint(0, width), random.randint(0, height)
+                size = random.randint(1, 3)
+                draw.ellipse([(sx, sy), (sx+size, sy+size)], fill=(255, 255, 255, 255))
+                
+        # B. GRID TECH / CYBERPUNK STYLE
+        elif composition_style == "grid_tech":
+            # Draw perspective lines / grids
+            for i in range(0, width, 40):
+                draw.line([(i, 0), (i, height)], fill=(primary_colors[1][0], primary_colors[1][1], primary_colors[1][2], 20), width=1)
+            for i in range(0, height, 40):
+                draw.line([(0, i), (width, i)], fill=(primary_colors[1][0], primary_colors[1][1], primary_colors[1][2], 20), width=1)
+            # Draw glowing tech shapes (skyscrapers facades)
+            for _ in range(15):
+                w_box = random.randint(60, 150)
+                h_box = random.randint(200, height - 100)
+                x_box = random.randint(0, width - w_box)
+                col = random.choice(primary_colors)
+                draw.rectangle([(x_box, height - h_box), (x_box + w_box, height)], 
+                               fill=(col[0]//3, col[1]//3, col[2]//3, 100), 
+                               outline=(col[0], col[1], col[2], 255), width=2)
+                # Cyberpunk windows dots
+                for wx in range(x_box + 10, x_box + w_box - 10, 15):
+                    for wy in range(height - h_box + 10, height - 10, 25):
+                        if random.random() > 0.4:
+                            draw.rectangle([(wx, wy), (wx+4, wy+6)], fill=random.choice(primary_colors))
+
+        # C. LANDSCAPE / SUNSET STYLE
+        elif composition_style == "landscape":
+            # Sky Gradient
+            for y in range(int(height * 0.7)):
+                ratio = y / (height * 0.7)
+                r = int(bg_color[0] + (primary_colors[0][0] - bg_color[0]) * (1 - ratio))
+                g = int(bg_color[1] + (primary_colors[1][1] - bg_color[1]) * (1 - ratio))
+                b = int(bg_color[2] + (primary_colors[2][2] - bg_color[2]) * (1 - ratio))
+                draw.line([(0, y), (width, y)], fill=(r, g, b, 255))
+            # Big Glowing Sun
+            draw.ellipse([(width//2 - 80, height//3 - 80), (width//2 + 80, height//3 + 80)], fill=(255, 255, 200, 255))
+            # Mountain Silhouettes
+            for i in range(3):
+                points = [(0, height)]
+                for x in range(0, width + 50, 50):
+                    y = int(height * 0.5 + i * 50 + math.sin(x * 0.01) * 40 + random.randint(-10, 10))
+                    points.append((x, y))
+                points.append((width, height))
+                draw.polygon(points, fill=(30 + i*15, 10 + i*5, 10, 255))
+
+        # D. WAVES / OCEAN STYLE
+        elif composition_style == "waves":
+            for i in range(6):
+                points = [(0, height)]
+                for x in range(0, width + 40, 40):
+                    y = int(height * 0.4 + i * 60 + random.randint(-15, 15))
+                    points.append((x, y))
+                points.append((width, height))
+                col = random.choice(primary_colors)
+                draw.polygon(points, fill=(col[0], col[1], col[2], 150))
+
+        # E. ORGANIC / NATURE STYLE
+        elif composition_style == "organic":
+            # Draw Sky & Ground split
+            draw.rectangle([(0, 0), (width, height//2)], fill=(135, 206, 235, 255)) # Light blue sky
+            draw.rectangle([(0, height//2), (width, height)], fill=bg_color) # Dark Green ground
+            # Draw abstract trees/circles
+            for _ in range(25):
+                cx = random.randint(0, width)
+                cy = random.randint(height//2 - 20, height)
+                r = random.randint(30, 70)
+                col = random.choice(primary_colors)
+                # Tree trunk
+                draw.rectangle([(cx-4, cy), (cx+4, height)], fill=(90, 50, 20, 255))
+                # Tree leaves
+                draw.ellipse([(cx-r, cy-r), (cx+r, cy+r)], fill=(col[0], col[1], col[2], 200))
+
+        # F. DEFAULT ABSTRACT (For any other random prompts)
+        else:
+            for _ in range(40):
+                cx = random.randint(0, width)
+                cy = random.randint(0, height)
+                r = random.randint(20, 100)
+                col = random.choice(primary_colors)
+                draw.ellipse([(cx-r, cy-r), (cx+r, cy+r)], fill=(col[0], col[1], col[2], 180))
+                draw.rectangle([(cx, cy), (cx+r, cy+r)], fill=(col[2], col[0], col[1], 80))
+
+        # ========================================================
+        # 3. STYLE POST-PROCESSING EFFECTS
+        # ========================================================
+        if style == "sketch":
+            img = img.convert("L").convert("RGBA")
+            img = ImageEnhance.Contrast(img).enhance(1.6)
+        elif style == "digital" or style == "neon":
+            img = ImageEnhance.Sharpness(img).enhance(1.5)
+            img = ImageEnhance.Color(img).enhance(1.4)
+        elif style == "watercolor":
+            img = img.filter(ImageFilter.GaussianBlur(radius=2))
+        elif style == "cinematic":
+            img = ImageEnhance.Contrast(img).enhance(1.3)
+            draw = ImageDraw.Draw(img)
+            # Letterbox Cinematic Bars
+            draw.rectangle([(0, 0), (width, int(height*0.08))], fill=(0,0,0,255))
+            draw.rectangle([(0, int(height*0.92)), (width, height)], fill=(0,0,0,255))
+
+        # Add Watermark & Save
+        draw = ImageDraw.Draw(img)
+        draw.text((width-220, height-30), f"ZOVIX Engine - {datetime.now().strftime('%Y')}", fill=(150, 150, 150, 200))
+        
+        final_img = img.convert("RGB")
+        final_img.save(output_path, quality=95)
+        return output_path
+        
+    except Exception as e:
+        logger.error(f"Generative Fallback error: {e}")
+        return None

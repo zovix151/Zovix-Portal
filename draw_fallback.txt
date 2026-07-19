@@ -1,0 +1,13 @@
+def generate_enhanced_fallback_drawing(prompt, style="realistic", canvas_size=(1024, 768)):
+    """
+    🔥 DYNAMIC SEMANTIC FALLBACK ENGINE - GENERATIVE ART BASED ON PROMPT
+    Bina AI ke bhi prompt ke colors aur theme ko samajh kar satik art banata hai.
+    """
+    output_path = f"draw_outputs/drawing_{uuid.uuid4().hex[:8]}.png"
+    os.makedirs("draw_outputs", exist_ok=True)
+    
+    try:
+        width, height = canvas_size
+        prompt_lower = prompt.lower()
+        
+        

@@ -1,0 +1,26 @@
+def generate_drawing_hybrid(prompt, style="realistic", canvas_size=(1024, 768), engine="Auto (Pollinations \u2192 Gemini \u2192 Fallback)", quality="Standard"):
+    """
+    WORLD-CLASS DRAW GENERATOR - 6-Tier Cascade
+    Delegates to engine.py's DrawEngine for multi-provider support
+    """
+    from engine import DrawEngine
+    
+    engine_map = {
+        "Auto (Pollinations \u2192 Gemini \u2192 Fallback)": "Auto",
+        "Pollinations.ai (Free + Fast)": "Pollinations",
+        "Gemini Flash (Premium + Quality)": "Gemini",
+        "Stability AI (Highest Quality)": "Stability",
+        "Replicate Flux (Fast SD)": "Replicate",
+        "Hugging Face (FLUX.1)": "HuggingFace",
+        "Fallback Only (100% Local)": "Fallback",
+    }
+    engine_filter = engine_map.get(engine, "Auto")
+    
+    if engine_filter == "Fallback":
+        return DrawEngine.generate_fallback_only(prompt, style, canvas_size)
+    else:
+        return DrawEngine.generate(prompt, style, canvas_size, engine_filter, quality)# ========================================================
+# ENHANCED FALLBACK - PROMPT AWARE (FIXED FOR TRANSPARENCY & PATH)
+# ========================================================
+
+def generate_enhanced_fallback_drawing

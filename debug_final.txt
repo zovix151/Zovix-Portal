@@ -1,0 +1,20 @@
+12556:  24sp |                        aspect_for_deepseek = "9:16" if "VERTICAL" in st.session_state.get("studio_deepseek_aspect", "9:16 VERTICAL") else "16:9"
+12557:  24sp |                        blueprint = generate_video_blueprint_with_deepseek(user_input, aspect_for_deepseek)
+12558:  24sp |                        if "error" in blueprint:
+12559:  28sp |                            st.error(f"❌ DeepSeek Error: {blueprint['error']}")
+12560:  24sp |                        else:
+12561:  28sp |                            st.session_state["deepseek_blueprint_data"] = blueprint
+12562:  28sp |                            st.session_state["deepseek_blueprint_visible"] = True
+12563:  28sp |                            st.session_state["studio_prompt_value"] = user_input
+12564:  56sp |                                                        st.toast("✅ Blueprint generated successfully!")
+12565:  28sp |                            st.rerun()
+12566:   0sp |
+12567:  12sp |            if st.session_state.get("deepseek_blueprint_visible") and st.session_state.get("deepseek_blueprint_data"):
+12568:  16sp |                # Display the DeepSeek Blueprint
+12569:  16sp |                bp = st.session_state["deepseek_blueprint_data"]
+12570:  16sp |                st.markdown("""
+12571:  16sp |                <div style="background: linear-gradient(135deg, rgba(236,72,153,0.08), rgba(139,92,246,0.08)); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,192,203,0.15); margin: 10px 0;">
+12572:  20sp |                    <div style="font-family: 'Orbitron', sans-serif; font-size: 12px; color: #EC4899; letter-spacing: 1px; margin-bottom: 8px;">
+12573:  24sp |                        🧠 DEEPSEEK AI BLUEPRINT
+12574:  20sp |                    </div>
+12575:  16sp |                </div>

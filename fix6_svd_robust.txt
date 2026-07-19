@@ -1,0 +1,92 @@
+def convert_image_to_video_svd_robust(image_path, motion_bucket_id=127):
+    video_path = None
+    hf_key = os.getenv("HUGGINGFACE_API_KEY") or get_system_secret("HUGGINGFACE_API_KEY")
+    if hf_key and InferenceClient is not None and image_path and os.path.exists(image_path):
+        try:
+            try:
+                client_hf = InferenceClient(token=hf_key)
+            except Exception:
+                client_hf = InferenceClient(api_key=hf_key)
+            with open(image_path, "rb") as img_file:
+                img_data = img_file.read()
+            try:
+                url = "https://api-inference.huggingface.co/models/stabilityai/stable-video-diffusion-img2vid-xt"
+                headers = {"Authorization": f"Bearer {hf_key}", "Content-Type": "application/octet-stream", "Accept": "video/mp4"}
+                params = {"parameters": {"motion_bucket_id": int(motion_bucket_id)}}
+                response = requests.post(url, headers=headers, data=img_data, params=params, timeout=60)
+                if response.status_code == 200 and len(response.content) > 5000:
+                    output_video_path = f"saved_renders/svd_output_{uuid.uuid4().hex[:6]}.mp4"
+                    with open(output_video_path, "wb") as out_f:
+                        out_f.write(response.content)
+                    video_path = output_video_path
+            except Exception as e:
+                logger.error(f"SVD error: {e}")
+        except Exception as e:
+            logger.error(f"SVD setup error: {e}")
+    if not video_path:
+        output_video_path = f"saved_renders/svd_output_{uuid.uuid4().hex[:6]}.mp4"
+        try:
+            cmd = ['ffmpeg', '-y', '-loop', '1', '-i', image_path, '-t', '4', '-vf', f"zoompan=z='min(zoom+0.0015,1.5)':d=96:s=1280x720", '-pix_fmt', 'yuv420p', '-c:v', 'libx264', '-preset', 'ultrafast', '-r', '24', output_video_path]
+            subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+            if os.path.exists(output_video_path):
+                video_path = output_video_path
+        except Exception as e:
+            logger.error(f"Fallback SVD error: {e}")
+    return video_path
+
+def generate_ai_video(prompt):
+    luma_key = os.getenv("LUMA_API_KEY") or get_system_secret("LUMA_API_KEY")
+    runway_key = os.getenv("RUNWAY_API_KEY") or get_system_secret("RUNWAY_API_KEY")
+    if luma_key:
+        url = "https://api.lumalabs.ai/dream-machine/v1/generations"
+        headers = {"Authorization": f"Bearer {luma_key}", "Content-Type": "application/json"}
+        payload = {"prompt": prompt, "aspect_ratio": "16:9"}
+        try:
+            res = requests.post(url, headers=headers, json=payload, timeout=35)
+            if res.status_code in [200, 201]:
+                gen_data = res.json()
+                gen_id = gen_data.get("id")
+                if gen_id:
+                    poll_url = f"{url}/{gen_id}"
+                    for _ in range(30):
+                        time.sleep(5)
+                        poll_res = requests.get(poll_url, headers=headers, timeout=20)
+                        if poll_res.status_code == 200:
+                            poll_data = poll_res.json()
+                            state = poll_data.get("state")
+                            if state == "completed":
+                                video_url = poll_data.get("assets", {}).get("video")
+                                if video_url:
+                                    return video_url
+                            elif state == "failed":
+                                break
+        except Exception as e:
+            logger.error(f"Luma error: {e}")
+    if runway_key:
+        url = "https://api.runwayml.com/v1/tasks"
+        headers = {"Authorization": f"Bearer {runway_key}", "Content-Type": "application/json", "X-Runway-Version": "2024-11-06"}
+        payload = {"taskType": "text_to_video", "promptText": prompt}
+        try:
+            res = requests.post(url, headers=headers, json=payload, timeout=35)
+            if res.status_code in [200, 201]:
+                task_id = res.json().get("id")
+                if task_id:
+                    poll_url = f"{url}/{task_id}"
+                    for _ in range(30):
+                        time.sleep(5)
+                        poll_res = requests.get(poll_url, headers=headers, timeout=20)
+                        if poll_res.status_code == 200:
+                            task_data = poll_res.json()
+                            status = task_data.get("status")
+                            if status == "SUCCEEDED":
+                                outputs = task_data.get("outputs", [])
+                                if outputs:
+                                    return outputs[0]
+                            elif status == "FAILED":
+                                break
+        except Exception as e:
+            logger.error(f"Runway error: {e}")
+    return None
+
+class AudioEngine:
+    @staticmethod

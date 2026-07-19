@@ -1,0 +1,55 @@
+class ScriptingEngine:
+    @staticmethod
+    def generate_script(topic, duration_choice, selected_model, language_choice):
+        effective_api_key = st.session_state.get("user_gemini_api_key", "").strip() or GEMINI_API_KEY
+        if has_genai and effective_api_key:
+            try:
+                client_gen = genai.Client(api_key=effective_api_key)
+                num_scenes = 4 if "1 Minute" in duration_choice else 3
+                if "Hinglish" in language_choice:
+                    lang_instruction = "fluent Hinglish (Hindi written in Latin script)"
+                elif "French" in language_choice:
+                    lang_instruction = "fluent detailed Parisian French"
+                elif "Japanese" in language_choice:
+                    lang_instruction = "fluent natural Japanese"
+                else:
+                    lang_instruction = "clear modern English"
+                prompt = (
+                    f"Write a premium engaging short video script about '{topic}' in {lang_instruction}. "
+                    f"Divide the video into exactly {num_scenes} sequential scenes. "
+                    f"Each scene must contain unique descriptive text and a short English search keyword phrase (strictly 2 to 4 words) matching the visual context. "
+                    f"Strictly avoid full sentences, verbs, or non-English words in the search_keyword field. "
+                    f"Also, determine the overall emotional mood/vibe for background music for this video. "
+                    f"Choose ONE of: 'uplifting', 'dramatic', 'calm', 'energetic', 'mysterious', or 'cinematic'. "
+                    f"Return this as a 'music_mood' field in the JSON response."
+                )
+                response = client_gen.models.generate_content(
+                    model=selected_model,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(
+                        response_mime_type="application/json",
+                        response_schema=VideoScriptBreakdown,
+                        temperature=0.7
+                    )
+                )
+                data = json.loads(response.text)
+                scenes_mapped = []
+                for item in data.get("scenes", []):
+                    kw = item.get("search_keyword", "mystery").strip()
+                    if len(kw.split()) > 5 or "." in kw:
+                        kw = " ".join(kw.split()[:3]).replace(".", "")
+                    scenes_mapped.append({"scene_text": item.get("scene_text", "").strip(), "search_keyword": kw, "duration": item.get("duration", 5)})
+                music_mood = data.get("music_mood", "cinematic").lower().strip()
+                if scenes_mapped:
+                    return scenes_mapped, music_mood
+            except Exception as e:
+                logger.error(f"Script generation error: {e}")
+        if "English" in language_choice:
+            fallback_text = f"[Scene 1: space] Discover the incredible mysteries surrounding {topic} that science cannot explain.\n\n[Scene 2: history] Hidden deep within forgotten records lies a dark secret.\n\n[Scene 3: laboratory] Today, modern technology is finally revealing the truth."
+        elif "French" in language_choice:
+            fallback_text = f"[Scene 1: espace] Découvrez les mystères incroyables entourant {topic} que la science ne peut expliquer.\n\n[Scene 2: histoire] Caché profondément dans des archives oubliées se trouve un secret sombre.\n\n[Scene 3: laboratoire] Aujourd'hui, la technologie moderne révèle enfin la vérité."
+        elif "Japanese" in language_choice:
+            fallback_text = f"[Scene 1: 宇宙] 科学では説明できない、{topic}を取り巻く信じられない謎を発見してください。\n\n[Scene 2: 歴史] 忘れ去られた記録の奥深くに、暗い秘密が隠されています。\n\n[Scene 3: 研究室] 今日、現代のテクノロジーがついに真実を明らかにします。"
+        else:
+            fallback_text = f"[Scene 1: universe] {topic} ke baare mein kuch aise hairan kar dene wale rahasya jo sabhi se chupaye gaye.\n\n[Scene 2: mystery] Purani dastawezon mein dabi ek aisi sachai jise koi nahi janta.\n\n[Scene 3: hologram] Aaj ke modern scientists is ghabrahat bhare sach ko bahar la rahe hain."
+        return parse_tagged_script(fallback_text), "cinematic"

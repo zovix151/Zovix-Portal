@@ -1,0 +1,41 @@
+def generate_video_blueprint_with_deepseek(user_prompt, aspect_ratio="16:9"):
+    """Generate a structured video blueprint using DeepSeek API"""
+    url = "https://api.deepseek.com/v1/chat/completions"
+    headers = {"Content-Type": "application/json", "Authorization": f"Bearer {DEEPSEEK_API_KEY}"}
+    
+    system_instruction = (
+        "You are the core AI director for Zovix Portal. Your job is to convert user topics into a structured video creation blueprint. "
+        "You must respond ONLY with a valid JSON object. Do not include markdown blocks like ```json ... ```, just raw JSON text. "
+        "The JSON structure must be exactly like this:\n"
+        "{\n"
+        "  'video_title': 'String',\n"
+        "  'total_scenes': Integer,\n"
+        "  'scenes': [\n"
+        "    {'scene_no': 1, 'visual_prompt': 'Detailed image generation prompt', 'narration_text': 'Voiceover text for this scene', 'duration_sec': 5}\n"
+        "  ]\n"
+        "}"
+    )
+    
+    payload = {
+        "model": "deepseek-chat",
+        "messages": [
+            {"role": "system", "content": system_instruction},
+            {"role": "user", "content": f"Create a high-fidelity video blueprint for topic: '{user_prompt}' with aspect ratio {aspect_ratio}"}
+        ],
+        "temperature": 0.4,
+        "response_format": {"type": "json_object"}
+    }
+    
+    try:
+        response = requests.post(url, headers=headers, json=payload, timeout=30)
+        if response.status_code == 200:
+            raw_content = response.json()['choices'][0]['message']['content']
+            return json.loads(raw_content)
+        else:
+            return {"error": f"DeepSeek API Error: {response.status_code} - {response.text}"}
+    except Exception as e:
+        return {"error": f"Connection Failure: {str(e)}"}
+
+# ========================================================
+# 36. MODE FUNCTIONS - AI Agent, AI Sales, Dynamic UI, Live Emotion
+# ========================================================

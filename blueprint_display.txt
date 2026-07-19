@@ -1,0 +1,129 @@
+if st.button("📐 Generate Blueprint", key="deepseek_generate_blueprint_btn", use_container_width=True):
+                if not user_input.strip():
+                    st.error("Please enter a video concept.")
+                else:
+                    with st.spinner("🧠 DeepSeek AI is generating your video blueprint..."):
+                        aspect_for_deepseek = "9:16" if "VERTICAL" in st.session_state.get("studio_deepseek_aspect", "9:16 VERTICAL") else "16:9"
+                        blueprint = generate_video_blueprint_with_deepseek(user_input, aspect_for_deepseek)
+                        if "error" in blueprint:
+                            st.error(f"❌ DeepSeek Error: {blueprint['error']}")
+                        else:
+                            st.session_state["deepseek_blueprint_data"] = blueprint
+                            st.session_state["deepseek_blueprint_visible"] = True
+                            st.session_state["studio_prompt_value"] = user_input
+                            st.toast("✅ Blueprint generated successfully!")
+                            st.rerun()
+            
+            if st.session_state.get("deepseek_blueprint_visible") and st.session_state.get("deepseek_blueprint_data"):
+                # ... blueprint display code ...
+                pass
+        
+        else:
+            user_input = st.text_area(
+                "Prompt Input",
+                value=initial_topic_val,
+                placeholder="Explain video concept: e.g. Bermuda triangle ka ansuljha rahasya jo kisi ko nahi pata tha." if input_mode == "💡 Autonomous AI Topic" 
+                else "Write a custom script separated by paragraph breaks...",
+                height=90,
+                label_visibility="collapsed",
+                key="studio_prompt_standard_input"
+            )
+        
+        # Render Quality
+        st.markdown('<p class="compact-label" style="margin: 10px 0 4px 0;">📊 Render Quality</p>', unsafe_allow_html=True)
+        cinematic_quality = st.selectbox(
+            "Quality",
+            ["Standard", "HD", "Pro"],
+            key="cinematic_quality",
+                        label_visibility="collapsed"
+        )
+        
+        col_btn1, col_btn2 = st.columns([4, 1])
+        with col_btn2:
+            if st.button("Generate", key="studio_generate_action_btn", use_container_width=True):
+                # Cinematic Video Generation Logic
+                if not user_input.strip():
+                    st.error("Please enter a video topic or script.")
+                else:
+                    try:
+                        # Step 1: Validate tokens
+                        burn_rate = BASE_BURN_RATE.get("Cinematic Engine", 4)
+                        if cinematic_quality in ["HD", "Pro"]:
+                            burn_rate += 1 if cinematic_quality == "HD" else 2
+                        token_check = validate_and_deduct_tokens("Cinematic Engine", burn_rate)
+                        if token_check is not True:
+                            st.error(token_check)
+                            st.stop()
+                        
+                        # Step 2: Parse parameters
+                        selected_size = st.session_state.get("aspect_ratio", "9:16 Vertical (Shorts/Reels)")
+                        dur_choice = st.session_state.get("duration_choice", "Quick Format Shorts (10-15s)")
+                        voice_profile = st.session_state.get("voice_profile", "Adam (Premium Male)")
+                        lang_choice = st.session_state.get("language_choice", "🇮🇳 Hinglish (Fluent Hindi Mix)")
+                        selected_model = "gemini-2.5-pro" if "gemini-2.5-pro" in st.session_state.get("model_choice", "") else "gemini-2.5-flash"
+                        
+                        # Step 3: Generate script using ScriptingEngine
+                        with st.spinner("📝 Generating script using AI..."):
+                            scenes_data, music_mood = ScriptingEngine.generate_script(
+                                topic=user_input,
+                                duration_choice=dur_choice,
+                                selected_model=selected_model,
+                                language_choice=lang_choice
+                            )
+                            if not scenes_data:
+                                st.error("Failed to generate script. Please try again.")
+                                st.stop()
+                            st.success(f"✅ Script generated: {len(scenes_data)} scenes, mood: {music_mood}")
+                        
+                        # Step 4: Get BGM
+                        bgm_path = None
+                        if uploaded_bgm is not None:
+                            bgm_path = f"face_videos/custom_bgm_{uuid.uuid4().hex[:8]}.mp3"
+                            with open(bgm_path, "wb") as f:
+                                f.write(uploaded_bgm.getbuffer())
+                        else:
+                            bgm_path = get_music_path(music_mood) if 'get_music_path' in dir() else None
+                        
+                        # Step 5: Build video using StitcherEngine pipeline
+                        with st.spinner("🎬 Generating cinematic video..."):
+                            status_placeholder = st.empty()
+                            progress_bar = st.progress(0, text="Starting cinematic engine...")
+                            
+                            status_placeholder.info("Building scenes with visuals and voiceover...")
+                            progress_bar.progress(0.3, text="Processing scenes...")
+                            
+                            success = StitcherEngine.build_scene_stitched_video_isolated(
+                                scenes_data=scenes_data,
+                                video_output="final_shorts.mp4",
+                                size_choice=selected_size,
+                                voice_profile=voice_profile,
+                                language_choice=lang_choice,
+                                bgm_path=bgm_path,
+                                bgm_volume=bgm_volume,
+                                music_mood=music_mood
+                            )
+                            
+                            if success and os.path.exists("final_shorts.mp4") and os.path.getsize("final_shorts.mp4") > 1000:
+                                progress_bar.progress(1.0, text="✅ Cinematic video created!")
+                                st.success("🎬 Cinematic video generated successfully!")
+                                st.session_state["cinematic_video_ready"] = True
+                                st.balloons()
+                                st.rerun()
+                            else:
+                                progress_bar.progress(0, text="❌ Failed")
+                                st.error("Video compilation failed. Check API keys and try again.")
+                    
+                    except Exception as e:
+                        st.error(f"❌ Cinematic Engine Error: {str(e)}")
+                        import traceback
+                        st.error(traceback.format_exc())
+    
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    # ============================================
+    # ENGINE CONFIGURATORS & VIDEO OUTPUT
+    # ============================================
+    parameters_col, video_canvas_col = st.columns([1.1, 1.4], gap="medium")
+    
+    with parameters_col:
+        with st.container(border=True):

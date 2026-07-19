@@ -1,0 +1,20 @@
+11951: |        cinematic_quality = st.selectbox(
+11952: |            "Quality",
+11953: |            ["Standard", "HD", "Pro"],
+11954: |            key="cinematic_quality",
+11955: |            label_visibility="collapsed"
+11956: |                )
+11957: |        
+11958: |                col_btn1, col_btn2 = st.columns([4, 1])
+11959: |        with col_btn2:
+11960: |            if st.button("Generate", key="studio_generate_action_btn", use_container_width=True):
+11961: |                # Cinematic Video Generation Logic
+11962: |                if not user_input.strip():
+11963: |                    st.error("Please enter a video topic or script.")
+11964: |                else:
+11965: |                    try:
+11966: |                        # Step 1: Validate tokens
+11967: |                        burn_rate = BASE_BURN_RATE.get("Cinematic Engine", 4)
+11968: |                        if cinematic_quality in ["HD", "Pro"]:
+11969: |                            burn_rate += 1 if cinematic_quality == "HD" else 2
+11970: |                        token_check = validate_and_deduct_tokens("Cinematic Engine", burn_rate)

@@ -1,0 +1,67 @@
+def show_2fa_modal():
+    st.markdown("""
+        <div style="text-align: center; margin-bottom: 15px;">
+            <div style="font-family: 'Orbitron', sans-serif; font-size: 16px; color: #FFC0CB; text-transform: uppercase; letter-spacing: 1.5px;">
+                🔐 Two-Factor Authentication
+            </div>
+            <p style="font-size: 11px; color: #94a3b8; margin-top: 5px;">Enter the 6-digit code from your authenticator app</p>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    code = st.text_input("Authentication Code", max_chars=6, type="password", key="2fa_code_input").strip()
+    st.write("")
+    
+    if st.button("✅ Verify", key="2fa_verify_btn", use_container_width=True):
+        if code and len(code) == 6:
+            username = st.session_state.get("2fa_temp_user", "")
+            if HAS_2FA and pyotp:
+                try:
+                    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+                    cursor = conn.cursor()
+                    cursor.execute("SELECT twofa_secret FROM users WHERE username = ?", (username,))
+                    row = cursor.fetchone()
+                    conn.close()
+                    
+                    if row and row[0]:
+                        totp = pyotp.TOTP(row[0])
+                        if totp.verify(code):
+                            st.session_state["2fa_verified"] = True
+                            st.session_state["is_logged_in"] = True
+                            st.session_state["logged_user"] = username
+                            st.session_state["xp_points"] = get_user_xp_db(username)
+                            st.session_state["creator_level"] = 1 + (st.session_state["xp_points"] // 100)
+                            st.session_state["history_renders"] = load_renders_history_db(username)
+                            st.session_state["face_video_history"] = load_face_video_history_db(username)
+                            st.session_state["current_page"] = "studio"
+                            st.session_state['user_credits'] = get_user_credits_db(username)
+                            st.session_state['credit_balance'] = st.session_state['user_credits']
+                            
+                            if st.session_state.get("auth_redirect_mode"):
+                                st.session_state["studio_active_mode"] = st.session_state["auth_redirect_mode"]
+                                st.session_state["current_workspace_mode"] = st.session_state["auth_redirect_mode"]
+                            
+                            check_and_refresh_subscription(username)
+                            
+                            if st.session_state.get("pending_credits", 0) > 0:
+                                add_credits(username, st.session_state["pending_credits"])
+                                st.success(f"✅ Added {st.session_state['pending_credits']} credits from pending payment!")
+                                st.session_state["pending_credits"] = 0
+                                st.session_state["pending_pack_name"] = ""
+                                st.session_state["payment_verified"] = False
+                            
+                            st.session_state["2fa_temp_user"] = None
+                            st.toast("2FA verified! Welcome back! 🎉")
+                            st.rerun()
+                        else:
+                            st.error("Invalid code. Please try again.")
+                    else:
+                        st.error("2FA not set up for this account.")
+                except Exception as e:
+                    logger.error(f"2FA verification error: {e}")
+                    st.error("Error verifying 2FA code.")
+            else:
+                st.error("2FA system not available.")
+        else:
+            st.error("Please enter a valid 6-digit code.")
+
+@st.dialog("🎬 Cinematic Production Monitor", width="large")

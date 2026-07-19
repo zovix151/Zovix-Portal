@@ -1,0 +1,22 @@
+def compile_video(assets: List[str], output_path: str = "final_shorts.mp4") -> Optional[str]:
+    try:
+        if not assets:
+            return None
+        manifest_path = os.path.join("temp_scenes", f"manifest_{uuid.uuid4().hex[:8]}.txt")
+        with open(manifest_path, "w") as f:
+            for path in assets:
+                clean_path = os.path.abspath(path).replace("\\", "/")
+            f.write(f"file '{clean_path}'\n")
+        
+        concat_cmd = [
+            "ffmpeg", *get_hwaccel_args(), "-y", "-f", "concat", "-safe", "0", "-i", manifest_path,
+            "-c:v", "libx264", "-preset", "ultrafast", "-pix_fmt", "yuv420p", output_path
+        ]
+        try:
+            subprocess.run(concat_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+            safe_remove_file(manifest_path)
+            return output_path
+        except Exception:
+            return None
+    except Exception:
+        return None

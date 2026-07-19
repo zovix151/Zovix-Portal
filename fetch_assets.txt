@@ -1,0 +1,15 @@
+def fetch_assets(keywords: List[str]) -> List[str]:
+    try:
+        os.makedirs("temp_scenes", exist_ok=True)
+        downloaded = []
+        for i, kw in enumerate(keywords):
+            temp_path = os.path.join("temp_scenes", f"fetched_{i}_{uuid.uuid4().hex[:8]}.mp4")
+            success = VisualEngine.fetch_pixabay_clip(kw, temp_path)
+            if not success:
+                success = get_premium_local_backup(temp_path)
+            if not success:
+                create_emergency_solid_clip(temp_path, 5.0, 720, 1280)
+            downloaded.append(temp_path)
+        return downloaded
+    except Exception:
+        return []

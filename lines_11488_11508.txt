@@ -1,0 +1,20 @@
+11489: |            st.error("Please enter a valid 6-digit code.")
+11490: |
+11491: |@st.dialog("🎬 Cinematic Production Monitor", width="large")
+11492: |def open_preview_modal(video_path):
+11493: |    st.markdown(f"""
+11494: |        <div style="background: rgba(18, 19, 26, 0.95); padding: 15px; border-radius: 12px; border: 1px solid rgba(255, 192, 203, 0.15);">
+11495: |            <div style="font-family: 'Orbitron', sans-serif; font-size: 14px; color: #FFC0CB; margin-bottom: 12px; letter-spacing: 1px;">🟢 THEATRICAL PLAYBACK MONITOR</div>
+11496: |        </div>
+11497: |    """, unsafe_allow_html=True)
+11498: |        st.video(video_path, format="video/mp4", autoplay=False, loop=True, muted=False)
+11499: |    st.markdown("<br>", unsafe_allow_html=True)
+11500: |        if st.button("Close Monitor", key="close_theatrical_monitor_btn", use_container_width=True):
+11501: |            st.rerun()
+11502: |
+11503: |
+11504: |
+11505: |def run_cinematic_engine():
+11506: |    """Cinematic Engine - Matching Studio Style"""
+11507: |    
+11508: |    # ============================================

@@ -1,0 +1,78 @@
+def generate_drawing_hybrid(prompt, style="realistic", canvas_size=(1024, 768), engine="Auto (Pollinations → Gemini → Fallback)", quality="Standard"):
+    """3-Tier Hybrid Drawing Generator - CLEANED & OPTIMIZED"""
+    
+    output_path = f"draw_outputs/drawing_{uuid.uuid4().hex[:8]}.png"
+    os.makedirs("draw_outputs", exist_ok=True)
+    
+    # ==========================================
+    # TIER 1: POLLINATIONS (FREE + FAST) - WITH RETRY
+    # ==========================================
+    if "Pollinations" in engine or "Auto" in engine:
+        try:
+            logger.info(f"🎨 Tier 1: Pollinations - {prompt[:50]}...")
+            img_data = generate_drawing_pollinations_retry(prompt, style, canvas_size, max_retries=3)
+            
+            if img_data:
+                with open(output_path, "wb") as f:
+                    f.write(img_data)
+                st.session_state["draw_engine_used"] = "Pollinations.ai (Free)"
+                logger.info(f"✅ Pollinations success: {output_path}")
+                return output_path
+                
+        except Exception as e:
+            logger.warning(f"Pollinations failed: {e}")
+    
+    # ==========================================
+    # TIER 2: GEMINI FLASH (PREMIUM + QUALITY)
+    # ==========================================
+    if "Gemini" in engine or "Auto" in engine:
+        try:
+            logger.info(f"🎨 Tier 2: Gemini Flash - {prompt[:50]}...")
+            gemini_key = os.getenv("GEMINI_API_KEY") or get_system_secret("GEMINI_API_KEY")
+            
+            if gemini_key and has_genai:
+                import google.generativeai as genai
+                genai.configure(api_key=gemini_key)
+                
+                style_map = {
+                    "realistic": "photorealistic, 8k resolution, highly detailed",
+                    "digital": "digital art, vibrant colors, professional",
+                    "sketch": "pencil sketch, monochrome, detailed",
+                    "watercolor": "watercolor painting, soft colors",
+                    "anime": "anime style, manga, colorful",
+                    "cinematic": "cinematic, dramatic lighting, epic",
+                    "neon": "neon aesthetic, cyberpunk, glowing"
+                }
+                
+                enhanced_prompt = f"Generate a {style_map.get(style, 'beautiful')} image: {prompt}. Make it high quality, detailed, professional."
+                model = genai.GenerativeModel('gemini-3.1-flash-lite')
+                
+                response = model.generate_content(
+                    enhanced_prompt,
+                    generation_config={
+                        "temperature": 0.4,
+                        "candidate_count": 1,
+                        "response_mime_type": "image/png"
+                    }
+                )
+                
+                if response and response._result.candidates:
+                    image_data = response._result.candidates[0].content.parts[0].data
+                    if len(image_data) > 5000:
+                        with open(output_path, "wb") as f:
+                            f.write(image_data)
+                        st.session_state["draw_engine_used"] = "Gemini 3.1 Flash Lite"
+                        logger.info(f"✅ Gemini success: {output_path}")
+                        return output_path
+                        
+        except Exception as e:
+            logger.warning(f"Gemini failed: {e}")
+    
+    # ==========================================
+    # TIER 3: ENHANCED FALLBACK (ALWAYS WORKS)
+    # ==========================================
+    logger.info(f"🎨 Tier 3: Enhanced Fallback - {prompt[:50]}...")
+    st.session_state["draw_engine_used"] = "Enhanced Fallback"
+    return generate_enhanced_fallback_drawing(prompt, style, canvas_size)
+
+

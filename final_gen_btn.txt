@@ -1,0 +1,24 @@
+l_btn2:
+            if st.button("Generate", key="studio_generate_action_btn", use_container_width=True):
+                # Cinematic Video Generation Logic
+                if not user_input.strip():
+                    st.error("Please enter a video topic or script.")
+                else:
+                    try:
+                        # Step 1: Validate tokens
+                        burn_rate = BASE_BURN_RATE.get("Cinematic Engine", 4)
+                        if cinematic_quality in ["HD", "Pro"]:
+                            burn_rate += 1 if cinematic_quality == "HD" else 2
+                        token_check = validate_and_deduct_tokens("Cinematic Engine", burn_rate)
+                        if token_check is not True:
+                            st.error(token_check)
+                            st.stop()
+                        
+                        # Step 2: Parse parameters
+                        selected_size = st.session_state.get("aspect_ratio", "9:16 Vertical (Shorts/Reels)")
+                        dur_choice = st.session_state.get("duration_choice", "Quick Format Shorts (10-15s)")
+                        voice_profile = st.session_state.get("voice_profile", "Adam (Premium Male)")
+                        lang_choice = st.session_state.get("language_choice", "🇮🇳 Hinglish (Fluent Hindi Mix)")
+                        selected_model = "gemini-2.5-pro" if "gemini-2.5-pro" in st.session_state.get("model_choice", "") else "gemini-2.5-flash"
+                        
+                        # Step 3: Generate script

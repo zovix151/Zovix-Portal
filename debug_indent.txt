@@ -1,0 +1,90 @@
+12561: |                            st.session_state["deepseek_blueprint_data"] = blueprint
+12562: |                            st.session_state["deepseek_blueprint_visible"] = True
+12563: |                            st.session_state["studio_prompt_value"] = user_input
+12564: |                            st.toast("✅ Blueprint generated successfully!")
+12565: |                            st.rerun()
+12566: |            
+12567: |                        if st.session_state.get("deepseek_blueprint_visible") and st.session_state.get("deepseek_blueprint_data"):
+12568: |                # Display the DeepSeek Blueprint
+12569: |                bp = st.session_state["deepseek_blueprint_data"]
+12570: |                st.markdown("""
+12571: |                <div style="background: linear-gradient(135deg, rgba(236,72,153,0.08), rgba(139,92,246,0.08)); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,192,203,0.15); margin: 10px 0;">
+12572: |                    <div style="font-family: 'Orbitron', sans-serif; font-size: 12px; color: #EC4899; letter-spacing: 1px; margin-bottom: 8px;">
+12573: |                        🧠 DEEPSEEK AI BLUEPRINT
+12574: |                    </div>
+12575: |                </div>
+12576: |                """, unsafe_allow_html=True)
+12577: |                
+12578: |                # Title
+12579: |                title = bp.get("title", "Untitled Blueprint")
+12580: |                st.markdown(f"### 🎬 {title}")
+12581: |                
+12582: |                # Description
+12583: |                description = bp.get("description", "")
+12584: |                if description:
+12585: |                    st.markdown(f"<p style='color: #94a3b8; font-size: 13px;'>{description}</p>", unsafe_allow_html=True)
+12586: |                
+12587: |                # Video Structure
+12588: |                structure = bp.get("video_structure", bp.get("structure", {}))
+12589: |                if structure:
+12590: |                    st.markdown("<h4 style='color: #FFC0CB; margin-top: 12px;'>📋 Video Structure</h4>", unsafe_allow_html=True)
+12591: |                    scenes = structure.get("scenes", structure.get("sections", []))
+12592: |                    if scenes:
+12593: |                        for i, scene in enumerate(scenes):
+12594: |                            scene_title = scene.get("title", scene.get("scene_text", f"Scene {i+1}"))
+12595: |                            scene_desc = scene.get("description", scene.get("text", ""))
+12596: |                            scene_keyword = scene.get("keyword", scene.get("search_keyword", ""))
+12597: |                            scene_dur = scene.get("duration", 5)
+12598: |                            with st.expander(f"🎬 Scene {i+1}: {scene_title}", expanded=(i==0)):
+12599: |                                st.markdown(f"<p style='color: #e2e8f0;'>{scene_desc}</p>", unsafe_allow_html=True)
+12600: |                                if scene_keyword:
+12601: |                                    st.markdown(f"<p style='color: #94a3b8; font-size: 11px;'>🔍 Keyword: <code>{scene_keyword}</code></p>", unsafe_allow_html=True)
+12602: |                                st.markdown(f"<p style='color: #94a3b8; font-size: 11px;'>⏱ Duration: {scene_dur}s</p>", unsafe_allow_html=True)
+12603: |                    else:
+12604: |                        st.info("No scenes found in blueprint structure")
+12605: |                
+12606: |                # Visual Style
+12607: |                style = bp.get("visual_style", bp.get("style", {}))
+12608: |                if style:
+12609: |                    st.markdown("<h4 style='color: #FFC0CB; margin-top: 12px;'>🎨 Visual Style</h4>", unsafe_allow_html=True)
+12610: |                    for key, val in style.items() if isinstance(style, dict) else []:
+12611: |                        st.markdown(f"<p style='color: #94a3b8; font-size: 12px; margin: 2px 0;'><b>{key.replace('_', ' ').title()}:</b> {val}</p>", unsafe_allow_html=True)
+12612: |                
+12613: |                # Music Mood
+12614: |                mood = bp.get("music_mood", bp.get("mood", ""))
+12615: |                if mood:
+12616: |                    st.markdown(f"<p style='color: #94a3b8; font-size: 12px; margin-top: 8px;'><b>🎵 Music Mood:</b> {mood}</p>", unsafe_allow_html=True)
+12617: |                
+12618: |                # Aspect Ratio
+12619: |                ar = bp.get("aspect_ratio", "")
+12620: |                if ar:
+12621: |                    st.markdown(f"<p style='color: #94a3b8; font-size: 12px;'><b>📐 Aspect Ratio:</b> {ar}</p>", unsafe_allow_html=True)
+12622: |                
+12623: |                # Use Blueprint button
+12624: |                st.markdown("<br>", unsafe_allow_html=True)
+12625: |                if st.button("🎬 Use This Blueprint for Generation", key="use_blueprint_btn", use_container_width=True):
+12626: |                    # Extract scenes data from blueprint
+12627: |                    if structure and scenes:
+12628: |                        st.session_state["blueprint_scenes"] = scenes
+12629: |                        st.session_state["blueprint_mood"] = mood
+12630: |                        st.session_state["studio_prompt_value"] = description or title
+12631: |                    st.success("✅ Blueprint loaded! Now click Generate to create video.")
+12632: |                    st.toast("Blueprint ready for generation! 🚀")
+12633: |                
+12634: |                # Clear blueprint
+12635: |                if st.button("🗑 Clear Blueprint", key="clear_blueprint_btn", use_container_width=True):
+12636: |                    st.session_state["deepseek_blueprint_data"] = None
+12637: |                    st.session_state["deepseek_blueprint_visible"] = False
+12638: |                    st.rerun()
+12639: |        
+12640: |        else:
+12641: |            user_input = st.text_area(
+12642: |                "Prompt Input",
+12643: |                value=initial_topic_val,
+12644: |                placeholder="Explain video concept: e.g. Bermuda triangle ka ansuljha rahasya jo kisi ko nahi pata tha." if input_mode == "💡 Autonomous AI Topic" 
+12645: |                else "Write a custom script separated by paragraph breaks...",
+12646: |                height=90,
+12647: |                label_visibility="collapsed",
+12648: |                key="studio_prompt_standard_input"
+12649: |            )
+12650: |        

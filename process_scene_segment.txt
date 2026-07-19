@@ -1,0 +1,189 @@
+def process_scene_segment(idx: int, scene: Dict[str, Any]) -> Optional[str]:
+            # Attaches Streamlit's script execution context to avoid runtime container errors
+            if ctx:
+                add_script_run_context(threading.current_thread(), ctx)
+
+            text = scene["scene_text"]
+            kw = scene["search_keyword"]
+
+            if status_dict is not None:
+                status_dict["status_text"] = f"Scene {idx+1}: Synthesizing vocal track..."
+
+            audio_segment_path = os.path.join(workspace_dir, f"temp_voice_{idx}.mp3")
+            voice_built = False
+            selected_voice_id = "21m00Tcm4TlvDq8ikWAM" if "Drew" in voice_profile else "pNInz6obpgDQ5IdwJg7p"
+
+            if ELEVENLABS_API_KEY:
+                voice_built = AudioEngine.generate_elevenlabs_speech(text, audio_segment_path, selected_voice_id)
+            if not voice_built:
+                AudioEngine.run_fallback_tts(
+                    text=text,
+                    output_filename=audio_segment_path,
+                    language_choice=language_choice,
+                    voice_profile=voice_profile,
+                )
+
+            if not os.path.exists(audio_segment_path) or os.path.getsize(audio_segment_path) == 0:
+                create_emergency_silent_audio(audio_segment_path, 5.0)
+
+            dur = get_audio_duration(audio_segment_path)
+            if dur <= 0:
+                dur = 5.0
+
+            raw_video_path = os.path.join(workspace_dir, f"temp_raw_vid_{idx}.mp4")
+            
+            # Stock Media Search
+            if status_dict is not None:
+                status_dict["status_text"] = f"Scene {idx+1}: Locating stock frames..."
+            success = VisualEngine.fetch_pexels_clip(kw, raw_video_path)
+            if not success:
+                success = VisualEngine.fetch_pixabay_clip(kw, raw_video_path)
+            if not success:
+                success = get_premium_local_backup(raw_video_path)
+
+            # High Fidelity Fallback Rendering
+            if not success or not os.path.exists(raw_video_path) or os.path.getsize(raw_video_path) < 1000:
+                if status_dict is not None:
+                    status_dict["status_text"] = f"Scene {idx+1}: Sourcing base art frame..."
+                sd_temp_img = os.path.join(workspace_dir, f"temp_sd_base_{idx}.png")
+                sd_success = VisualEngine.generate_sd_core_image(text, sd_temp_img, size_choice)
+                
+                StitcherEngine.generate_smart_fallback_motion(
+                    text=text,
+                    image_path=sd_temp_img if sd_success else None,
+                    output_video_path=raw_video_path,
+                    status_dict=status_dict
+                )
+                safe_remove_file(sd_temp_img)
+
+            if not os.path.exists(raw_video_path) or os.path.getsize(raw_video_path) < 1000:
+                create_emergency_solid_clip(raw_video_path, dur, res_width, res_height)
+
+            segment_mux_path = os.path.join(workspace_dir, f"temp_seg_mux_{idx}.mp4")
+            safe_text = text.replace('\\', '').replace("'", "").replace('"', '').replace(':', ' ').strip()
+            fontsize = int(res_width * 0.045)
+            y_pos = int(res_height * 0.75)
+            drawtext_filter = f"drawtext=text='{safe_text}':fontcolor=yellow:fontsize={fontsize}:box=1:boxcolor=black@0.6:boxborderw=10:x=(w-text_w)/2:y={y_pos}"
+            fade_out_start = max(0.0, dur - 0.4)
+
+            v_w, v_h = get_video_resolution(raw_video_path)
+            if v_w == res_width and v_h == res_height:
+                vf_filter_with_text = f"eq=saturation=1.15:contrast=1.05,{drawtext_filter},fade=t=in:st=0:d=0.4,fade=t=out:st={fade_out_start:.2f}:d=0.4"
+                vf_filter_no_text = f"eq=saturation=1.15:contrast=1.05,fade=t=in:st=0:d=0.4,fade=t=out:st={fade_out_start:.2f}:d=0.4"
+            else:
+                vf_filter_with_text = f'scale={res_width}:{res_height}:force_original_aspect_ratio=increase,crop={res_width}:{res_height},setsar=1,eq=saturation=1.15:contrast=1.05,{drawtext_filter},fade=t=in:st=0:d=0.4,fade=t=out:st={fade_out_start:.2f}:d=0.4'
+                vf_filter_no_text = f'scale={res_width}:{res_height}:force_original_aspect_ratio=increase,crop={res_width}:{res_height},setsar=1,eq=saturation=1.15:contrast=1.05,fade=t=in:st=0:d=0.4,fade=t=out:st={fade_out_start:.2f}:d=0.4'
+
+            ff_cmd = [
+                'ffmpeg', *get_hwaccel_args(), '-y', '-stream_loop', '-1',
+                '-i', raw_video_path, '-i', audio_segment_path, '-t', f"{dur:.2f}",
+                '-vf', vf_filter_with_text,
+                '-af', f'afade=t=in:ss=0:d=0.4,afade=t=out:st={fade_out_start:.2f}:d=0.4,aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo',
+                '-r', '24', '-pix_fmt', 'yuv420p',
+                '-c:v', 'libx264', '-crf', '18', '-preset', 'ultrafast',
+                '-c:a', 'aac', '-ac', '2', '-ar', '44100',
+                '-map', '0:v:0', '-map', '1:a:0', '-shortest',
+                segment_mux_path,
+            ]
+
+            try:
+                subprocess.run(ff_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+                if os.path.exists(segment_mux_path) and os.path.getsize(segment_mux_path) > 0:
+                    return segment_mux_path
+            except Exception:
+                fallback_cmd = [
+                    'ffmpeg', *get_hwaccel_args(), '-y', '-stream_loop', '-1',
+                    '-i', raw_video_path, '-i', audio_segment_path, '-t', f"{dur:.2f}",
+                    '-vf', vf_filter_no_text,
+                    '-af', 'aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo',
+                    '-r', '24', '-pix_fmt', 'yuv420p',
+                    '-c:v', 'libx264', '-preset', 'ultrafast',
+                    '-c:a', 'aac', '-ac', '2', '-ar', '44100',
+                    '-map', '0:v:0', '-map', '1:a:0', '-shortest',
+                    segment_mux_path,
+                ]
+                try:
+                    subprocess.run(fallback_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+                    if os.path.exists(segment_mux_path) and os.path.getsize(segment_mux_path) > 0:
+                        return segment_mux_path
+                except Exception:
+                    pass
+            return None
+
+        try:
+            max_workers = min(len(scenes_data), max(1, os.cpu_count() or 1))
+            segment_results = {}
+            
+            # Thread worker wraps target process using script context variables
+            def context_safe_worker(idx, scene):
+                if ctx:
+                    add_script_run_context(threading.current_thread(), ctx)
+                return process_scene_segment(idx, scene)
+
+            with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+                future_to_idx = {
+                    executor.submit(context_safe_worker, idx, scene): idx
+                    for idx, scene in enumerate(scenes_data)
+                }
+                for future in concurrent.futures.as_completed(future_to_idx):
+                    idx = future_to_idx[future]
+                    try:
+                        scene_path = future.result()
+                    except Exception:
+                        scene_path = None
+                    segment_results[idx] = scene_path
+
+            for idx in range(len(scenes_data)):
+                scene_path = segment_results.get(idx)
+                if scene_path:
+                    compiled_scenes_paths.append(scene_path)
+                else:
+                    fill_clip = os.path.join(workspace_dir, f"temp_seg_mux_{idx}_fill.mp4")
+                    create_emergency_solid_clip(fill_clip, 5.0, res_width, res_height)
+                    compiled_scenes_paths.append(fill_clip)
+
+            validated_scenes = []
+            for path in compiled_scenes_paths:
+                if os.path.exists(path) and os.path.getsize(path) > 1000:
+                    validated_scenes.append(path)
+                else:
+                    fill_clip = path.replace(".mp4", "_fill.mp4")
+                    create_emergency_solid_clip(fill_clip, 5.0, res_width, res_height)
+                    validated_scenes.append(fill_clip)
+                    
+            if not validated_scenes:
+                return False
+                
+            manifest_file = os.path.join(workspace_dir, "concat_manifest.txt")
+            with open(manifest_file, "w") as f:
+                for path in validated_scenes:
+                    clean_path = os.path.abspath(path).replace("\\", "/")
+                    f.write(f"file '{clean_path}'\n")
+                    
+            temp_stitched_output = os.path.join(workspace_dir, "temp_voice_stitched.mp4")
+            concat_cmd = [
+                'ffmpeg', *get_hwaccel_args(), '-y', '-f', 'concat', '-safe', '0', '-i', manifest_file,
+                '-c:v', 'copy', '-c:a', 'copy', temp_stitched_output
+            ]
+            subprocess.run(concat_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+            
+            if bgm_path and os.path.exists(bgm_path):
+                mix_cmd = [
+                    'ffmpeg', *get_hwaccel_args(), '-y', '-i', temp_stitched_output, '-stream_loop', '-1', '-i', bgm_path,
+                    '-filter_complex', f'[0:a]volume=1.0[a0];[1:a]volume={bgm_volume:.2f}[a1];[a0][a1]amix=inputs=2:duration=first[aout]',
+                    '-map', '0:v:0', '-map', '[aout]', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', video_output
+                ]
+                try:
+                    subprocess.run(mix_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+                except Exception:
+                    shutil.copy(temp_stitched_output, video_output)
+            else:
+                shutil.copy(temp_stitched_output, video_output)
+                
+            return os.path.exists(video_output) and os.path.getsize(video_output) > 1000
+        except Exception:
+            return False
+        finally:
+            shutil.rmtree(workspace_dir, ignore_errors=True)
+
+# --- BACKEND WRAPPERS ---

@@ -5442,16 +5442,17 @@ class StitcherEngine:
             aspect = "16:9"
         elif "1:1" in size_choice:
             aspect = "1:1"
-                # Quality detection from session state - FIX: Proper resolution scaling for all qualities
+        # Quality detection from session state
         quality = st.session_state.get("cinematic_quality", "Standard")
-        quality_map = {"4K": 2160, "2K": 1440, "HD": 1080, "Pro": 1080, "Standard": 720}
-        target_h = quality_map.get(quality, 720)
-        res_map = {
-            "9:16": (int(target_h * 9 / 16), target_h),
-            "16:9": (target_h * 16 // 9, target_h),
-            "1:1": (target_h, target_h)
-        }
-        res_width, res_height = res_map.get(aspect, (int(target_h * 9 / 16), target_h))
+        if quality == "4K":
+            res_map = {"9:16": (2160, 3840), "16:9": (3840, 2160), "1:1": (3840, 3840)}
+        elif quality == "2K":
+            res_map = {"9:16": (1440, 2560), "16:9": (2560, 1440), "1:1": (2560, 2560)}
+        elif quality == "HD" or quality == "Pro":
+            res_map = {"9:16": (1080, 1920), "16:9": (1920, 1080), "1:1": (1080, 1080)}
+        else:
+            res_map = {"9:16": (720, 1280), "16:9": (1280, 720), "1:1": (1080, 1080)}
+        res_width, res_height = res_map.get(aspect, (720, 1280))
         session_workspace_id = f"workspace_{uuid.uuid4().hex}"
         workspace_dir = os.path.join("temp_scenes", session_workspace_id)
         os.makedirs(workspace_dir, exist_ok=True)
@@ -7134,11 +7135,8 @@ def validate_and_deduct_tokens(mode_name: str, quality: str):
     return True, required_tokens, f"✅ Deducted {required_tokens} credits for {mode_name}"
 
 def render_ai_agent_ui():
-    """AI Agent - Matching Studio Style"""
+    """AI Agent - Fully Fixed"""
     
-    # ========================================================
-    # HEADER - STUDIO STYLE MATCH
-    # ========================================================
     st.markdown("""
     <div style="
         background: linear-gradient(135deg, rgba(236,72,153,0.06), rgba(69,243,255,0.06));
@@ -7271,42 +7269,53 @@ def render_ai_agent_ui():
                 label_visibility="collapsed"
             )
             
+            # ✅ FIXED: Activate Button with proper logic
             if st.button("🚀 Activate AI Agent", key="agent_activate_btn", use_container_width=True):
-                success, required_tokens, message = validate_and_deduct_tokens("AI Agent", agent_quality)
-                if not success:
-                    st.error(message)
+                if not business_name.strip():
+                    st.error("❌ Please enter a business name.")
+                elif not products_text.strip():
+                    st.error("❌ Please list at least one product or service.")
                 else:
-                    st.success(message)
-                    if not business_name.strip():
-                        st.error("Please enter a business name.")
-                    elif not products_text.strip():
-                        st.error("Please list at least one product or service.")
+                    required_tokens = 2 if agent_quality == "Standard" else 4
+                    
+                    if st.session_state.get('user_credits', 0) < required_tokens:
+                        st.error(f"❌ Insufficient credits! Required: {required_tokens}, Available: {st.session_state.get('user_credits', 0)}")
                     else:
-                        with st.spinner("🔄 Configuring AI Agent for your business..."):
-                            st.session_state["agent_business_name"] = business_name
-                            st.session_state["agent_products"] = [p.strip() for p in products_text.split("\n") if p.strip()]
-                            st.session_state["agent_schedule"] = {
-                                "open": str(opening_time),
-                                "close": str(closing_time),
-                                "instagram": instagram_handle,
-                                "whatsapp": whatsapp_number,
-                                "category": business_category
-                            }
-                            conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
-                            cursor = conn.cursor()
-                            try:
-                                cursor.execute(
-                                    "INSERT OR REPLACE INTO ai_agent_config (username, business_name, products, schedule) VALUES (?, ?, ?, ?)",
-                                    (st.session_state["logged_user"], business_name, json.dumps(st.session_state["agent_products"]), json.dumps(st.session_state["agent_schedule"]))
-                                )
-                                conn.commit()
-                            except Exception:
-                                pass
-                            finally:
-                                conn.close()
-                            st.toast("✅ AI Agent activated successfully!")
-                            st.session_state["ai_agent_mode"] = True
-                            st.rerun()
+                        try:
+                            # Deduct credits
+                            deduct_credits_db(st.session_state["logged_user"], required_tokens)
+                            st.session_state['user_credits'] = get_user_credits_db(st.session_state["logged_user"])
+                            
+                            with st.spinner("🔄 Configuring AI Agent for your business..."):
+                                st.session_state["agent_business_name"] = business_name
+                                st.session_state["agent_products"] = [p.strip() for p in products_text.split("\n") if p.strip()]
+                                st.session_state["agent_schedule"] = {
+                                    "open": str(opening_time),
+                                    "close": str(closing_time),
+                                    "instagram": instagram_handle,
+                                    "whatsapp": whatsapp_number,
+                                    "category": business_category
+                                }
+                                
+                                # Save to database
+                                conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+                                cursor = conn.cursor()
+                                try:
+                                    cursor.execute(
+                                        "INSERT OR REPLACE INTO ai_agent_config (username, business_name, products, schedule) VALUES (?, ?, ?, ?)",
+                                        (st.session_state["logged_user"], business_name, json.dumps(st.session_state["agent_products"]), json.dumps(st.session_state["agent_schedule"]))
+                                    )
+                                    conn.commit()
+                                except Exception as db_e:
+                                    logger.warning(f"DB save error: {db_e}")
+                                finally:
+                                    conn.close()
+                                
+                                st.session_state["ai_agent_mode"] = True
+                                st.toast("✅ AI Agent activated successfully!")
+                                st.rerun()
+                        except Exception as e:
+                            st.error(f"❌ Error: {str(e)}")
     
     with agent_col2:
         with st.container(border=True):
@@ -7422,6 +7431,8 @@ def render_ai_agent_ui():
                                 st.session_state["agent_instagram_caption"] = caption
                                 st.toast("Instagram post generated!")
                                 st.rerun()
+                            else:
+                                st.error("❌ Image generation failed. Try again.")
                 
                 if st.session_state.get("agent_generated_ad"):
                     with st.expander("📱 WhatsApp Ad Preview", expanded=False):
@@ -7852,11 +7863,8 @@ def render_ai_sales_ui():
                 """, unsafe_allow_html=True)
 
 def generate_dynamic_ui():
-    """Dynamic UI - Matching Studio Style"""
+    """Dynamic UI - Fully Fixed"""
     
-    # ========================================================
-    # HEADER - STUDIO STYLE MATCH
-    # ========================================================
     st.markdown("""
     <div style="
         background: linear-gradient(135deg, rgba(236,72,153,0.06), rgba(69,243,255,0.06));
@@ -7902,9 +7910,6 @@ def generate_dynamic_ui():
     </div>
     """, unsafe_allow_html=True)
     
-    # ========================================================
-    # SESSION STATE INIT
-    # ========================================================
     if "dynamic_ui_uploaded_file" not in st.session_state:
         st.session_state["dynamic_ui_uploaded_file"] = None
     if "dynamic_ui_project_files" not in st.session_state:
@@ -7952,30 +7957,41 @@ def generate_dynamic_ui():
             )
             
             new_profile = profile_map.get(selected_profile, "intermediate")
+            
+            # ✅ FIXED: Profile change with proper logic
             if new_profile != st.session_state.get("dynamic_ui_profile_mode"):
-                success, required_tokens, message = validate_and_deduct_tokens("Dynamic UI", "Standard")
-                if success:
-                    st.session_state["dynamic_ui_profile_mode"] = new_profile
-                    st.session_state["user_behavior_profile"] = new_profile
-                    st.session_state["dynamic_ui_token_charged"] = True
-                    st.success(message)
-                    
-                    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
-                    cursor = conn.cursor()
-                    try:
-                        cursor.execute(
-                            "INSERT OR REPLACE INTO dynamic_ui_profiles (username, behavior_profile, ui_preferences) VALUES (?, ?, ?)",
-                            (st.session_state.get("logged_user", "user"), new_profile, json.dumps({"profile": new_profile, "timestamp": time.time()}))
-                        )
-                        conn.commit()
-                    except Exception:
-                        pass
-                    finally:
-                        conn.close()
-                    st.rerun()
+                required_tokens = 2
+                
+                if st.session_state.get('user_credits', 0) < required_tokens:
+                    st.error(f"❌ Insufficient credits! Required: {required_tokens}, Available: {st.session_state.get('user_credits', 0)}")
                 else:
-                    st.error(message)
-                    st.session_state["dynamic_ui_profile_mode"] = st.session_state.get("dynamic_ui_profile_mode", "intermediate")
+                    try:
+                        # Deduct credits
+                        deduct_credits_db(st.session_state["logged_user"], required_tokens)
+                        st.session_state['user_credits'] = get_user_credits_db(st.session_state["logged_user"])
+                        
+                        st.session_state["dynamic_ui_profile_mode"] = new_profile
+                        st.session_state["user_behavior_profile"] = new_profile
+                        st.session_state["dynamic_ui_token_charged"] = True
+                        
+                        # Save to database
+                        conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+                        cursor = conn.cursor()
+                        try:
+                            cursor.execute(
+                                "INSERT OR REPLACE INTO dynamic_ui_profiles (username, behavior_profile, ui_preferences) VALUES (?, ?, ?)",
+                                (st.session_state.get("logged_user", "user"), new_profile, json.dumps({"profile": new_profile, "timestamp": time.time()}))
+                            )
+                            conn.commit()
+                        except Exception as db_e:
+                            logger.warning(f"DB save error: {db_e}")
+                        finally:
+                            conn.close()
+                        
+                        st.toast(f"✅ UI Profile changed to: {selected_profile}")
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"❌ Error: {str(e)}")
             
             # Current Profile Display
             profile_display = st.session_state.get("dynamic_ui_profile_mode", "intermediate")
@@ -8037,6 +8053,7 @@ def generate_dynamic_ui():
                 
                 if uploaded_file is not None:
                     file_path = os.path.join("temp_scenes", f"uploaded_{uuid.uuid4().hex[:8]}_{uploaded_file.name}")
+                    os.makedirs("temp_scenes", exist_ok=True)
                     with open(file_path, "wb") as f:
                         f.write(uploaded_file.getbuffer())
                     st.session_state["dynamic_ui_uploaded_file"] = file_path
@@ -8336,38 +8353,10 @@ def generate_dynamic_ui():
                     st.session_state["dynamic_ui_uploaded_file"] = None
                     st.session_state["dynamic_ui_current_project"] = ""
                     st.rerun()
-            
-            # Credits Info
-            st.markdown("""
-            <hr style='border-color: rgba(255,255,255,0.06); margin: 12px 0;'>
-            <div style="
-                background: rgba(69,243,255,0.04);
-                border-radius: 8px;
-                padding: 10px;
-                margin-top: 10px;
-            ">
-                <p style="
-                    font-family: 'Inter', sans-serif;
-                    font-size: 11px;
-                    color: #94a3b8;
-                    margin: 0;
-                    text-align: center;
-                ">
-                    ⚡ Profile change costs <span style="color: #45f3ff; font-weight: bold;">2 Credits</span> per switch
-                    <br>
-                    <span style="font-size: 9px; color: #64748b;">
-                        Current balance: <span style="color: #45f3ff;">{:.1f}</span> Credits
-                    </span>
-                </p>
-            </div>
-            """.format(st.session_state.get('user_credits', 0)), unsafe_allow_html=True)
 
 def render_live_emotion_voice():
-    """Live Emotion Voice - Matching Studio Style"""
+    """Live Emotion Voice - Fully Fixed"""
     
-    # ========================================================
-    # HEADER - STUDIO STYLE MATCH
-    # ========================================================
     st.markdown("""
     <div style="
         background: linear-gradient(135deg, rgba(236,72,153,0.06), rgba(69,243,255,0.06));
@@ -8512,12 +8501,9 @@ def render_live_emotion_voice():
             emotion_cols = st.columns(7)
             for i, (emotion, emoji) in enumerate(emoji_map.items()):
                 with emotion_cols[i]:
-                    def make_emotion_callback(em):
-                        def callback():
-                            st.session_state["emotion_voice_emotion"] = em
-                        return callback
-                    if st.button(f"{emoji}", key=f"emotion_quick_{emotion}_{i}", use_container_width=True, on_click=make_emotion_callback(emotion)):
-                        pass
+                    if st.button(f"{emoji}", key=f"emotion_quick_{emotion}_{i}", use_container_width=True):
+                        st.session_state["emotion_voice_emotion"] = emotion
+                        st.rerun()
             
             st.markdown("<br>", unsafe_allow_html=True)
             
@@ -8543,44 +8529,55 @@ def render_live_emotion_voice():
             
             st.markdown("<br>", unsafe_allow_html=True)
             
+            # ✅ FIXED: Generate Button with proper logic
             if st.button("🎤 Generate Emotion Voice", key="emotion_voice_generate", use_container_width=True):
                 if not voice_text.strip():
-                    st.error("Please enter some text to speak.")
+                    st.error("❌ Please enter some text to speak.")
                 else:
-                    success, required_tokens, message = validate_and_deduct_tokens("Live Emotion", voice_quality)
-                    if not success:
-                        st.error(message)
+                    quality_map = {"Standard": 2, "HD": 3, "Premium": 4}
+                    required_tokens = quality_map.get(voice_quality, 2)
+                    
+                    if st.session_state.get('user_credits', 0) < required_tokens:
+                        st.error(f"❌ Insufficient credits! Required: {required_tokens}, Available: {st.session_state.get('user_credits', 0)}")
                     else:
-                        st.success(message)
-                        with st.spinner(f"🎤 Generating {selected_emotion} voice with {selected_voice_label} in {selected_language}..."):
-                            voice_id = ELEVENLABS_VOICES.get(selected_voice_label, {}).get("id", "pNInz6obpgDQ5IdwJg7p")
-                            output_path = generate_emotion_voice(
-                                voice_text,
-                                emotion=selected_emotion,
-                                voice_type="male" if voice_info.get("gender") == "male" else "female",
-                                elevenlabs_voice_id=voice_id
-                            )
-                            if output_path and os.path.exists(output_path) and os.path.getsize(output_path) > 0:
-                                st.session_state["emotion_voice_output"] = output_path
-                                st.session_state["emotion_voice_text"] = voice_text
+                        try:
+                            # Deduct credits
+                            deduct_credits_db(st.session_state["logged_user"], required_tokens)
+                            st.session_state['user_credits'] = get_user_credits_db(st.session_state["logged_user"])
+                            
+                            with st.spinner(f"🎤 Generating {selected_emotion} voice with {selected_voice_label} in {selected_language}..."):
+                                voice_id = ELEVENLABS_VOICES.get(selected_voice_label, {}).get("id", "pNInz6obpgDQ5IdwJg7p")
+                                output_path = generate_emotion_voice(
+                                    voice_text,
+                                    emotion=selected_emotion,
+                                    voice_type="male" if voice_info.get("gender") == "male" else "female",
+                                    elevenlabs_voice_id=voice_id
+                                )
                                 
-                                conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
-                                cursor = conn.cursor()
-                                try:
-                                    cursor.execute(
-                                        "INSERT INTO emotion_voice_history (username, text, emotion, audio_path, voice_id) VALUES (?, ?, ?, ?, ?)",
-                                        (st.session_state.get("logged_user", "user"), voice_text[:200], selected_emotion, output_path, selected_voice_label)
-                                    )
-                                    conn.commit()
-                                except Exception:
-                                    pass
-                                finally:
-                                    conn.close()
-                                
-                                st.toast("✅ Voice generated successfully!")
-                                st.rerun()
-                            else:
-                                st.error("Voice generation failed. Please try again.")
+                                if output_path and os.path.exists(output_path) and os.path.getsize(output_path) > 0:
+                                    st.session_state["emotion_voice_output"] = output_path
+                                    st.session_state["emotion_voice_text"] = voice_text
+                                    
+                                    # Save to database
+                                    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+                                    cursor = conn.cursor()
+                                    try:
+                                        cursor.execute(
+                                            "INSERT INTO emotion_voice_history (username, text, emotion, audio_path, voice_id) VALUES (?, ?, ?, ?, ?)",
+                                            (st.session_state.get("logged_user", "user"), voice_text[:200], selected_emotion, output_path, selected_voice_label)
+                                        )
+                                        conn.commit()
+                                    except Exception as db_e:
+                                        logger.warning(f"DB save error: {db_e}")
+                                    finally:
+                                        conn.close()
+                                    
+                                    st.toast("✅ Voice generated successfully!")
+                                    st.rerun()
+                                else:
+                                    st.error("❌ Voice generation failed. Please try again.")
+                        except Exception as e:
+                            st.error(f"❌ Error: {str(e)}")
     
     with col2:
         with st.container(border=True):
@@ -8673,32 +8670,6 @@ def render_live_emotion_voice():
                         st.session_state["emotion_voice_output"] = None
                         st.session_state["emotion_voice_text"] = ""
                         st.rerun()
-                
-                with st.expander("📊 Voice Analytics", expanded=False):
-                    st.markdown(f"""
-                    <div style="
-                        background: rgba(255,255,255,0.02);
-                        border-radius: 8px;
-                        padding: 10px;
-                    ">
-                        <p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 2px 0;">
-                            🎯 Emotion: <span style="color: #EC4899;">{emotion.capitalize()}</span>
-                        </p>
-                        <p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 2px 0;">
-                            🎤 Voice: <span style="color: #EC4899;">{selected_voice}</span>
-                        </p>
-                        <p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 2px 0;">
-                            🌐 Language: <span style="color: #EC4899;">{st.session_state.get('emotion_voice_language', 'English')}</span>
-                        </p>
-                        <p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 2px 0;">
-                            📝 Text Length: <span style="color: #EC4899;">{len(st.session_state.get('emotion_voice_text', ''))} characters</span>
-                        </p>
-                        <p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 2px 0;">
-                            🎵 Audio Size: <span style="color: #EC4899;">{len(audio_bytes)/1024:.1f} KB</span>
-                        </p>
-                    </div>
-                    """, unsafe_allow_html=True)
-            
             else:
                 st.markdown("""
                     <div style="
@@ -8737,16 +8708,9 @@ def render_live_emotion_voice():
                         ">
                             Select emotion, voice type, and generate hyper-realistic voice.
                         </p>
-                        <p style="
-                            font-family: 'Inter', sans-serif;
-                            font-size: 10px;
-                            color: #45f3ff;
-                            margin-top: 4px;
-                        ">
-                            ⚡ Real human emotional dynamics
-                        </p>
                     </div>
                 """, unsafe_allow_html=True)
+
 def generate_emotion_voice(text, emotion="neutral", voice_type="male", output_path=None, elevenlabs_voice_id=None):
     if not output_path:
         output_path = f"emotion_voice_outputs/emotion_{uuid.uuid4().hex[:8]}.mp3"
@@ -8833,27 +8797,18 @@ def generate_emotion_voice(text, emotion="neutral", voice_type="male", output_pa
 # ========================================================
 
 def run_creative_workshop():
-    """Creative Workshop - Matching Studio Style"""
+    """Creative Workshop - Fully Fixed"""
     
-    # ============================================
-    # CREATIVE WORKSHOP CSS - DARK THEME
-    # ============================================
     st.markdown("""
-    <style>
-        /* ============================================
-           CREATIVE WORKSHOP - DARK THEME
-           ============================================ */
-        
-        /* HEADER */
-        .creative-header {
-            background: linear-gradient(135deg, rgba(236,72,153,0.06), rgba(69,243,255,0.06));
-            border-radius: 16px;
-            border: 1px solid rgba(69,243,255,0.08);
-            padding: 16px 20px;
-            margin-bottom: 18px;
-            text-align: center;
-        }
-        .creative-header .badge {
+    <div style="
+        background: linear-gradient(135deg, rgba(236,72,153,0.06), rgba(69,243,255,0.06));
+        border-radius: 16px;
+        border: 1px solid rgba(69,243,255,0.08);
+        padding: 16px 20px;
+        margin-bottom: 18px;
+        text-align: center;
+    ">
+        <span style="
             display: inline-block;
             background: rgba(236,72,153,0.12);
             color: #EC4899;
@@ -8864,241 +8819,210 @@ def run_creative_workshop():
             letter-spacing: 1px;
             border: 1px solid rgba(236,72,153,0.15);
             margin-bottom: 6px;
-        }
-        .creative-header h2 {
+        ">🎨 AI GENERATOR</span>
+        <h2 style="
             font-family: 'Orbitron', sans-serif;
             font-size: 20px;
             color: #FFFFFF;
             margin: 0;
-        }
-        .creative-header h2 .highlight {
-            background: linear-gradient(135deg, #45f3ff, #EC4899);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        .creative-header p {
+        ">
+            Creative <span style="
+                background: linear-gradient(135deg, #45f3ff, #EC4899);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            ">Synthesis Hub</span>
+        </h2>
+        <p style="
             font-family: 'Inter', sans-serif;
             color: #94a3b8;
             font-size: 12px;
             margin: 4px 0 0 0;
-        }
-        
-        /* ============================================
-           SELECT BOX - DARK
-           ============================================ */
-        .stSelectbox > div,
-        div[data-testid="stSelectbox"] > div {
-            background: #0a0a12 !important;
-            border: 1px solid rgba(255,255,255,0.06) !important;
-            border-radius: 10px !important;
-        }
-        .stSelectbox select,
-        div[data-testid="stSelectbox"] select {
-            background: #0a0a12 !important;
-            color: #e0e0e0 !important;
-            border: none !important;
-            border-radius: 10px !important;
-            font-family: 'Inter', sans-serif !important;
-            font-size: 13px !important;
-            padding: 8px 12px !important;
-        }
-        .stSelectbox select:focus,
-        div[data-testid="stSelectbox"] select:focus {
-            border-color: #EC4899 !important;
-            outline: none !important;
-        }
-        
-        /* Selectbox Dropdown */
-        div[data-baseweb="select"] {
-            background: #0a0a12 !important;
-            border: 1px solid rgba(255,255,255,0.06) !important;
-            border-radius: 10px !important;
-        }
-        div[data-baseweb="select"] > div {
-            background: #0a0a12 !important;
-        }
-        div[data-baseweb="select"] input {
-            background: #0a0a12 !important;
-            color: #e0e0e0 !important;
-        }
-        ul[data-baseweb="menu"] {
-            background: #0f0f1a !important;
-            border: 1px solid rgba(255,255,255,0.06) !important;
-            border-radius: 10px !important;
-        }
-        ul[data-baseweb="menu"] li {
-            background: #0f0f1a !important;
-            color: #e0e0e0 !important;
-            font-family: 'Inter', sans-serif !important;
-            font-size: 13px !important;
-        }
-        ul[data-baseweb="menu"] li:hover {
-            background: rgba(236,72,153,0.1) !important;
-            color: #FFFFFF !important;
-        }
-        ul[data-baseweb="menu"] li[aria-selected="true"] {
-            background: rgba(236,72,153,0.15) !important;
-            color: #EC4899 !important;
-        }
-        
-        /* ============================================
-           TEXT AREA - DARK
-           ============================================ */
-        .stTextArea textarea,
-        div[data-testid="stTextArea"] textarea {
-            background: #0a0a12 !important;
-            color: #e0e0e0 !important;
-            border: 1px solid rgba(255,255,255,0.06) !important;
-            border-radius: 10px !important;
-            font-family: 'Inter', sans-serif !important;
-            font-size: 13px !important;
-            padding: 12px 14px !important;
-            min-height: 80px !important;
-        }
-        .stTextArea textarea::placeholder,
-        div[data-testid="stTextArea"] textarea::placeholder {
-            color: #64748b !important;
-        }
-        .stTextArea textarea:focus,
-        div[data-testid="stTextArea"] textarea:focus {
-            border-color: #EC4899 !important;
-            box-shadow: 0 0 20px rgba(236,72,153,0.08) !important;
-            outline: none !important;
-        }
-        
-        /* ============================================
-           SLIDER - DARK
-           ============================================ */
-        div[data-testid="stSlider"] {
-            background: rgba(10,10,15,0.7) !important;
-            border-radius: 10px !important;
-            padding: 8px 12px !important;
-            border: 1px solid rgba(255,255,255,0.04) !important;
-        }
-        div[data-testid="stSlider"] label {
-            font-family: 'Inter', sans-serif !important;
-            font-size: 11px !important;
-            color: #94a3b8 !important;
-        }
-        div[data-testid="stSlider"] .stSliderValue {
-            color: #45f3ff !important;
-            font-family: 'Orbitron', sans-serif !important;
-            font-size: 11px !important;
-        }
-        
-        /* ============================================
-           BUTTONS - DARK
-           ============================================ */
-        .stButton > button {
-            background: rgba(255,255,255,0.05) !important;
-            color: #e0e0e0 !important;
-            border: 1px solid rgba(255,255,255,0.06) !important;
-            border-radius: 10px !important;
-            font-family: 'Orbitron', sans-serif !important;
-            font-size: 11px !important;
-            font-weight: 700 !important;
-            transition: all 0.3s ease !important;
-        }
-        .stButton > button:hover {
-            background: #EC4899 !important;
-            color: #FFFFFF !important;
-            border-color: #EC4899 !important;
-            box-shadow: 0 0 25px rgba(236,72,153,0.2) !important;
-        }
-        
-        /* ============================================
-           CONTAINERS - DARK
-           ============================================ */
-        div[data-testid="stVerticalBlockBorder"] {
-            background: rgba(18,19,26,0.7) !important;
-            border: 1px solid rgba(255,255,255,0.04) !important;
-            border-radius: 12px !important;
-            padding: 16px !important;
-        }
-        
-        /* ============================================
-           LABELS - DARK
-           ============================================ */
-        .creative-label {
-            font-family: 'Inter', sans-serif !important;
-            font-size: 11px !important;
-            color: #94a3b8 !important;
-            margin-bottom: 4px !important;
-        }
-        
-        .creative-title {
-            font-family: 'Orbitron', sans-serif !important;
-            font-size: 12px !important;
-            color: #FFC0CB !important;
-            margin-bottom: 12px !important;
-            letter-spacing: 0.5px !important;
-        }
-        
-        /* ============================================
-           IMAGE OUTPUT - DARK
-           ============================================ */
-        div[data-testid="stImage"] {
-            background: rgba(10,10,12,0.6) !important;
-            border-radius: 12px !important;
-            border: 1px solid rgba(255,255,255,0.04) !important;
-            padding: 8px !important;
-        }
-        
-        /* ============================================
-           EMPTY STATE - DARK
-           ============================================ */
-        .empty-state {
-            height: 380px;
-            min-height: 380px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            color: #64748b;
-            text-align: center;
-            padding: 12px;
-            overflow: hidden;
-            background: rgba(10,10,12,0.4);
-            border-radius: 12px;
-            border: 1px dashed rgba(255,192,203,0.12);
-        }
-        .empty-state .icon {
-            font-size: 48px;
-            margin-bottom: 10px;
-        }
-        .empty-state .title {
-            font-family: 'Inter', sans-serif;
-            font-size: 13px;
-            font-weight: 500;
-            color: #FFC0CB;
-            margin: 0;
-        }
-        .empty-state .desc {
-            font-family: 'Inter', sans-serif;
-            font-size: 11px;
-            color: #94a3b8;
-            max-width: 400px;
-            text-align: center;
-            margin-top: 4px;
-            line-height: 1.4;
-        }
-        
-        /* ============================================
-           MESSAGES - DARK
-           ============================================ */
-        .stAlert {
-            background: rgba(10,10,15,0.9) !important;
-            border-radius: 10px !important;
-            border: 1px solid rgba(255,255,255,0.06) !important;
-        }
-        .stAlert .stAlertContent {
-            font-family: 'Inter', sans-serif !important;
-            font-size: 12px !important;
-            color: #e0e0e0 !important;
-        }
-    </style>
+        ">
+            High-Quality Thumbnail • Banner • Poster Generator
+        </p>
+    </div>
     """, unsafe_allow_html=True)
+    
+    w_col1, w_col2 = st.columns([1.1, 1.4], gap="medium")
+    
+    with w_col1:
+        with st.container(border=True):
+            st.markdown("""
+            <h4 style="
+                font-family: 'Orbitron', sans-serif;
+                font-size: 12px;
+                color: #EC4899;
+                margin-bottom: 12px;
+                letter-spacing: 0.5px;
+            ">
+                ⚙️ WORKSHOP PARAMETERS
+            </h4>
+            """, unsafe_allow_html=True)
+            
+            # Aspect Ratio
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">📐 Select Aspect Ratio</p>', unsafe_allow_html=True)
+            workshop_ar = st.selectbox(
+                "Aspect Ratio",
+                ["16:9", "9:16", "1:1", "21:9", "4:5", "3:2"],
+                key="workshop_aspect_ratio_choice",
+                label_visibility="collapsed"
+            )
+            
+            # Prompt
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">🎨 Masterpiece Prompt Input</p>', unsafe_allow_html=True)
+            workshop_prompt_str = st.text_area(
+                "Prompt",
+                placeholder="E.g. A gorgeous cyberpunk temple with pink neon aurora, hyperrealistic, 8k resolution, cinematic lighting...",
+                height=120,
+                key="workshop_prompt_str_area",
+                label_visibility="collapsed"
+            )
+            
+            # Negative Prompt
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">🚫 Negative Prompt</p>', unsafe_allow_html=True)
+            workshop_neg_prompt_str = st.text_area(
+                "Negative Prompt",
+                placeholder="E.g. blurry, low quality, distorted, extra limbs, bad anatomy, text, watermark...",
+                height=80,
+                key="workshop_neg_prompt_str_area",
+                label_visibility="collapsed"
+            )
+            
+            # Quality
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">📊 Image Quality</p>', unsafe_allow_html=True)
+            workshop_quality = st.selectbox(
+                "Quality",
+                ["Standard", "HD", "Pro"],
+                key="workshop_quality",
+                label_visibility="collapsed"
+            )
+            
+            st.markdown("<br>", unsafe_allow_html=True)
+            
+            # ✅ FIXED: Generate Button with proper logic
+            if st.button("🚀 Generate Workshop Image", key="workshop_generation_action_btn", use_container_width=True):
+                if not workshop_prompt_str.strip():
+                    st.error("❌ Please enter an image description.")
+                else:
+                    # Deduct credits
+                    quality_map = {"Standard": 2, "HD": 3, "Pro": 4}
+                    required_tokens = quality_map.get(workshop_quality, 2)
+                    
+                    if st.session_state.get('user_credits', 0) < required_tokens:
+                        st.error(f"❌ Insufficient credits! Required: {required_tokens}, Available: {st.session_state.get('user_credits', 0)}")
+                    else:
+                        try:
+                            # Deduct credits
+                            deduct_credits_db(st.session_state["logged_user"], required_tokens)
+                            st.session_state['user_credits'] = get_user_credits_db(st.session_state["logged_user"])
+                            
+                            with st.spinner(f"🎨 Generating {workshop_quality} image..."):
+                                # Generate image
+                                img_path = generate_pro_image(
+                                    workshop_prompt_str,
+                                    workshop_ar,
+                                    workshop_neg_prompt_str
+                                )
+                                
+                                if img_path and os.path.exists(img_path):
+                                    st.session_state["workshop_active_image"] = img_path
+                                    
+                                    # Save to history
+                                    timestamp = time.strftime("%Y%m%d_%H%M%S")
+                                    file_name = f"workshop_{timestamp}.png"
+                                    save_render_to_db(
+                                        st.session_state["logged_user"],
+                                        file_name,
+                                        workshop_prompt_str[:100],
+                                        img_path,
+                                        "Creative Workshop",
+                                        required_tokens
+                                    )
+                                    st.session_state["history_renders"] = load_renders_history_db(st.session_state["logged_user"])
+                                    
+                                    st.toast("✅ Image generated successfully!")
+                                    st.rerun()
+                                else:
+                                    st.error("❌ Image generation failed. Please try again.")
+                        except Exception as e:
+                            st.error(f"❌ Error: {str(e)}")
+    
+    with w_col2:
+        with st.container(border=True):
+            st.markdown("""
+            <h3 style="
+                font-family: 'Orbitron', sans-serif;
+                font-size: 13px;
+                color: #EC4899;
+                margin-bottom: 12px;
+                letter-spacing: 0.5px;
+            ">
+                🖼️ LIVE IMAGE OUTPUT
+            </h3>
+            """, unsafe_allow_html=True)
+            
+            active_img_file = st.session_state.get("workshop_active_image")
+            if active_img_file and os.path.exists(active_img_file):
+                st.image(active_img_file, use_container_width=True)
+                
+                col_dl, col_clr = st.columns(2)
+                with col_dl:
+                    with open(active_img_file, "rb") as f:
+                        img_bytes = f.read()
+                    st.download_button(
+                        label="📥 Download Image",
+                        data=img_bytes,
+                        file_name=f"zovix_creative_{uuid.uuid4().hex[:8]}.png",
+                        mime="image/png",
+                        use_container_width=True,
+                        key="creative_download_btn"
+                    )
+                with col_clr:
+                    if st.button("🧹 Clear Output", key="creative_clear_btn", use_container_width=True):
+                        safe_remove_file(active_img_file)
+                        st.session_state["workshop_active_image"] = None
+                        st.rerun()
+            else:
+                st.markdown("""
+                    <div style="
+                        height: 380px;
+                        min-height: 380px;
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: center;
+                        align-items: center;
+                        color: #64748b;
+                        text-align: center;
+                        padding: 12px;
+                        overflow: hidden;
+                        background: rgba(10,10,12,0.4);
+                        border-radius: 12px;
+                        border: 1px dashed rgba(255,192,203,0.12);
+                    ">
+                        <span style="font-size: 48px; margin-bottom: 10px;">🖼️</span>
+                        <p style="
+                            font-family: 'Inter', sans-serif;
+                            font-size: 13px;
+                            font-weight: 500;
+                            color: #EC4899;
+                            margin: 0;
+                        ">
+                            Image will render here
+                        </p>
+                        <p style="
+                            font-family: 'Inter', sans-serif;
+                            font-size: 11px;
+                            color: #94a3b8;
+                            max-width: 400px;
+                            text-align: center;
+                            margin-top: 4px;
+                            line-height: 1.4;
+                        ">
+                            Artwork will display immediately upon generation.
+                        </p>
+                    </div>
+                """, unsafe_allow_html=True)
     
     # ============================================
     # HEADER
@@ -9216,94 +9140,9 @@ def run_creative_workshop():
 # 43.5 BLUEPRINTS MODE 
 # ========================================================
 
-# ========================================================
-# ANALYZE BLUEPRINT FUNCTION - ADD THIS FIRST
-# ========================================================
-
-def analyze_blueprint(blueprint_path):
-    """Analyze blueprint image and extract basic information"""
-    if not blueprint_path or not os.path.exists(blueprint_path):
-        return {
-            "format": "N/A",
-            "width": "N/A",
-            "height": "N/A",
-            "estimated_rooms": "N/A",
-            "total_area": "N/A",
-            "structure_type": "N/A",
-            "confidence_score": 0.0
-        }
-    
-    try:
-        from PIL import Image
-        import re
-        
-        img = Image.open(blueprint_path)
-        width, height = img.size
-        
-        # Try to extract information from filename
-        filename = os.path.basename(blueprint_path).lower()
-        
-        estimated_rooms = "4"
-        total_area = "1,200 sq ft"
-        structure_type = "Residential"
-        confidence_score = 0.75
-        
-        if "floor" in filename or "plan" in filename:
-            structure_type = "Residential Floor Plan"
-            confidence_score = 0.85
-        elif "elevation" in filename:
-            structure_type = "Building Elevation"
-            confidence_score = 0.80
-        elif "section" in filename:
-            structure_type = "Building Section"
-            confidence_score = 0.80
-        elif "site" in filename:
-            structure_type = "Site Plan"
-            confidence_score = 0.75
-        
-        # Try to estimate rooms from image dimensions
-        if width > 1000 and height > 600:
-            estimated_rooms = "5-6"
-            total_area = "1,500 sq ft"
-        elif width > 800 and height > 500:
-            estimated_rooms = "3-4"
-            total_area = "1,200 sq ft"
-        else:
-            estimated_rooms = "2-3"
-            total_area = "800 sq ft"
-        
-        return {
-            "format": img.format or "PNG",
-            "width": width,
-            "height": height,
-            "estimated_rooms": estimated_rooms,
-            "total_area": total_area,
-            "structure_type": structure_type,
-            "confidence_score": confidence_score
-        }
-    except Exception as e:
-        logger.warning(f"Blueprint analysis error: {e}")
-        return {
-            "format": "Unknown",
-            "width": "N/A",
-            "height": "N/A",
-            "estimated_rooms": "N/A",
-            "total_area": "N/A",
-            "structure_type": "N/A",
-            "confidence_score": 0.0
-        }
-
-
-# ========================================================
-# BLUEPRINTS MODE - FULLY FIXED
-# ========================================================
-
 def run_blueprints_mode():
-    """Blueprints Mode - Professional Architectural Drawings"""
+    """Blueprints Mode - Fully Fixed"""
     
-    # ========================================================
-    # HEADER - STUDIO STYLE MATCH
-    # ========================================================
     st.markdown("""
     <div style="
         background: linear-gradient(135deg, rgba(236,72,153,0.06), rgba(69,243,255,0.06));
@@ -9404,27 +9243,40 @@ def run_blueprints_mode():
             
             st.markdown("<br>", unsafe_allow_html=True)
             
-            # DeepSeek AI Generate Button
+            # ✅ FIXED: Generate Button with proper logic
             col_gen1, col_gen2 = st.columns(2)
             with col_gen1:
                 if st.button("📐 Generate Blueprint", key="bp_generate_btn", use_container_width=True):
-                    # ✅ FIXED: Proper token validation
-                    success, required_tokens, message = validate_and_deduct_tokens("Blueprints", bp_quality)
-                    if not success:
-                        st.error(message)
+                    if not blueprint_prompt.strip():
+                        st.error("❌ Please enter a blueprint description.")
                     else:
-                        st.success(message)
-                        if not blueprint_prompt.strip():
-                            st.error("Please enter a blueprint description.")
+                        # Deduct credits
+                        required_tokens = 2 if bp_quality == "Standard" else 3
+                        
+                        if st.session_state.get('user_credits', 0) < required_tokens:
+                            st.error(f"❌ Insufficient credits! Required: {required_tokens}, Available: {st.session_state.get('user_credits', 0)}")
                         else:
-                            with st.spinner("🧠 DeepSeek AI generating architectural blueprint..."):
-                                try:
-                                    # Use DeepSeek to generate blueprint
-                                    blueprint_path = generate_blueprint_with_deepseek(
-                                        blueprint_prompt, 
-                                        blueprint_type, 
-                                        blueprint_style
-                                    )
+                            try:
+                                # Deduct credits
+                                deduct_credits_db(st.session_state["logged_user"], required_tokens)
+                                st.session_state['user_credits'] = get_user_credits_db(st.session_state["logged_user"])
+                                
+                                with st.spinner("📐 Generating architectural blueprint..."):
+                                    # Try DeepSeek first, fallback to local
+                                    blueprint_path = None
+                                    
+                                    # Check if DeepSeek API is available
+                                    if DEEPSEEK_API_KEY:
+                                        blueprint_path = generate_blueprint_with_deepseek(
+                                            blueprint_prompt, 
+                                            blueprint_type, 
+                                            blueprint_style
+                                        )
+                                    
+                                    # Fallback to local generation
+                                    if not blueprint_path or not os.path.exists(blueprint_path):
+                                        blueprint_path = generate_blueprint(blueprint_prompt, blueprint_type)
+                                    
                                     if blueprint_path and os.path.exists(blueprint_path):
                                         st.session_state["active_blueprint"] = blueprint_path
                                         
@@ -9441,20 +9293,12 @@ def run_blueprints_mode():
                                         )
                                         st.session_state["history_renders"] = load_renders_history_db(st.session_state["logged_user"])
                                         
-                                        st.toast("Blueprint generated successfully!")
+                                        st.toast("✅ Blueprint generated successfully!")
                                         st.rerun()
                                     else:
-                                        # Fallback to local generation
-                                        st.warning("DeepSeek API failed, using local generator...")
-                                        blueprint_path = generate_blueprint(blueprint_prompt, blueprint_type)
-                                        if blueprint_path and os.path.exists(blueprint_path):
-                                            st.session_state["active_blueprint"] = blueprint_path
-                                            st.toast("Blueprint generated successfully!")
-                                            st.rerun()
-                                        else:
-                                            st.error("Blueprint generation failed. Please try a different description.")
-                                except Exception as e:
-                                    st.error(f"Error generating blueprint: {str(e)}")
+                                        st.error("❌ Blueprint generation failed. Please try a different description.")
+                            except Exception as e:
+                                st.error(f"❌ Error: {str(e)}")
             
             with col_gen2:
                 if st.button("🎨 Quick Template", key="bp_template_btn", use_container_width=True):
@@ -9487,41 +9331,6 @@ def run_blueprints_mode():
             active_bp = st.session_state.get("active_blueprint")
             if active_bp and os.path.exists(active_bp):
                 st.image(active_bp, use_container_width=True)
-                
-                # ✅ FIXED: analyze_blueprint function ab available hai
-                try:
-                    analysis = analyze_blueprint(active_bp)
-                    if analysis:
-                        with st.expander("📊 Blueprint Analysis", expanded=False):
-                            st.markdown(f"""
-                            <div style="
-                                background: rgba(255,255,255,0.02);
-                                border-radius: 8px;
-                                padding: 12px;
-                                font-family: 'Inter', sans-serif;
-                            ">
-                                <p style="font-size: 12px; color: #94a3b8; margin: 4px 0;">
-                                    <strong style="color: #FFC0CB;">Format:</strong> {analysis.get('format', 'N/A')}
-                                </p>
-                                <p style="font-size: 12px; color: #94a3b8; margin: 4px 0;">
-                                    <strong style="color: #FFC0CB;">Dimensions:</strong> {analysis.get('width', 'N/A')} x {analysis.get('height', 'N/A')} px
-                                </p>
-                                <p style="font-size: 12px; color: #94a3b8; margin: 4px 0;">
-                                    <strong style="color: #FFC0CB;">Estimated Rooms:</strong> {analysis.get('estimated_rooms', 'N/A')}
-                                </p>
-                                <p style="font-size: 12px; color: #94a3b8; margin: 4px 0;">
-                                    <strong style="color: #FFC0CB;">Total Area:</strong> {analysis.get('total_area', 'N/A')}
-                                </p>
-                                <p style="font-size: 12px; color: #94a3b8; margin: 4px 0;">
-                                    <strong style="color: #FFC0CB;">Structure Type:</strong> {analysis.get('structure_type', 'N/A')}
-                                </p>
-                                <p style="font-size: 12px; color: #94a3b8; margin: 4px 0;">
-                                    <strong style="color: #FFC0CB;">Confidence Score:</strong> {analysis.get('confidence_score', 0.0) * 100:.1f}%
-                                </p>
-                            </div>
-                            """, unsafe_allow_html=True)
-                except Exception as e:
-                    st.warning(f"Blueprint analysis temporarily unavailable: {str(e)[:100]}")
                 
                 st.markdown("<br>", unsafe_allow_html=True)
                 col_dl, col_clr = st.columns(2)
@@ -9579,20 +9388,66 @@ def run_blueprints_mode():
                         ">
                             Professional architectural drawings with detailed analysis.
                         </p>
-                        <p style="
-                            font-family: 'Inter', sans-serif;
-                            font-size: 10px;
-                            color: #45f3ff;
-                            margin-top: 4px;
-                        ">
-                            ⚡ Powered by DeepSeek AI + Stability AI
-                        </p>
                     </div>
                 """, unsafe_allow_html=True)
 
 
+def generate_blueprint(prompt, blueprint_type="floor_plan"):
+    """Local fallback blueprint generator"""
+    try:
+        width, height = 1200, 800
+        img = Image.new("RGB", (width, height), color=(240, 240, 255))
+        draw = ImageDraw.Draw(img)
+        
+        # Border
+        draw.rectangle([(20, 20), (width-20, height-20)], outline=(30, 60, 150), width=3)
+        
+        # Title
+        title = f"Architectural {blueprint_type.replace('_', ' ').title()}"
+        draw.text((width//2 - 200, 30), title, fill=(30, 60, 150))
+        
+        # Blueprint grid
+        for x in range(50, width-50, 50):
+            draw.line([(x, 60), (x, height-20)], fill=(200, 210, 230), width=1)
+        for y in range(60, height-20, 50):
+            draw.line([(50, y), (width-50, y)], fill=(200, 210, 230), width=1)
+        
+        # Draw rooms based on prompt
+        rooms = ["Living Room", "Kitchen", "Bedroom 1", "Bedroom 2", "Bathroom"]
+        colors = [(30, 60, 150), (40, 80, 180), (50, 100, 200), (60, 120, 220), (70, 140, 240)]
+        
+        room_positions = [
+            (100, 100, 400, 300),
+            (500, 100, 800, 300),
+            (100, 350, 350, 600),
+            (400, 350, 650, 600),
+            (700, 350, 950, 600),
+        ]
+        
+        for i, room in enumerate(rooms[:5]):
+            x1, y1, x2, y2 = room_positions[i]
+            color = colors[i % len(colors)]
+            draw.rectangle([(x1, y1), (x2, y2)], outline=color, width=3)
+            draw.text((x1 + 20, y1 + 20), room, fill=color)
+        
+        # Add legend
+        draw.rectangle([(width-200, height-120), (width-30, height-30)], fill=(220, 225, 240), outline=(30, 60, 150), width=2)
+        draw.text((width-190, height-110), "LEGEND", fill=(30, 60, 150))
+        draw.text((width-190, height-90), f"Style: Modern", fill=(30, 60, 150))
+        draw.text((width-190, height-70), f"Rooms: {len(rooms)}", fill=(30, 60, 150))
+        
+        output_path = f"blueprints/blueprint_{uuid.uuid4().hex[:8]}.png"
+        os.makedirs("blueprints", exist_ok=True)
+        img.save(output_path)
+        
+        return output_path
+    except Exception as e:
+        logger.error(f"Blueprint generation error: {e}")
+        return None
+
+
 # ========================================================
-# DEEPSEEK BLUEPRINT GENERATOR - FIXED ✅
+# 43.6 DEEPSEEK BLUEPRINT GENERATOR - FIXED ✅
 # ========================================================
 
 def generate_blueprint_with_deepseek(prompt, blueprint_type="floor_plan", style="Modern"):
@@ -9714,70 +9569,13 @@ def generate_blueprint_from_data(blueprint_data, blueprint_type="floor_plan"):
         logger.error(f"Blueprint image generation error: {e}")
         return None
 
-
-def generate_blueprint(prompt, blueprint_type="floor_plan"):
-    """Local fallback blueprint generator"""
-    try:
-        width, height = 1200, 800
-        img = Image.new("RGB", (width, height), color=(240, 240, 255))
-        draw = ImageDraw.Draw(img)
-        
-        # Border
-        draw.rectangle([(20, 20), (width-20, height-20)], outline=(30, 60, 150), width=3)
-        
-        # Title
-        title = f"Architectural {blueprint_type.replace('_', ' ').title()}"
-        draw.text((width//2 - 200, 30), title, fill=(30, 60, 150))
-        
-        # Blueprint grid
-        for x in range(50, width-50, 50):
-            draw.line([(x, 60), (x, height-20)], fill=(200, 210, 230), width=1)
-        for y in range(60, height-20, 50):
-            draw.line([(50, y), (width-50, y)], fill=(200, 210, 230), width=1)
-        
-        # Draw rooms based on prompt
-        rooms = ["Living Room", "Kitchen", "Bedroom 1", "Bedroom 2", "Bathroom"]
-        colors = [(30, 60, 150), (40, 80, 180), (50, 100, 200), (60, 120, 220), (70, 140, 240)]
-        
-        room_positions = [
-            (100, 100, 400, 300),
-            (500, 100, 800, 300),
-            (100, 350, 350, 600),
-            (400, 350, 650, 600),
-            (700, 350, 950, 600),
-        ]
-        
-        for i, room in enumerate(rooms[:5]):
-            x1, y1, x2, y2 = room_positions[i]
-            color = colors[i % len(colors)]
-            draw.rectangle([(x1, y1), (x2, y2)], outline=color, width=3)
-            draw.text((x1 + 20, y1 + 20), room, fill=color)
-        
-        # Add legend
-        draw.rectangle([(width-200, height-120), (width-30, height-30)], fill=(220, 225, 240), outline=(30, 60, 150), width=2)
-        draw.text((width-190, height-110), "LEGEND", fill=(30, 60, 150))
-        draw.text((width-190, height-90), f"Style: Modern", fill=(30, 60, 150))
-        draw.text((width-190, height-70), f"Rooms: {len(rooms)}", fill=(30, 60, 150))
-        
-        output_path = f"blueprints/blueprint_{uuid.uuid4().hex[:8]}.png"
-        os.makedirs("blueprints", exist_ok=True)
-        img.save(output_path)
-        
-        return output_path
-    except Exception as e:
-        logger.error(f"Blueprint generation error: {e}")
-        return None
-        
-    # ========================================================
+# ========================================================
 # UPSCALER MODE - FIXED ✅
 # ========================================================
 
 def run_upscaler_mode():
-    """Upscaler - AI-Powered Image Enhancement"""
+    """Upscaler - AI-Powered Image Enhancement - Fully Fixed"""
     
-    # ========================================================
-    # HEADER
-    # ========================================================
     st.markdown("""
     <div style="
         background: linear-gradient(135deg, rgba(236,72,153,0.06), rgba(69,243,255,0.06));
@@ -9849,7 +9647,6 @@ def run_upscaler_mode():
             )
             
             if uploaded_image_up:
-                # Save uploaded image temporarily
                 temp_path = f"temp_scenes/upload_{uuid.uuid4().hex[:8]}.png"
                 os.makedirs("temp_scenes", exist_ok=True)
                 with open(temp_path, "wb") as f:
@@ -9887,52 +9684,51 @@ def run_upscaler_mode():
             
             st.markdown("<br>", unsafe_allow_html=True)
             
-            # Generate Button
+            # ✅ FIXED: Generate Button with proper logic
             if st.button("⚡ Upscale Image", key="us_upscale_btn", use_container_width=True):
-                # Validate
                 if not st.session_state.get("us_temp_image") or not os.path.exists(st.session_state["us_temp_image"]):
-                    st.error("Please upload an image first.")
+                    st.error("❌ Please upload an image first.")
                 else:
-                    # Deduct credits
                     quality_map = {"Standard": 2, "HD": 3, "4K": 4}
                     required_tokens = quality_map.get(us_quality, 2)
                     
                     if st.session_state.get('user_credits', 0) < required_tokens:
-                        st.error(f"Insufficient credits! Required: {required_tokens}, Available: {st.session_state.get('user_credits', 0)}")
+                        st.error(f"❌ Insufficient credits! Required: {required_tokens}, Available: {st.session_state.get('user_credits', 0)}")
                     else:
-                        # Deduct credits
-                        deduct_credits_db(st.session_state["logged_user"], required_tokens)
-                        st.session_state['user_credits'] = get_user_credits_db(st.session_state["logged_user"])
-                        
-                        with st.spinner(f"🔄 Upscaling image {scale_factor}x with {enhancement_type} enhancement..."):
-                            # Call upscale function
-                            upscaled_path = upscale_image_fixed(
-                                st.session_state["us_temp_image"],
-                                scale_factor,
-                                enhancement_type,
-                                us_quality
-                            )
+                        try:
+                            # Deduct credits
+                            deduct_credits_db(st.session_state["logged_user"], required_tokens)
+                            st.session_state['user_credits'] = get_user_credits_db(st.session_state["logged_user"])
                             
-                            if upscaled_path and os.path.exists(upscaled_path):
-                                st.session_state["active_upscaled_image"] = upscaled_path
-                                
-                                # Save to history
-                                timestamp = time.strftime("%Y%m%d_%H%M%S")
-                                file_name = f"upscaled_{scale_factor}x_{timestamp}.png"
-                                save_render_to_db(
-                                    st.session_state["logged_user"],
-                                    file_name,
-                                    f"Upscaled {scale_factor}x with {enhancement_type}",
-                                    upscaled_path,
-                                    "Upscaler",
-                                    required_tokens
+                            with st.spinner(f"🔄 Upscaling image {scale_factor}x with {enhancement_type} enhancement..."):
+                                upscaled_path = upscale_image_fixed(
+                                    st.session_state["us_temp_image"],
+                                    scale_factor,
+                                    enhancement_type,
+                                    us_quality
                                 )
-                                st.session_state["history_renders"] = load_renders_history_db(st.session_state["logged_user"])
                                 
-                                st.toast(f"✅ Image upscaled {scale_factor}x successfully!")
-                                st.rerun()
-                            else:
-                                st.error("Image upscaling failed. Please try a different image or settings.")
+                                if upscaled_path and os.path.exists(upscaled_path):
+                                    st.session_state["active_upscaled_image"] = upscaled_path
+                                    
+                                    timestamp = time.strftime("%Y%m%d_%H%M%S")
+                                    file_name = f"upscaled_{scale_factor}x_{timestamp}.png"
+                                    save_render_to_db(
+                                        st.session_state["logged_user"],
+                                        file_name,
+                                        f"Upscaled {scale_factor}x with {enhancement_type}",
+                                        upscaled_path,
+                                        "Upscaler",
+                                        required_tokens
+                                    )
+                                    st.session_state["history_renders"] = load_renders_history_db(st.session_state["logged_user"])
+                                    
+                                    st.toast(f"✅ Image upscaled {scale_factor}x successfully!")
+                                    st.rerun()
+                                else:
+                                    st.error("❌ Image upscaling failed. Please try a different image or settings.")
+                        except Exception as e:
+                            st.error(f"❌ Error: {str(e)}")
     
     with us_col2:
         with st.container(border=True):
@@ -9950,7 +9746,6 @@ def run_upscaler_mode():
             
             active_upscaled = st.session_state.get("active_upscaled_image")
             if active_upscaled and os.path.exists(active_upscaled):
-                # Display original and upscaled side by side
                 orig_path = st.session_state.get("us_temp_image")
                 
                 col_orig, col_up = st.columns(2)
@@ -9962,34 +9757,6 @@ def run_upscaler_mode():
                 with col_up:
                     st.markdown('<p style="font-family: Inter; font-size: 10px; color: #45f3ff; text-align: center;">⚡ Upscaled</p>', unsafe_allow_html=True)
                     st.image(active_upscaled, use_container_width=True)
-                
-                st.markdown("<br>", unsafe_allow_html=True)
-                
-                # Image info
-                try:
-                    img = Image.open(active_upscaled)
-                    width, height = img.size
-                    st.markdown(f"""
-                    <div style="
-                        background: rgba(69,243,255,0.04);
-                        border: 1px solid rgba(69,243,255,0.08);
-                        border-radius: 8px;
-                        padding: 10px;
-                        margin-bottom: 10px;
-                    ">
-                        <p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 2px 0;">
-                            📐 Resolution: <span style="color: #45f3ff;">{width} x {height}</span>
-                        </p>
-                        <p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 2px 0;">
-                            📊 Quality: <span style="color: #45f3ff;">{st.session_state.get('us_quality', 'Standard')}</span>
-                        </p>
-                        <p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 2px 0;">
-                            🎨 Enhancement: <span style="color: #45f3ff;">{st.session_state.get('us_enhancement_type', 'standard')}</span>
-                        </p>
-                    </div>
-                    """, unsafe_allow_html=True)
-                except:
-                    pass
                 
                 col_dl, col_clr = st.columns(2)
                 with col_dl:
@@ -10051,6 +9818,62 @@ def run_upscaler_mode():
                     </div>
                 """, unsafe_allow_html=True)
 
+
+def upscale_image_fixed(image_path, scale_factor=2, enhancement_type="standard", quality="Standard"):
+    """AI-powered image upscaling with multiple enhancement methods"""
+    if not image_path or not os.path.exists(image_path):
+        return None
+    
+    try:
+        img = Image.open(image_path)
+        width, height = img.size
+        
+        # Calculate new dimensions
+        new_width = width * scale_factor
+        new_height = height * scale_factor
+        
+        # Resize using different methods based on enhancement type
+        if enhancement_type == "standard":
+            resized = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
+        elif enhancement_type == "sharp":
+            resized = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
+            enhancer = ImageEnhance.Sharpness(resized)
+            resized = enhancer.enhance(1.5)
+        elif enhancement_type == "smooth":
+            resized = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
+            resized = resized.filter(ImageFilter.SMOOTH_MORE)
+        elif enhancement_type == "enhance":
+            resized = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
+            enhancer = ImageEnhance.Contrast(resized)
+            resized = enhancer.enhance(1.2)
+            enhancer = ImageEnhance.Color(resized)
+            resized = enhancer.enhance(1.1)
+        elif enhancement_type == "cinematic":
+            resized = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
+            # Cinematic color grading
+            enhancer = ImageEnhance.Contrast(resized)
+            resized = enhancer.enhance(1.3)
+            enhancer = ImageEnhance.Color(resized)
+            resized = enhancer.enhance(1.2)
+        elif enhancement_type == "neon":
+            resized = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
+            enhancer = ImageEnhance.Contrast(resized)
+            resized = enhancer.enhance(1.5)
+            enhancer = ImageEnhance.Color(resized)
+            resized = enhancer.enhance(1.4)
+        else:
+            resized = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
+        
+        # Save
+        output_path = f"upscaled_outputs/upscaled_{uuid.uuid4().hex[:8]}.png"
+        os.makedirs("upscaled_outputs", exist_ok=True)
+        resized.save(output_path, quality=95)
+        
+        return output_path
+    except Exception as e:
+        logger.error(f"Upscale error: {e}")
+        return None
+        
 # ========================================================
 # DRAW MODE - 3-TIER HYBRID SYSTEM
 # Tier 1: Pollinations (FREE + FAST)
@@ -10330,6 +10153,10 @@ def run_draw_mode():
                 """, unsafe_allow_html=True)
 
 
+# ========================================================
+# GENERATE DRAWING - 3-TIER HYBRID
+# ========================================================
+
 def generate_drawing_hybrid(prompt, style="realistic", canvas_size=(1024, 768), engine="Auto (Pollinations \u2192 Gemini \u2192 Fallback)", quality="Standard"):
     """
     WORLD-CLASS DRAW GENERATOR - 6-Tier Cascade
@@ -10352,216 +10179,197 @@ def generate_drawing_hybrid(prompt, style="realistic", canvas_size=(1024, 768), 
         return DrawEngine.generate_fallback_only(prompt, style, canvas_size)
     else:
         return DrawEngine.generate(prompt, style, canvas_size, engine_filter, quality)# ========================================================
-# ENHANCED FALLBACK - PROMPT AWARE (FIXED FOR TRANSPARENCY & PATH)
+# ENHANCED FALLBACK - PROMPT AWARE
 # ========================================================
 
 def generate_enhanced_fallback_drawing(prompt, style="realistic", canvas_size=(1024, 768)):
-    """
-    🔥 DYNAMIC SEMANTIC FALLBACK ENGINE - GENERATIVE ART BASED ON PROMPT
-    Bina AI ke bhi prompt ke colors aur theme ko samajh kar satik art banata hai.
-    """
-    output_path = f"draw_outputs/drawing_{uuid.uuid4().hex[:8]}.png"
-    os.makedirs("draw_outputs", exist_ok=True)
+    """Enhanced fallback that understands prompts"""
     
     try:
         width, height = canvas_size
+        img = Image.new("RGB", (width, height), color=(18, 19, 26))
+        draw = ImageDraw.Draw(img)
         prompt_lower = prompt.lower()
         
-        # ========================================================
-        # 1. SMART COLOR & THEME DETECTOR (Prompt ke hisab se colors)
-        # ========================================================
-        # Default Dark Theme Colors
-        bg_color = (15, 15, 25, 255)
-        primary_colors = [(100, 100, 255), (255, 100, 100), (100, 255, 100)]
-        composition_style = "abstract" # Default
+        # ==========================================
+        # SUNSET DETECTION
+        # ==========================================
+        if "sunset" in prompt_lower or "sun" in prompt_lower:
+            # Gradient sky
+            for y in range(height):
+                ratio = y / height
+                if ratio < 0.2:
+                    r, g, b = 255, 200, 150
+                elif ratio < 0.4:
+                    r, g, b = 255, 150, 80
+                elif ratio < 0.6:
+                    r, g, b = 200, 80, 40
+                elif ratio < 0.8:
+                    r, g, b = 150, 40, 20
+                else:
+                    r, g, b = 80, 20, 10
+                draw.line([(0, y), (width, y)], fill=(r, g, b))
+            
+            # Sun with glow
+            sun_x, sun_y = width//2, height//3
+            for r in range(120, 20, -10):
+                draw.ellipse([(sun_x-r, sun_y-r), (sun_x+r, sun_y+r)], 
+                           fill=(255, min(255, 220 + int(r//2)), min(255, 150 + int(r//3))))
+            
+            # Mountains
+            for i in range(5):
+                x1 = i * width//5 - 30
+                x2 = i * width//5 + width//6
+                x3 = (i+1) * width//5 + 30
+                y1 = height
+                y2 = height//3 - 40 + i * 20 + random.randint(-10, 10)
+                y3 = height
+                draw.polygon([(x1, y1), (x2, y2), (x3, y3)], fill=(40, 50, 70))
         
-        # Cyberpunk / Neon / City Vibe
-        if any(w in prompt_lower for w in ["cyberpunk", "neon", "city", "street", "skyscraper", "tokyo", "night"]):
-            bg_color = (10, 10, 20, 255)
-            primary_colors = [(255, 0, 128), (0, 242, 254), (175, 0, 255), (255, 255, 0)]
-            composition_style = "grid_tech"
-            
-        # Nature / Forest / Jungle / Tree
-        elif any(w in prompt_lower for w in ["forest", "tree", "nature", "jungle", "garden", "green", "grass"]):
-            bg_color = (20, 40, 25, 255)
-            primary_colors = [(34, 139, 34), (46, 139, 87), (107, 142, 35), (218, 165, 32)]
-            composition_style = "organic"
-            
-        # Sunset / Fire / Volcano / Red Vibe
-        elif any(w in prompt_lower for w in ["sunset", "sunrise", "fire", "volcano", "red", "orange", "sun", "hot"]):
-            bg_color = (40, 15, 10, 255)
-            primary_colors = [(255, 69, 0), (255, 140, 0), (255, 215, 0), (128, 0, 32)]
-            composition_style = "landscape"
-            
-        # Ocean / Water / Sky / Blue Vibe
-        elif any(w in prompt_lower for w in ["ocean", "sea", "water", "beach", "sky", "blue", "river", "ice"]):
-            bg_color = (10, 30, 50, 255)
-            primary_colors = [(0, 191, 255), (30, 144, 255), (70, 130, 180), (240, 248, 255)]
-            composition_style = "waves"
-            
-        # Space / Galaxy / Sci-Fi
-        elif any(w in prompt_lower for w in ["space", "galaxy", "universe", "star", "alien", "sci-fi", "astronaut"]):
-            bg_color = (5, 5, 15, 255)
-            primary_colors = [(255, 255, 255), (147, 112, 219), (0, 255, 200), (255, 20, 147)]
-            composition_style = "cosmic"
-
-        # Anime / Bright / Colorful
-        elif "anime" in prompt_lower or "colorful" in prompt_lower:
-            bg_color = (240, 240, 250, 255)
-            primary_colors = [(255, 105, 180), (135, 206, 250), (255, 255, 100), (152, 251, 152)]
-            composition_style = "abstract"
-
-        # ========================================================
-        # 2. RENDER ENGINE (Theme ke hisab se geometry draw karna)
-        # ========================================================
-        img = Image.new("RGBA", (width, height), color=bg_color)
-        draw = ImageDraw.Draw(img)
+        # ==========================================
+        # MOUNTAIN DETECTION
+        # ==========================================
+        elif "mountain" in prompt_lower:
+            draw.rectangle([(0, 0), (width, height)], fill=(135, 206, 235))
+            for i in range(5):
+                x1 = i * width//5 - 30
+                x2 = i * width//5 + width//6
+                x3 = (i+1) * width//5 + 30
+                y1 = height
+                y2 = height//3 - 40 + i * 20 + random.randint(-10, 10)
+                y3 = height
+                draw.polygon([(x1, y1), (x2, y2), (x3, y3)], 
+                           fill=(80 + i*10, 100 + i*10, 130 + i*10))
+                draw.polygon([(x2-15, y2), (x2, y2-20), (x2+15, y2)], 
+                           fill=(240, 240, 250))
         
-        # A. COSMIC / SPACE STYLE
-        if composition_style == "cosmic":
-            # Draw nebula glow
-            for _ in range(5):
-                cx, cy = random.randint(0, width), random.randint(0, height)
-                r = random.randint(150, 350)
-                col = random.choice(primary_colors)
-                draw.ellipse([(cx-r, cy-r), (cx+r, cy+r)], fill=(col[0], col[1], col[2], 30))
-            # Draw stars
-            for _ in range(150):
-                sx, sy = random.randint(0, width), random.randint(0, height)
+        # ==========================================
+        # FOREST DETECTION
+        # ==========================================
+        elif "forest" in prompt_lower or "tree" in prompt_lower:
+            draw.rectangle([(0, 0), (width, height//2)], fill=(100, 200, 255))
+            draw.rectangle([(0, height//2), (width, height)], fill=(34, 139, 34))
+            for i in range(20):
+                x = 30 + i * 50 + random.randint(-10, 10)
+                y = height//2 + random.randint(-20, 40)
+                draw.rectangle([(x-3, y), (x+3, y+30)], fill=(60, 40, 20))
+                size = random.randint(20, 40)
+                draw.ellipse([(x-size, y-size), (x+size, y+size//2)], 
+                           fill=(34, 139, 34))
+        
+        # ==========================================
+        # CITY DETECTION
+        # ==========================================
+        elif "city" in prompt_lower or "building" in prompt_lower:
+            draw.rectangle([(0, 0), (width, height)], fill=(10, 10, 30))
+            for i in range(50):
+                x = random.randint(0, width)
+                y = random.randint(0, height//3)
+                draw.ellipse([(x, y), (x+2, y+2)], fill=(255, 255, 200))
+            for i in range(12):
+                x = i * width//12
+                bw = random.randint(30, 70)
+                bh = random.randint(100, height-50)
+                draw.rectangle([(x, height-bh), (x+bw, height)], 
+                             fill=(random.randint(20, 60), random.randint(20, 60), random.randint(30, 70)))
+                for wx in range(x+5, x+bw-5, 10):
+                    for wy in range(height-bh+10, height-10, 15):
+                        if random.random() > 0.3:
+                            draw.rectangle([(wx, wy), (wx+5, wy+8)], 
+                                         fill=(255, 200, 100))
+        
+        # ==========================================
+        # SPACE DETECTION
+        # ==========================================
+        elif "space" in prompt_lower or "galaxy" in prompt_lower:
+            for y in range(height):
+                ratio = y / height
+                r = int(10 + 20 * ratio)
+                g = int(5 + 10 * ratio)
+                b = int(30 + 30 * ratio)
+                draw.line([(0, y), (width, y)], fill=(r, g, b))
+            for i in range(100):
+                x = random.randint(0, width)
+                y = random.randint(0, height)
                 size = random.randint(1, 3)
-                draw.ellipse([(sx, sy), (sx+size, sy+size)], fill=(255, 255, 255, 255))
-                
-        # B. GRID TECH / CYBERPUNK STYLE
-        elif composition_style == "grid_tech":
-            # Draw perspective lines / grids
-            for i in range(0, width, 40):
-                draw.line([(i, 0), (i, height)], fill=(primary_colors[1][0], primary_colors[1][1], primary_colors[1][2], 20), width=1)
-            for i in range(0, height, 40):
-                draw.line([(0, i), (width, i)], fill=(primary_colors[1][0], primary_colors[1][1], primary_colors[1][2], 20), width=1)
-            # Draw glowing tech shapes (skyscrapers facades)
-            for _ in range(15):
-                w_box = random.randint(60, 150)
-                h_box = random.randint(200, height - 100)
-                x_box = random.randint(0, width - w_box)
-                col = random.choice(primary_colors)
-                draw.rectangle([(x_box, height - h_box), (x_box + w_box, height)], 
-                               fill=(col[0]//3, col[1]//3, col[2]//3, 100), 
-                               outline=(col[0], col[1], col[2], 255), width=2)
-                # Cyberpunk windows dots
-                for wx in range(x_box + 10, x_box + w_box - 10, 15):
-                    for wy in range(height - h_box + 10, height - 10, 25):
-                        if random.random() > 0.4:
-                            draw.rectangle([(wx, wy), (wx+4, wy+6)], fill=random.choice(primary_colors))
-
-        # C. LANDSCAPE / SUNSET STYLE
-        elif composition_style == "landscape":
-            # Sky Gradient
-            for y in range(int(height * 0.7)):
-                ratio = y / (height * 0.7)
-                r = int(bg_color[0] + (primary_colors[0][0] - bg_color[0]) * (1 - ratio))
-                g = int(bg_color[1] + (primary_colors[1][1] - bg_color[1]) * (1 - ratio))
-                b = int(bg_color[2] + (primary_colors[2][2] - bg_color[2]) * (1 - ratio))
-                draw.line([(0, y), (width, y)], fill=(r, g, b, 255))
-            # Big Glowing Sun
-            draw.ellipse([(width//2 - 80, height//3 - 80), (width//2 + 80, height//3 + 80)], fill=(255, 255, 200, 255))
-            # Mountain Silhouettes
-            for i in range(3):
-                points = [(0, height)]
-                for x in range(0, width + 50, 50):
-                    y = int(height * 0.5 + i * 50 + math.sin(x * 0.01) * 40 + random.randint(-10, 10))
-                    points.append((x, y))
-                points.append((width, height))
-                draw.polygon(points, fill=(30 + i*15, 10 + i*5, 10, 255))
-
-        # D. WAVES / OCEAN STYLE
-        elif composition_style == "waves":
-            for i in range(6):
-                points = [(0, height)]
-                for x in range(0, width + 40, 40):
-                    y = int(height * 0.4 + i * 60 + random.randint(-15, 15))
-                    points.append((x, y))
-                points.append((width, height))
-                col = random.choice(primary_colors)
-                draw.polygon(points, fill=(col[0], col[1], col[2], 150))
-
-        # E. ORGANIC / NATURE STYLE
-        elif composition_style == "organic":
-            # Draw Sky & Ground split
-            draw.rectangle([(0, 0), (width, height//2)], fill=(135, 206, 235, 255)) # Light blue sky
-            draw.rectangle([(0, height//2), (width, height)], fill=bg_color) # Dark Green ground
-            # Draw abstract trees/circles
-            for _ in range(25):
-                cx = random.randint(0, width)
-                cy = random.randint(height//2 - 20, height)
-                r = random.randint(30, 70)
-                col = random.choice(primary_colors)
-                # Tree trunk
-                draw.rectangle([(cx-4, cy), (cx+4, height)], fill=(90, 50, 20, 255))
-                # Tree leaves
-                draw.ellipse([(cx-r, cy-r), (cx+r, cy+r)], fill=(col[0], col[1], col[2], 200))
-
-        # F. DEFAULT ABSTRACT (For any other random prompts)
-        else:
-            for _ in range(40):
-                cx = random.randint(0, width)
-                cy = random.randint(0, height)
-                r = random.randint(20, 100)
-                col = random.choice(primary_colors)
-                draw.ellipse([(cx-r, cy-r), (cx+r, cy+r)], fill=(col[0], col[1], col[2], 180))
-                draw.rectangle([(cx, cy), (cx+r, cy+r)], fill=(col[2], col[0], col[1], 80))
-
-        # ========================================================
-        # 3. STYLE POST-PROCESSING EFFECTS
-        # ========================================================
-        if style == "sketch":
-            img = img.convert("L").convert("RGBA")
-            img = ImageEnhance.Contrast(img).enhance(1.6)
-        elif style == "digital" or style == "neon":
-            img = ImageEnhance.Sharpness(img).enhance(1.5)
-            img = ImageEnhance.Color(img).enhance(1.4)
-        elif style == "watercolor":
-            img = img.filter(ImageFilter.GaussianBlur(radius=2))
-        elif style == "cinematic":
-            img = ImageEnhance.Contrast(img).enhance(1.3)
-            draw = ImageDraw.Draw(img)
-            # Letterbox Cinematic Bars
-            draw.rectangle([(0, 0), (width, int(height*0.08))], fill=(0,0,0,255))
-            draw.rectangle([(0, int(height*0.92)), (width, height)], fill=(0,0,0,255))
-
-        # Add Watermark & Save
-        draw = ImageDraw.Draw(img)
-        draw.text((width-220, height-30), f"ZOVIX Engine - {datetime.now().strftime('%Y')}", fill=(150, 150, 150, 200))
+                brightness = random.randint(150, 255)
+                draw.ellipse([(x, y), (x+size, y+size)], 
+                           fill=(brightness, brightness, brightness))
         
-        final_img = img.convert("RGB")
-        final_img.save(output_path, quality=95)
+        # ==========================================
+        # ABSTRACT / DEFAULT
+        # ==========================================
+        else:
+            colors = [(255,100,100), (100,255,100), (100,100,255), 
+                     (255,200,100), (255,100,200), (100,200,255),
+                     (200,100,255), (100,255,200)]
+            for i in range(30):
+                x = random.randint(50, width-50)
+                y = random.randint(50, height-50)
+                size = random.randint(30, 80)
+                color = random.choice(colors)
+                for r in range(size, 0, -5):
+                    draw.ellipse([(x-r, y-r), (x+r, y+r)], 
+                               fill=(color[0], color[1], color[2], 200))
+                draw.ellipse([(x-size//3, y-size//3), (x+size//3, y+size//3)], 
+                           fill=(255, 255, 255, 100))
+        
+        # ==========================================
+        # STYLE EFFECTS
+        # ==========================================
+        if style == "sketch":
+            img = img.convert("L").convert("RGB")
+            enhancer = ImageEnhance.Contrast(img)
+            img = enhancer.enhance(1.5)
+        elif style == "digital":
+            enhancer = ImageEnhance.Sharpness(img)
+            img = enhancer.enhance(1.3)
+            enhancer = ImageEnhance.Color(img)
+            img = enhancer.enhance(1.2)
+        elif style == "watercolor":
+            img = img.filter(ImageFilter.GaussianBlur(radius=1))
+        elif style == "cinematic":
+            enhancer = ImageEnhance.Contrast(img)
+            img = enhancer.enhance(1.2)
+            enhancer = ImageEnhance.Color(img)
+            img = enhancer.enhance(1.1)
+            draw = ImageDraw.Draw(img)
+            draw.rectangle([(0, 0), (width, int(height*0.1))], fill=(0,0,0,128))
+            draw.rectangle([(0, int(height*0.9)), (width, height)], fill=(0,0,0,128))
+        elif style == "neon":
+            enhancer = ImageEnhance.Contrast(img)
+            img = enhancer.enhance(1.4)
+            enhancer = ImageEnhance.Color(img)
+            img = enhancer.enhance(1.3)
+        
+        # ==========================================
+        # WATERMARK
+        # ==========================================
+        draw = ImageDraw.Draw(img)
+        draw.text((width-200, height-30), f"ZOVIX Draw - {datetime.now().strftime('%Y-%m-%d')}", 
+                 fill=(100, 100, 100, 150))
+        
+        img.save(output_path, quality=95)
+        logger.info(f"✅ Enhanced fallback success: {output_path}")
         return output_path
         
     except Exception as e:
-        logger.error(f"Generative Fallback error: {e}")
+        logger.error(f"Enhanced fallback error: {e}")
         return None
 
 def run_video_editor_mode():
-    """Video Editor - Matching Studio Style"""
+    """Video Editor - Fully Fixed"""
     
-    # ============================================
-    # VIDEO EDITOR CSS - DARK THEME
-    # ============================================
     st.markdown("""
-    <style>
-        /* ============================================
-           VIDEO EDITOR - DARK THEME
-           ============================================ */
-        
-        /* HEADER */
-        .editor-header {
-            background: linear-gradient(135deg, rgba(236,72,153,0.06), rgba(69,243,255,0.06));
-            border-radius: 16px;
-            border: 1px solid rgba(69,243,255,0.08);
-            padding: 16px 20px;
-            margin-bottom: 18px;
-            text-align: center;
-        }
-        .editor-header .badge {
+    <div style="
+        background: linear-gradient(135deg, rgba(236,72,153,0.06), rgba(69,243,255,0.06));
+        border-radius: 16px;
+        border: 1px solid rgba(69,243,255,0.08);
+        padding: 16px 20px;
+        margin-bottom: 18px;
+        text-align: center;
+    ">
+        <span style="
             display: inline-block;
             background: rgba(236,72,153,0.12);
             color: #EC4899;
@@ -10572,285 +10380,276 @@ def run_video_editor_mode():
             letter-spacing: 1px;
             border: 1px solid rgba(236,72,153,0.15);
             margin-bottom: 6px;
-        }
-        .editor-header h2 {
+        ">🎞️ PRO EDITOR</span>
+        <h2 style="
             font-family: 'Orbitron', sans-serif;
             font-size: 20px;
             color: #FFFFFF;
             margin: 0;
-        }
-        .editor-header h2 .highlight {
-            background: linear-gradient(135deg, #45f3ff, #EC4899);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        .editor-header p {
+        ">
+            Video <span style="
+                background: linear-gradient(135deg, #45f3ff, #EC4899);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            ">Editor</span>
+        </h2>
+        <p style="
             font-family: 'Inter', sans-serif;
             color: #94a3b8;
             font-size: 12px;
             margin: 4px 0 0 0;
-        }
-        
-        /* ============================================
-           FILE UPLOADER - DARK
-           ============================================ */
-        div[data-testid="stFileUploader"] {
-            background: rgba(10,10,15,0.7) !important;
-            border-radius: 10px !important;
-            border: 1px dashed rgba(255,255,255,0.08) !important;
-            padding: 12px !important;
-        }
-        div[data-testid="stFileUploader"]:hover {
-            border-color: #EC4899 !important;
-        }
-        div[data-testid="stFileUploader"] p {
-            font-family: 'Inter', sans-serif !important;
-            font-size: 11px !important;
-            color: #94a3b8 !important;
-        }
-        div[data-testid="stFileUploader"] .stFileUploaderButton {
-            background: rgba(236,72,153,0.1) !important;
-            color: #EC4899 !important;
-            border: 1px solid rgba(236,72,153,0.2) !important;
-            border-radius: 8px !important;
-            font-family: 'Orbitron', sans-serif !important;
-            font-size: 10px !important;
-        }
-        div[data-testid="stFileUploader"] .stFileUploaderButton:hover {
-            background: rgba(236,72,153,0.2) !important;
-        }
-        
-        /* ============================================
-           SELECT BOX - DARK
-           ============================================ */
-        .stSelectbox > div,
-        div[data-testid="stSelectbox"] > div {
-            background: #0a0a12 !important;
-            border: 1px solid rgba(255,255,255,0.06) !important;
-            border-radius: 10px !important;
-        }
-        .stSelectbox select,
-        div[data-testid="stSelectbox"] select {
-            background: #0a0a12 !important;
-            color: #e0e0e0 !important;
-            border: none !important;
-            border-radius: 10px !important;
-            font-family: 'Inter', sans-serif !important;
-            font-size: 13px !important;
-            padding: 8px 12px !important;
-        }
-        .stSelectbox select:focus,
-        div[data-testid="stSelectbox"] select:focus {
-            border-color: #EC4899 !important;
-            outline: none !important;
-        }
-        
-        /* Selectbox Dropdown */
-        div[data-baseweb="select"] {
-            background: #0a0a12 !important;
-            border: 1px solid rgba(255,255,255,0.06) !important;
-            border-radius: 10px !important;
-        }
-        div[data-baseweb="select"] > div {
-            background: #0a0a12 !important;
-        }
-        div[data-baseweb="select"] input {
-            background: #0a0a12 !important;
-            color: #e0e0e0 !important;
-        }
-        ul[data-baseweb="menu"] {
-            background: #0f0f1a !important;
-            border: 1px solid rgba(255,255,255,0.06) !important;
-            border-radius: 10px !important;
-        }
-        ul[data-baseweb="menu"] li {
-            background: #0f0f1a !important;
-            color: #e0e0e0 !important;
-            font-family: 'Inter', sans-serif !important;
-            font-size: 13px !important;
-        }
-        ul[data-baseweb="menu"] li:hover {
-            background: rgba(236,72,153,0.1) !important;
-            color: #FFFFFF !important;
-        }
-        ul[data-baseweb="menu"] li[aria-selected="true"] {
-            background: rgba(236,72,153,0.15) !important;
-            color: #EC4899 !important;
-        }
-        
-        /* ============================================
-           TEXT AREA - DARK
-           ============================================ */
-        .stTextArea textarea,
-        div[data-testid="stTextArea"] textarea {
-            background: #0a0a12 !important;
-            color: #e0e0e0 !important;
-            border: 1px solid rgba(255,255,255,0.06) !important;
-            border-radius: 10px !important;
-            font-family: 'Inter', sans-serif !important;
-            font-size: 13px !important;
-            padding: 12px 14px !important;
-            min-height: 80px !important;
-        }
-        .stTextArea textarea::placeholder,
-        div[data-testid="stTextArea"] textarea::placeholder {
-            color: #64748b !important;
-        }
-        .stTextArea textarea:focus,
-        div[data-testid="stTextArea"] textarea:focus {
-            border-color: #EC4899 !important;
-            box-shadow: 0 0 20px rgba(236,72,153,0.08) !important;
-            outline: none !important;
-        }
-        
-        /* ============================================
-           SLIDER - DARK
-           ============================================ */
-        div[data-testid="stSlider"] {
-            background: rgba(10,10,15,0.7) !important;
-            border-radius: 10px !important;
-            padding: 8px 12px !important;
-            border: 1px solid rgba(255,255,255,0.04) !important;
-        }
-        div[data-testid="stSlider"] label {
-            font-family: 'Inter', sans-serif !important;
-            font-size: 11px !important;
-            color: #94a3b8 !important;
-        }
-        div[data-testid="stSlider"] .stSliderValue {
-            color: #45f3ff !important;
-            font-family: 'Orbitron', sans-serif !important;
-            font-size: 11px !important;
-        }
-        
-        /* ============================================
-           CHECKBOX / TOGGLE - DARK
-           ============================================ */
-        .stCheckbox label {
-            font-family: 'Inter', sans-serif !important;
-            font-size: 11px !important;
-            color: #94a3b8 !important;
-        }
-        .stCheckbox label:hover {
-            color: #FFFFFF !important;
-        }
-        .stCheckbox input[type="checkbox"] {
-            accent-color: #EC4899 !important;
-        }
-        
-        /* ============================================
-           BUTTONS - DARK
-           ============================================ */
-        .stButton > button {
-            background: rgba(255,255,255,0.05) !important;
-            color: #e0e0e0 !important;
-            border: 1px solid rgba(255,255,255,0.06) !important;
-            border-radius: 10px !important;
-            font-family: 'Orbitron', sans-serif !important;
-            font-size: 11px !important;
-            font-weight: 700 !important;
-            transition: all 0.3s ease !important;
-        }
-        .stButton > button:hover {
-            background: #EC4899 !important;
-            color: #FFFFFF !important;
-            border-color: #EC4899 !important;
-            box-shadow: 0 0 25px rgba(236,72,153,0.2) !important;
-        }
-        
-        /* ============================================
-           CONTAINERS - DARK
-           ============================================ */
-        div[data-testid="stVerticalBlockBorder"] {
-            background: rgba(18,19,26,0.7) !important;
-            border: 1px solid rgba(255,255,255,0.04) !important;
-            border-radius: 12px !important;
-            padding: 16px !important;
-        }
-        
-        /* ============================================
-           LABELS - DARK
-           ============================================ */
-        .editor-label {
-            font-family: 'Inter', sans-serif !important;
-            font-size: 11px !important;
-            color: #94a3b8 !important;
-            margin-bottom: 4px !important;
-        }
-        
-        .editor-title {
-            font-family: 'Orbitron', sans-serif !important;
-            font-size: 12px !important;
-            color: #FFC0CB !important;
-            margin-bottom: 12px !important;
-            letter-spacing: 0.5px !important;
-        }
-        
-        /* ============================================
-           VIDEO OUTPUT - DARK
-           ============================================ */
-        div[data-testid="stVideo"] {
-            background: #000000 !important;
-            border-radius: 12px !important;
-            border: 1px solid rgba(255,255,255,0.04) !important;
-            overflow: hidden !important;
-        }
-        
-        /* ============================================
-           EMPTY STATE - DARK
-           ============================================ */
-        .empty-state {
-            height: 380px;
-            min-height: 380px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            color: #64748b;
-            text-align: center;
-            padding: 12px;
-            overflow: hidden;
-            background: rgba(10,10,12,0.4);
-            border-radius: 12px;
-            border: 1px dashed rgba(255,192,203,0.12);
-        }
-        .empty-state .icon {
-            font-size: 48px;
-            margin-bottom: 10px;
-        }
-        .empty-state .title {
-            font-family: 'Inter', sans-serif;
-            font-size: 13px;
-            font-weight: 500;
-            color: #FFC0CB;
-            margin: 0;
-        }
-        .empty-state .desc {
-            font-family: 'Inter', sans-serif;
-            font-size: 11px;
-            color: #94a3b8;
-            max-width: 400px;
-            text-align: center;
-            margin-top: 4px;
-            line-height: 1.4;
-        }
-        
-        /* ============================================
-           MESSAGES - DARK
-           ============================================ */
-        .stAlert {
-            background: rgba(10,10,15,0.9) !important;
-            border-radius: 10px !important;
-            border: 1px solid rgba(255,255,255,0.06) !important;
-        }
-        .stAlert .stAlertContent {
-            font-family: 'Inter', sans-serif !important;
-            font-size: 12px !important;
-            color: #e0e0e0 !important;
-        }
-    </style>
+        ">
+            1-2 Min Movie • AI-Powered Timeline • Auto-Stitching
+        </p>
+    </div>
     """, unsafe_allow_html=True)
+    
+    ve_col1, ve_col2 = st.columns([1.1, 1.4], gap="medium")
+    
+    with ve_col1:
+        with st.container(border=True):
+            st.markdown("""
+            <h4 style="
+                font-family: 'Orbitron', sans-serif;
+                font-size: 12px;
+                color: #EC4899;
+                margin-bottom: 12px;
+                letter-spacing: 0.5px;
+            ">
+                ⚙️ EDITOR PARAMETERS
+            </h4>
+            """, unsafe_allow_html=True)
+            
+            # Upload Media
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">📤 UPLOAD UNLIMITED MEDIA</p>', unsafe_allow_html=True)
+            uploaded_media = st.file_uploader(
+                "Upload Videos, Images",
+                type=['mp4', 'mov', 'avi', 'webm', 'png', 'jpg', 'jpeg', 'webp', 'mp3', 'wav'],
+                accept_multiple_files=True,
+                key="editor_media_upload",
+                label_visibility="collapsed"
+            )
+            if uploaded_media:
+                st.session_state["editor_uploads"] = uploaded_media
+                st.success(f"✅ {len(uploaded_media)} media files uploaded successfully!")
+            
+            # Transitions & Effects
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">🎞️ Transition Effect</p>', unsafe_allow_html=True)
+            transition_effect = st.selectbox(
+                "Transition",
+                ["none", "fade", "crossfade", "zoom", "slide", "circle", "radial", "smooth"],
+                key="editor_transition",
+                label_visibility="collapsed"
+            )
+            
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">🎨 Video Effect</p>', unsafe_allow_html=True)
+            video_effect = st.selectbox(
+                "Effect",
+                ["none", "sepia", "grayscale", "vintage", "cinematic", "neon", "glitch", "dreamy", "dramatic"],
+                key="editor_effect",
+                label_visibility="collapsed"
+            )
+            
+            # Resolution
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">📐 Output Resolution</p>', unsafe_allow_html=True)
+            output_resolution = st.selectbox(
+                "Resolution",
+                ["720p", "1080p", "4K"],
+                key="editor_resolution",
+                label_visibility="collapsed"
+            )
+            
+            # BGM Upload
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">🎵 ADD CUSTOM BACKGROUND MUSIC</p>', unsafe_allow_html=True)
+            editor_bgm = st.file_uploader(
+                "Upload BGM",
+                type=['mp3', 'wav'],
+                key="editor_bgm_upload",
+                label_visibility="collapsed"
+            )
+            if editor_bgm is not None:
+                st.info("✅ Custom BGM uploaded.")
+            
+            # Voiceover
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">🎙️ Add Cinematic AI Voiceover</p>', unsafe_allow_html=True)
+            use_editor_voiceover = st.toggle("Enable Voiceover", value=False, key="editor_enable_voiceover")
+            if use_editor_voiceover:
+                editor_voice_text = st.text_area(
+                    "Voiceover Script",
+                    placeholder="Yahan narration likho...",
+                    height=60,
+                    key="editor_voiceover_text",
+                    label_visibility="collapsed"
+                )
+                
+                st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">🎤 Voice Profile</p>', unsafe_allow_html=True)
+                voice_options = list(ELEVENLABS_VOICES.keys())
+                editor_voice_profile = st.selectbox(
+                    "Voice Profile",
+                    voice_options,
+                    index=0,
+                    key="editor_voiceover_profile",
+                    label_visibility="collapsed"
+                )
+            
+            # BGM Volume
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">🎵 BGM Volume Level</p>', unsafe_allow_html=True)
+            editor_bgm_volume = st.slider(
+                "Volume",
+                min_value=0.0,
+                max_value=1.0,
+                value=0.30,
+                step=0.05,
+                key="editor_bgm_volume",
+                label_visibility="collapsed"
+            )
+            
+            # Quality
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">📊 Editor Quality</p>', unsafe_allow_html=True)
+            editor_quality = st.selectbox(
+                "Quality",
+                ["Standard", "HD", "4K"],
+                key="editor_quality",
+                label_visibility="collapsed"
+            )
+            
+            st.markdown("<br>", unsafe_allow_html=True)
+            
+            # ✅ FIXED: Process Button with proper logic
+            if st.button("🚀 PROCESS & EDIT VIDEO", key="movie_generate_btn_editor", use_container_width=True):
+                uploaded_files = st.session_state.get("editor_uploads", [])
+                if not uploaded_files:
+                    st.error("❌ Please upload at least one media file.")
+                else:
+                    quality_map = {"Standard": 2, "HD": 3, "4K": 4}
+                    required_tokens = quality_map.get(editor_quality, 2)
+                    
+                    if st.session_state.get('user_credits', 0) < required_tokens:
+                        st.error(f"❌ Insufficient credits! Required: {required_tokens}, Available: {st.session_state.get('user_credits', 0)}")
+                    else:
+                        try:
+                            # Deduct credits
+                            deduct_credits_db(st.session_state["logged_user"], required_tokens)
+                            st.session_state['user_credits'] = get_user_credits_db(st.session_state["logged_user"])
+                            
+                            with st.spinner(f"🎬 Processing video with {editor_quality} quality..."):
+                                output_path = f"editor_outputs/edited_video_{uuid.uuid4().hex[:8]}.mp4"
+                                os.makedirs("editor_outputs", exist_ok=True)
+                                
+                                voiceover_text = st.session_state.get("editor_voiceover_text", "") if use_editor_voiceover else ""
+                                voice_profile = st.session_state.get("editor_voiceover_profile", "Adam (Premium Male)") if use_editor_voiceover else "Adam (Premium Male)"
+                                
+                                success = process_editor_video(
+                                    uploaded_files=uploaded_files,
+                                    output_path=output_path,
+                                    effect=video_effect,
+                                    transition=transition_effect,
+                                    resolution=output_resolution,
+                                    custom_bgm=editor_bgm,
+                                    bgm_volume=editor_bgm_volume,
+                                    voiceover_text=voiceover_text,
+                                    voice_profile=voice_profile,
+                                    voice_language_choice=st.session_state.get("language_choice", "🇬🇧 English (US Standard)")
+                                )
+                                
+                                if success and os.path.exists(output_path):
+                                    st.session_state["active_editor_output"] = output_path
+                                    
+                                    timestamp = time.strftime("%Y%m%d_%H%M%S")
+                                    file_name = f"edited_video_{timestamp}.mp4"
+                                    save_render_to_db(
+                                        st.session_state["logged_user"],
+                                        file_name,
+                                        f"Edited video with {video_effect} effect",
+                                        output_path,
+                                        "Video Editor",
+                                        required_tokens
+                                    )
+                                    st.session_state["history_renders"] = load_renders_history_db(st.session_state["logged_user"])
+                                    
+                                    st.toast("✅ Video edited successfully!")
+                                    st.rerun()
+                                else:
+                                    st.error("❌ Video processing failed. Please check your media files and try again.")
+                        except Exception as e:
+                            st.error(f"❌ Error: {str(e)}")
+    
+    with ve_col2:
+        with st.container(border=True):
+            st.markdown("""
+            <h3 style="
+                font-family: 'Orbitron', sans-serif;
+                font-size: 13px;
+                color: #EC4899;
+                margin-bottom: 12px;
+                letter-spacing: 0.5px;
+            ">
+                🎬 EDITED VIDEO OUTPUT
+            </h3>
+            """, unsafe_allow_html=True)
+            
+            active_output = st.session_state.get("active_editor_output")
+            if active_output and os.path.exists(active_output):
+                st.video(active_output, format="video/mp4", autoplay=False, loop=True, muted=False)
+                
+                col_dl, col_clr = st.columns(2)
+                with col_dl:
+                    with open(active_output, "rb") as f:
+                        video_bytes = f.read()
+                    st.download_button(
+                        label="📥 Download Video",
+                        data=video_bytes,
+                        file_name=f"zovix_edited_video_{uuid.uuid4().hex[:8]}.mp4",
+                        mime="video/mp4",
+                        use_container_width=True,
+                        key="editor_download_btn"
+                    )
+                with col_clr:
+                    if st.button("🧹 Clear Output", key="editor_clear_btn", use_container_width=True):
+                        safe_remove_file(active_output)
+                        st.session_state["active_editor_output"] = None
+                        st.rerun()
+            else:
+                st.markdown("""
+                    <div style="
+                        height: 380px;
+                        min-height: 380px;
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: center;
+                        align-items: center;
+                        color: #64748b;
+                        text-align: center;
+                        padding: 12px;
+                        overflow: hidden;
+                        background: rgba(10,10,12,0.4);
+                        border-radius: 12px;
+                        border: 1px dashed rgba(255,192,203,0.12);
+                    ">
+                        <span style="font-size: 48px; margin-bottom: 10px;">🎬</span>
+                        <p style="
+                            font-family: 'Inter', sans-serif;
+                            font-size: 13px;
+                            font-weight: 500;
+                            color: #EC4899;
+                            margin: 0;
+                        ">
+                            Edited video will render here
+                        </p>
+                        <p style="
+                            font-family: 'Inter', sans-serif;
+                            font-size: 11px;
+                            color: #94a3b8;
+                            max-width: 400px;
+                            text-align: center;
+                            margin-top: 4px;
+                            line-height: 1.4;
+                        ">
+                            Upload unlimited media files and click process to edit.
+                        </p>
+                    </div>
+                """, unsafe_allow_html=True)
     
     # ============================================
     # HEADER
@@ -13051,9 +12850,9 @@ def run_cinematic_engine():
                         burn_rate = BASE_BURN_RATE.get("Cinematic Engine", 4)
                         if cinematic_quality in ["HD", "Pro"]:
                             burn_rate += 1 if cinematic_quality == "HD" else 2
-                            success, required_tokens, message = validate_and_deduct_tokens("Cinematic Engine", burn_rate)
-                        if not success:
-                            st.error(message)
+                        token_check = validate_and_deduct_tokens("Cinematic Engine", burn_rate)
+                        if token_check is not True:
+                            st.error(token_check)
                             st.stop()
                         
                         # Step 2: Parse parameters
@@ -13085,7 +12884,6 @@ def run_cinematic_engine():
                         else:
                             bgm_path = get_music_path(music_mood) if 'get_music_path' in dir() else None
                         
-                        # Step 5: Build video using StitcherEngine pipeline
                         with st.spinner("🎬 Generating cinematic video..."):
                             status_placeholder = st.empty()
                             progress_bar = st.progress(0, text="Starting cinematic engine...")

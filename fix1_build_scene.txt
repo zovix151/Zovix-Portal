@@ -1,0 +1,620 @@
+def build_scene_stitched_video_isolated(scenes_data, video_output, size_choice, voice_profile, language_choice, bgm_path=None, bgm_volume=0.3, music_mood=None, status_dict=None, workshop_img=None):
+        safe_remove_file(video_output)
+        res_width, res_height = 720, 1280
+        if "16:9" in size_choice:
+            res_width, res_height = 1280, 720
+        elif "1:1" in size_choice:
+            res_width, res_height = 1080, 1080
+        session_workspace_id = f"workspace_{uuid.uuid4().hex}"
+        workspace_dir = os.path.join("temp_scenes", session_workspace_id)
+        os.makedirs(workspace_dir, exist_ok=True)
+        compiled_scenes_paths = []
+        def process_scene_segment(idx, scene):
+            text = scene["scene_text"]
+            kw = scene["search_keyword"]
+            if status_dict is not None:
+                status_dict[idx] = "Synthesizing vocal elements..."
+            audio_segment_path = os.path.join(workspace_dir, f"temp_voice_{idx}.mp3")
+            voice_built = False
+            selected_voice_meta = ELEVENLABS_VOICES.get(voice_profile, {})
+            selected_voice_id = selected_voice_meta.get("id")
+            if not selected_voice_id:
+                selected_voice_id = "21m00Tcm4TlvDq8ikWAM" if "Male" in voice_profile else "pNInz6obpgDQ5IdwJg7p"
+            if ELEVENLABS_API_KEY:
+                voice_built = AudioEngine.generate_elevenlabs_speech(text, audio_segment_path, selected_voice_id)
+            if not voice_built:
+                voice_built = AudioEngine.run_fallback_tts(text=text, output_filename=audio_segment_path, language_choice=language_choice, voice_profile=voice_profile)
+            if (not voice_built) or (not os.path.exists(audio_segment_path)) or (not is_audio_audible(audio_segment_path)):
+                alt_voice_type = "male" if "Male" in voice_profile else "female"
+                alt_audio = generate_emotion_voice(
+                    text=text,
+                    emotion="neutral",
+                    voice_type=alt_voice_type,
+                    output_path=audio_segment_path,
+                    elevenlabs_voice_id=selected_voice_id,
+                )
+                voice_built = bool(alt_audio and os.path.exists(audio_segment_path) and is_audio_audible(audio_segment_path))
+            if not voice_built:
+                create_emergency_silent_audio(audio_segment_path, 5.0)
+            dur = get_audio_duration(audio_segment_path)
+            if dur <= 0:
+                dur = 5.0
+            raw_video_path = os.path.join(workspace_dir, f"temp_raw_vid_{idx}.mp4")
+            success = get_scene_asset(description=kw, output_filename=raw_video_path, scene_text=text, idx=idx, status_dict=status_dict)
+            if not success or not os.path.exists(raw_video_path) or os.path.getsize(raw_video_path) < 1000:
+                if status_dict is not None:
+                    status_dict[idx] = "Generating SD reference image..."
+                sd_temp_img = os.path.join(workspace_dir, f"temp_sd_base_{idx}.png")
+                sd_success = VisualEngine.generate_sd_core_image(text, sd_temp_img, size_choice)
+                ai_video_success = StitcherEngine.generate_smart_fallback_motion(text=text, image_path=sd_temp_img if sd_success else None, output_video_path=raw_video_path, res_width=res_width, res_height=res_height, workshop_img=workshop_img, idx=idx, status_dict=status_dict)
+                if os.path.exists(sd_temp_img):
+                    safe_remove_file(sd_temp_img)
+            if not os.path.exists(raw_video_path) or os.path.getsize(raw_video_path) < 1000:
+                create_emergency_solid_clip(raw_video_path, dur, res_width, res_height)
+            segment_mux_path = os.path.join(workspace_dir, f"temp_seg_mux_{idx}.mp4")
+            safe_text = text.replace('\\', '').replace("'", "").replace('"', '').replace(':', ' ').strip()
+            fontsize = int(res_width * 0.045)
+            y_pos = int(res_height * 0.75)
+            drawtext_filter = f"drawtext=text='{safe_text}':fontcolor=yellow:fontsize={fontsize}:box=1:boxcolor=black@0.6:boxborderw=10:x=(w-text_w)/2:y={y_pos}"
+            fade_out_start = max(0.0, dur - 0.4)
+            v_w, v_h = get_video_resolution(raw_video_path)
+            if v_w == res_width and v_h == res_height:
+                vf_filter_with_text = f"tpad=stop_mode=clone:stop_duration=10,eq=saturation=1.15:contrast=1.05,{drawtext_filter},fade=t=in:st=0:d=0.4,fade=t=out:st={fade_out_start:.2f}:d=0.4"
+                vf_filter_no_text = f"tpad=stop_mode=clone:stop_duration=10,eq=saturation=1.15:contrast=1.05,fade=t=in:st=0:d=0.4,fade=t=out:st={fade_out_start:.2f}:d=0.4"
+            else:
+                vf_filter_with_text = f'scale={res_width}:{res_height}:force_original_aspect_ratio=increase,crop={res_width}:{res_height},setsar=1,tpad=stop_mode=clone:stop_duration=10,eq=saturation=1.15:contrast=1.05,{drawtext_filter},fade=t=in:st=0:d=0.4,fade=t=out:st={fade_out_start:.2f}:d=0.4'
+                vf_filter_no_text = f'scale={res_width}:{res_height}:force_original_aspect_ratio=increase,crop={res_width}:{res_height},setsar=1,tpad=stop_mode=clone:stop_duration=10,eq=saturation=1.15:contrast=1.05,fade=t=in:st=0:d=0.4,fade=t=out:st={fade_out_start:.2f}:d=0.4'
+            ff_cmd = ['ffmpeg', *get_hwaccel_args(), '-y', '-i', raw_video_path, '-i', audio_segment_path, '-t', f"{dur:.2f}", '-vf', vf_filter_with_text, '-af', f'afade=t=in:ss=0:d=0.4,afade=t=out:st={fade_out_start:.2f}:d=0.4,aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo', '-r', '24', '-pix_fmt', 'yuv420p', '-c:v', 'libx264', '-crf', '28', '-preset', 'ultrafast', '-tune', 'fastdecode', '-c:a', 'aac', '-ac', '2', '-ar', '44100', '-map', '0:v:0', '-map', '1:a:0', '-shortest', segment_mux_path]
+            try:
+                subprocess.run(ff_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+                if os.path.exists(segment_mux_path) and os.path.getsize(segment_mux_path) > 0:
+                    return segment_mux_path
+            except Exception:
+                fallback_cmd = ['ffmpeg', *get_hwaccel_args(), '-y', '-i', raw_video_path, '-i', audio_segment_path, '-t', f"{dur:.2f}", '-vf', f'scale={res_width}:{res_height}:force_original_aspect_ratio=increase,crop={res_width}:{res_height},setsar=1,tpad=stop_mode=clone:stop_duration=10,eq=saturation=1.15:contrast=1.05,fade=t=in:st=0:d=0.4,fade=t=out:st={fade_out_start:.2f}:d=0.4', '-af', 'aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo', '-r', '24', '-pix_fmt', 'yuv420p', '-c:v', 'libx264', '-preset', 'ultrafast', '-tune', 'fastdecode', '-c:a', 'aac', '-ac', '2', '-ar', '44100', '-map', '0:v:0', '-map', '1:a:0', '-shortest', segment_mux_path]
+                try:
+                    subprocess.run(fallback_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+                    if os.path.exists(segment_mux_path) and os.path.getsize(segment_mux_path) > 0:
+                        return segment_mux_path
+                except Exception:
+                    pass
+            return None
+        try:
+            max_workers = min(len(scenes_data), max(1, os.cpu_count() or 1))
+            segment_results = {}
+            def context_safe_worker(idx, scene):
+                return process_scene_segment(idx, scene)
+            with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+                future_to_idx = {executor.submit(context_safe_worker, idx, scene): idx for idx, scene in enumerate(scenes_data)}
+                for future in concurrent.futures.as_completed(future_to_idx):
+                    idx = future_to_idx[future]
+                    try:
+                        scene_path = future.result()
+                    except Exception:
+                        scene_path = None
+                    segment_results[idx] = scene_path
+            for idx in range(len(scenes_data)):
+                scene_path = segment_results.get(idx)
+                if scene_path:
+                    compiled_scenes_paths.append(scene_path)
+                else:
+                    fill_clip = os.path.join(workspace_dir, f"temp_seg_mux_{idx}_fill.mp4")
+                    create_emergency_solid_clip(fill_clip, 5.0, res_width, res_height)
+                    compiled_scenes_paths.append(fill_clip)
+            validated_scenes = []
+            for path in compiled_scenes_paths:
+                if os.path.exists(path) and os.path.getsize(path) > 100:
+                    validated_scenes.append(path)
+                else:
+                    fill_clip = path.replace(".mp4", "_fill.mp4")
+                    create_emergency_solid_clip(fill_clip, 5.0, res_width, res_height)
+                    validated_scenes.append(fill_clip)
+            if not validated_scenes:
+                return False
+            manifest_file = os.path.join(workspace_dir, "concat_manifest.txt")
+            with open(manifest_file, "w") as f:
+                for path in validated_scenes:
+                    clean_path = os.path.abspath(path).replace("\\", "/")
+                    f.write(f"file '{clean_path}'\n")
+            temp_stitched_output = os.path.join(workspace_dir, "temp_voice_stitched.mp4")
+            concat_cmd = ['ffmpeg', *get_hwaccel_args(), '-y', '-f', 'concat', '-safe', '0', '-i', manifest_file, '-c:v', 'copy', '-c:a', 'copy', temp_stitched_output]
+            subprocess.run(concat_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+            if bgm_path and os.path.exists(bgm_path):
+                mixed_ok = mix_audio_layers(
+                    video_input_path=temp_stitched_output,
+                    output_path=video_output,
+                    bgm_path=bgm_path,
+                    bgm_volume=bgm_volume,
+                )
+                if not mixed_ok:
+                    shutil.copy(temp_stitched_output, video_output)
+            else:
+                shutil.copy(temp_stitched_output, video_output)
+            if os.path.exists(video_output) and os.path.getsize(video_output) > 100:
+                return True
+            return False
+        except Exception as e:
+            logger.error(f"Build scene stitched video error: {e}")
+            return False
+        finally:
+            try:
+                shutil.rmtree(workspace_dir, ignore_errors=True)
+            except Exception:
+                pass
+
+def create_emergency_solid_clip(output_filename, duration, res_width, res_height):
+    safe_remove_file(output_filename)
+    cmd = ['ffmpeg', '-y', '-f', 'lavfi', '-i', f'color=c=#050508:s={res_width}x{res_height}:r=24', '-t', str(duration), '-pix_fmt', 'yuv420p', '-c:v', 'libx264', '-preset', 'ultrafast', output_filename]
+    try:
+        subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+        return True
+    except:
+        return False
+
+def create_emergency_silent_audio(output_filename, duration):
+    safe_remove_file(output_filename)
+    cmd = ['ffmpeg', '-y', '-f', 'lavfi', '-i', 'anullsrc=r=44100:cl=stereo', '-t', str(duration), '-c:a', 'libmp3lame', output_filename]
+    try:
+        subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+        return True
+    except Exception:
+        return False
+
+def safe_remove_file(file_path):
+    try:
+        if file_path and os.path.exists(file_path):
+            os.remove(file_path)
+    except Exception:
+        pass
+
+def convert_mp4_to_webm(mp4_path, webm_path):
+    safe_remove_file(webm_path)
+    cmd = ['ffmpeg', *get_hwaccel_args(), '-y', '-i', mp4_path, '-c:v', 'libvpx-vp9', '-crf', '32', '-b:v', '0', '-c:a', 'libopus', webm_path]
+    try:
+        subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+        return True
+    except Exception:
+        try:
+            cmd = ['ffmpeg', *get_hwaccel_args(), '-y', '-i', mp4_path, '-c:v', 'libvpx', '-crf', '10', '-b:v', '1M', '-c:a', 'libvorbis', webm_path]
+            subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+            return True
+        except Exception:
+            return False
+
+def generate_face_video_real(image_path, audio_path=None, output_width=512, output_height=512, duration=10, quality="Standard", emotion="neutral", camera_angle="front"):
+    if not image_path or not os.path.exists(image_path):
+        return None
+    quality_settings = {"Standard": {"crf": 23, "preset": "medium", "bitrate": "1M"}, "HD": {"crf": 18, "preset": "slow", "bitrate": "4M"}, "4K": {"crf": 15, "preset": "veryslow", "bitrate": "10M", "scale": 2.0}}
+    q_settings = quality_settings.get(quality, quality_settings["Standard"])
+    scale_factor = q_settings.get("scale", 1.0)
+    out_w = int(output_width * scale_factor)
+    out_h = int(output_height * scale_factor)
+    output_video_path = f"face_videos/face_video_{quality.lower()}_{uuid.uuid4().hex[:8]}.mp4"
+    temp_processed_img = "face_videos/temp_face_rect.png"
+    try:
+        img = cv2.imread(image_path)
+        if img is None:
+            raise ValueError("Image could not be loaded.")
+        h, w, _ = img.shape
+        size = max(h, w)
+        pad_y = (size - h) // 2
+        pad_x = (size - w) // 2
+        padded_img = cv2.copyMakeBorder(img, pad_y, pad_y, pad_x, pad_x, borderType=cv2.BORDER_CONSTANT, value=[0, 0, 0])
+        final_rect_img = cv2.resize(padded_img, (out_w, out_h), interpolation=cv2.INTER_AREA)
+        cv2.imwrite(temp_processed_img, final_rect_img)
+        if audio_path and os.path.exists(audio_path):
+            if run_lip_sync_pipeline(temp_processed_img, audio_path, output_video_path, out_w, out_h, duration=duration, emotion=emotion, camera_angle=camera_angle):
+                if os.path.exists(temp_processed_img):
+                    os.remove(temp_processed_img)
+                return output_video_path
+            
+            # FALLBACK: Lip-sync failed, create a simple video with image + audio
+            logger.warning("Lip-sync engine failed. Creating fallback video (image + audio only).")
+            fallback_video = output_video_path.replace(".mp4", "_fallback.mp4")
+            try:
+                subprocess.run(
+                    ['ffmpeg', '-y', '-loop', '1', '-i', temp_processed_img,
+                     '-i', audio_path,
+                     '-t', str(max(1.0, float(get_audio_duration(audio_path) or duration))),
+                     '-vf', f'scale={out_w}:{out_h}:force_original_aspect_ratio=decrease,pad={out_w}:{out_h}:(ow-iw)/2:(oh-ih)/2,setsar=1',
+                     '-c:v', 'libx264', '-preset', 'fast', '-crf', '20',
+                     '-c:a', 'aac', '-shortest',
+                     fallback_video],
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True
+                )
+                if os.path.exists(fallback_video) and os.path.getsize(fallback_video) > 1000:
+                    shutil.move(fallback_video, output_video_path)
+                    st.session_state["face_video_engine_used"] = "Fallback (Image+Audio)"
+                    st.session_state["face_video_runtime_mode"] = "CPU"
+                    if os.path.exists(temp_processed_img):
+                        os.remove(temp_processed_img)
+                    return output_video_path
+            except Exception as fb_e:
+                logger.warning(f"Fallback video creation also failed: {fb_e}")
+            
+            if os.path.exists(temp_processed_img):
+                os.remove(temp_processed_img)
+            return None
+        
+        # No audio provided - try creating a silent video
+        logger.warning("No audio path found, creating silent face video.")
+        try:
+            subprocess.run(
+                ['ffmpeg', '-y', '-loop', '1', '-i', temp_processed_img,
+                 '-t', str(duration),
+                 '-vf', f'scale={out_w}:{out_h}:force_original_aspect_ratio=decrease,pad={out_w}:{out_h}:(ow-iw)/2:(oh-ih)/2,setsar=1',
+                 '-c:v', 'libx264', '-preset', 'fast', '-crf', '20',
+                 output_video_path],
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True
+            )
+            if os.path.exists(output_video_path) and os.path.getsize(output_video_path) > 1000:
+                st.session_state["face_video_engine_used"] = "Silent Image Video"
+                st.session_state["face_video_runtime_mode"] = "CPU"
+                if os.path.exists(temp_processed_img):
+                    os.remove(temp_processed_img)
+                return output_video_path
+        except Exception as silent_e:
+            logger.warning(f"Silent video creation failed: {silent_e}")
+            
+        if os.path.exists(temp_processed_img):
+            try:
+                os.remove(temp_processed_img)
+            except:
+                pass
+        return None
+    except Exception as e:
+        logger.error(f"Generate face video real error: {e}")
+        if os.path.exists(temp_processed_img):
+            try:
+                os.remove(temp_processed_img)
+            except:
+                pass
+        return None
+
+
+def _download_file_with_fallback(urls, out_path, timeout=180, min_bytes=1024):
+    """Download a file from multiple URLs with optional HF auth support."""
+    if os.path.isfile(out_path) and os.path.getsize(out_path) >= min_bytes:
+        return True
+
+    os.makedirs(os.path.dirname(out_path), exist_ok=True)
+    temp_path = f"{out_path}.part"
+
+    hf_token = (os.getenv("HF_TOKEN") or os.getenv("HUGGINGFACE_API_KEY") or "").strip()
+
+    for url in urls:
+        if not url:
+            continue
+        request_headers = {}
+        if "huggingface.co" in url and hf_token:
+            request_headers["Authorization"] = f"Bearer {hf_token}"
+
+        try:
+            with requests.get(url, stream=True, timeout=timeout, headers=request_headers or None) as response:
+                response.raise_for_status()
+                with open(temp_path, "wb") as f:
+                    for chunk in response.iter_content(chunk_size=1024 * 1024):
+                        if chunk:
+                            f.write(chunk)
+
+            if os.path.isfile(temp_path) and os.path.getsize(temp_path) >= min_bytes:
+                os.replace(temp_path, out_path)
+                logger.info(f"Downloaded model asset from {url} -> {out_path}")
+                return True
+        except Exception as e:
+            logger.warning(f"Model download failed: {url} -> {e}")
+        finally:
+            safe_remove_file(temp_path)
+
+    return os.path.isfile(out_path) and os.path.getsize(out_path) >= min_bytes
+
+
+def ensure_wav2lip_core_weights(repo_path):
+    """Ensure Wav2Lip generator checkpoint exists; auto-download if missing."""
+    if not repo_path:
+        return False
+
+    checkpoint_path = os.path.join(repo_path, "checkpoints", "wav2lip_gan.pth")
+    if os.path.isfile(checkpoint_path) and os.path.getsize(checkpoint_path) > 5 * 1024 * 1024:
+        return True
+
+    env_url = os.getenv("WAV2LIP_GAN_URL", "").strip()
+    download_urls = [
+        env_url,
+        "https://huggingface.co/numz/wav2lip_studio/resolve/main/wav2lip_gan.pth",
+        "https://huggingface.co/Kijai/Wav2Lip_fp16/resolve/main/wav2lip_gan.pth",
+        "https://huggingface.co/camenduru/Wav2Lip/resolve/main/wav2lip_gan.pth",
+        "https://github.com/Rudrabha/Wav2Lip/releases/download/v1.0/wav2lip_gan.pth",
+    ]
+
+    ok = _download_file_with_fallback(download_urls, checkpoint_path, timeout=300, min_bytes=5 * 1024 * 1024)
+    if not ok:
+        logger.warning("wav2lip_gan.pth is missing and could not be auto-downloaded.")
+    return ok
+
+
+def ensure_wav2lip_s3fd_weights(repo_path):
+    """Ensure s3fd face detector weights exist; auto-download if missing."""
+    if not repo_path:
+        return False
+
+    s3fd_path = os.path.join(repo_path, "face_detection", "detection", "sfd", "s3fd.pth")
+    if os.path.isfile(s3fd_path):
+        return True
+
+    os.makedirs(os.path.dirname(s3fd_path), exist_ok=True)
+
+    env_url = os.getenv("WAV2LIP_S3FD_URL", "").strip()
+    download_urls = [
+        env_url,
+        "https://huggingface.co/numz/wav2lip_studio/resolve/main/s3fd.pth",
+        "https://huggingface.co/Kijai/Wav2Lip_fp16/resolve/main/s3fd.pth",
+        "https://huggingface.co/camenduru/Wav2Lip/resolve/main/s3fd.pth",
+        "https://www.adrianbulat.com/downloads/python-fan/s3fd-619a316812.pth",
+        "https://github.com/Rudrabha/Wav2Lip/releases/download/v1.0/s3fd.pth",
+    ]
+
+    if _download_file_with_fallback(download_urls, s3fd_path, timeout=180, min_bytes=1024):
+        return True
+
+    logger.warning("s3fd.pth is missing and could not be auto-downloaded. Continuing in forced mode.")
+    return False
+
+
+def _normalize_env_path(path_value):
+    if not path_value:
+        return None
+    return str(path_value).strip().strip('"').strip("'")
+
+
+def _build_wav2lip_repo_candidates():
+    env_repo = _normalize_env_path(os.getenv("WAV2LIP_REPO_PATH"))
+    fixed_windows = r"C:\Zovix-Clean\Wav2Lip"
+    fixed_wsl = "/mnt/c/Zovix-Clean/Wav2Lip"
+
+    base_paths = [
+        env_repo,
+        fixed_windows,
+        fixed_wsl,
+        os.path.join(os.getcwd(), "Wav2Lip"),
+        os.path.join(os.getcwd(), "wav2lip"),
+        os.path.join(os.path.dirname(__file__), "Wav2Lip"),
+        os.path.join(os.path.dirname(__file__), "wav2lip"),
+    ]
+
+    # Search a few parent levels too, in case Streamlit is started from a subdirectory.
+    for root in [os.getcwd(), os.path.dirname(__file__)]:
+        current = os.path.abspath(root)
+        for _ in range(4):
+            base_paths.append(os.path.join(current, "Wav2Lip"))
+            base_paths.append(os.path.join(current, "wav2lip"))
+            parent = os.path.dirname(current)
+            if parent == current:
+                break
+            current = parent
+
+    deduped = []
+    seen = set()
+    for p in base_paths:
+        if not p:
+            continue
+        n = os.path.normpath(p)
+        key = n.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(n)
+    return deduped
+
+
+def _discover_wav2lip_repo(search_roots):
+    """Best-effort local discovery for a repo containing inference.py."""
+    for root in search_roots:
+        if not root or not os.path.isdir(root):
+            continue
+        try:
+            for dirpath, dirnames, filenames in os.walk(root):
+                # Keep scan bounded for Streamlit reruns.
+                rel = os.path.relpath(dirpath, root)
+                depth = rel.count(os.sep)
+                if depth > 5:
+                    dirnames[:] = []
+                    continue
+                if "inference.py" in filenames and os.path.basename(dirpath).lower() in {"wav2lip", "wav2lip-master"}:
+                    return dirpath
+        except Exception:
+            continue
+    return None
+
+
+def get_wav2lip_setup_status():
+    """Resolve local Wav2Lip setup and auto-bootstrap missing model weights."""
+    repo_path = None
+    search_roots = []
+    for candidate in _build_wav2lip_repo_candidates():
+        if os.path.isdir(candidate):
+            repo_path = candidate
+            break
+        parent = os.path.dirname(candidate)
+        if parent and os.path.isdir(parent):
+            search_roots.append(parent)
+
+    if not repo_path:
+        search_roots.extend([os.getcwd(), os.path.dirname(__file__)])
+        repo_path = _discover_wav2lip_repo(search_roots)
+
+    if not repo_path:
+        repo_path = os.path.normpath(os.path.join(os.getcwd(), "Wav2Lip"))
+
+    script_path = os.path.join(repo_path, "inference.py")
+    checkpoint_path = _normalize_env_path(os.getenv("WAV2LIP_CHECKPOINT_PATH")) or os.path.join(repo_path, "checkpoints", "wav2lip_gan.pth")
+    s3fd_path = os.path.join(repo_path, "face_detection", "detection", "sfd", "s3fd.pth")
+
+    # Force process-level paths for all downstream calls.
+    os.environ["WAV2LIP_REPO_PATH"] = repo_path
+    os.environ["WAV2LIP_CHECKPOINT_PATH"] = checkpoint_path
+
+    auto_setup_enabled = str(os.getenv("WAV2LIP_AUTO_SETUP", "1")).strip().lower() in {"1", "true", "yes", "on"}
+    if auto_setup_enabled and not st.session_state.get("wav2lip_auto_setup_ran", False):
+        st.session_state["wav2lip_auto_setup_ran"] = True
+        ensure_wav2lip_core_weights(repo_path)
+        ensure_wav2lip_s3fd_weights(repo_path)
+
+    checkpoint_ready = os.path.isfile(checkpoint_path)
+    s3fd_ready = os.path.isfile(s3fd_path)
+    script_ready = os.path.isfile(script_path)
+    ready = bool(repo_path and script_ready and checkpoint_ready and s3fd_ready)
+
+    return {
+        "ready": ready,
+        "repo_path": repo_path,
+        "script_path": script_path,
+        "checkpoint_path": checkpoint_path,
+        "s3fd_path": s3fd_path,
+        "s3fd_ready": s3fd_ready,
+        "cwd": os.getcwd(),
+        "app_dir": os.path.dirname(__file__),
+        "forced_mode": False,
+    }
+
+
+def get_wav2lip_runtime_profile():
+    """Return runtime tuning profile for Wav2Lip CLI based on available hardware."""
+    force_cpu = str(os.getenv("WAV2LIP_FORCE_CPU", "0")).strip() in {"1", "true", "True", "yes", "YES"}
+    has_gpu = (shutil.which("nvidia-smi") is not None) and not force_cpu
+
+    if has_gpu:
+        return {
+            "mode": "GPU",
+            "face_det_batch_size": "32",
+            "wav2lip_batch_size": "128",
+            "resize_factor": "1",
+        }
+
+    return {
+        "mode": "CPU",
+        "face_det_batch_size": "8",
+        "wav2lip_batch_size": "32",
+        "resize_factor": "2",
+    }
+
+
+def run_wav2lip_cli(face_image_path, audio_path, output_video_path, width, height, fps=24):
+    """Run Wav2Lip inference.py via CLI with production-friendly flags and post-process output."""
+    setup = get_wav2lip_setup_status()
+    if not setup["ready"]:
+        return False
+    if not setup.get("s3fd_ready"):
+        logger.warning("Wav2Lip s3fd.pth is missing and auto-download failed.")
+        return False
+
+    runtime = get_wav2lip_runtime_profile()
+    st.session_state["face_video_runtime_mode"] = runtime["mode"]
+
+    temp_face_video = f"face_videos/temp_w2l_face_{uuid.uuid4().hex[:8]}.mp4"
+    temp_raw_output = f"face_videos/temp_w2l_raw_{uuid.uuid4().hex[:8]}.mp4"
+    temp_final_output = f"face_videos/temp_w2l_final_{uuid.uuid4().hex[:8]}.mp4"
+
+    try:
+        safe_remove_file(temp_face_video)
+        safe_remove_file(temp_raw_output)
+        safe_remove_file(temp_final_output)
+
+        audio_duration = max(1.0, float(get_audio_duration(audio_path) or 1.0))
+
+        subprocess.run(
+            [
+                'ffmpeg', '-y', '-loop', '1', '-i', face_image_path,
+                '-t', str(audio_duration + 0.15),
+                '-vf', f"scale={width}:{height}:force_original_aspect_ratio=decrease,pad={width}:{height}:(ow-iw)/2:(oh-ih)/2,setsar=1",
+                '-r', str(fps), '-pix_fmt', 'yuv420p', '-c:v', 'libx264', '-preset', 'fast', temp_face_video
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=True
+        )
+
+        optimized_cmd = [
+            sys.executable,
+            setup["script_path"],
+            '--checkpoint_path', setup["checkpoint_path"],
+            '--face', temp_face_video,
+            '--audio', audio_path,
+            '--outfile', temp_raw_output,
+            '--pads', '0', '20', '0', '0',
+            '--face_det_batch_size', runtime["face_det_batch_size"],
+            '--wav2lip_batch_size', runtime["wav2lip_batch_size"],
+            '--resize_factor', runtime["resize_factor"],
+            '--nosmooth'
+        ]
+
+        result = subprocess.run(optimized_cmd, cwd=setup["repo_path"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        if result.returncode != 0 or not os.path.exists(temp_raw_output):
+            fallback_cmd = [
+                sys.executable,
+                setup["script_path"],
+                '--checkpoint_path', setup["checkpoint_path"],
+                '--face', temp_face_video,
+                '--audio', audio_path,
+                '--outfile', temp_raw_output,
+            ]
+            result = subprocess.run(fallback_cmd, cwd=setup["repo_path"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            if result.returncode != 0 or not os.path.exists(temp_raw_output):
+                logger.warning(f"Wav2Lip CLI failed: {(result.stderr or '')[:500]}")
+                return False
+
+        subprocess.run(
+            [
+                'ffmpeg', '-y', '-i', temp_raw_output, '-i', audio_path,
+                '-vf', f"scale={width}:{height}:force_original_aspect_ratio=decrease,pad={width}:{height}:(ow-iw)/2:(oh-ih)/2,setsar=1",
+                '-c:v', 'libx264', '-preset', 'medium', '-crf', '20',
+                '-c:a', 'aac', '-shortest', temp_final_output
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=True
+        )
+
+        if os.path.exists(temp_final_output) and os.path.getsize(temp_final_output) > 1000:
+            shutil.move(temp_final_output, output_video_path)
+            return True
+        return False
+
+    except Exception as e:
+        logger.warning(f"Wav2Lip CLI integration failed: {e}")
+        return False
+    finally:
+        safe_remove_file(temp_face_video)
+        safe_remove_file(temp_raw_output)
+        safe_remove_file(temp_final_output)
+
+def run_lip_sync_pipeline(face_image_path, audio_path, output_video_path, width, height, duration=10, emotion="neutral", camera_angle="front"):
+    safe_remove_file(output_video_path)
+    try:
+        st.session_state["face_video_engine_used"] = "Initializing..."
+        setup = get_wav2lip_setup_status()
+        if setup["ready"]:
+            logger.info("Attempting Wav2Lip production CLI lip sync")
+            if run_wav2lip_cli(face_image_path, audio_path, output_video_path, width, height, fps=24):
+                st.session_state["face_video_engine_used"] = "Wav2Lip (Production CLI)"
+                return True
+            logger.warning("Wav2Lip production path failed. Falling back to built-in lip-only mode.")
+
+        # Built-in fallback: animate only lip region from audio energy (no head/camera motion).
+        logger.info("Using built-in audio-driven lip-only fallback.")
+        if generate_audio_driven_lip_only_video(face_image_path, audio_path, output_video_path, width, height, fps=24):
+            st.session_state["face_video_engine_used"] = "Built-in Lip-Only Fallback"
+            st.session_state["face_video_runtime_mode"] = "CPU"
+            return True
+
+        logger.warning("No strict lip-sync backend available. Install/configure Wav2Lip for best quality.")
+        st.session_state["face_video_engine_used"] = "No Engine Available"
+    except Exception as e:
+        logger.warning(f"Lip sync pipeline error: {e}")
+        st.session_state["face_video_engine_used"] = "Engine Error"
+    return False
+
+
+def get_expressive_setup_status():
+    """Probe local LivePortrait/SadTalker repositories and key runtime artifacts."""
+    default_liveportrait = r"C:\Zovix-Clean\LivePortrait"
+    default_sadtalker = r"C:\Zovix-Clean\SadTalker"

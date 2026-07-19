@@ -1,0 +1,225 @@
+class StitcherEngine:
+    @staticmethod
+    def generate_ai_video(image_path, output_video_path):
+        stability_key = os.getenv("STABILITY_API_KEY") or get_system_secret("STABILITY_API_KEY")
+        if not stability_key:
+            return False
+        url = "https://api.stability.ai/v2beta/image-to-video"
+        headers = {"authorization": f"Bearer {stability_key}"}
+        try:
+            with open(image_path, "rb") as img_file:
+                files = {"image": img_file}
+                data = {"seed": 0, "cfg_scale": 1.8, "motion_bucket_id": 127}
+                response = requests.post(url, headers=headers, files=files, data=data, timeout=30)
+            if response.status_code != 200:
+                return False
+            generation_id = response.json().get("id")
+            if not generation_id:
+                return False
+            result_url = f"https://api.stability.ai/v2beta/image-to-video/result/{generation_id}"
+            headers_get = {"authorization": f"Bearer {stability_key}", "accept": "video/*"}
+            for _ in range(12):
+                time.sleep(5)
+                res = requests.get(result_url, headers=headers_get, timeout=20)
+                if res.status_code == 202:
+                    continue
+                elif res.status_code == 200:
+                    with open(output_video_path, "wb") as f:
+                        f.write(res.content)
+                    return True
+                else:
+                    break
+        except Exception as e:
+            logger.error(f"Stability AI video error: {e}")
+        return False
+
+    @staticmethod
+    def generate_smart_fallback_motion(text, image_path, output_video_path, res_width=720, res_height=1280, workshop_img=None, idx=None, status_dict=None):
+        os.makedirs("temp_scenes", exist_ok=True)
+        safe_remove_file(output_video_path)
+        if status_dict is not None and idx is not None:
+            status_dict[idx] = "Compiling movement matrix..."
+        fallback_source_image = image_path
+        if not fallback_source_image or not os.path.exists(fallback_source_image):
+            if workshop_img and os.path.exists(workshop_img):
+                fallback_source_image = workshop_img
+            else:
+                fallback_source_image = os.path.join("temp_scenes", f"temp_solid_canvas_{uuid.uuid4().hex[:6]}.png")
+                cmd_img = ['ffmpeg', '-y', '-f', 'lavfi', '-i', f'color=c=#050508:s={res_width}x{res_height}', '-vframes', '1', fallback_source_image]
+                subprocess.run(cmd_img, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stability_key = os.getenv("STABILITY_API_KEY") or get_system_secret("STABILITY_API_KEY")
+        if stability_key and stability_key != "mock" and fallback_source_image and os.path.exists(fallback_source_image):
+            if status_dict is not None and idx is not None:
+                status_dict[idx] = "Running AI Image-to-Video generation..."
+            if StitcherEngine.generate_ai_video(fallback_source_image, output_video_path):
+                return True
+        if status_dict is not None and idx is not None:
+            status_dict[idx] = "Running SVD pipeline fallbacks..."
+        svd_path = convert_image_to_video_svd_robust(fallback_source_image)
+        if svd_path and os.path.exists(svd_path):
+            shutil.copy(svd_path, output_video_path)
+            return True
+        try:
+            cmd = ['ffmpeg', '-y', '-loop', '1', '-i', fallback_source_image, '-t', '5', '-vf', f"scale={res_width*2}:{res_height*2},zoompan=z='min(zoom+0.0015,1.3)':d=120:s={res_width}x{res_height},setsar=1", '-pix_fmt', 'yuv420p', '-c:v', 'libx264', '-preset', 'ultrafast', '-tune', 'fastdecode', '-r', '24', output_video_path]
+            subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+            if os.path.exists(output_video_path) and os.path.getsize(output_video_path) > 100:
+                return True
+        except Exception as e:
+            logger.error(f"Fallback motion error: {e}")
+        return create_emergency_solid_clip(output_video_path, 5.0, res_width, res_height)
+
+    @staticmethod
+    def build_scene_stitched_video_isolated(scenes_data, video_output, size_choice, voice_profile, language_choice, bgm_path=None, bgm_volume=0.3, music_mood=None, status_dict=None, workshop_img=None):
+        safe_remove_file(video_output)
+        # Resolution mapping for upsampling: 720p, 1080p, 2K, 4K
+        aspect = "9:16"
+        if "16:9" in size_choice:
+            aspect = "16:9"
+        elif "1:1" in size_choice:
+            aspect = "1:1"
+        # Quality detection from session state
+        quality = st.session_state.get("cinematic_quality", "Standard")
+        if quality == "4K":
+            res_map = {"9:16": (2160, 3840), "16:9": (3840, 2160), "1:1": (3840, 3840)}
+        elif quality == "2K":
+            res_map = {"9:16": (1440, 2560), "16:9": (2560, 1440), "1:1": (2560, 2560)}
+        elif quality == "HD" or quality == "Pro":
+            res_map = {"9:16": (1080, 1920), "16:9": (1920, 1080), "1:1": (1080, 1080)}
+        else:
+            res_map = {"9:16": (720, 1280), "16:9": (1280, 720), "1:1": (1080, 1080)}
+        res_width, res_height = res_map.get(aspect, (720, 1280))
+        session_workspace_id = f"workspace_{uuid.uuid4().hex}"
+        workspace_dir = os.path.join("temp_scenes", session_workspace_id)
+        os.makedirs(workspace_dir, exist_ok=True)
+        compiled_scenes_paths = []
+        def process_scene_segment(idx, scene):
+            text = scene["scene_text"]
+            kw = scene["search_keyword"]
+            if status_dict is not None:
+                status_dict[idx] = "Synthesizing vocal elements..."
+            audio_segment_path = os.path.join(workspace_dir, f"temp_voice_{idx}.mp3")
+            voice_built = False
+            selected_voice_meta = ELEVENLABS_VOICES.get(voice_profile, {})
+            selected_voice_id = selected_voice_meta.get("id")
+            if not selected_voice_id:
+                selected_voice_id = "21m00Tcm4TlvDq8ikWAM" if "Male" in voice_profile else "pNInz6obpgDQ5IdwJg7p"
+            if ELEVENLABS_API_KEY:
+                voice_built = AudioEngine.generate_elevenlabs_speech(text, audio_segment_path, selected_voice_id)
+            if not voice_built:
+                voice_built = AudioEngine.run_fallback_tts(text=text, output_filename=audio_segment_path, language_choice=language_choice, voice_profile=voice_profile)
+            if (not voice_built) or (not os.path.exists(audio_segment_path)) or (not is_audio_audible(audio_segment_path)):
+                alt_voice_type = "male" if "Male" in voice_profile else "female"
+                alt_audio = generate_emotion_voice(
+                    text=text,
+                    emotion="neutral",
+                    voice_type=alt_voice_type,
+                    output_path=audio_segment_path,
+                    elevenlabs_voice_id=selected_voice_id,
+                )
+                voice_built = bool(alt_audio and os.path.exists(audio_segment_path) and is_audio_audible(audio_segment_path))
+            if not voice_built:
+                create_emergency_silent_audio(audio_segment_path, 5.0)
+            dur = get_audio_duration(audio_segment_path)
+            if dur <= 0:
+                dur = 5.0
+            raw_video_path = os.path.join(workspace_dir, f"temp_raw_vid_{idx}.mp4")
+            success = get_scene_asset(description=kw, output_filename=raw_video_path, scene_text=text, idx=idx, status_dict=status_dict)
+            if not success or not os.path.exists(raw_video_path) or os.path.getsize(raw_video_path) < 1000:
+                if status_dict is not None:
+                    status_dict[idx] = "Generating SD reference image..."
+                sd_temp_img = os.path.join(workspace_dir, f"temp_sd_base_{idx}.png")
+                sd_success = VisualEngine.generate_sd_core_image(text, sd_temp_img, size_choice)
+                ai_video_success = StitcherEngine.generate_smart_fallback_motion(text=text, image_path=sd_temp_img if sd_success else None, output_video_path=raw_video_path, res_width=res_width, res_height=res_height, workshop_img=workshop_img, idx=idx, status_dict=status_dict)
+                if os.path.exists(sd_temp_img):
+                    safe_remove_file(sd_temp_img)
+            if not os.path.exists(raw_video_path) or os.path.getsize(raw_video_path) < 1000:
+                create_emergency_solid_clip(raw_video_path, dur, res_width, res_height)
+            segment_mux_path = os.path.join(workspace_dir, f"temp_seg_mux_{idx}.mp4")
+            safe_text = text.replace('\\', '').replace("'", "").replace('"', '').replace(':', ' ').strip()
+            fontsize = int(res_width * 0.045)
+            y_pos = int(res_height * 0.75)
+            drawtext_filter = f"drawtext=text='{safe_text}':fontcolor=yellow:fontsize={fontsize}:box=1:boxcolor=black@0.6:boxborderw=10:x=(w-text_w)/2:y={y_pos}"
+            fade_out_start = max(0.0, dur - 0.4)
+            v_w, v_h = get_video_resolution(raw_video_path)
+            if v_w == res_width and v_h == res_height:
+                vf_filter_with_text = f"tpad=stop_mode=clone:stop_duration=10,eq=saturation=1.15:contrast=1.05,{drawtext_filter},fade=t=in:st=0:d=0.4,fade=t=out:st={fade_out_start:.2f}:d=0.4"
+                vf_filter_no_text = f"tpad=stop_mode=clone:stop_duration=10,eq=saturation=1.15:contrast=1.05,fade=t=in:st=0:d=0.4,fade=t=out:st={fade_out_start:.2f}:d=0.4"
+            else:
+                vf_filter_with_text = f'scale={res_width}:{res_height}:force_original_aspect_ratio=increase,crop={res_width}:{res_height},setsar=1,tpad=stop_mode=clone:stop_duration=10,eq=saturation=1.15:contrast=1.05,{drawtext_filter},fade=t=in:st=0:d=0.4,fade=t=out:st={fade_out_start:.2f}:d=0.4'
+                vf_filter_no_text = f'scale={res_width}:{res_height}:force_original_aspect_ratio=increase,crop={res_width}:{res_height},setsar=1,tpad=stop_mode=clone:stop_duration=10,eq=saturation=1.15:contrast=1.05,fade=t=in:st=0:d=0.4,fade=t=out:st={fade_out_start:.2f}:d=0.4'
+            ff_cmd = ['ffmpeg', *get_hwaccel_args(), '-y', '-i', raw_video_path, '-i', audio_segment_path, '-t', f"{dur:.2f}", '-vf', vf_filter_with_text, '-af', f'afade=t=in:ss=0:d=0.4,afade=t=out:st={fade_out_start:.2f}:d=0.4,aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo', '-r', '24', '-pix_fmt', 'yuv420p', '-c:v', 'libx264', '-crf', '28', '-preset', 'ultrafast', '-tune', 'fastdecode', '-c:a', 'aac', '-ac', '2', '-ar', '44100', '-map', '0:v:0', '-map', '1:a:0', '-shortest', segment_mux_path]
+            try:
+                subprocess.run(ff_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+                if os.path.exists(segment_mux_path) and os.path.getsize(segment_mux_path) > 0:
+                    return segment_mux_path
+            except Exception:
+                fallback_cmd = ['ffmpeg', *get_hwaccel_args(), '-y', '-i', raw_video_path, '-i', audio_segment_path, '-t', f"{dur:.2f}", '-vf', f'scale={res_width}:{res_height}:force_original_aspect_ratio=increase,crop={res_width}:{res_height},setsar=1,tpad=stop_mode=clone:stop_duration=10,eq=saturation=1.15:contrast=1.05,fade=t=in:st=0:d=0.4,fade=t=out:st={fade_out_start:.2f}:d=0.4', '-af', 'aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo', '-r', '24', '-pix_fmt', 'yuv420p', '-c:v', 'libx264', '-preset', 'ultrafast', '-tune', 'fastdecode', '-c:a', 'aac', '-ac', '2', '-ar', '44100', '-map', '0:v:0', '-map', '1:a:0', '-shortest', segment_mux_path]
+                try:
+                    subprocess.run(fallback_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+                    if os.path.exists(segment_mux_path) and os.path.getsize(segment_mux_path) > 0:
+                        return segment_mux_path
+                except Exception:
+                    pass
+            return None
+        try:
+            max_workers = min(len(scenes_data), max(1, os.cpu_count() or 1))
+            segment_results = {}
+            def context_safe_worker(idx, scene):
+                return process_scene_segment(idx, scene)
+            with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+                future_to_idx = {executor.submit(context_safe_worker, idx, scene): idx for idx, scene in enumerate(scenes_data)}
+                for future in concurrent.futures.as_completed(future_to_idx):
+                    idx = future_to_idx[future]
+                    try:
+                        scene_path = future.result()
+                    except Exception:
+                        scene_path = None
+                    segment_results[idx] = scene_path
+            for idx in range(len(scenes_data)):
+                scene_path = segment_results.get(idx)
+                if scene_path:
+                    compiled_scenes_paths.append(scene_path)
+                else:
+                    fill_clip = os.path.join(workspace_dir, f"temp_seg_mux_{idx}_fill.mp4")
+                    create_emergency_solid_clip(fill_clip, 5.0, res_width, res_height)
+                    compiled_scenes_paths.append(fill_clip)
+            validated_scenes = []
+            for path in compiled_scenes_paths:
+                if os.path.exists(path) and os.path.getsize(path) > 100:
+                    validated_scenes.append(path)
+                else:
+                    fill_clip = path.replace(".mp4", "_fill.mp4")
+                    create_emergency_solid_clip(fill_clip, 5.0, res_width, res_height)
+                    validated_scenes.append(fill_clip)
+            if not validated_scenes:
+                return False
+            manifest_file = os.path.join(workspace_dir, "concat_manifest.txt")
+            with open(manifest_file, "w") as f:
+                for path in validated_scenes:
+                    clean_path = os.path.abspath(path).replace("\\", "/")
+                    f.write(f"file '{clean_path}'\n")
+            temp_stitched_output = os.path.join(workspace_dir, "temp_voice_stitched.mp4")
+            concat_cmd = ['ffmpeg', *get_hwaccel_args(), '-y', '-f', 'concat', '-safe', '0', '-i', manifest_file, '-c:v', 'copy', '-c:a', 'copy', temp_stitched_output]
+            subprocess.run(concat_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+            if bgm_path and os.path.exists(bgm_path):
+                mixed_ok = mix_audio_layers(
+                    video_input_path=temp_stitched_output,
+                    output_path=video_output,
+                    bgm_path=bgm_path,
+                    bgm_volume=bgm_volume,
+                )
+                if not mixed_ok:
+                    shutil.copy(temp_stitched_output, video_output)
+            else:
+                shutil.copy(temp_stitched_output, video_output)
+            if os.path.exists(video_output) and os.path.getsize(video_output) > 100:
+                return True
+            return False
+        except Exception as e:
+            logger.error(f"Build scene stitched video error: {e}")
+            return False
+        finally:
+            try:
+                shutil.rmtree(workspace_dir, ignore_errors=True)
+            except Exception:
+                pass

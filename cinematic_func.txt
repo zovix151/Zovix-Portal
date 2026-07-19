@@ -1,0 +1,621 @@
+def run_cinematic_engine():
+    """Cinematic Engine - Matching Studio Style"""
+    
+    # ============================================
+    # CINEMATIC ENGINE CSS - COMPLETE DARK THEME
+    # ============================================
+    st.markdown("""
+    <style>
+        /* ============================================
+           CINEMATIC ENGINE - DARK THEME
+           ============================================ */
+        
+        /* HEADER */
+        .cinematic-header {
+            background: linear-gradient(135deg, rgba(236,72,153,0.06), rgba(69,243,255,0.06));
+            border-radius: 16px;
+            border: 1px solid rgba(69,243,255,0.08);
+            padding: 16px 20px;
+            margin-bottom: 18px;
+            text-align: center;
+        }
+        .cinematic-header .badge {
+            display: inline-block;
+            background: rgba(236,72,153,0.12);
+            color: #EC4899;
+            padding: 4px 14px;
+            border-radius: 16px;
+            font-size: 9px;
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 1px;
+            border: 1px solid rgba(236,72,153,0.15);
+            margin-bottom: 6px;
+        }
+        .cinematic-header h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 20px;
+            color: #FFFFFF;
+            margin: 0;
+        }
+        .cinematic-header h2 .highlight {
+            background: linear-gradient(135deg, #45f3ff, #EC4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .cinematic-header p {
+            font-family: 'Inter', sans-serif;
+            color: #94a3b8;
+            font-size: 12px;
+            margin: 4px 0 0 0;
+        }
+        
+        /* ============================================
+           PROMPT BOX - DARK
+           ============================================ */
+        .stTextArea textarea,
+        div[data-testid="stTextArea"] textarea {
+            background: #0a0a12 !important;
+            color: #e0e0e0 !important;
+            border: 1px solid rgba(255,255,255,0.06) !important;
+            border-radius: 10px !important;
+            font-family: 'Inter', sans-serif !important;
+            font-size: 13px !important;
+            padding: 12px 14px !important;
+            min-height: 80px !important;
+        }
+        .stTextArea textarea::placeholder,
+        div[data-testid="stTextArea"] textarea::placeholder {
+            color: #64748b !important;
+        }
+        .stTextArea textarea:focus,
+        div[data-testid="stTextArea"] textarea:focus {
+            border-color: #EC4899 !important;
+            box-shadow: 0 0 20px rgba(236,72,153,0.08) !important;
+            outline: none !important;
+        }
+        
+        /* ============================================
+           SELECT BOX (DROPDOWN) - DARK
+           ============================================ */
+        .stSelectbox > div,
+        div[data-testid="stSelectbox"] > div {
+            background: #0a0a12 !important;
+            border: 1px solid rgba(255,255,255,0.06) !important;
+            border-radius: 10px !important;
+        }
+        .stSelectbox select,
+        div[data-testid="stSelectbox"] select {
+            background: #0a0a12 !important;
+            color: #e0e0e0 !important;
+            border: none !important;
+            border-radius: 10px !important;
+            font-family: 'Inter', sans-serif !important;
+            font-size: 13px !important;
+            padding: 8px 12px !important;
+        }
+        .stSelectbox select:focus,
+        div[data-testid="stSelectbox"] select:focus {
+            border-color: #EC4899 !important;
+            outline: none !important;
+        }
+        
+        /* Selectbox Dropdown Menu */
+        div[data-baseweb="select"] {
+            background: #0a0a12 !important;
+            border: 1px solid rgba(255,255,255,0.06) !important;
+            border-radius: 10px !important;
+        }
+        div[data-baseweb="select"] > div {
+            background: #0a0a12 !important;
+        }
+        div[data-baseweb="select"] input {
+            background: #0a0a12 !important;
+            color: #e0e0e0 !important;
+        }
+        ul[data-baseweb="menu"] {
+            background: #0f0f1a !important;
+            border: 1px solid rgba(255,255,255,0.06) !important;
+            border-radius: 10px !important;
+        }
+        ul[data-baseweb="menu"] li {
+            background: #0f0f1a !important;
+            color: #e0e0e0 !important;
+            font-family: 'Inter', sans-serif !important;
+            font-size: 13px !important;
+        }
+        ul[data-baseweb="menu"] li:hover {
+            background: rgba(236,72,153,0.1) !important;
+            color: #FFFFFF !important;
+        }
+        ul[data-baseweb="menu"] li[aria-selected="true"] {
+            background: rgba(236,72,153,0.15) !important;
+            color: #EC4899 !important;
+        }
+        
+        /* ============================================
+           SLIDER - DARK
+           ============================================ */
+        div[data-testid="stSlider"] {
+            background: rgba(10,10,15,0.7) !important;
+            border-radius: 10px !important;
+            padding: 8px 12px !important;
+            border: 1px solid rgba(255,255,255,0.04) !important;
+        }
+        div[data-testid="stSlider"] label {
+            font-family: 'Inter', sans-serif !important;
+            font-size: 11px !important;
+            color: #94a3b8 !important;
+        }
+        div[data-testid="stSlider"] .stSliderValue {
+            color: #45f3ff !important;
+            font-family: 'Orbitron', sans-serif !important;
+            font-size: 11px !important;
+        }
+        
+        /* ============================================
+           FILE UPLOADER - DARK
+           ============================================ */
+        div[data-testid="stFileUploader"] {
+            background: rgba(10,10,15,0.7) !important;
+            border-radius: 10px !important;
+            border: 1px dashed rgba(255,255,255,0.08) !important;
+            padding: 12px !important;
+        }
+        div[data-testid="stFileUploader"]:hover {
+            border-color: #EC4899 !important;
+        }
+        div[data-testid="stFileUploader"] p {
+            font-family: 'Inter', sans-serif !important;
+            font-size: 11px !important;
+            color: #94a3b8 !important;
+        }
+        div[data-testid="stFileUploader"] .stFileUploaderButton {
+            background: rgba(236,72,153,0.1) !important;
+            color: #EC4899 !important;
+            border: 1px solid rgba(236,72,153,0.2) !important;
+            border-radius: 8px !important;
+            font-family: 'Orbitron', sans-serif !important;
+            font-size: 10px !important;
+        }
+        div[data-testid="stFileUploader"] .stFileUploaderButton:hover {
+            background: rgba(236,72,153,0.2) !important;
+        }
+        
+        /* ============================================
+           TOGGLE / CHECKBOX - DARK
+           ============================================ */
+        .stCheckbox label {
+            font-family: 'Inter', sans-serif !important;
+            font-size: 11px !important;
+            color: #94a3b8 !important;
+        }
+        .stCheckbox label:hover {
+            color: #FFFFFF !important;
+        }
+        .stCheckbox input[type="checkbox"] {
+            accent-color: #EC4899 !important;
+        }
+        
+        /* ============================================
+           RADIO BUTTONS - DARK
+           ============================================ */
+        div[data-testid="stRadio"] {
+            background: rgba(10,10,15,0.7) !important;
+            border-radius: 10px !important;
+            padding: 8px 12px !important;
+            border: 1px solid rgba(255,255,255,0.04) !important;
+        }
+        div[data-testid="stRadio"] label {
+            font-family: 'Inter', sans-serif !important;
+            font-size: 12px !important;
+            color: #94a3b8 !important;
+        }
+        div[data-testid="stRadio"] label:hover {
+            color: #FFFFFF !important;
+        }
+        div[data-testid="stRadio"] input[type="radio"]:checked + label {
+            color: #EC4899 !important;
+        }
+        
+        /* ============================================
+           SELECTION CARDS - DARK
+           ============================================ */
+        .selected-opt-wrap button,
+        .unselected-opt-wrap button {
+            font-family: 'Inter', sans-serif !important;
+            font-size: 11px !important;
+            font-weight: 600 !important;
+            border-radius: 10px !important;
+            padding: 8px 12px !important;
+            min-height: 40px !important;
+        }
+        .selected-opt-wrap button {
+            background: #EC4899 !important;
+            color: #FFFFFF !important;
+            border: 2px solid #EC4899 !important;
+            box-shadow: 0 0 20px rgba(236,72,153,0.15) !important;
+        }
+        .unselected-opt-wrap button {
+            background: rgba(255,255,255,0.04) !important;
+            color: #94a3b8 !important;
+            border: 1px solid rgba(255,255,255,0.06) !important;
+        }
+        .unselected-opt-wrap button:hover {
+            background: rgba(236,72,153,0.05) !important;
+            border-color: #EC4899 !important;
+            color: #FFFFFF !important;
+        }
+        
+        /* ============================================
+           CONTAINERS - DARK
+           ============================================ */
+        div[data-testid="stVerticalBlockBorder"] {
+            background: rgba(18,19,26,0.7) !important;
+            border: 1px solid rgba(255,255,255,0.04) !important;
+            border-radius: 12px !important;
+            padding: 16px !important;
+        }
+        
+        /* ============================================
+           BUTTONS - DARK
+           ============================================ */
+        .stButton > button {
+            background: rgba(255,255,255,0.05) !important;
+            color: #e0e0e0 !important;
+            border: 1px solid rgba(255,255,255,0.06) !important;
+            border-radius: 10px !important;
+            font-family: 'Orbitron', sans-serif !important;
+            font-size: 11px !important;
+            font-weight: 700 !important;
+            transition: all 0.3s ease !important;
+        }
+        .stButton > button:hover {
+            background: #EC4899 !important;
+            color: #FFFFFF !important;
+            border-color: #EC4899 !important;
+            box-shadow: 0 0 25px rgba(236,72,153,0.2) !important;
+        }
+        
+        /* ============================================
+           VIDEO OUTPUT - DARK
+           ============================================ */
+        .canvas-container-box {
+            background: rgba(10,10,12,0.6) !important;
+            border: 1px solid rgba(255,255,255,0.04) !important;
+            border-radius: 12px !important;
+            padding: 12px !important;
+            min-height: 420px !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: center !important;
+            align-items: center !important;
+        }
+        
+        /* ============================================
+           COMPACT LABEL - DARK
+           ============================================ */
+        .compact-label {
+            font-family: 'Orbitron', sans-serif !important;
+            font-size: 11px !important;
+            color: #94a3b8 !important;
+            letter-spacing: 1.5px !important;
+            text-transform: uppercase !important;
+            margin: 12px 0 6px 0 !important;
+        }
+        
+        /* ============================================
+           MESSAGES - DARK
+           ============================================ */
+        .stAlert {
+            background: rgba(10,10,15,0.9) !important;
+            border-radius: 10px !important;
+            border: 1px solid rgba(255,255,255,0.06) !important;
+        }
+        .stAlert .stAlertContent {
+            font-family: 'Inter', sans-serif !important;
+            font-size: 12px !important;
+            color: #e0e0e0 !important;
+        }
+        
+        /* ============================================
+           EXPANDER - DARK
+           ============================================ */
+        .streamlit-expanderHeader {
+            background: rgba(10,10,15,0.7) !important;
+            border-radius: 10px !important;
+            font-family: 'Orbitron', sans-serif !important;
+            font-size: 11px !important;
+            color: #94a3b8 !important;
+            border: 1px solid rgba(255,255,255,0.04) !important;
+        }
+        .streamlit-expanderHeader:hover {
+            color: #FFFFFF !important;
+        }
+        .streamlit-expanderContent {
+            background: rgba(10,10,15,0.5) !important;
+            border-radius: 0 0 10px 10px !important;
+            padding: 8px 12px !important;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    # ============================================
+    # HEADER
+    # ============================================
+    st.markdown("""
+    <div class="cinematic-header">
+        <span class="badge">🎬 AI-POWERED</span>
+        <h2>Cinematic <span class="highlight">Engine</span></h2>
+        <p>Transform your ideas into professional cinematic videos with AI</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # ============================================
+    # TRANSLATION, KEYS & SHORTCUTS
+    # ============================================
+    st.markdown('<p class="compact-label">🌐 TRANSLATION, KEYS & SHORTCUTS</p>', unsafe_allow_html=True)
+    
+    t_col1, t_col2, t_col3 = st.columns([1, 1, 1.2])
+    with t_col1:
+        st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">⚡ Smart Template Quick Mode</p>', unsafe_allow_html=True)
+        st.session_state["quick_template_mode"] = st.toggle(
+            "Fast 30s Compile",
+            value=st.session_state["quick_template_mode"],
+            label_visibility="collapsed"
+        )
+    with t_col2:
+        st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">🌐 Voice Language</p>', unsafe_allow_html=True)
+        st.session_state["language_choice"] = st.selectbox(
+            "Voice Language",
+            ["🇮🇳 Hinglish (Fluent Hindi Mix)", "🇬🇧 English (US Standard)", "🇫🇷 French (Parisian Neural)", "🇯🇵 Japanese (Formal Tokyo)"],
+            key="studio_language_selector_layer",
+            label_visibility="collapsed"
+        )
+    with t_col3:
+        st.text(" ")
+    
+    st.markdown("<hr style='border-color: rgba(255,255,255,0.06); margin: 12px 0;'>", unsafe_allow_html=True)
+    
+    # ============================================
+    # PROMPT INTERFACE
+    # ============================================
+    with st.container(border=True):
+        st.markdown('<p class="compact-label" style="margin: 0 0 8px 0;">💡 Prompt Interface</p>', unsafe_allow_html=True)
+        
+        input_mode = st.radio(
+            "Prompt Select Option Mode:",
+            ["💡 Autonomous AI Topic", "✍️ Manual Custom Script", "🧠 DeepSeek AI Blueprint"],
+            horizontal=True,
+            key="studio_mode_radio",
+            label_visibility="collapsed"
+        )
+        
+        initial_topic_val = st.session_state.get("studio_prompt_value", "")
+        
+        if input_mode == "🧠 DeepSeek AI Blueprint":
+            user_input = st.text_area(
+                "Prompt Input",
+                value=initial_topic_val,
+                placeholder="Explain video concept: e.g. Ek kisan ke paas do beej the...",
+                height=90,
+                label_visibility="collapsed",
+                key="studio_prompt_deepseek_input"
+            )
+            
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">📐 Aspect Ratio</p>', unsafe_allow_html=True)
+            aspect_choice = st.selectbox(
+                "Aspect Ratio",
+                ["16:9 LANDSCAPE (YOUTUBE)", "9:16 VERTICAL (SHORTS/REELS)"],
+                key="studio_deepseek_aspect",
+                label_visibility="collapsed"
+            )
+            
+            if st.button("📐 Generate Blueprint", key="deepseek_generate_blueprint_btn", use_container_width=True):
+                if not user_input.strip():
+                    st.error("Please enter a video concept.")
+                else:
+                    with st.spinner("🧠 DeepSeek AI is generating your video blueprint..."):
+                        aspect_for_deepseek = "9:16" if "VERTICAL" in st.session_state.get("studio_deepseek_aspect", "9:16 VERTICAL") else "16:9"
+                        blueprint = generate_video_blueprint_with_deepseek(user_input, aspect_for_deepseek)
+                        if "error" in blueprint:
+                            st.error(f"❌ DeepSeek Error: {blueprint['error']}")
+                        else:
+                            st.session_state["deepseek_blueprint_data"] = blueprint
+                            st.session_state["deepseek_blueprint_visible"] = True
+                            st.session_state["studio_prompt_value"] = user_input
+                            st.toast("✅ Blueprint generated successfully!")
+                            st.rerun()
+            
+            if st.session_state.get("deepseek_blueprint_visible") and st.session_state.get("deepseek_blueprint_data"):
+                # ... blueprint display code ...
+                pass
+        
+        else:
+            user_input = st.text_area(
+                "Prompt Input",
+                value=initial_topic_val,
+                placeholder="Explain video concept: e.g. Bermuda triangle ka ansuljha rahasya jo kisi ko nahi pata tha." if input_mode == "💡 Autonomous AI Topic" 
+                else "Write a custom script separated by paragraph breaks...",
+                height=90,
+                label_visibility="collapsed",
+                key="studio_prompt_standard_input"
+            )
+        
+        # Render Quality
+        st.markdown('<p class="compact-label" style="margin: 10px 0 4px 0;">📊 Render Quality</p>', unsafe_allow_html=True)
+        cinematic_quality = st.selectbox(
+            "Quality",
+            ["Standard", "HD", "Pro"],
+            key="cinematic_quality",
+            label_visibility="collapsed"
+        )
+        
+        col_btn1, col_btn2 = st.columns([4, 1])
+        with col_btn2:
+            if st.button("Generate", key="studio_generate_action_btn", use_container_width=True):
+                # ... generate logic ...
+                pass
+    
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    # ============================================
+    # ENGINE CONFIGURATORS & VIDEO OUTPUT
+    # ============================================
+    parameters_col, video_canvas_col = st.columns([1.1, 1.4], gap="medium")
+    
+    with parameters_col:
+        with st.container(border=True):
+            st.markdown("""
+            <h4 style="font-family: 'Orbitron', sans-serif; font-size: 12px; color: #EC4899; margin-bottom: 12px; letter-spacing: 0.5px;">
+                ⚙️ ENGINE CONFIGURATORS
+            </h4>
+            """, unsafe_allow_html=True)
+            
+            # Model Core
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">🤖 Model Core</p>', unsafe_allow_html=True)
+            render_premium_selection_cards("", ["🤖 gemini-2.5-flash (Fast Stream Processing)", "🤖 gemini-2.5-pro (Deep Creative Narrative)"], "model_choice")
+            selected_model = "gemini-2.5-pro" if "gemini-2.5-pro" in st.session_state["model_choice"] else "gemini-2.5-flash"
+            
+            # Aspect Ratio
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 10px 0 4px 0;">📐 Aspect Ratio</p>', unsafe_allow_html=True)
+            render_premium_selection_cards("", ["📐 9:16 Vertical (Shorts/Reels)", "📐 16:9 Landscape (YouTube)", "📐 1:1 Square (Instagram)"], "aspect_ratio")
+            
+            # Duration
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 10px 0 4px 0;">⏱️ Duration</p>', unsafe_allow_html=True)
+            render_premium_selection_cards("", ["⏱️ Quick Format Shorts (10-15s)", "⏱️ Expanded Long Format (1 Minute / 60s)"], "duration_choice")
+            
+            # Voice Profile
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 10px 0 4px 0;">🎤 Voice Profile</p>', unsafe_allow_html=True)
+            voice_options = list(ELEVENLABS_VOICES.keys())
+            current_voice = st.session_state.get("voice_profile", "Adam (Premium Male)")
+            if current_voice not in voice_options:
+                current_voice = "Adam (Premium Male)"
+            selected_voice = st.selectbox(
+                "Select Voice",
+                voice_options,
+                index=voice_options.index(current_voice) if current_voice in voice_options else 0,
+                key="cinematic_voice_select",
+                label_visibility="collapsed"
+            )
+            if selected_voice != st.session_state.get("voice_profile"):
+                st.session_state["voice_profile"] = selected_voice
+            
+            # Resolution
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 10px 0 4px 0;">📊 Resolution</p>', unsafe_allow_html=True)
+            render_premium_selection_cards("", ["720p", "1080p", "2K", "4K"], "res_choice")
+            
+            st.markdown("<hr style='border-color: rgba(255,255,255,0.06); margin: 12px 0;'>", unsafe_allow_html=True)
+            
+            # Face Lock
+            st.markdown("""
+            <h4 style="font-family: 'Orbitron', sans-serif; font-size: 11px; color: #EC4899; margin-bottom: 8px; letter-spacing: 0.5px;">
+                🔒 FACE LOCK SECURITY
+            </h4>
+            """, unsafe_allow_html=True)
+            face_lock_enabled = st.toggle("Enable Face Lock", value=False, key="face_lock_enabled_toggle")
+            if face_lock_enabled:
+                face_lock_image = st.file_uploader("Upload Face Lock Image", type=['jpg', 'jpeg', 'png', 'webp'], key="face_lock_upload")
+                if face_lock_image:
+                    face_lock_path = f"face_videos/face_lock_{uuid.uuid4().hex[:8]}.png"
+                    with open(face_lock_path, "wb") as f:
+                        f.write(face_lock_image.getbuffer())
+                    st.success("✅ Face Lock Image Uploaded Successfully!")
+                    st.image(face_lock_path, caption="Face Lock Image", use_container_width=True)
+                    st.info("🔒 Face Lock Active - Workspace is secured")
+                else:
+                    st.warning("⚠️ Please upload a face image to enable Face Lock")
+            else:
+                st.info("🔓 Face Lock Disabled - Workspace is open")
+            
+            st.markdown("<hr style='border-color: rgba(255,255,255,0.06); margin: 12px 0;'>", unsafe_allow_html=True)
+            
+            # Audio Mixing
+            st.markdown("""
+            <h4 style="font-family: 'Orbitron', sans-serif; font-size: 11px; color: #EC4899; margin-bottom: 8px; letter-spacing: 0.5px;">
+                🎵 AUDIO MIXING CONFIG
+            </h4>
+            """, unsafe_allow_html=True)
+            uploaded_bgm = st.file_uploader("Upload Custom BGM Track", type=['mp3', 'wav'], key="studio_audio_bgm_uploader")
+            if uploaded_bgm is not None:
+                st.info("✅ Custom BGM uploaded. Will be used instead of library selection.")
+            bgm_volume = st.slider(
+                "BGM Audio Level Mixer",
+                0.0, 1.0, 0.30, step=0.05,
+                key="studio_audio_bgm_volume_slider"
+            )
+    
+    with video_canvas_col:
+        with st.container(border=True):
+            st.markdown("""
+            <h3 style="font-family: 'Orbitron', sans-serif; font-size: 13px; color:#EC4899; margin-bottom: 12px; letter-spacing: 0.5px;">
+                🎥 LIVE VIDEO OUTPUT BOX
+            </h3>
+            """, unsafe_allow_html=True)
+            
+            if os.path.exists("final_shorts.mp4") and os.path.getsize("final_shorts.mp4") > 0:
+                st.video("final_shorts.mp4", format="video/mp4", autoplay=False, loop=True, muted=False)
+                
+                col_dl, col_clr = st.columns(2)
+                with col_dl:
+                    if st.button("📥 Download Video", key="canvas_download_btn", use_container_width=True):
+                        if os.path.exists("final_shorts.mp4"):
+                            with open("final_shorts.mp4", "rb") as f:
+                                video_bytes = f.read()
+                            st.download_button(
+                                label="📥 Click to Save",
+                                data=video_bytes,
+                                file_name="zovix_video.mp4",
+                                mime="video/mp4",
+                                key="download_final_btn"
+                            )
+                with col_clr:
+                    if st.button("🧹 Clear", key="canvas_clear_btn", use_container_width=True):
+                        safe_remove_file("final_shorts.mp4")
+                        st.rerun()
+            else:
+                st.markdown("""
+                    <div style="height: 380px; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #64748b; background: rgba(10,10,12,0.4); border-radius: 12px; border: 1px dashed rgba(255,192,203,0.12); width: 100%;">
+                        <span style="font-size: 48px; margin-bottom: 10px;">🎬</span>
+                        <p style="font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500; color: #EC4899;; margin: 0;">
+                            Video will render here
+                        </p>
+                        <p style="font-family: 'Inter', sans-serif; font-size: 11px; color: #94a3b8; max-width: 400px; text-align: center; margin-top: 4px; line-height: 1.4;">
+                            Configure parameters above and click Generate
+                        </p>
+                    </div>
+                """, unsafe_allow_html=True)
+    # ========================================================
+    # RENDER LOGS (At bottom)
+    # ========================================================
+    with st.expander("📊 View Render Logs & Metadata", expanded=False):
+        st.markdown(f"""
+            <table style="width: 100%; border-collapse: collapse; font-family: 'Inter'; font-size: 12px; color: #94a3b8;">
+                <tr style="border-bottom: 1px solid rgba(255,192,203,0.06);">
+                    <td style="padding: 6px 0; font-weight: bold; color: #EC4899;">Parameter</td>
+                    <td style="padding: 6px 0; font-weight: bold; color: #EC4899;">Value</td>
+                </tr>
+                <tr style="border-bottom: 1px solid rgba(255,192,203,0.06);">
+                    <td style="padding: 6px 0; color: #ffffff;">Aspect Ratio</td>
+                    <td style="padding: 6px 0; color: #b8860b;">{st.session_state['aspect_ratio']}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid rgba(255,192,203,0.06);">
+                    <td style="padding: 6px 0; color: #ffffff;">Voice</td>
+                    <td style="padding: 6px 0; color: #b8860b;">{st.session_state['voice_profile']}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid rgba(255,192,203,0.06);">
+                    <td style="padding: 6px 0; color: #ffffff;">Model</td>
+                    <td style="padding: 6px 0; color: #b8860b;">{selected_model}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 6px 0; color: #ffffff;">Status</td>
+                    <td style="padding: 6px 0; color: #10b981; font-weight: bold;">{'✅ Successfully Compiled' if os.path.exists('final_shorts.mp4') else '⏳ Waiting for render'}</td>
+                </tr>
+            </table>
+        """, unsafe_allow_html=True)
+
+# ========================================================
+# 40. PRIVACY POLICY
+# ========================================================
+
+@st.dialog("⚠️ Confirm Data Deletion", width="small")

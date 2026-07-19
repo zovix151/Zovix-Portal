@@ -1,0 +1,130 @@
+12521:   8sp |        st.markdown('<p class="compact-label" style="margin: 0 0 8px 0;">💡 Prompt Interface</p>', unsafe_allow_html=True)
+12522: (empty)
+12523:   8sp |        input_mode = st.radio(
+12524:  12sp |            "Prompt Select Option Mode:",
+12525:  12sp |            ["💡 Autonomous AI Topic", "✍️ Manual Custom Script", "🧠 DeepSeek AI Blueprint"],
+12526:  12sp |            horizontal=True,
+12527:  12sp |            key="studio_mode_radio",
+12528:  12sp |            label_visibility="collapsed"
+12529:   8sp |        )
+12530: (empty)
+12531:   8sp |        initial_topic_val = st.session_state.get("studio_prompt_value", "")
+12532: (empty)
+12533:   8sp |        if input_mode == "🧠 DeepSeek AI Blueprint":
+12534:  12sp |            user_input = st.text_area(
+12535:  16sp |                "Prompt Input",
+12536:  16sp |                value=initial_topic_val,
+12537:  16sp |                placeholder="Explain video concept: e.g. Ek kisan ke paas do beej the...",
+12538:  16sp |                height=90,
+12539:  16sp |                label_visibility="collapsed",
+12540:  16sp |                key="studio_prompt_deepseek_input"
+12541:  12sp |            )
+12542: (empty)
+12543:  12sp |            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">📐 Aspect Ratio</p>', unsafe_allow_html=True)
+12544:  12sp |            aspect_choice = st.selectbox(
+12545:  16sp |                "Aspect Ratio",
+12546:  16sp |                ["16:9 LANDSCAPE (YOUTUBE)", "9:16 VERTICAL (SHORTS/REELS)"],
+12547:  16sp |                key="studio_deepseek_aspect",
+12548:  16sp |                label_visibility="collapsed"
+12549:  12sp |            )
+12550: (empty)
+12551:  12sp |            if st.button("📐 Generate Blueprint", key="deepseek_generate_blueprint_btn", use_container_width=True):
+12552:  16sp |                if not user_input.strip():
+12553:  20sp |                    st.error("Please enter a video concept.")
+12554:  16sp |                else:
+12555:  20sp |                    with st.spinner("🧠 DeepSeek AI is generating your video blueprint..."):
+12556:  24sp |                        aspect_for_deepseek = "9:16" if "VERTICAL" in st.session_state.get("studio_deepseek_aspect", "9:16 VERTICAL") else "16:9"
+12557:  24sp |                        blueprint = generate_video_blueprint_with_deepseek(user_input, aspect_for_deepseek)
+12558:  24sp |                        if "error" in blueprint:
+12559:  28sp |                            st.error(f"❌ DeepSeek Error: {blueprint['error']}")
+12560:  24sp |                        else:
+12561:  28sp |                            st.session_state["deepseek_blueprint_data"] = blueprint
+12562:  28sp |                            st.session_state["deepseek_blueprint_visible"] = True
+12563:  28sp |                            st.session_state["studio_prompt_value"] = user_input
+12564:  28sp |                            st.toast("✅ Blueprint generated successfully!")
+12565:  28sp |                            st.rerun()
+12566: (empty)
+12567:  48sp |                                                if st.session_state.get("deepseek_blueprint_visible") and st.session_state.get("deepseek_blueprint_data"):
+12568:  28sp |                            # Display the DeepSeek Blueprint
+12569:  28sp |                            bp = st.session_state["deepseek_blueprint_data"]
+12570:  28sp |                            st.markdown("""
+12571:  28sp |                            <div style="background: linear-gradient(135deg, rgba(236,72,153,0.08), rgba(139,92,246,0.08)); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,192,203,0.15); margin: 10px 0;">
+12572:  32sp |                                <div style="font-family: 'Orbitron', sans-serif; font-size: 12px; color: #EC4899; letter-spacing: 1px; margin-bottom: 8px;">
+12573:  36sp |                                    🧠 DEEPSEEK AI BLUEPRINT
+12574:  32sp |                                </div>
+12575:  28sp |                            </div>
+12576:  28sp |                            """, unsafe_allow_html=True)
+12577: (empty)
+12578:  28sp |                            # Title
+12579:  28sp |                            title = bp.get("title", "Untitled Blueprint")
+12580:  28sp |                            st.markdown(f"### 🎬 {title}")
+12581: (empty)
+12582:  28sp |                            # Description
+12583:  28sp |                            description = bp.get("description", "")
+12584:  28sp |                            if description:
+12585:  32sp |                                st.markdown(f"<p style='color: #94a3b8; font-size: 13px;'>{description}</p>", unsafe_allow_html=True)
+12586: (empty)
+12587:  28sp |                            # Video Structure
+12588:  28sp |                            structure = bp.get("video_structure", bp.get("structure", {}))
+12589:  28sp |                            if structure:
+12590:  32sp |                                st.markdown("<h4 style='color: #FFC0CB; margin-top: 12px;'>📋 Video Structure</h4>", unsafe_allow_html=True)
+12591:  32sp |                                scenes = structure.get("scenes", structure.get("sections", []))
+12592:  32sp |                                if scenes:
+12593:  36sp |                                    for i, scene in enumerate(scenes):
+12594:  40sp |                                        scene_title = scene.get("title", scene.get("scene_text", f"Scene {i+1}"))
+12595:  40sp |                                        scene_desc = scene.get("description", scene.get("text", ""))
+12596:  40sp |                                        scene_keyword = scene.get("keyword", scene.get("search_keyword", ""))
+12597:  40sp |                                        scene_dur = scene.get("duration", 5)
+12598:  40sp |                                        with st.expander(f"🎬 Scene {i+1}: {scene_title}", expanded=(i==0)):
+12599:  44sp |                                            st.markdown(f"<p style='color: #e2e8f0;'>{scene_desc}</p>", unsafe_allow_html=True)
+12600:  44sp |                                            if scene_keyword:
+12601:  48sp |                                                st.markdown(f"<p style='color: #94a3b8; font-size: 11px;'>🔍 Keyword: <code>{scene_keyword}</code></p>", unsafe_allow_html=True)
+12602:  44sp |                                            st.markdown(f"<p style='color: #94a3b8; font-size: 11px;'>⏱ Duration: {scene_dur}s</p>", unsafe_allow_html=True)
+12603:  32sp |                                else:
+12604:  36sp |                                    st.info("No scenes found in blueprint structure")
+12605: (empty)
+12606:  28sp |                            # Visual Style
+12607:  28sp |                            style = bp.get("visual_style", bp.get("style", {}))
+12608:  28sp |                            if style:
+12609:  32sp |                                st.markdown("<h4 style='color: #FFC0CB; margin-top: 12px;'>🎨 Visual Style</h4>", unsafe_allow_html=True)
+12610:  32sp |                                for key, val in style.items() if isinstance(style, dict) else []:
+12611:  36sp |                                    st.markdown(f"<p style='color: #94a3b8; font-size: 12px; margin: 2px 0;'><b>{key.replace('_', ' ').title()}:</b> {val}</p>", unsafe_allow_html=True)
+12612: (empty)
+12613:  28sp |                            # Music Mood
+12614:  28sp |                            mood = bp.get("music_mood", bp.get("mood", ""))
+12615:  28sp |                            if mood:
+12616:  32sp |                                st.markdown(f"<p style='color: #94a3b8; font-size: 12px; margin-top: 8px;'><b>🎵 Music Mood:</b> {mood}</p>", unsafe_allow_html=True)
+12617: (empty)
+12618:  28sp |                            # Aspect Ratio
+12619:  28sp |                            ar = bp.get("aspect_ratio", "")
+12620:  28sp |                            if ar:
+12621:  32sp |                                st.markdown(f"<p style='color: #94a3b8; font-size: 12px;'><b>📐 Aspect Ratio:</b> {ar}</p>", unsafe_allow_html=True)
+12622: (empty)
+12623:  28sp |                            # Use Blueprint button
+12624:  28sp |                            st.markdown("<br>", unsafe_allow_html=True)
+12625:  28sp |                            if st.button("🎬 Use This Blueprint for Generation", key="use_blueprint_btn", use_container_width=True):
+12626:  32sp |                                # Extract scenes data from blueprint
+12627:  32sp |                                if structure and scenes:
+12628:  36sp |                                    st.session_state["blueprint_scenes"] = scenes
+12629:  36sp |                                    st.session_state["blueprint_mood"] = mood
+12630:  36sp |                                    st.session_state["studio_prompt_value"] = description or title
+12631:  32sp |                                st.success("✅ Blueprint loaded! Now click Generate to create video.")
+12632:  32sp |                                st.toast("Blueprint ready for generation! 🚀")
+12633: (empty)
+12634:  28sp |                            # Clear blueprint
+12635:  28sp |                            if st.button("🗑 Clear Blueprint", key="clear_blueprint_btn", use_container_width=True):
+12636:  32sp |                                st.session_state["deepseek_blueprint_data"] = None
+12637:  32sp |                                st.session_state["deepseek_blueprint_visible"] = False
+12638:  32sp |                                st.rerun()
+12639: (empty)
+12640:   8sp |        else:
+12641:  12sp |            user_input = st.text_area(
+12642:  16sp |                "Prompt Input",
+12643:  16sp |                value=initial_topic_val,
+12644:  16sp |                placeholder="Explain video concept: e.g. Bermuda triangle ka ansuljha rahasya jo kisi ko nahi pata tha." if input_mode == "💡 Autonomous AI Topic" 
+12645:  16sp |                else "Write a custom script separated by paragraph breaks...",
+12646:  16sp |                height=90,
+12647:  16sp |                label_visibility="collapsed",
+12648:  16sp |                key="studio_prompt_standard_input"
+12649:  12sp |            )
+12650: (empty)

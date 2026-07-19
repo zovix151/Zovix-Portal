@@ -1,0 +1,135 @@
+def mix_audio_layers(video_input_path, output_path, bgm_path=None, bgm_volume=0.3, voice_path=None, voice_volume=1.0):
+    if not video_input_path or not os.path.exists(video_input_path):
+        return False
+
+    try:
+        slider_bgm = max(0.0, min(1.0, float(bgm_volume)))
+    except Exception:
+        slider_bgm = 0.3
+    # Perceptual mapping: lower slider values remain usable; upper values get clearly louder.
+    mapped_bgm_gain = 0.0 if slider_bgm <= 0.0 else min(3.0, 0.08 + (slider_bgm ** 1.25) * 2.4)
+
+    target_duration = get_audio_duration(voice_path) if (voice_path and os.path.exists(voice_path)) else get_audio_duration(video_input_path)
+    if target_duration <= 0:
+        target_duration = None
+
+    include_base_pref = has_audio_stream(video_input_path)
+    include_base_candidates = [include_base_pref] if include_base_pref else [True, False]
+
+    for include_base_audio in include_base_candidates:
+        cmd = ['ffmpeg', '-y', '-i', video_input_path]
+        input_audio_specs = []
+        next_input_index = 1
+
+        if include_base_audio:
+            input_audio_specs.append((0, 1.0, False))
+
+        if voice_path and os.path.exists(voice_path):
+            cmd += ['-i', voice_path]
+            input_audio_specs.append((next_input_index, max(0.0, min(2.0, float(voice_volume))), False))
+            next_input_index += 1
+
+        if bgm_path and os.path.exists(bgm_path) and mapped_bgm_gain > 0.0:
+            cmd += ['-stream_loop', '-1', '-i', bgm_path]
+            input_audio_specs.append((next_input_index, mapped_bgm_gain, True))
+            next_input_index += 1
+
+        if not input_audio_specs:
+            try:
+                shutil.copy(video_input_path, output_path)
+                return os.path.exists(output_path) and os.path.getsize(output_path) > 0
+            except Exception:
+                return False
+
+        filter_parts = []
+        mixed_labels = []
+        for idx, (input_idx, vol, is_bgm) in enumerate(input_audio_specs):
+            label = f"a{idx}"
+            chain = f"[{input_idx}:a]aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo,aresample=44100,volume={vol:.3f}"
+            if is_bgm and target_duration is not None:
+                chain += f",atrim=0:{target_duration:.3f}"
+            filter_parts.append(f"{chain}[{label}]")
+            mixed_labels.append(f"[{label}]")
+
+        if len(mixed_labels) == 1:
+            filter_parts.append(f"{mixed_labels[0]}aresample=async=1:first_pts=0[aout]")
+        else:
+            filter_parts.append(
+                f"{''.join(mixed_labels)}amix=inputs={len(mixed_labels)}:duration=first:dropout_transition=0:normalize=0,"
+                f"aresample=async=1:first_pts=0[aout]"
+            )
+
+        cmd += [
+            '-filter_complex', ';'.join(filter_parts),
+            '-map', '0:v:0', '-map', '[aout]',
+            '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k',
+            '-shortest', output_path
+        ]
+
+        try:
+            subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+            return os.path.exists(output_path) and os.path.getsize(output_path) > 0
+        except Exception:
+            continue
+
+    return False
+
+def get_hwaccel_args():
+    if getattr(get_hwaccel_args, "cached", None) is not None:
+        return get_hwaccel_args.cached
+    try:
+        result = subprocess.run(["ffmpeg", "-hide_banner", "-hwaccel", "auto", "-h"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=False)
+        enabled = result.returncode == 0
+    except Exception:
+        enabled = False
+    get_hwaccel_args.cached = ["-hwaccel", "auto"] if enabled else []
+    return get_hwaccel_args.cached
+
+def get_video_resolution(video_path):
+    try:
+        cmd = ['ffprobe', '-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=width,height', '-of', 'csv=s=x:p=0', video_path]
+        result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=True)
+        res_split = result.stdout.strip().split('x')
+        if len(res_split) == 2:
+            return int(res_split[0]), int(res_split[1])
+    except Exception:
+        pass
+    return None, None
+
+def parse_tagged_script(script_text):
+    if "\n\n" in script_text.strip():
+        paragraphs = [p.strip() for p in script_text.split("\n\n") if p.strip()]
+    else:
+        paragraphs = [p.strip() for p in script_text.split("\n") if p.strip()]
+    scenes_mapped = []
+    for idx, para in enumerate(paragraphs):
+        keyword = "mystery"
+        clean_text = para
+        if "[" in para and "]" in para:
+            start_idx = para.find("[")
+            end_idx = para.find("]")
+            tag_content = para[start_idx+1:end_idx]
+            clean_text = para[end_idx+1:].strip()
+            if ":" in tag_content:
+                keyword = tag_content.split(":")[-1].strip()
+            else:
+                keyword = tag_content.strip()
+        else:
+            para_lower = para.lower()
+            if "haveli" in para_lower or "palace" in para_lower or "castle" in para_lower:
+                keyword = "palace"
+            elif "darkness" in para_lower or "dark" in para_lower or "shadow" in para_lower:
+                keyword = "darkness"
+            elif "secret" in para_lower or "mystery" in para_lower:
+                keyword = "mystery"
+            else:
+                words = [w.strip(",.?!\"'") for w in para.split() if len(w) > 4]
+                stopwords = {"there", "their", "about", "would", "could", "should", "under", "these"}
+                valid_words = [w for w in words if w.lower() not in stopwords]
+                if valid_words:
+                    keyword = " ".join(valid_words[:3])
+        scenes_mapped.append({"scene_text": clean_text, "search_keyword": keyword, "duration": 5})
+    return scenes_mapped
+
+def run_async_in_thread(coro):
+    result, exception = [], []

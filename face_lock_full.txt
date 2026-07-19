@@ -1,0 +1,20 @@
+            <h4 style="font-family: 'Orbitron', sans-serif; font-size: 11px; color: #EC4899; margin-bottom: 8px; letter-spacing: 0.5px;">
+                🔒 FACE LOCK SECURITY
+            </h4>
+            """, unsafe_allow_html=True)
+            face_lock_enabled = st.toggle("Enable Face Lock", value=False, key="face_lock_enabled_toggle")
+            if face_lock_enabled:
+                face_lock_image = st.file_uploader("Upload Face Lock Image", type=['jpg', 'jpeg', 'png', 'webp'], key="face_lock_upload")
+                if face_lock_image:
+                    face_lock_path = f"face_videos/face_lock_{uuid.uuid4().hex[:8]}.png"
+                    with open(face_lock_path, "wb") as f:
+                        f.write(face_lock_image.getbuffer())
+                    st.success("✅ Face Lock Image Uploaded Successfully!")
+                    st.image(face_lock_path, caption="Face Lock Image", use_container_width=True)
+                    st.info("🔒 Face Lock Active - Workspace is secured")
+                else:
+                    st.warning("⚠️ Please upload a face image to enable Face Lock")
+            else:
+                st.info("🔓 Face Lock Disabled - Workspace is open")
+            
+            st.markdown("<hr style='border-color: rgba(255,255,255,0.06); margin: 12px 0;'>", unsaf

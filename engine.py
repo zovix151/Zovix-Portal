@@ -905,3 +905,312 @@ def verify_system_folders() -> str:
     os.makedirs("assets", exist_ok=True)
     os.makedirs(os.path.join("assets", "cache"), exist_ok=True)
     return "Ready"
+
+
+# ========================================================
+# 🎨 WORLD-CLASS DRAW ENGINE - MULTI-PROVIDER CASCADE
+# ========================================================
+
+import hashlib
+import math
+from io import BytesIO
+try:
+    from PIL import Image, ImageDraw, ImageFilter, ImageEnhance
+except ImportError:
+    Image = None
+    ImageDraw = None
+    ImageFilter = None
+    ImageEnhance = None
+
+_draw_cache = {}
+_draw_cache_ttl = 300
+
+def _get_cache_key(prompt, style, engine):
+    raw = f"{prompt}|{style}|{engine}"
+    return hashlib.md5(raw.encode()).hexdigest()
+
+def _check_draw_cache(key):
+    if key in _draw_cache:
+        entry = _draw_cache[key]
+        if time.time() - entry["time"] < _draw_cache_ttl:
+            return entry["path"]
+    return None
+
+def _set_draw_cache(key, path):
+    _draw_cache[key] = {"path": path, "time": time.time()}
+
+STYLE_MAP = {
+    "realistic": "photorealistic, 8K resolution, hyper-detailed, cinematic lighting",
+    "digital": "digital art, vibrant colors, professional render, crisp",
+    "sketch": "pencil sketch, monochrome, detailed linework, hand-drawn",
+    "watercolor": "watercolor painting, soft wash, artistic, flowing colors",
+    "anime": "anime style, manga aesthetic, cel-shaded, colorful",
+    "cinematic": "cinematic, dramatic lighting, epic composition, film grain",
+    "neon": "neon aesthetic, cyberpunk, glowing lights, dark background",
+    "oil_painting": "oil painting, rich textures, classic art, masterpiece",
+    "3d_render": "3D render, octane render, realistic textures, detailed",
+    "fantasy": "fantasy art, magical, ethereal, mystical glow",
+}
+
+STYLE_MAP_FALLBACK = {
+    "realistic": "realistic", "digital": "digital art", "sketch": "sketch",
+    "watercolor": "watercolor", "anime": "anime", "cinematic": "cinematic",
+    "neon": "neon", "oil_painting": "oil painting", "3d_render": "3D", "fantasy": "fantasy",
+}
+
+def _enhance_prompt(prompt, style):
+    style_desc = STYLE_MAP.get(style, "beautiful, high quality")
+    return f"Generate a {style_desc} image: {prompt}. High quality, professional, detailed."
+
+# ─── TIER 1: POLLINATIONS ───────────
+def _draw_pollinations(prompt, style, canvas_size, timeout=30):
+    width, height = canvas_size
+    clean = prompt.replace('"', '').replace("'", "").strip()
+    style_tag = STYLE_MAP_FALLBACK.get(style, "")
+    enhanced = f"{style_tag} {clean}, high quality, detailed" if style_tag else f"{clean}, high quality"
+    encoded = urllib.parse.quote(enhanced)
+    seed = random.randint(1, 999999)
+    url = f"https://image.pollinations.ai/p/{encoded}?width={width}&height={height}&seed={seed}&nologo=true"
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36", "Accept": "image/webp,image/apng,image/*,*/*;q=0.8"}
+    for attempt in range(3):
+        try:
+            resp = requests.get(url, headers=headers, timeout=timeout)
+            if resp.status_code == 200 and len(resp.content) > 5000:
+                return resp.content
+        except Exception:
+            if attempt < 2: time.sleep(1)
+    return None
+
+# ─── TIER 2: GEMINI ───────────
+def _draw_gemini(prompt, style, canvas_size, timeout=30):
+    gemini_key = os.getenv("GEMINI_API_KEY") or get_system_secret("GEMINI_API_KEY")
+    if not gemini_key or not has_genai:
+        return None
+    try:
+        import google.generativeai as genai
+        genai.configure(api_key=gemini_key)
+        enhanced = _enhance_prompt(prompt, style)
+        model = genai.GenerativeModel('gemini-2.0-flash-exp')
+        response = model.generate_content(enhanced, generation_config={"temperature": 0.3, "candidate_count": 1})
+        if response and hasattr(response, '_result') and response._result.candidates:
+            for part in response._result.candidates[0].content.parts:
+                if hasattr(part, 'inline_data') and part.inline_data:
+                    data = part.inline_data.data
+                    if len(data) > 5000: return data
+    except Exception: pass
+    return None
+
+# ─── TIER 3: STABILITY AI ───────────
+def _draw_stability(prompt, style, canvas_size, timeout=45):
+    api_key = os.getenv("STABILITY_API_KEY") or get_system_secret("STABILITY_API_KEY")
+    if not api_key or api_key == "mock" or len(api_key.strip()) < 5: return None
+    aspect = "9:16"
+    if canvas_size[0] > canvas_size[1]: aspect = "16:9"
+    elif canvas_size[0] == canvas_size[1]: aspect = "1:1"
+    enhanced = _enhance_prompt(prompt, style)
+    files = {"prompt": (None, enhanced), "output_format": (None, "png"), "aspect_ratio": (None, aspect)}
+    headers = {"authorization": f"Bearer {api_key}", "accept": "image/*"}
+    try:
+        resp = requests.post("https://api.stability.ai/v2beta/stable-image/generate/core", headers=headers, files=files, timeout=timeout)
+        if resp.status_code == 200 and len(resp.content) > 10000: return resp.content
+    except Exception: pass
+    return None
+
+# ─── TIER 4: REPLICATE ───────────
+def _draw_replicate(prompt, style, canvas_size, timeout=60):
+    api_key = os.getenv("REPLICATE_API_KEY") or get_system_secret("REPLICATE_API_KEY")
+    if not api_key: return None
+    enhanced = _enhance_prompt(prompt, style)
+    try:
+        headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+        payload = {"version": "black-forest-labs/flux-schnell", "input": {"prompt": enhanced, "width": canvas_size[0], "height": canvas_size[1], "num_outputs": 1}}
+        create = requests.post("https://api.replicate.com/v1/predictions", json=payload, headers=headers, timeout=15)
+        if create.status_code != 201: return None
+        get_url = create.json().get("urls", {}).get("get")
+        if not get_url: return None
+        for _ in range(30):
+            time.sleep(2)
+            check = requests.get(get_url, headers=headers, timeout=10)
+            if check.status_code != 200: continue
+            status = check.json().get("status")
+            if status == "succeeded":
+                output = check.json().get("output")
+                if output:
+                    img_url = output[0] if isinstance(output, list) else output
+                    img_resp = requests.get(img_url, timeout=15)
+                    if img_resp.status_code == 200 and len(img_resp.content) > 5000: return img_resp.content
+                break
+            elif status == "failed": break
+    except Exception: pass
+    return None
+
+# ─── TIER 5: HUGGING FACE ───────────
+def _draw_huggingface(prompt, style, canvas_size, timeout=30):
+    api_key = os.getenv("HUGGINGFACE_API_KEY") or get_system_secret("HUGGINGFACE_API_KEY")
+    if not api_key or InferenceClient is None: return None
+    enhanced = _enhance_prompt(prompt, style)
+    try:
+        client = InferenceClient(token=api_key)
+        result = client.text_to_image(enhanced, model="black-forest-labs/FLUX.1-dev", width=canvas_size[0], height=canvas_size[1])
+        if result:
+            buf = BytesIO(); result.save(buf, format="PNG"); return buf.getvalue()
+    except Exception: pass
+    return None
+
+# ─── TIER 6: GENERATIVE FALLBACK (ALWAYS WORKS) ───────
+def _draw_generative_fallback(prompt="artistic composition", style="realistic", canvas_size=(1024, 768)):
+    output_path = f"draw_outputs/drawing_{uuid.uuid4().hex[:8]}.png"
+    os.makedirs("draw_outputs", exist_ok=True)
+    try:
+        width, height = canvas_size
+        prompt_lower = prompt.lower()
+        bg_color = (15, 15, 25, 255)
+        primary_colors = [(100, 100, 255), (255, 100, 100), (100, 255, 100)]
+        composition = "abstract"
+        if any(w in prompt_lower for w in ["cyberpunk","neon","city","street","tokyo","night","urban"]):
+            bg_color = (10, 10, 20, 255); primary_colors = [(255, 0, 128), (0, 242, 254), (175, 0, 255), (255, 255, 0)]
+            composition = "grid_tech"
+        elif any(w in prompt_lower for w in ["forest","tree","nature","jungle","garden","green","grass","plant","wood"]):
+            bg_color = (20, 40, 25, 255); primary_colors = [(34, 139, 34), (46, 139, 87), (107, 142, 35), (218, 165, 32)]
+            composition = "organic"
+        elif any(w in prompt_lower for w in ["sunset","sunrise","fire","volcano","red","orange","sun","hot","flame"]):
+            bg_color = (40, 15, 10, 255); primary_colors = [(255, 69, 0), (255, 140, 0), (255, 215, 0), (128, 0, 32)]
+            composition = "landscape"
+        elif any(w in prompt_lower for w in ["ocean","sea","water","beach","sky","blue","river","ice","lake"]):
+            bg_color = (10, 30, 50, 255); primary_colors = [(0, 191, 255), (30, 144, 255), (70, 130, 180), (240, 248, 255)]
+            composition = "waves"
+        elif any(w in prompt_lower for w in ["space","galaxy","universe","star","alien","sci-fi","astronaut","cosmic","planet"]):
+            bg_color = (5, 5, 15, 255); primary_colors = [(255, 255, 255), (147, 112, 219), (0, 255, 200), (255, 20, 147)]
+            composition = "cosmic"
+        elif any(w in prompt_lower for w in ["anime","manga","cartoon","colorful","kawaii"]):
+            bg_color = (240, 240, 250, 255); primary_colors = [(255, 105, 180), (135, 206, 250), (255, 255, 100), (152, 251, 152)]
+        elif any(w in prompt_lower for w in ["person","portrait","face","man","woman","boy","girl"]):
+            bg_color = (50, 40, 60, 255); primary_colors = [(255, 200, 150), (200, 150, 100), (255, 220, 180), (180, 120, 80)]
+            composition = "portrait"
+        elif any(w in prompt_lower for w in ["cat","dog","animal","pet","bird","horse","wildlife","tiger","lion"]):
+            bg_color = (40, 50, 30, 255); primary_colors = [(210, 180, 140), (255, 200, 100), (180, 120, 60), (240, 220, 180)]
+            composition = "organic"
+        img = Image.new("RGBA", (width, height), color=bg_color)
+        draw = ImageDraw.Draw(img)
+        if composition == "cosmic":
+            for _ in range(8):
+                cx, cy = random.randint(0, width), random.randint(0, height)
+                r, col = random.randint(100, 400), random.choice(primary_colors)
+                draw.ellipse([(cx-r, cy-r), (cx+r, cy+r)], fill=(*col, 25))
+            for _ in range(200):
+                sx, sy = random.randint(0, width), random.randint(0, height)
+                draw.ellipse([(sx, sy), (sx+random.randint(1,4), sy+random.randint(1,4))], fill=random.choice([(255,255,255,255),(255,255,200,200)]))
+            for _ in range(5):
+                cx, cy = random.randint(100, width-100), random.randint(100, height-100)
+                for r in range(10, 60, 5): draw.ellipse([(cx-r, cy-r), (cx+r, cy+r)], outline=(255,255,255,30), width=1)
+        elif composition == "grid_tech":
+            for i in range(0, width, 30):
+                draw.line([(i,0), (i,height)], fill=(*primary_colors[1], 15), width=1)
+            for i in range(0, height, 30):
+                draw.line([(0,i), (width,i)], fill=(*primary_colors[1], 15), width=1)
+            for _ in range(20):
+                wb, hb = random.randint(50,180), random.randint(200, height-50)
+                xb = random.randint(0, width-wb); col = random.choice(primary_colors)
+                draw.rectangle([(xb, height-hb), (xb+wb, height)], fill=(col[0]//4,col[1]//4,col[2]//4,80), outline=col, width=2)
+                for wx in range(xb+8, xb+wb-8, 12):
+                    for wy in range(height-hb+8, height-8, 20):
+                        if random.random() > 0.3: draw.rectangle([(wx,wy), (wx+3,wy+5)], fill=random.choice(primary_colors))
+        elif composition == "landscape":
+            for y in range(int(height * 0.75)):
+                ratio = y / (height * 0.75)
+                r = int(bg_color[0] + (primary_colors[0][0] - bg_color[0]) * (1 - ratio))
+                g = int(bg_color[1] + (primary_colors[1][1] - bg_color[1]) * (1 - ratio))
+                b = int(bg_color[2] + (primary_colors[2][2] - bg_color[2]) * (1 - ratio))
+                draw.line([(0, y), (width, y)], fill=(r, g, b, 255))
+            sr = random.randint(60, 100)
+            draw.ellipse([(width//2-sr, height//3-sr), (width//2+sr, height//3+sr)], fill=(255,255,220,255))
+            for i in range(4):
+                pts = [(0, height)]
+                for x in range(0, width+50, 50): pts.append((x, int(height*0.5+i*40+math.sin(x*0.008)*50+random.randint(-8,8))))
+                pts.append((width, height))
+                draw.polygon(pts, fill=(25+i*20, 8+i*5, 8, 255))
+        elif composition == "waves":
+            for i in range(8):
+                pts = [(0, height)]
+                for x in range(0, width+30, 30): pts.append((x, int(height*0.35+i*50+math.sin(x*0.02+i)*30+random.randint(-10,10))))
+                pts.append((width, height))
+                draw.polygon(pts, fill=(*random.choice(primary_colors), 120))
+        elif composition == "organic":
+            draw.rectangle([(0,0), (width,height//2)], fill=(135,206,235,255))
+            draw.rectangle([(0, height//2), (width, height)], fill=bg_color)
+            for _ in range(30):
+                cx, cy = random.randint(0,width), random.randint(height//2-10, height)
+                r = random.randint(25,80); col = random.choice(primary_colors)
+                draw.rectangle([(cx-3,cy), (cx+3,height)], fill=(80,45,15,255))
+                draw.ellipse([(cx-r, cy-r), (cx+r, cy+r)], fill=(*col, 180))
+        elif composition == "portrait":
+            cx, cy = width//2, height//3
+            draw.ellipse([(cx-100, cy-130), (cx+100, cy+100)], fill=(255,210,170,255))
+            draw.ellipse([(cx-40, cy-20), (cx-15, cy+5)], fill=(255,255,255,255))
+            draw.ellipse([(cx+15, cy-20), (cx+40, cy+5)], fill=(255,255,255,255))
+            draw.ellipse([(cx-35, cy-15), (cx-20, cy)], fill=(50,40,30,255))
+            draw.ellipse([(cx+20, cy-15), (cx+35, cy)], fill=(50,40,30,255))
+            draw.arc([(cx-30, cy+30), (cx+30, cy+60)], 0, 180, fill=(200,100,80,255), width=3)
+            for _ in range(100):
+                draw.point((random.randint(cx-120,cx+120), random.randint(cy-180,cy-60)), fill=random.choice([(30,20,10),(50,30,15),(20,10,5)]))
+        else:
+            for _ in range(50):
+                cx, cy = random.randint(0,width), random.randint(0,height)
+                r, col = random.randint(15,120), random.choice(primary_colors)
+                shape = random.choice(["circle","rect","poly"])
+                if shape == "circle": draw.ellipse([(cx-r,cy-r), (cx+r,cy+r)], fill=(*col,150))
+                elif shape == "rect": draw.rectangle([(cx,cy), (cx+r,cy+r)], fill=(col[2],col[0],col[1],100))
+                else: draw.polygon([(cx+random.randint(-r,r),cy+random.randint(-r,r)) for _ in range(5)], fill=(col[1],col[2],col[0],120))
+        if style == "sketch": img = ImageEnhance.Contrast(img.convert("L").convert("RGBA")).enhance(1.8)
+        elif style in ("digital","neon"): img = ImageEnhance.Sharpness(img).enhance(1.6); img = ImageEnhance.Color(img).enhance(1.5)
+        elif style == "watercolor": img = img.filter(ImageFilter.GaussianBlur(radius=3))
+        elif style == "cinematic":
+            img = ImageEnhance.Contrast(img).enhance(1.2)
+            d = ImageDraw.Draw(img); d.rectangle([(0,0),(width,int(height*0.07))], fill=(0,0,0,255)); d.rectangle([(0,int(height*0.93)),(width,height)], fill=(0,0,0,255))
+        elif style == "oil_painting": img = ImageEnhance.Sharpness(img).enhance(2.0); img = ImageEnhance.Color(img).enhance(1.6)
+        d = ImageDraw.Draw(img); d.text((width-200,height-25), "ZOVIX Draw", fill=(150,150,150,150))
+        img.convert("RGB").save(output_path, quality=92)
+        return output_path
+    except Exception as e:
+        print(f"GFE: {e}"); return None
+
+
+# ═══════════════════════════════════════════════════════
+# 🚀 DrawEngine PUBLIC CLASS
+# ═══════════════════════════════════════════════════════
+
+class DrawEngine:
+    """World-Class 6-Tier Hybrid Cascade Draw Engine"""
+    DRAW_STYLES = list(STYLE_MAP.keys())
+    
+    @staticmethod
+    def generate(prompt, style="realistic", canvas_size=(1024,768), engine_filter="Auto", quality="Standard"):
+        os.makedirs("draw_outputs", exist_ok=True)
+        cache_key = _get_cache_key(prompt, style, engine_filter)
+        cached = _check_draw_cache(cache_key)
+        if cached and os.path.exists(cached): return cached
+        tmult = 2.0 if quality == "Premium" else 1.0
+        engines = [("Pollinations",_draw_pollinations,int(25*tmult)), ("Gemini",_draw_gemini,int(30*tmult)),
+                   ("Stability",_draw_stability,int(45*tmult)), ("Replicate",_draw_replicate,int(60*tmult)),
+                   ("HuggingFace",_draw_huggingface,int(30*tmult))]
+        if engine_filter != "Auto":
+            engines = [(n,f,t) for n,f,t in engines if n.lower() in engine_filter.lower()]
+        for ename, efunc, etime in engines:
+            try:
+                result = efunc(prompt, style, canvas_size, etime)
+                if result:
+                    if isinstance(result, bytes):
+                        op = f"draw_outputs/drawing_{uuid.uuid4().hex[:8]}.png"
+                        with open(op,"wb") as f: f.write(result)
+                    elif isinstance(result, str) and os.path.exists(result): op = result
+                    else: continue
+                    if os.path.exists(op) and os.path.getsize(op) > 1000:
+                        _set_draw_cache(cache_key, op); return op
+            except: continue
+        result = _draw_generative_fallback(prompt, style, canvas_size)
+        if result and os.path.exists(result): _set_draw_cache(cache_key, result)
+        return result
+
+    @staticmethod
+    def generate_fallback_only(prompt, style="realistic", canvas_size=(1024,768)):
+        return _draw_generative_fallback(prompt, style, canvas_size)
