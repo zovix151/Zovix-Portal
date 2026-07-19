@@ -1,0 +1,81 @@
+def generate_emotion_voice(text, emotion="neutral", voice_type="male", output_path=None, elevenlabs_voice_id=None):
+    if not output_path:
+        output_path = f"emotion_voice_outputs/emotion_{uuid.uuid4().hex[:8]}.mp3"
+    os.makedirs("emotion_voice_outputs", exist_ok=True)
+    safe_remove_file(output_path)
+    
+    detected_language = st.session_state.get("emotion_voice_language", "English")
+    use_hindi_voice = "Hindi" in detected_language or "Hinglish" in detected_language
+
+    azure_key = os.getenv("AZURE_SPEECH_KEY") or get_system_secret("AZURE_SPEECH_KEY")
+    azure_region = os.getenv("AZURE_SPEECH_REGION") or get_system_secret("AZURE_SPEECH_REGION", "eastus")
+    if azure_key and azure_region:
+        try:
+            if use_hindi_voice:
+                voice_name = "hi-IN-MadhurNeural" if voice_type == "male" else "hi-IN-SwaraNeural"
+            else:
+                voice_name = "en-US-GuyNeural" if voice_type == "male" else "en-US-JennyNeural"
+            style_map = {"neutral": "neutral", "happy": "cheerful", "sad": "sad", "angry": "angry", "excited": "excited", "serious": "serious", "mysterious": "neutral"}
+            style = style_map.get(emotion, "neutral")
+            url = f"https://{azure_region}.tts.speech.microsoft.com/cognitiveservices/v1"
+            headers = {"Ocp-Apim-Subscription-Key": azure_key, "Content-Type": "application/ssml+xml", "X-Microsoft-OutputFormat": "audio-24khz-96kbitrate-mono-mp3"}
+            if use_hindi_voice:
+                ssml = f"""<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="hi-IN">
+                            <voice name="{voice_name}">{text}</voice>
+                        </speak>"""
+            else:
+                ssml = f"""<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xmlns:mstts="https://www.w3.org/2001/mstts" xml:lang="en-US">
+                            <voice name="{voice_name}">
+                                <mstts:express-as style="{style}">{text}</mstts:express-as>
+                            </voice>
+                        </speak>"""
+            response = requests.post(url, headers=headers, data=ssml, timeout=30)
+            if response.status_code == 200 and len(response.content) > 1000:
+                with open(output_path, "wb") as f:
+                    f.write(response.content)
+                if os.path.exists(output_path) and is_audio_audible(output_path):
+                    logger.info(f"Azure TTS generated successfully for {text[:30]}...")
+                    return output_path
+        except Exception as e:
+            logger.warning(f"Azure TTS failed: {e}")
+    
+    eleven_key = os.getenv("ELEVENLABS_API_KEY") or get_system_secret("ELEVENLABS_API_KEY")
+    if eleven_key and elevenlabs_voice_id:
+        try:
+            emotion_modifiers = {"neutral": "", "happy": " [Happy, cheerful tone] ", "sad": " [Sad, melancholic tone] ", "angry": " [Angry, frustrated tone] ", "excited": " [Excited, enthusiastic tone] ", "serious": " [Serious, professional tone] ", "mysterious": " [Mysterious, intriguing tone] "}
+            modified_text = emotion_modifiers.get(emotion, "") + text
+            if AudioEngine.generate_elevenlabs_speech(modified_text, output_path, elevenlabs_voice_id):
+                if os.path.exists(output_path) and os.path.getsize(output_path) > 1024:
+                    return output_path
+        except Exception as e:
+            logger.warning(f"ElevenLabs TTS failed: {e}")
+    
+    try:
+        if edge_tts is not None:
+            if use_hindi_voice:
+                voice_candidates = [
+                    "hi-IN-MadhurNeural" if voice_type == "male" else "hi-IN-SwaraNeural",
+                    "en-IN-PrabhatNeural" if voice_type == "male" else "en-IN-NeerjaNeural",
+                    "en-US-GuyNeural" if voice_type == "male" else "en-US-AriaNeural",
+                ]
+            else:
+                voice_candidates = [
+                    "en-US-GuyNeural" if voice_type == "male" else "en-US-AriaNeural",
+                    "en-GB-RyanNeural" if voice_type == "male" else "en-GB-SoniaNeural",
+                    "en-IN-PrabhatNeural" if voice_type == "male" else "en-IN-NeerjaNeural",
+                ]
+
+            for voice_name in voice_candidates:
+                try:
+                    safe_remove_file(output_path)
+                    run_async_in_thread(edge_tts.Communicate(text, voice_name).save(output_path))
+                    if os.path.exists(output_path) and os.path.getsize(output_path) > 2048:
+                        return output_path
+                except Exception as voice_error:
+                    logger.warning(f"Edge TTS voice failed ({voice_name}): {voice_error}")
+    except Exception as e:
+        logger.warning(f"Fallback TTS failed: {e}")
+
+    safe_remove_file(output_path)
+    return None
+
