@@ -1,0 +1,15 @@
+0:             health_voice = check_endpoint_health(os.getenv("RUNPOD_ENDPOINT_VOICE", ""))
+1:             status_color = "🟢" if health_voice.get("status") == "healthy" else "🔴"
+2:             st.markdown(f"{status_color} **Voice/TTS:** {health_voice.get('status', 'Not configured').title()}")
+3: 
+4: 
+5:     elif st.session_state["studio_active_mode"] == "Production Engine":
+6:         run_production_engine_mode()
+7:     elif st.session_state["studio_active_mode"] == "Draw Mode":
+8:         run_draw_mode()
+9:     elif st.session_state["studio_active_mode"] == "Video Editor Mode":
+10:         run_video_editor_mode()
+11:     elif st.session_state["studio_active_mode"] == "Face Video Mode":
+12:         run_unified_face_video_mode()
+13:     elif st.session_state["studio_active_mode"] == "Expressive Face Video Mode":
+14:         run_unified_face_video_mode()

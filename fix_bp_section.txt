@@ -1,0 +1,170 @@
+_bp_func = globals().get("generate_blueprint_with_deepseek") or generate_blueprint_with_deepseek
+                                                                        blueprint_path = _bp_func(
+                                        blueprint_prompt,  
+                                        blueprint_type, 
+                                        blueprint_style
+                                    )
+                                    if blueprint_path and os.path.exists(blueprint_path):
+                                        st.session_state["active_blueprint"] = blueprint_path
+                                        
+                                        timestamp = time.strftime("%Y%m%d_%H%M%S")
+                                        file_name = f"blueprint_{timestamp}.png"
+                                        save_render_to_db(
+                                            st.session_state["logged_user"],
+                                            file_name,
+                                            blueprint_prompt[:100],
+                                            blueprint_path,
+                                            "Blueprints",
+                                            required_tokens
+                                        )
+                                        st.session_state["history_renders"] = load_renders_history_db(st.session_state["logged_user"])
+                                        
+                                        st.toast("Blueprint generated successfully!")
+                                        st.rerun()
+                                    else:
+                                        st.warning("DeepSeek API failed, using local generator...")
+                                        blueprint_path = generate_blueprint_smart(blueprint_prompt, blueprint_type, blueprint_style)
+                                        if blueprint_path and os.path.exists(blueprint_path):
+                                            st.session_state["active_blueprint"] = blueprint_path
+                                            st.toast("Blueprint generated successfully!")
+                                            st.rerun()
+                                        else:
+                                            st.error("Blueprint generation failed. Please try a different description.")
+                                except Exception as e:
+                                    st.error(f"Error generating blueprint: {str(e)}")
+            
+            with col_gen2:
+                if st.button("🎨 Quick Template", key="bp_template_btn", use_container_width=True):
+                    templates = [
+                        "2BHK House with Garden",
+                        "Modern Office Building",
+                        "Restaurant Floor Plan",
+                        "School Campus Layout",
+                        "Hospital Wing Design"
+                    ]
+                    selected_template = st.selectbox("Choose Template", templates, key="bp_template_select")
+                    if selected_template:
+                        st.session_state["bp_prompt_input"] = selected_template
+                        st.rerun()
+    
+    with bp_col2:
+        with st.container(border=True):
+            st.markdown("""
+            <h3 style="
+                font-family: 'Orbitron', sans-serif;
+                font-size: 13px;
+                color: #EC4899;
+                margin-bottom: 12px;
+                letter-spacing: 0.5px;
+            ">
+                📐 BLUEPRINT VIEWER
+            </h3>
+            """, unsafe_allow_html=True)
+            
+            active_bp = st.session_state.get("active_blueprint")
+            if active_bp and os.path.exists(active_bp):
+                st.image(active_bp, use_container_width=True)
+                
+                try:
+                    analysis = analyze_blueprint(active_bp)
+                    if analysis:
+                        with st.expander("📊 Blueprint Analysis", expanded=False):
+                            st.markdown(f"""
+                            <div style="
+                                background: rgba(255,255,255,0.02);
+                                border-radius: 8px;
+                                padding: 12px;
+                                font-family: 'Inter', sans-serif;
+                            ">
+                                <p style="font-size: 12px; color: #94a3b8; margin: 4px 0;">
+                                    <strong style="color: #FFC0CB;">Format:</strong> {analysis.get('format', 'N/A')}
+                                </p>
+                                <p style="font-size: 12px; color: #94a3b8; margin: 4px 0;">
+                                    <strong style="color: #FFC0CB;">Dimensions:</strong> {analysis.get('width', 'N/A')} x {analysis.get('height', 'N/A')} px
+                                </p>
+                                <p style="font-size: 12px; color: #94a3b8; margin: 4px 0;">
+                                    <strong style="color: #FFC0CB;">Estimated Rooms:</strong> {analysis.get('estimated_rooms', 'N/A')}
+                                </p>
+                                <p style="font-size: 12px; color: #94a3b8; margin: 4px 0;">
+                                    <strong style="color: #FFC0CB;">Total Area:</strong> {analysis.get('total_area', 'N/A')}
+                                </p>
+                                <p style="font-size: 12px; color: #94a3b8; margin: 4px 0;">
+                                    <strong style="color: #FFC0CB;">Structure Type:</strong> {analysis.get('structure_type', 'N/A')}
+                                </p>
+                                <p style="font-size: 12px; color: #94a3b8; margin: 4px 0;">
+                                    <strong style="color: #FFC0CB;">Confidence Score:</strong> {analysis.get('confidence_score', 0.0) * 100:.1f}%
+                                </p>
+                            </div>
+                            """, unsafe_allow_html=True)
+                except Exception as e:
+                    st.warning(f"Blueprint analysis temporarily unavailable: {str(e)[:100]}")
+                
+                st.markdown("<br>", unsafe_allow_html=True)
+                col_dl, col_clr = st.columns(2)
+                with col_dl:
+                    with open(active_bp, "rb") as f:
+                        bp_bytes = f.read()
+                    st.download_button(
+                        label="📥 Download Blueprint (PNG)",
+                        data=bp_bytes,
+                        file_name=f"zovix_blueprint_{uuid.uuid4().hex[:8]}.png",
+                        mime="image/png",
+                        use_container_width=True,
+                        key="bp_download_btn"
+                    )
+                with col_clr:
+                    if st.button("🧹 Clear Blueprint", key="bp_clear_btn", use_container_width=True):
+                        safe_remove_file(active_bp)
+                        st.session_state["active_blueprint"] = None
+                        st.rerun()
+            else:
+                st.markdown("""
+                    <div style="
+                        height: 380px;
+                        min-height: 380px;
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: center;
+                        align-items: center;
+                        color: #64748b;
+                        text-align: center;
+                        padding: 12px;
+                        overflow: hidden;
+                        background: rgba(10,10,12,0.4);
+                        border-radius: 12px;
+                        border: 1px dashed rgba(255,192,203,0.12);
+                    ">
+                        <span style="font-size: 48px; margin-bottom: 10px;">📐</span>
+                        <p style="
+                            font-family: 'Inter', sans-serif;
+                            font-size: 13px;
+                            font-weight: 500;
+                            color: #EC4899;
+                            margin: 0;
+                        ">
+                            Blueprint will render here
+                        </p>
+                        <p style="
+                            font-family: 'Inter', sans-serif;
+                            font-size: 11px;
+                            color: #94a3b8;
+                            max-width: 400px;
+                            text-align: center;
+                            margin-top: 4px;
+                            line-height: 1.4;
+                        ">
+                            Professional architectural drawings with detailed analysis.
+                        </p>
+                        <p style="
+                            font-family: 'Inter', sans-serif;
+                            font-size: 10px;
+                            color: #45f3ff;
+                            margin-top: 4px;
+                        ">
+                            ⚡ Powered by DeepSeek AI + Stability AI
+                        </p>
+                    </div>
+                """, unsafe_allow_html=True)
+        
+    # ========================================================
+# UPSCALER MODE - FIXED ✅

@@ -1,0 +1,6 @@
+<svg width="1200" height="800" viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg" font-family="Arial, sans-serif" font-size="14px">
+  <!-- Background -->
+  <rect x="0" y="0" width="1200" height="800" fill="#0a192f"/>
+
+  <!-- Define styles for consistency -->
+  <defs>

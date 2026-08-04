@@ -1,0 +1,5 @@
+def generate_blueprint_with_deepseek(prompt, blueprint_type="floor_plan", style="Modern"):
+    """Backward compatible function"""
+    return generate_world_class_blueprint(prompt, blueprint_type, style)
+
+

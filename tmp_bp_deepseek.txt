@@ -1,0 +1,56 @@
+def generate_blueprint_with_deepseek(prompt, blueprint_type="floor_plan", style="Modern"):
+    """Generate architectural blueprint using DeepSeek AI"""
+    
+    if not DEEPSEEK_API_KEY:
+        logger.warning("DeepSeek API key not found, using fallback generator")
+        return generate_blueprint(prompt, blueprint_type)
+    
+    url = "https://api.deepseek.com/v1/chat/completions"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {DEEPSEEK_API_KEY}"
+    }
+    
+    system_prompt = f"""You are an expert architectural designer. Generate a detailed blueprint description for a {style} {blueprint_type.replace('_', ' ')} based on: {prompt}
+
+Return ONLY a JSON object with these fields:
+{{
+    "title": "Blueprint Title",
+    "description": "Detailed architectural description",
+    "rooms": ["Room1", "Room2", "Room3"],
+    "dimensions": "Total area in sq ft",
+    "style": "{style}",
+    "structure_type": "Residential/Commercial/Industrial"
+}}"""
+    
+    payload = {
+        "model": "deepseek-chat",
+        "messages": [
+            {"role": "system", "content": "You are an expert architectural designer. Respond only with valid JSON."},
+            {"role": "user", "content": system_prompt}
+        ],
+        "temperature": 0.7,
+        "max_tokens": 500,
+        "response_format": {"type": "json_object"}
+    }
+    
+    try:
+        response = requests.post(url, headers=headers, json=payload, timeout=30)
+        if response.status_code == 200:
+            result = response.json()
+            blueprint_data = json.loads(result['choices'][0]['message']['content'])
+            
+            # Store blueprint data in session
+            st.session_state["deepseek_blueprint_data"] = blueprint_data
+            
+            # Generate image using Stability AI or fallback
+            return generate_blueprint_from_data(blueprint_data, blueprint_type)
+        else:
+            logger.error(f"DeepSeek API error: {response.status_code}")
+            return generate_blueprint(prompt, blueprint_type)
+            
+    except Exception as e:
+        logger.error(f"DeepSeek blueprint error: {e}")
+        return generate_blueprint(prompt, blueprint_type)
+
+

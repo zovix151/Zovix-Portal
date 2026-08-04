@@ -1,0 +1,14 @@
+state["studio_active_mode"] == "Creative Workshop Mode":
+        run_creative_workshop()
+    elif st.session_state["studio_active_mode"] == "Blueprints Mode":
+        run_blueprints_mode()
+    elif st.session_state["studio_active_mode"] == "Upscaler Mode":
+        run_upscaler_mode()
+    
+
+# ========================================================
+# PRODUCTION ENGINE MODE - RunPod Infrastructure
+# ========================================================
+
+def run_production_engine_mode():
+    """Production Engine Mode - RunPod-powered face video

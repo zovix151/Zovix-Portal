@@ -1,0 +1,25 @@
+14930:         with col_s1:
+14931:             health_face = check_endpoint_health(os.getenv("RUNPOD_ENDPOINT_FACE", ""))
+14932:             status_color = "🟢" if health_face.get("status") == "healthy" else "🔴"
+14933:             st.markdown(f"{status_color} **Face Video:** {health_face.get('status', 'Not configured').title()}")
+14934:         with col_s2:
+14935:             health_voice = check_endpoint_health(os.getenv("RUNPOD_ENDPOINT_VOICE", ""))
+14936:             status_color = "🟢" if health_voice.get("status") == "healthy" else "🔴"
+14937:             st.markdown(f"{status_color} **Voice/TTS:** {health_voice.get('status', 'Not configured').title()}")
+14938: 
+14939: elif st.session_state["studio_active_mode"] == "Production Engine":
+14940:         run_production_engine_mode()
+14941:     elif st.session_state["studio_active_mode"] == "Draw Mode":
+14942:         run_draw_mode()
+14943:     elif st.session_state["studio_active_mode"] == "Video Editor Mode":
+14944:         run_video_editor_mode()
+14945:     elif st.session_state["studio_active_mode"] == "Face Video Mode":
+14946:         run_unified_face_video_mode()
+14947:     elif st.session_state["studio_active_mode"] == "Expressive Face Video Mode":
+14948:         run_unified_face_video_mode()
+14949:     elif st.session_state["studio_active_mode"] == "AI Agent Mode":
+14950:         render_ai_agent_ui()
+14951:     elif st.session_state["studio_active_mode"] == "AI Sales Mode":
+14952:         render_ai_sales_ui()
+14953:     elif st.session_state["studio_active_mode"] == "Dynamic UI Mode":
+14954:         generate_dynamic_ui()

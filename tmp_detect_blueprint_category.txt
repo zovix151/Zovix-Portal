@@ -1,0 +1,69 @@
+def detect_blueprint_category(prompt):
+    """Advanced category detection with scoring"""
+    prompt_lower = prompt.lower()
+    
+    categories = {
+        "robotics": {
+            "keywords": ["robot", "humanoid", "mechanical", "servo", "actuator", "joint", "hydraulic", "pneumatic", "automation", "bionic", "android", "cyborg", "exoskeleton"],
+            "weight": 2
+        },
+        "electronics": {
+            "keywords": ["circuit", "pcb", "arduino", "raspberry", "sensor", "microcontroller", "battery", "power supply", "transistor", "capacitor", "resistor", "chip", "processor"],
+            "weight": 2
+        },
+        "architecture": {
+            "keywords": ["house", "building", "floor", "plan", "room", "kitchen", "bedroom", "bathroom", "villa", "apartment", "office", "mansion", "bungalow", "skyscraper"],
+            "weight": 2
+        },
+        "automotive": {
+            "keywords": ["car", "engine", "chassis", "suspension", "brake", "transmission", "vehicle", "automobile", "tire", "wheel", "steering", "exhaust"],
+            "weight": 2
+        },
+        "aerospace": {
+            "keywords": ["drone", "satellite", "rocket", "spacecraft", "aircraft", "propeller", "fuselage", "wing", "turbine", "jet", "space", "orbit"],
+            "weight": 2
+        },
+        "industrial": {
+            "keywords": ["factory", "warehouse", "assembly", "conveyor", "machinery", "production", "manufacturing", "plant", "industrial", "logistics"],
+            "weight": 2
+        },
+        "interior": {
+            "keywords": ["interior", "furniture", "layout", "design", "decoration", "living room", "dining", "bedroom", "wardrobe", "kitchen cabinet"],
+            "weight": 2
+        },
+        "landscape": {
+            "keywords": ["garden", "park", "landscape", "outdoor", "terrace", "pool", "lawn", "tree", "plant", "flower", "water feature"],
+            "weight": 2
+        },
+        "futuristic": {
+            "keywords": ["cyberpunk", "futuristic", "sci-fi", "space", "neon", "tech", "quantum", "holographic", "futurist", "advanced"],
+            "weight": 2
+        },
+        "medical": {
+            "keywords": ["hospital", "clinic", "medical", "surgery", "operation", "icu", "ward", "pharmacy", "diagnostic", "laboratory"],
+            "weight": 2
+        },
+        "educational": {
+            "keywords": ["school", "college", "university", "classroom", "library", "laboratory", "campus", "education", "training"],
+            "weight": 2
+        }
+    }
+    
+    category_scores = {}
+    
+    for category, data in categories.items():
+        score = 0
+        for keyword in data["keywords"]:
+            if keyword in prompt_lower:
+                score += data["weight"]
+        category_scores[category] = score
+    
+    if category_scores:
+        detected = max(category_scores, key=category_scores.get)
+        if category_scores[detected] == 0:
+            detected = "architecture"
+        return detected
+    
+    return "architecture"
+
+

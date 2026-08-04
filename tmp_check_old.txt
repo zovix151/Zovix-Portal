@@ -1,0 +1,12 @@
+ canvas_size)
+    else:
+        return DrawEngine.generate(prompt, style, canvas_size, engine_filter, quality)# ========================================================
+# ENHANCED FALLBACK - PROMPT AWARE (FIXED FOR TRANSPARENCY & PATH)
+# ========================================================
+
+def generate_enhanced_fallback_drawing(prompt, style="realistic", canvas_size=(1024, 768)):
+    """
+    🔥 DYNAMIC SEMANTIC FALLBACK ENGINE - GENERATIVE ART BASED ON PROMPT
+    Bina AI ke bhi prompt ke colors aur theme ko samajh kar satik art banata hai.
+    """
+    output_path = f"draw_outputs/drawing_{

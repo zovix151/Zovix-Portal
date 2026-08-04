@@ -1,0 +1,9 @@
+          )
+            
+            st.markdown("<br>", unsafe_allow_html=True)
+            
+            col_gen1, col_gen2 = st.columns(2)
+            with col_gen1:
+                if st.button("📐 Generate Blueprint", key="bp_generate_btn", use_container_width=True):
+                    success, required_tokens, message = validate_and_deduct_tokens("Blueprints", bp_quality)
+                    

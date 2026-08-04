@@ -1,0 +1,35 @@
+                      st.rerun()
+                                    else:
+                                        st.error("Blueprint generation failed. Please try a different description.")
+                                except Exception as e:
+                                    logger.error(f"Blueprint generation UI error: {e}")
+                                    st.error(f"Error generating blueprint: {str(e)}")
+            with col_gen2:
+                if st.button("Quick Template", key="bp_template_btn", use_container_width=True):
+                    template_data = template_map.get(selected_template)
+                    if not template_data:
+                        st.error("Please select a valid template.")
+                    else:
+                        st.session_state["bp_prompt_input"] = template_data["prompt"]
+                        st.session_state["bp_type_select"] = template_data["type"]
+                        st.session_state["bp_style_select"] = template_data["style"]
+                        st.toast("Template loaded successfully! Now click Generate Blueprint.")
+                        st.rerun()
+
+    with bp_col2:
+        with st.container(border=True):
+            st.markdown("""
+            <h3 style="
+                font-family: 'Orbitron', sans-serif;
+                font-size: 13px;
+                color: #EC4899;
+                margin-bottom: 12px;
+                letter-spacing: 0.5px;
+            ">
+                BLUEPRINT VIEWER
+            </h3>
+            """, unsafe_allow_html=True)
+
+            active_bp = st.session_state.get("active_blueprint")
+            if active_bp and os.path.exists(active_bp):
+                st.image(act

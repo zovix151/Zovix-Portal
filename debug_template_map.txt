@@ -1,0 +1,8 @@
+template_map = {
+                "2BHK House with Garden": {
+                    "prompt": "Modern 2-bedroom house with garden, open kitchen, living room, dining area, master bedroom with attached bathroom, guest bathroom, utility area, staircase, parking and clear room labels.",
+                    "type": "floor_plan",
+                    "style": "Modern",
+                },
+                "Modern Office Building": {
+                    "prompt": "Modern office building floor plan with recep

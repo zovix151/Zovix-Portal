@@ -1,0 +1,33 @@
+<svg width="100%" height="100%" viewBox="0 0 1000 1600" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="1000" height="1600" fill="#0a192f"/>
+
+  <!-- Robot Frame - Main Structure -->
+  <g stroke="#38bdf8" stroke-width="3" fill="none">
+    <!-- Head -->
+    <circle cx="500" cy="150" r="70"/>
+    <!-- Torso -->
+    <rect x="400" y="220" width="200" height="400"/>
+    
+    <!-- Left Arm -->
+    <rect x="300" y="250" width="100" height="50"/> <!-- Shoulder L -->
+    <rect x="250" y="300" width="50" height="200"/> <!-- Upper Arm L -->
+    <rect x="200" y="500" width="50" height="50"/> <!-- Elbow L -->
+    <rect x="150" y="550" width="50" height="200"/> <!-- Lower Arm L -->
+    <rect x="100" y="750" width="50" height="50"/> <!-- Hand L -->
+
+    <!-- Right Arm -->
+    <rect x="600" y="250" width="100" height="50"/> <!-- Shoulder R -->
+    <rect x="700" y="300" width="50" height="200"/> <!-- Upper Arm R -->
+    <rect x="750" y="500" width="50" height="50"/> <!-- Elbow R -->
+    <rect x="800" y="550" width="50" height="200"/> <!-- Lower Arm R -->
+    <rect x="850" y="750" width="50" height="50"/> <!-- Hand R -->
+
+    <!-- Left Leg -->
+    <rect x="400" y="620" width="50" height="50"/> <!-- Hip L -->
+    <rect x="400" y="670" width="50" height="300"/> <!-- Upper Leg L -->
+    <rect x="400" y="970" width="50" height="50"/> <!-- Knee L -->
+    <rect x="400" y="1020" width="50" height="300"/> <!-- Lower Leg L -->
+    <rect x="375" y="1320" width="100" height="50"/> <!-- Foot L -->
+
+    <!-- Right Leg -->
+    <rect x="55

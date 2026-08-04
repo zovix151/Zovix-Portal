@@ -1,0 +1,6 @@
+nt_prompt.strip():
+                            st.error("Please enter a blueprint description.")
+                        else:
+                            with st.spinner("🧠 DeepSeek AI generating architectural blueprint..."):
+                                try:
+                                    blueprint_path = generate_blueprint_with_deepseek(

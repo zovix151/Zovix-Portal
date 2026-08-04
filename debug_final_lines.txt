@@ -1,0 +1,25 @@
+0:             health_voice = check_endpoint_health(os.getenv("RUNPOD_ENDPOINT_VOICE", ""))
+1:             status_color = "🟢" if health_voice.get("status") == "healthy" else "🔴"
+2:             st.markdown(f"{status_color} **Voice/TTS:** {health_voice.get('status', 'Not configured'
+3: 
+4: elif st.session_state["studio_active_mode"] == "Production Engine":
+5:         run_production_engine_mode()
+6:     elif st.session_state["studio_active_mode"] == "Draw Mode":
+7:         run_draw_mode()
+8:     elif st.session_state["studio_active_mode"] == "Video Editor Mode":
+9:         run_video_editor_mode()
+10:     elif st.session_state["studio_active_mode"] == "Face Video Mode":
+11:         run_unified_face_video_mode()
+12:     elif st.session_state["studio_active_mode"] == "Expressive Face Video Mode":
+13:         run_unified_face_video_mode()
+14:     elif st.session_state["studio_active_mode"] == "AI Agent Mode":
+15:         render_ai_agent_ui()
+16:     elif st.session_state["studio_active_mode"] == "AI Sales Mode":
+17:         render_ai_sales_ui()
+18:     elif st.session_state["studio_active_mode"] == "Dynamic UI Mode":
+19:         generate_dynamic_ui()
+20:     elif st.session_state["studio_active_mode"] == "Live Emotion Mode":
+21:         render_live_emotion_voice()
+22:     
+23:     # ========================================================
+24:     # PORTFOLIO, HISTORY, TRENDING, FOOTER

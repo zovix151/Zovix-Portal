@@ -1,0 +1,71 @@
+def generate_blueprint_data_with_deepseek(prompt, category, style="Modern"):
+    """Generate structured blueprint data using DeepSeek AI"""
+    
+    if not DEEPSEEK_API_KEY:
+        return generate_fallback_blueprint_data(prompt, category, style)
+    
+    url = "https://api.deepseek.com/v1/chat/completions"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {DEEPSEEK_API_KEY}"
+    }
+    
+    category_prompts = {
+        "robotics": f"""You are a robotics engineer. Create a detailed engineering blueprint for: {prompt}
+        Return JSON with: title, description, components (8-10 parts), specifications (technical details), dimensions, materials, power_system, control_system""",
+        
+        "electronics": f"""You are an electronics engineer. Create a circuit/PCB blueprint for: {prompt}
+        Return JSON with: title, description, components (8-10), specifications, pinout, power_requirements, board_dimensions""",
+        
+        "architecture": f"""You are an architect. Create a building/floor plan blueprint for: {prompt}
+        Return JSON with: title, description, rooms (6-8), dimensions, total_area, features, building_materials""",
+        
+        "automotive": f"""You are an automotive engineer. Create a vehicle blueprint for: {prompt}
+        Return JSON with: title, description, parts (8-10), specifications, dimensions, performance, fuel_system""",
+        
+        "aerospace": f"""You are an aerospace engineer. Create a spacecraft/aircraft blueprint for: {prompt}
+        Return JSON with: title, description, components (8-10), specifications, dimensions, capabilities, propulsion""",
+        
+        "industrial": f"""You are an industrial engineer. Create a factory layout blueprint for: {prompt}
+        Return JSON with: title, description, zones (6-8), dimensions, capacity, workflow, equipment""",
+        
+        "interior": f"""You are an interior designer. Create an interior layout blueprint for: {prompt}
+        Return JSON with: title, description, areas (6-8), dimensions, furniture, color_scheme, materials""",
+        
+        "landscape": f"""You are a landscape architect. Create a landscape design blueprint for: {prompt}
+        Return JSON with: title, description, elements (6-8), dimensions, plants, features, irrigation""",
+        
+        "futuristic": f"""You are a concept designer. Create a futuristic blueprint for: {prompt}
+        Return JSON with: title, description, components (8-10), specifications, dimensions, technology, energy_source""",
+        
+        "medical": f"""You are a medical facility architect. Create a hospital/clinic blueprint for: {prompt}
+        Return JSON with: title, description, departments (6-8), dimensions, capacity, equipment, special_features""",
+        
+        "educational": f"""You are an educational architect. Create a school/campus blueprint for: {prompt}
+        Return JSON with: title, description, facilities (6-8), dimensions, capacity, features, amenities"""
+    }
+    
+    system_prompt = category_prompts.get(category, category_prompts["architecture"])
+    
+    payload = {
+        "model": "deepseek-chat",
+        "messages": [
+            {"role": "system", "content": "You are an expert technical designer. Respond only with valid JSON."},
+            {"role": "user", "content": system_prompt}
+        ],
+        "temperature": 0.7,
+        "max_tokens": 800,
+        "response_format": {"type": "json_object"}
+    }
+    
+    try:
+        response = requests.post(url, headers=headers, json=payload, timeout=30)
+        if response.status_code == 200:
+            result = response.json()
+            return json.loads(result['choices'][0]['message']['content'])
+    except Exception as e:
+        print(f"DeepSeek error: {e}")
+    
+    return generate_fallback_blueprint_data(prompt, category, style)
+
+

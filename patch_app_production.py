@@ -1,0 +1,265 @@
+"""Patch app.py to integrate ZOVIX Production Engine"""
+import re
+
+with open('app.py', 'r', encoding='utf-8') as f:
+    content = f.read()
+
+# 1. Add import for production engine at top of file
+import_line = "from production_engine import generate_production_face_video, generate_production_voice, generate_production_face_video_streamlit, generate_production_voice_streamlit, get_language_list, get_emotion_list, get_cost_estimate, check_endpoint_health\n"
+
+# Find the imports section and add after last import
+last_import = content.rfind("\nimport ") 
+if last_import >= 0:
+    next_newline = content.find("\n", last_import + 8)
+    after_imports = content[next_newline:]
+    insert_pos = content.find("\n\n", next_newline)
+    if insert_pos >= 0:
+        content = content[:insert_pos+1] + import_line + content[insert_pos+1:]
+        print("Added production engine import")
+    else:
+        content += "\n" + import_line
+        print("Added import at end")
+
+# 2. Add RunPod config to .env / settings section
+# Find if RUNPOD_API_KEY already exists
+if "RUNPOD_API_KEY" not in content:
+    # Add after existing API keys section
+    api_section = content.find("STABILITY_API_KEY")
+    if api_section >= 0:
+        env_vars = """
+# RunPod Production Infrastructure
+RUNPOD_API_KEY = os.getenv("RUNPOD_API_KEY", "")
+RUNPOD_ENDPOINT_FACE = os.getenv("RUNPOD_ENDPOINT_FACE", "")
+RUNPOD_ENDPOINT_VOICE = os.getenv("RUNPOD_ENDPOINT_VOICE", "")
+CLOUD_STORAGE_URL = os.getenv("CLOUD_STORAGE_URL", "https://storage.zovix.ai")
+"""
+        eol = content.find("\n", api_section)
+        content = content[:eol] + env_vars + content[eol:]
+        print("Added RunPod environment variables")
+
+# 3. Add production engine tab to streamlit UI
+# Find the mode selector and add "Production Engine"
+mode_pattern = re.compile(r'(st\.session_state\["studio_active_mode"\]\s*=\s*options\[)', re.MULTILINE)
+if mode_pattern.search(content):
+    print("Found mode selector")
+    
+    # Find where modes are defined
+    modes_match = re.search(r'"Face Video Mode".*?"Draw Mode"', content, re.DOTALL)
+    if modes_match:
+        old_modes = modes_match.group(0)
+        if "Production Engine" not in old_modes:
+            new_modes = old_modes.replace('"Draw Mode"', '"Draw Mode", "Production Engine"')
+            content = content.replace(old_modes, new_modes)
+            print("Added Production Engine to mode list")
+
+# 4. Add production engine runner function
+prod_engine_code = '''
+
+# ========================================================
+# PRODUCTION ENGINE MODE - RunPod Infrastructure
+# ========================================================
+
+def run_production_engine_mode():
+    """Production Engine Mode - RunPod-powered face video & voice generation"""
+    
+    st.markdown("""
+    <div style="
+        background: linear-gradient(135deg, rgba(236,72,153,0.06), rgba(69,243,255,0.06));
+        border-radius: 16px;
+        border: 1px solid rgba(69,243,255,0.08);
+        padding: 16px 20px;
+        margin-bottom: 18px;
+        text-align: center;
+    ">
+        <span style="
+            display: inline-block;
+            background: rgba(236,72,153,0.12);
+            color: #EC4899;
+            padding: 4px 14px;
+            border-radius: 16px;
+            font-size: 9px;
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 1px;
+            border: 1px solid rgba(236,72,153,0.15);
+            margin-bottom: 6px;
+        ">PRODUCTION INFRASTRUCTURE</span>
+        <h2 style="
+            font-family: 'Orbitron', sans-serif;
+            font-size: 20px;
+            color: #FFFFFF;
+            margin: 0;
+        ">
+            ZOVIX <span style="
+                background: linear-gradient(135deg, #45f3ff, #EC4899);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            ">Production Engine</span>
+        </h2>
+        <p style="
+            font-family: 'Inter', sans-serif;
+            color: #94a3b8;
+            font-size: 12px;
+            margin: 4px 0 0 0;
+        ">
+            LivePortrait + CodeFormer | XTTS-v2 Multilingual | RunPod GPU
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    tab1, tab2, tab3 = st.tabs([" Face Video", " Voice / TTS", " Cost Analysis"])
+    
+    with tab1:
+        st.markdown("### Face Video Generation")
+        st.markdown("**Model:** LivePortrait + CodeFormer (4K Enhancement)")
+        st.markdown("**Cost:** ~Rs. 0.50 per video")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            face_image = st.file_uploader("Upload Face Image", type=["jpg", "jpeg", "png"], key="pe_face_image")
+            if face_image:
+                st.image(face_image, width=200, caption="Source Face")
+        
+        with col2:
+            audio_file = st.file_uploader("Upload Audio (for lip sync)", type=["mp3", "wav", "ogg"], key="pe_audio_file")
+        
+        enhancer = st.checkbox("Apply 4K Face Enhancement (CodeFormer)", value=True)
+        resolution = st.selectbox("Output Resolution", ["1024x1024", "768x768", "512x512"], index=0)
+        
+        cloud_img_url = st.text_input("Or use Image URL", placeholder="https://...")
+        cloud_aud_url = st.text_input("Or use Audio URL", placeholder="https://...")
+        
+        if st.button("Generate Face Video", use_container_width=True, type="primary"):
+            img_url = cloud_img_url.strip() or (face_image and "uploaded") or ""
+            aud_url = cloud_aud_url.strip() or (audio_file and "uploaded") or ""
+            
+            if not img_url or not aud_url:
+                st.error("Please provide face image and audio (upload or URL)")
+            else:
+                try:
+                    result = generate_production_face_video_streamlit(
+                        img_url, aud_url, enhancer=enhancer, st_instance=st
+                    )
+                    
+                    if result and result.get("video_url"):
+                        st.success("Face video generated successfully!")
+                        
+                        col_meta1, col_meta2, col_meta3 = st.columns(3)
+                        with col_meta1:
+                            st.metric("Latency", f"{result.get('latency_ms', 0)/1000:.1f}s")
+                        with col_meta2:
+                            st.metric("Cost", f"Rs. {result.get('cost_inr', 0):.2f}")
+                        with col_meta3:
+                            st.metric("Resolution", result.get("resolution", "N/A"))
+                        
+                        st.video(result["video_url"])
+                    else:
+                        st.error("Generation failed. Check RunPod endpoint configuration.")
+                        
+                except Exception as e:
+                    st.error(f"Error: {str(e)}")
+    
+    with tab2:
+        st.markdown("### Multilingual Voice / TTS Generation")
+        st.markdown("**Model:** XTTS-v2 (Voice Cloning)")
+        st.markdown("**Cost:** ~Rs. 0.33 per generation")
+        
+        col_l, col_r = st.columns(2)
+        with col_l:
+            tts_text = st.text_area("Text to Convert", placeholder="Enter text in any supported language...", height=120)
+            tts_language = st.selectbox("Language", list(get_language_list().keys()), index=1)
+        
+        with col_r:
+            tts_emotion = st.selectbox("Emotion", get_emotion_list(), index=0)
+            tts_speed = st.slider("Speed", 0.5, 2.0, 1.0, 0.1)
+            tts_clone = st.file_uploader("Voice Clone Reference (optional)", type=["mp3", "wav"], key="pe_voice_clone")
+        
+        if st.button("Generate Voice", use_container_width=True, type="primary"):
+            if not tts_text:
+                st.error("Please enter text to convert")
+            else:
+                try:
+                    result = generate_production_voice_streamlit(
+                        tts_text, tts_language, emotion=tts_emotion, st_instance=st
+                    )
+                    
+                    if result and result.get("audio_url"):
+                        st.success("Voice generated successfully!")
+                        st.audio(result["audio_url"])
+                        
+                        col_m1, col_m2, col_m3 = st.columns(3)
+                        with col_m1:
+                            st.metric("Language", result.get("language", "N/A").title())
+                        with col_m2:
+                            st.metric("Cost", f"Rs. {result.get('cost_inr', 0):.2f}")
+                        with col_m3:
+                            st.metric("Latency", f"{result.get('latency_ms', 0)/1000:.1f}s")
+                except Exception as e:
+                    st.error(f"Error: {str(e)}")
+    
+    with tab3:
+        st.markdown("### Cost Analysis & Infrastructure")
+        
+        monthly_videos = st.number_input("Monthly Face Videos", 100, 100000, 1000, step=100)
+        monthly_voices = st.number_input("Monthly Voice Generations", 100, 100000, 10000, step=100)
+        
+        estimates = get_cost_estimate(monthly_videos, monthly_voices)
+        
+        st.markdown("#### Cost Breakdown")
+        col_a, col_b, col_c = st.columns(3)
+        with col_a:
+            st.metric("Face Videos (Total)", f"Rs. {estimates['video']['total_inr']:,.0f}")
+        with col_b:
+            st.metric("Voice/TTS (Total)", f"Rs. {estimates['voice']['total_inr']:,.0f}")
+        with col_c:
+            st.metric("GRAND TOTAL", f"Rs. {estimates['total']['inr']:,.0f}", 
+                     delta=f"~{estimates['total']['usd']:,.0f} USD")
+        
+        st.markdown("#### Per-Unit Cost")
+        st.markdown(f"- **Face Video:** Rs. {estimates['video']['cost_per_video_inr']} each (USD ${estimates['video']['cost_per_video_usd']})")
+        st.markdown(f"- **Voice Gen:** Rs. {estimates['voice']['cost_per_voice_inr']} each (USD ${estimates['voice']['cost_per_voice_usd']})")
+        
+        st.markdown("#### vs Previous Costs (Savings)")
+        old_video_cost = 0.43 * 83  # Rs. 35.69
+        old_voice_cost = 0.05 * 83  # Rs. 4.15 (approximate ElevenLabs)
+        new_video_cost = estimates['video']['cost_per_video_inr']
+        new_voice_cost = estimates['voice']['cost_per_voice_inr']
+        
+        video_savings = ((old_video_cost - new_video_cost) / old_video_cost) * 100
+        voice_savings = ((old_voice_cost - new_voice_cost) / old_voice_cost) * 100
+        
+        st.markdown(f"- **Face Video:** Rs. {old_video_cost:.2f} -> Rs. {new_video_cost:.2f} (**{video_savings:.0f}% savings**)")
+        st.markdown(f"- **Voice/TTS:** Rs. {old_voice_cost:.2f} -> Rs. {new_voice_cost:.2f} (**{voice_savings:.0f}% savings**)")
+        
+        st.markdown("#### Endpoint Status")
+        col_s1, col_s2 = st.columns(2)
+        with col_s1:
+            health_face = check_endpoint_health(os.getenv("RUNPOD_ENDPOINT_FACE", ""))
+            status_color = "🟢" if health_face.get("status") == "healthy" else "🔴"
+            st.markdown(f"{status_color} **Face Video:** {health_face.get('status', 'Not configured').title()}")
+        with col_s2:
+            health_voice = check_endpoint_health(os.getenv("RUNPOD_ENDPOINT_VOICE", ""))
+            status_color = "🟢" if health_voice.get("status") == "healthy" else "🔴"
+            st.markdown(f"{status_color} **Voice/TTS:** {health_voice.get('status', 'Not configured').title()}")
+'''
+
+# Add the production engine function before the main routing
+route_marker = 'elif st.session_state["studio_active_mode"] == "Draw Mode":'
+route_index = content.find(route_marker)
+if route_index >= 0:
+    # Add the function before the routing
+    content = content[:route_index] + prod_engine_code + "\n" + content[route_index:]
+    print("Added production engine mode function")
+    
+    # Add routing
+    route_insert = 'elif st.session_state["studio_active_mode"] == "Production Engine":\n        run_production_engine_mode()\n    '
+    content = content.replace(
+        'elif st.session_state["studio_active_mode"] == "Draw Mode":',
+        route_insert + 'elif st.session_state["studio_active_mode"] == "Draw Mode":'
+    )
+    print("Added Production Engine routing")
+
+with open('app.py', 'w', encoding='utf-8') as f:
+    f.write(content)
+
+print("App.py patched successfully!")

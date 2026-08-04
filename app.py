@@ -33,10 +33,11 @@ except Exception:
 
     def load_dotenv(*args, **kwargs):
         return False
-from PIL import Image, ImageDraw, ImageEnhance, ImageFilter
+from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageFont, ImageOps
 import streamlit as st
 import streamlit.components.v1 as components
 from pydantic import BaseModel, Field
+import textwrap
 
 st.set_page_config(layout="wide", initial_sidebar_state="collapsed")
 from typing import List, Dict, Any, Tuple, Optional, Union
@@ -46,6 +47,9 @@ from collections import defaultdict
 import psutil
 import socket
 import platform
+from production_engine import generate_production_face_video, generate_production_voice, generate_production_face_video_streamlit, generate_production_voice_streamlit, get_language_list, get_emotion_list, get_cost_estimate, check_endpoint_health
+from production_engine import generate_production_face_video, generate_production_voice
+
 
 
 # ========================================================
@@ -99,13 +103,28 @@ RAZORPAY_KEY_SECRET = get_system_secret("RAZORPAY_KEY_SECRET")
 PIXABAY_API_KEY = get_system_secret("PIXABAY_API_KEY")
 PEXELS_API_KEY = get_system_secret("PEXELS_API_KEY")
 STABILITY_API_KEY = get_system_secret("STABILITY_API_KEY")
+# RunPod Production Infrastructure
+RUNPOD_API_KEY = os.getenv("RUNPOD_API_KEY", "")
+RUNPOD_ENDPOINT_FACE = os.getenv("RUNPOD_ENDPOINT_FACE", "")
+RUNPOD_ENDPOINT_VOICE = os.getenv("RUNPOD_ENDPOINT_VOICE", "")
+CLOUD_STORAGE_URL = os.getenv("CLOUD_STORAGE_URL", "https://storage.zovix.ai")
+
 ELEVENLABS_API_KEY = get_system_secret("ELEVENLABS_API_KEY")
 GEMINI_API_KEY = get_system_secret("GEMINI_API_KEY")
 LUMA_API_KEY = get_system_secret("LUMA_API_KEY")
 RUNWAY_API_KEY = get_system_secret("RUNWAY_API_KEY")
 HUGGINGFACE_API_KEY = get_system_secret("HUGGINGFACE_API_KEY")
 DEEPSEEK_API_KEY = get_system_secret("DEEPSEEK_API_KEY")
-REPLICATE_API_KEY = get_system_secret("REPLICATE_API_KEY")
+DEEPINFRA_API_KEY = get_system_secret("DEEPINFRA_API_KEY")
+DEEPINFRA_FACE_MODEL = get_system_secret("DEEPINFRA_FACE_MODEL", "") or os.getenv("DEEPINFRA_FACE_MODEL", "")
+DEEPINFRA_FACE_MODELS = get_system_secret("DEEPINFRA_FACE_MODELS", "") or os.getenv("DEEPINFRA_FACE_MODELS", "")
+DEEPINFRA_API_URL = os.getenv("DEEPINFRA_API_URL", "https://api.deepinfra.com/v1")
+# RunPod Production Infrastructure
+RUNPOD_API_KEY = os.getenv("RUNPOD_API_KEY", "") or get_system_secret("RUNPOD_API_KEY")
+FACE_ENDPOINT_ID = os.getenv("FACE_ENDPOINT_ID", "") or get_system_secret("FACE_ENDPOINT_ID")
+VOICE_ENDPOINT_ID = os.getenv("VOICE_ENDPOINT_ID", "") or get_system_secret("VOICE_ENDPOINT_ID")
+RUNPOD_API_URL = os.getenv("RUNPOD_API_URL", "https://api.runpod.ai/v2")
+
 AZURE_SPEECH_KEY = get_system_secret("AZURE_SPEECH_KEY")
 AZURE_SPEECH_REGION = get_system_secret("AZURE_SPEECH_REGION", "eastus")
 CLOUDFLARE_ZONE_ID = get_system_secret("CLOUDFLARE_ZONE_ID")
@@ -128,14 +147,6 @@ try:
     from huggingface_hub import InferenceClient
 except ImportError:
     InferenceClient = None
-
-try:
-    import replicate
-    HAS_REPLICATE = True
-except ImportError:
-    replicate = None
-    HAS_REPLICATE = False
-    logger.warning("replicate not installed. Face Studio cloud mode will be unavailable.")
 
 try:
     import razorpay
@@ -2848,6 +2859,7 @@ def render_razorpay_checkout(order_id, amount, plan_name, credits, username, key
                 const planName = {json.dumps(safe_plan_name)};
                 const keyId = {json.dumps(key_id)};
                 const returnUrl = {json.dumps(return_url)};
+                const prefillEmail = (username && username.indexOf('@') !== -1) ? username : 'user@zovix.ai';
                 const paymentStatus = document.getElementById('paymentStatus');
                 const payButton = document.getElementById('pay-btn');
 
@@ -2871,7 +2883,7 @@ def render_razorpay_checkout(order_id, amount, plan_name, credits, username, key
                         order_id: orderId,
                         prefill: {{
                             name: username || 'Zovix User',
-                            email: username || 'user@zovix.ai'
+                            email: prefillEmail
                         }},
                         theme: {{
                             color: '#EC4899',
@@ -2887,30 +2899,17 @@ def render_razorpay_checkout(order_id, amount, plan_name, credits, username, key
                             payButton.disabled = true;
                             payButton.innerHTML = '⏳ Finalizing...';
 
-                            var form = document.createElement("form");
-                            form.method = "GET";
-                            form.action = returnUrl || (window.location.origin + window.location.pathname);
-                            form.target = "_top";
-
                             var params = {{
-                                "payment": "success",
-                                "razorpay_payment_id": response.razorpay_payment_id,
-                                "razorpay_order_id": response.razorpay_order_id,
-                                "razorpay_signature": response.razorpay_signature,
-                                "razorpay_credits": String(credits),
-                                "razorpay_plan_name": planName
+                                payment: 'success',
+                                razorpay_payment_id: response.razorpay_payment_id || '',
+                                razorpay_order_id: response.razorpay_order_id || orderId || '',
+                                razorpay_signature: response.razorpay_signature || '',
+                                razorpay_credits: String(credits),
+                                razorpay_plan_name: planName
                             }};
-
-                            for (var key in params) {{
-                                var input = document.createElement("input");
-                                input.type = "hidden";
-                                input.name = key;
-                                input.value = params[key];
-                                form.appendChild(input);
-                            }}
-
-                            document.body.appendChild(form);
-                            form.submit();
+                            var targetBaseUrl = returnUrl || (window.location.origin + window.location.pathname);
+                            var targetUrl = targetBaseUrl + '?' + new URLSearchParams(params).toString();
+                            window.top.location.href = targetUrl;
                         }}
                     }};
 
@@ -4276,21 +4275,25 @@ def mix_audio_layers(video_input_path, output_path, bgm_path=None, bgm_volume=0.
         slider_bgm = 0.3
 
     # Get master duration from video itself
-    master_dur = get_audio_duration(video_input_path)
+    master_dur = get_media_duration(video_input_path)
     if master_dur <= 0:
         master_dur = None
 
     # Determine inputs
-    has_bgm = bgm_path and os.path.exists(bgm_path)
-    has_voice = voice_path and os.path.exists(voice_path)
+    has_bgm = bool(bgm_path and os.path.exists(bgm_path))
+    has_voice = bool(voice_path and os.path.exists(voice_path))
+    has_base_audio = has_audio_stream(video_input_path)
 
-    # If no BGM and no voice separate, just copy
-    if not has_bgm and not has_voice:
+    # If no usable audio layers at all, just copy
+    if not has_bgm and not has_voice and not has_base_audio:
         try:
             shutil.copy(video_input_path, output_path)
             return os.path.exists(output_path)
-        except:
+        except Exception:
             return False
+
+    base_audio_gain = 0.45 if has_voice else (0.82 if has_bgm else 1.0)
+    tuned_voice_gain = max(1.15, float(voice_volume)) if has_voice else float(voice_volume)
 
     cmd = ['ffmpeg', '-y', '-i', video_input_path]
     filter_chains = []
@@ -4318,13 +4321,14 @@ def mix_audio_layers(video_input_path, output_path, bgm_path=None, bgm_volume=0.
     current_filter_id = 0
 
     # Extract existing audio from video if present
-    filter_graph += ";[0:a]aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo[base_audio]"
-    audio_labels.append("base_audio")
+    if has_base_audio:
+        filter_graph += f";[0:a]aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo,volume={base_audio_gain:.3f}[base_audio]"
+        audio_labels.append("base_audio")
 
     # Process voiceover
     if voice_input_idx is not None:
         voice_label = f"voice{current_filter_id}"
-        filter_graph += f";[{voice_input_idx}:a]aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo,volume={voice_volume:.2f}[{voice_label}]"
+        filter_graph += f";[{voice_input_idx}:a]aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo,volume={tuned_voice_gain:.2f},alimiter=limit=0.97[{voice_label}]"
         audio_labels.append(voice_label)
         current_filter_id += 1
 
@@ -4332,7 +4336,7 @@ def mix_audio_layers(video_input_path, output_path, bgm_path=None, bgm_volume=0.
     if bgm_input_idx is not None:
         bgm_label = f"bgm{current_filter_id}"
 
-        mapped_bgm_gain = 0.0 if slider_bgm <= 0.0 else min(1.0, 0.08 + (slider_bgm ** 1.25) * 0.9)
+        mapped_bgm_gain = 0.0 if slider_bgm <= 0.0 else (min(0.42, 0.04 + (slider_bgm ** 1.15) * 0.32) if has_voice else min(0.72, 0.06 + (slider_bgm ** 1.15) * 0.55))
 
         # If we have voiceover, apply sidechain compression for ducking
         if voice_input_idx is not None:
@@ -4340,7 +4344,7 @@ def mix_audio_layers(video_input_path, output_path, bgm_path=None, bgm_volume=0.
             bgm_chain = (
                 f"[{bgm_input_idx}:a]aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo,"
                 f"volume={mapped_bgm_gain:.3f}[bgm_raw];"
-                f"[bgm_raw][{voice_label}]sidechaincompress=threshold=0.015:ratio=8:attack=5:release=100:makeup=1.2[{bgm_label}]"
+                f"[bgm_raw][{voice_label}]sidechaincompress=threshold=0.010:ratio=12:attack=3:release=250:makeup=0.9[{bgm_label}]"
             )
             filter_graph += ";" + bgm_chain
         else:
@@ -4360,10 +4364,10 @@ def mix_audio_layers(video_input_path, output_path, bgm_path=None, bgm_volume=0.
     if bgm_inputs:
         # Voiceover first, then BGM with sidechain already applied
         all_inputs = ''.join(f'[{l}]' for l in audio_labels)
-        filter_graph += ";" + f"{all_inputs}amix=inputs={len(audio_labels)}:duration=first:dropout_transition=2[aout]"
+        filter_graph += ";" + f"{all_inputs}amix=inputs={len(audio_labels)}:duration=first:dropout_transition=2,alimiter=limit=0.95[aout]"
     else:
         all_inputs = ''.join(f'[{l}]' for l in audio_labels)
-        filter_graph += ";" + f"{all_inputs}amix=inputs={len(audio_labels)}:duration=first:dropout_transition=2[aout]"
+        filter_graph += ";" + f"{all_inputs}amix=inputs={len(audio_labels)}:duration=first:dropout_transition=2,alimiter=limit=0.95[aout]"
 
     # Final cmd
     cmd += [
@@ -4384,23 +4388,30 @@ def mix_audio_layers(video_input_path, output_path, bgm_path=None, bgm_volume=0.
     # Fallback: basic amix without ducking
     try:
         fallback_cmd = ['ffmpeg', '-y', '-i', video_input_path]
-        fallback_filters = ["[0:v]null[vout]", "[0:a]aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo[base]"]
-        fallback_labels = ["[base]"]
+        fallback_filters = ["[0:v]null[vout]"]
+        fallback_labels = []
         fi = 1
+        if has_base_audio:
+            fallback_filters.append(f"[0:a]aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo,volume={base_audio_gain:.3f}[base]")
+            fallback_labels.append("[base]")
         if has_voice:
             fallback_cmd += ['-i', voice_path]
-            fallback_filters.append(f"[{fi}:a]aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo,volume=1.0[v{fi}]")
+            fallback_filters.append(f"[{fi}:a]aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo,volume={tuned_voice_gain:.2f},alimiter=limit=0.97[v{fi}]")
             fallback_labels.append(f"[v{fi}]")
             fi += 1
         if has_bgm:
             fallback_cmd += ['-stream_loop', '-1', '-i', bgm_path]
-            mapped_gain = 0.0 if slider_bgm <= 0.0 else min(1.0, slider_bgm * 0.6)
+            mapped_gain = 0.0 if slider_bgm <= 0.0 else (min(0.30, slider_bgm * 0.28) if has_voice else min(0.55, 0.05 + slider_bgm * 0.42))
             fallback_filters.append(f"[{fi}:a]aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo,volume={mapped_gain:.3f}[b{fi}]")
             fallback_labels.append(f"[b{fi}]")
             fi += 1
 
+        if not fallback_labels:
+            shutil.copy(video_input_path, output_path)
+            return os.path.exists(output_path) and os.path.getsize(output_path) > 0
+
         all_labels_str = ''.join(fallback_labels)
-        fallback_filters.append(f"{all_labels_str}amix=inputs={len(fallback_labels)}:duration=first[aout]")
+        fallback_filters.append(f"{all_labels_str}amix=inputs={len(fallback_labels)}:duration=first,alimiter=limit=0.95[aout]")
         fallback_cmd += ['-filter_complex', ';'.join(fallback_filters), '-map', '[vout]', '-map', '[aout]',
                          '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-shortest', output_path]
         subprocess.run(fallback_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
@@ -6758,8 +6769,188 @@ def deepface_scan_face_and_select_voice(face_image_path):
     
     return result
 
+
+def _extract_video_url_from_deepinfra_output(output_obj):
+    if isinstance(output_obj, str):
+        candidate = output_obj.strip()
+        if candidate.startswith("http://") or candidate.startswith("https://"):
+            return candidate
+    if isinstance(output_obj, dict):
+        for key in ["video_url", "video", "url", "output", "result", "mp4"]:
+            val = output_obj.get(key)
+            found = _extract_video_url_from_deepinfra_output(val)
+            if found:
+                return found
+    if isinstance(output_obj, (list, tuple)):
+        for item in output_obj:
+            found = _extract_video_url_from_deepinfra_output(item)
+            if found:
+                return found
+    return None
+
+
+def _get_deepinfra_api_token():
+    secret_keys = ["DEEPINFRA_API_KEY", "DEEPINFRA_TOKEN"]
+    for key in secret_keys:
+        try:
+            value = st.secrets.get(key)
+        except Exception:
+            value = None
+        if value:
+            return str(value).strip()
+
+    for key in secret_keys:
+        value = os.getenv(key)
+        if value:
+            return str(value).strip()
+    return None
+
+
+def _encode_file_to_data_uri(file_path, mime_type):
+    with open(file_path, "rb") as f:
+        encoded = base64.b64encode(f.read()).decode("utf-8")
+    return f"data:{mime_type};base64,{encoded}"
+
+
+def _run_deepinfra_face_model(api_token, model_ref, image_path, audio_path, script_text, duration, quality):
+    if not os.path.isfile(image_path) or os.path.getsize(image_path) <= 0:
+        raise ValueError("DeepInfra face generation requires a valid image file path.")
+
+    image_ext = os.path.splitext(image_path)[1].lower()
+    image_mime = "image/png" if image_ext == ".png" else "image/jpeg"
+    image_data_uri = _encode_file_to_data_uri(image_path, image_mime)
+
+    has_audio = bool(audio_path and os.path.isfile(audio_path) and os.path.getsize(audio_path) > 1024)
+    audio_data_uri = _encode_file_to_data_uri(audio_path, "audio/mpeg") if has_audio else None
+
+    endpoint = f"{DEEPINFRA_API_URL.rstrip('/')}/inference/{model_ref}"
+    headers = {
+        "Authorization": f"Bearer {api_token}",
+        "Content-Type": "application/json",
+    }
+
+    model_lc = str(model_ref).strip().lower()
+    quality_lc = str(quality or "standard").strip().lower()
+    resolution = "1280x720" if quality_lc in {"hd", "pro", "4k"} else "1024x576"
+
+    if "p-video-avatar" in model_lc:
+        # Optimized payload sequence for PrunaAI/p-video-avatar.
+        input_builders = [
+            lambda i, a, t: {
+                "image": i,
+                "audio": a,
+                "voice_script": t,
+                "voice_prompt": "speak naturally with clean lip sync",
+                "video_prompt": "real human talking head, natural eye blinks, cinematic lighting",
+                "resolution": resolution,
+                "duration": duration,
+            },
+            lambda i, a, t: {
+                "image": i,
+                "voice_script": t,
+                "voice_prompt": "natural conversational speech",
+                "video_prompt": "photorealistic talking head",
+                "resolution": resolution,
+            },
+            lambda i, a, t: {"image": i, "text": t, "resolution": resolution},
+        ]
+    else:
+        input_builders = [
+            lambda i, a, t: {"image": i, "audio": a, "text": t, "duration": duration, "quality": quality},
+            lambda i, a, t: {"source_image": i, "driving_audio": a, "prompt": t, "duration": duration},
+            lambda i, a, t: {"face_image": i, "audio_url": a, "script": t, "quality": quality},
+            lambda i, a, t: {"input_image": i, "input_audio": a, "voice_script": t},
+            lambda i, a, t: {"image": i, "prompt": t},
+        ]
+
+    last_error = None
+    for build_payload in input_builders:
+        try:
+            payload = {"input": build_payload(image_data_uri, audio_data_uri, script_text)}
+            resp = requests.post(endpoint, headers=headers, json=payload, timeout=180)
+            if resp.status_code >= 400:
+                last_error = f"HTTP {resp.status_code}: {resp.text[:500]}"
+                logger.warning(f"DeepInfra request failed for {model_ref}: {last_error}")
+                continue
+            response_json = resp.json()
+            video_url = _extract_video_url_from_deepinfra_output(response_json)
+            if video_url:
+                return video_url
+            last_error = f"No video URL in response for {model_ref}"
+        except requests.RequestException as req_err:
+            last_error = str(req_err)
+            logger.warning(f"DeepInfra payload failed for {model_ref}: {req_err}")
+        except ValueError as parse_err:
+            last_error = str(parse_err)
+            logger.warning(f"DeepInfra response parse failed for {model_ref}: {parse_err}")
+
+    if last_error:
+        logger.error(f"DeepInfra model {model_ref} failed: {last_error}")
+    return None
+
+
+def generate_world_face_video(prompt, face_image_path, duration=10, quality="HD", animation_style="Expressive Real Human (No Lip-Only Fallback)", backend_choice="DeepInfra Cloud", motion_level="high", voice_language=None, voice_label=None):
+    """Cloud-only face generation using DeepInfra models; no local face animation pipeline."""
+    if not face_image_path or not os.path.exists(face_image_path):
+        return None
+
+    deepinfra_token = _get_deepinfra_api_token()
+    if not deepinfra_token:
+        logger.warning("DeepInfra API token is missing from Streamlit secrets or environment.")
+        return None
+
+    temp_audio = None
+    try:
+        voice_cfg = _resolve_face_voice_config(
+            voice_language=voice_language,
+            voice_label=voice_label,
+            preferred_gender=st.session_state.get('fv_detected_gender') if st.session_state.get('fv_gender_auto', False) else None
+        )
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp_aud:
+            temp_audio = tmp_aud.name
+        _synthesize_face_audio_strict(prompt, temp_audio, voice_cfg, duration_hint=duration)
+
+        raw_candidates = []
+        if DEEPINFRA_FACE_MODELS:
+            raw_candidates.extend([m.strip() for m in DEEPINFRA_FACE_MODELS.split(",") if m.strip()])
+        if DEEPINFRA_FACE_MODEL:
+            raw_candidates.append(str(DEEPINFRA_FACE_MODEL).strip())
+        raw_candidates.extend([
+            os.getenv("DEEPINFRA_FACE_MODEL", "").strip(),
+        ])
+        model_candidates = []
+        seen = set()
+        for model in raw_candidates:
+            key = model.strip().lower()
+            if not key or key in seen:
+                continue
+            seen.add(key)
+            model_candidates.append(model.strip())
+
+        if not model_candidates:
+            model_candidates = ["PrunaAI/p-video-avatar"]
+            logger.info("No DeepInfra model configured. Using default: PrunaAI/p-video-avatar")
+
+        for model_ref in model_candidates:
+            video_url = _run_deepinfra_face_model(
+                deepinfra_token, model_ref, face_image_path, temp_audio, prompt, duration, quality
+            )
+            if video_url:
+                st.session_state["face_video_engine_used"] = f"DeepInfra ({model_ref})"
+                st.session_state["face_video_runtime_mode"] = "Cloud"
+                return video_url
+
+        return None
+    except Exception as e:
+        logger.warning(f"DeepInfra face generation failed: {e}")
+        return None
+    finally:
+        if temp_audio:
+            safe_remove_file(temp_audio)
+
+
 def generate_face_video(prompt, face_image_path, duration=30, emotion="neutral", camera_angle="front", quality="Standard", voice_language=None, voice_label=None):
-    """Pure Cloud Face Video Generation via Replicate API."""
+    """Pure Cloud Face Video Generation via DeepInfra API."""
     if not face_image_path or not os.path.exists(face_image_path):
         return None
 
@@ -6794,7 +6985,7 @@ def generate_face_video(prompt, face_image_path, duration=30, emotion="neutral",
         preferred_gender=st.session_state.get('fv_detected_gender') if st.session_state.get('fv_gender_auto', False) else None
     )
 
-    # --- Cloud-Only: Directly call Replicate API --- #
+    # --- Cloud-Only: Directly call DeepInfra API --- #
     video_result = generate_world_face_video(
         prompt=prompt,
         face_image_path=face_image_path,
@@ -6807,7 +6998,7 @@ def generate_face_video(prompt, face_image_path, duration=30, emotion="neutral",
     if video_result:
         return video_result
     
-    logger.error("All Replicate cloud models failed. No local fallback available.")
+    logger.error("All DeepInfra cloud models failed. No local fallback available.")
     return None
 
 def generate_elevenlabs_audio_for_face(text, output_path, voice_id="21m00Tcm4TlvDq8ikWAM"):
@@ -6948,9 +7139,34 @@ def process_editor_video(uploaded_files, output_path, effect="none", transition=
         elif effect == "dramatic":
             effect_filter = "colorbalance=rs=0.2:gs=-0.1:bs=-0.1,curves=all='0/0 0.3/0.1 0.7/0.8 1/1',unsharp=5:5:1.0"
 
+        concat_file = os.path.join(temp_dir, "concat.txt")
+        with open(concat_file, "w") as f:
+            for clip_path in processed_clips:
+                abs_path = os.path.abspath(clip_path).replace('\\', '/')
+                f.write(f"file '{abs_path}'\n")
+
+        no_transition_output = os.path.join(temp_dir, "stitched_no_transition.mp4")
+        concat_cmd = [
+            'ffmpeg', '-y', '-f', 'concat', '-safe', '0', '-i', concat_file,
+            '-c:v', 'libx264', '-preset', 'medium', '-crf', '23', '-pix_fmt', 'yuv420p',
+            '-map', '0:v:0', '-map', '0:a?', '-c:a', 'aac', '-b:a', '192k',
+            '-movflags', '+faststart', no_transition_output
+        ]
+        subprocess.run(concat_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True, timeout=120)
+
         base_stitched = os.path.join(temp_dir, "stitched_base.mp4")
         if len(processed_clips) == 1:
-            shutil.copy(processed_clips[0], base_stitched)
+            if effect_filter:
+                effect_output = os.path.join(temp_dir, "single_effect.mp4")
+                effect_cmd = [
+                    'ffmpeg', '-y', '-i', no_transition_output, '-vf', effect_filter,
+                    '-map', '0:v:0', '-map', '0:a?', '-c:v', 'libx264', '-preset', 'medium', '-crf', '23',
+                    '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '192k', '-movflags', '+faststart', effect_output
+                ]
+                subprocess.run(effect_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True, timeout=120)
+                base_stitched = effect_output
+            else:
+                shutil.copy(no_transition_output, base_stitched)
         elif transition in transition_map:
             xfade_name = transition_map[transition]
             durations = [max(0.6, get_media_duration(path)) for path in processed_clips]
@@ -6977,18 +7193,41 @@ def process_editor_video(uploaded_files, output_path, effect="none", transition=
             else:
                 final_video_label = current_label
 
+            transition_video = os.path.join(temp_dir, 'transition_video.mp4')
             transition_cmd = ff_inputs + [
                 '-filter_complex', ';'.join(filter_parts),
                 '-map', final_video_label,
                 '-pix_fmt', 'yuv420p',
                 '-c:v', 'libx264', '-preset', 'medium', '-crf', '23',
-                base_stitched
+                transition_video
             ]
             try:
                 subprocess.run(transition_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True, timeout=180)
+                if has_audio_stream(no_transition_output):
+                    muxed_transition = os.path.join(temp_dir, 'transition_muxed.mp4')
+                    mux_cmd = [
+                        'ffmpeg', '-y', '-i', transition_video, '-i', no_transition_output,
+                        '-map', '0:v:0', '-map', '1:a?', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k',
+                        '-shortest', '-movflags', '+faststart', muxed_transition
+                    ]
+                    subprocess.run(mux_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True, timeout=120)
+                    base_stitched = muxed_transition
+                else:
+                    base_stitched = transition_video
             except Exception:
-                transition = "none"
-
+                base_stitched = no_transition_output
+        else:
+            if effect_filter:
+                effect_output = os.path.join(temp_dir, "stitched_effect.mp4")
+                effect_cmd = [
+                    'ffmpeg', '-y', '-i', no_transition_output, '-vf', effect_filter,
+                    '-map', '0:v:0', '-map', '0:a?', '-c:v', 'libx264', '-preset', 'medium', '-crf', '23',
+                    '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '192k', '-movflags', '+faststart', effect_output
+                ]
+                subprocess.run(effect_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True, timeout=120)
+                base_stitched = effect_output
+            else:
+                base_stitched = no_transition_output
         if not os.path.exists(base_stitched) or os.path.getsize(base_stitched) <= 0:
             concat_file = os.path.join(temp_dir, "concat.txt")
             with open(concat_file, "w") as f:
@@ -7134,11 +7373,8 @@ def validate_and_deduct_tokens(mode_name: str, quality: str):
     return True, required_tokens, f"✅ Deducted {required_tokens} credits for {mode_name}"
 
 def render_ai_agent_ui():
-    """AI Agent - Matching Studio Style"""
+    """AI Agent - Fully Fixed"""
     
-    # ========================================================
-    # HEADER - STUDIO STYLE MATCH
-    # ========================================================
     st.markdown("""
     <div style="
         background: linear-gradient(135deg, rgba(236,72,153,0.06), rgba(69,243,255,0.06));
@@ -7271,42 +7507,53 @@ def render_ai_agent_ui():
                 label_visibility="collapsed"
             )
             
+            # ✅ FIXED: Activate Button with proper logic
             if st.button("🚀 Activate AI Agent", key="agent_activate_btn", use_container_width=True):
-                success, required_tokens, message = validate_and_deduct_tokens("AI Agent", agent_quality)
-                if not success:
-                    st.error(message)
+                if not business_name.strip():
+                    st.error("❌ Please enter a business name.")
+                elif not products_text.strip():
+                    st.error("❌ Please list at least one product or service.")
                 else:
-                    st.success(message)
-                    if not business_name.strip():
-                        st.error("Please enter a business name.")
-                    elif not products_text.strip():
-                        st.error("Please list at least one product or service.")
+                    required_tokens = 2 if agent_quality == "Standard" else 4
+                    
+                    if st.session_state.get('user_credits', 0) < required_tokens:
+                        st.error(f"❌ Insufficient credits! Required: {required_tokens}, Available: {st.session_state.get('user_credits', 0)}")
                     else:
-                        with st.spinner("🔄 Configuring AI Agent for your business..."):
-                            st.session_state["agent_business_name"] = business_name
-                            st.session_state["agent_products"] = [p.strip() for p in products_text.split("\n") if p.strip()]
-                            st.session_state["agent_schedule"] = {
-                                "open": str(opening_time),
-                                "close": str(closing_time),
-                                "instagram": instagram_handle,
-                                "whatsapp": whatsapp_number,
-                                "category": business_category
-                            }
-                            conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
-                            cursor = conn.cursor()
-                            try:
-                                cursor.execute(
-                                    "INSERT OR REPLACE INTO ai_agent_config (username, business_name, products, schedule) VALUES (?, ?, ?, ?)",
-                                    (st.session_state["logged_user"], business_name, json.dumps(st.session_state["agent_products"]), json.dumps(st.session_state["agent_schedule"]))
-                                )
-                                conn.commit()
-                            except Exception:
-                                pass
-                            finally:
-                                conn.close()
-                            st.toast("✅ AI Agent activated successfully!")
-                            st.session_state["ai_agent_mode"] = True
-                            st.rerun()
+                        try:
+                            # Deduct credits
+                            deduct_credits_db(st.session_state["logged_user"], required_tokens)
+                            st.session_state['user_credits'] = get_user_credits_db(st.session_state["logged_user"])
+                            
+                            with st.spinner("🔄 Configuring AI Agent for your business..."):
+                                st.session_state["agent_business_name"] = business_name
+                                st.session_state["agent_products"] = [p.strip() for p in products_text.split("\n") if p.strip()]
+                                st.session_state["agent_schedule"] = {
+                                    "open": str(opening_time),
+                                    "close": str(closing_time),
+                                    "instagram": instagram_handle,
+                                    "whatsapp": whatsapp_number,
+                                    "category": business_category
+                                }
+                                
+                                # Save to database
+                                conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+                                cursor = conn.cursor()
+                                try:
+                                    cursor.execute(
+                                        "INSERT OR REPLACE INTO ai_agent_config (username, business_name, products, schedule) VALUES (?, ?, ?, ?)",
+                                        (st.session_state["logged_user"], business_name, json.dumps(st.session_state["agent_products"]), json.dumps(st.session_state["agent_schedule"]))
+                                    )
+                                    conn.commit()
+                                except Exception as db_e:
+                                    logger.warning(f"DB save error: {db_e}")
+                                finally:
+                                    conn.close()
+                                
+                                st.session_state["ai_agent_mode"] = True
+                                st.toast("✅ AI Agent activated successfully!")
+                                st.rerun()
+                        except Exception as e:
+                            st.error(f"❌ Error: {str(e)}")
     
     with agent_col2:
         with st.container(border=True):
@@ -7422,6 +7669,8 @@ def render_ai_agent_ui():
                                 st.session_state["agent_instagram_caption"] = caption
                                 st.toast("Instagram post generated!")
                                 st.rerun()
+                            else:
+                                st.error("❌ Image generation failed. Try again.")
                 
                 if st.session_state.get("agent_generated_ad"):
                     with st.expander("📱 WhatsApp Ad Preview", expanded=False):
@@ -7486,1921 +7735,7 @@ def render_ai_agent_ui():
                     </div>
                 """, unsafe_allow_html=True)
 
-def render_ai_sales_ui():
-    """AI Sales - Matching Studio Style"""
-    
-    # ========================================================
-    # HEADER - STUDIO STYLE MATCH
-    # ========================================================
-    st.markdown("""
-    <div style="
-        background: linear-gradient(135deg, rgba(236,72,153,0.06), rgba(69,243,255,0.06));
-        border-radius: 16px;
-        border: 1px solid rgba(69,243,255,0.08);
-        padding: 16px 20px;
-        margin-bottom: 18px;
-        text-align: center;
-    ">
-        <span style="
-            display: inline-block;
-            background: rgba(236,72,153,0.12);
-            color: #EC4899;
-            padding: 4px 14px;
-            border-radius: 16px;
-            font-size: 9px;
-            font-family: 'Orbitron', sans-serif;
-            letter-spacing: 1px;
-            border: 1px solid rgba(236,72,153,0.15);
-            margin-bottom: 6px;
-        ">🎙️ SALES AI</span>
-        <h2 style="
-            font-family: 'Orbitron', sans-serif;
-            font-size: 20px;
-            color: #FFFFFF;
-            margin: 0;
-        ">
-            AI Voice & Video <span style="
-                background: linear-gradient(135deg, #45f3ff, #EC4899);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                background-clip: text;
-            ">Sales Engine</span>
-        </h2>
-        <p style="
-            font-family: 'Inter', sans-serif;
-            color: #94a3b8;
-            font-size: 12px;
-            margin: 4px 0 0 0;
-        ">
-            Create AI sales videos in any language with realistic avatars
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    sales_col1, sales_col2 = st.columns([1.1, 1.4], gap="medium")
-    
-    with sales_col1:
-        with st.container(border=True):
-            st.markdown("""
-            <h4 style="
-                font-family: 'Orbitron', sans-serif;
-                font-size: 12px;
-                color: #EC4899;
-                margin-bottom: 12px;
-                letter-spacing: 0.5px;
-            ">
-                ⚙️ SALES VIDEO PARAMETERS
-            </h4>
-            """, unsafe_allow_html=True)
-            
-            # Product Details
-            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">📦 Product Details</p>', unsafe_allow_html=True)
-            product_name = st.text_input(
-                "Product Name",
-                placeholder="e.g. Smart Watch Pro",
-                key="sales_product_name_input",
-                label_visibility="collapsed"
-            )
-            product_price = st.text_input(
-                "Product Price",
-                placeholder="e.g. ₹4999",
-                key="sales_product_price_input",
-                label_visibility="collapsed"
-            )
-            
-            # Product Image
-            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">📷 Product Image</p>', unsafe_allow_html=True)
-            product_image = st.file_uploader(
-                "Upload Product Image",
-                type=['jpg', 'jpeg', 'png', 'webp'],
-                key="sales_image_upload",
-                label_visibility="collapsed"
-            )
-            if product_image:
-                img_path = f"ai_sales_videos/product_{uuid.uuid4().hex[:8]}.png"
-                with open(img_path, "wb") as f:
-                    f.write(product_image.getbuffer())
-                st.session_state["sales_product_image"] = img_path
-                st.image(img_path, caption="Product Image", use_container_width=True)
-            
-            # Language & Voice
-            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">🌐 Language & Voice</p>', unsafe_allow_html=True)
-            sales_language = st.selectbox(
-                "Sales Language",
-                ["Hindi", "Bhojpuri", "Maithili", "Tamil", "Telugu", "English", "Hinglish"],
-                key="sales_language_select",
-                label_visibility="collapsed"
-            )
-            sales_voice = st.selectbox(
-                "Voice Profile",
-                ["Male (Drew)", "Female (Rachel)", "Male (Deep)", "Female (Aria)"],
-                key="sales_voice_select",
-                label_visibility="collapsed"
-            )
-            
-            # Sales Script
-            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">📝 Sales Script / Pitch</p>', unsafe_allow_html=True)
-            sales_script = st.text_area(
-                "Script",
-                placeholder="e.g. Namaste! Aaj hum aapke liye laye hain ek zabardast offer...",
-                height=100,
-                key="sales_script_input",
-                label_visibility="collapsed"
-            )
-            
-            if st.button("📝 Auto-Generate Sales Script", key="sales_gen_script", use_container_width=True):
-                if product_name.strip():
-                    lang_map = {
-                        "Hindi": "Hindi",
-                        "Bhojpuri": "Bhojpuri",
-                        "Maithili": "Maithili",
-                        "Tamil": "Tamil",
-                        "Telugu": "Telugu",
-                        "English": "English",
-                        "Hinglish": "Hinglish"
-                    }
-                    lang = lang_map.get(sales_language, "Hinglish")
-                    script = f"Namaste! Aaj hum aapke liye laye hain {product_name} ka ek zabardast offer."
-                    script += f" Yeh product hai sirf {product_price} mein."
-                    script += " Quality aur performance dono mein number one. Limited stock hai, toh jaldi karein."
-                    script += f" Aaj hi order karein apna {product_name}."
-                    
-                    if sales_language == "Bhojpuri":
-                        script = f"Pranam! Aaj hum aapan lave hai {product_name} ka ek dhansu offer."
-                        script += f" Ee product hai sirf {product_price} mein."
-                        script += " Quality aur performance dono mein number one. Limited stock hai, toh jaldi karein."
-                        script += f" Aaj hi order karein apna {product_name}."
-                    elif sales_language == "Tamil":
-                        script = f"Vanakkam! Inga namma ungalukku {product_name} oru special offer kondu vandhirukkom."
-                        script += f" Indha product vilaiku {product_price} mattum."
-                        script += " Quality la Number One. Limited stock, seekiram order pannunga."
-                        script += f" Ingaikkave ungaloda {product_name} order pannunga."
-                    
-                    st.session_state["sales_script_input"] = script
-                    st.toast("Script generated in " + sales_language + "!")
-                    st.rerun()
-                else:
-                    st.error("Please enter product name first.")
-            
-            # Quality
-            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">📊 Sales Video Quality</p>', unsafe_allow_html=True)
-            sales_quality = st.selectbox(
-                "Quality",
-                ["Standard", "HD", "4K"],
-                key="sales_quality",
-                label_visibility="collapsed"
-            )
-            
-            st.markdown("<br>", unsafe_allow_html=True)
-            
-            if st.button("🎬 Generate AI Sales Video", key="sales_generate_btn", use_container_width=True):
-                success, required_tokens, message = validate_and_deduct_tokens("AI Sales", sales_quality)
-                if not success:
-                    st.error(message)
-                else:
-                    st.success(message)
-                    if not product_name.strip():
-                        st.error("Please enter product name.")
-                    elif not st.session_state.get("sales_product_image") or not os.path.exists(st.session_state["sales_product_image"]):
-                        st.error("Please upload a product image.")
-                    elif not st.session_state.get("sales_script_input", "").strip():
-                        st.error("Please enter a sales script or auto-generate one.")
-                    else:
-                        with st.spinner(f"🎬 Generating AI Sales Video in {sales_language}..."):
-                            script_text = st.session_state["sales_script_input"]
-                            face_img_path = st.session_state["sales_product_image"]
-                            
-                            sales_lang_to_face_lang = {
-                                "Hindi": "Hindi",
-                                "Bhojpuri": "Hindi",
-                                "Maithili": "Hindi",
-                                "Tamil": "Hindi",
-                                "Telugu": "Hindi",
-                                "Hinglish": "Hindi",
-                                "English": "English",
-                            }
-                            sales_voice_to_label = {
-                                "Male (Drew)": "Drew (Professional Male)",
-                                "Female (Rachel)": "Rachel (Premium Female)",
-                                "Male (Deep)": "Antoni (Deep Male)",
-                                "Female (Aria)": "Emily (Professional Female)",
-                            }
-                            
-                            face_voice_language = sales_lang_to_face_lang.get(sales_language, "English")
-                            face_voice_label = sales_voice_to_label.get(sales_voice, "Adam (Premium Male)")
-                            
-                            video_path = generate_face_video(
-                                script_text,
-                                face_img_path,
-                                duration=15,
-                                emotion="excited",
-                                camera_angle="front",
-                                quality=sales_quality,
-                                voice_language=face_voice_language,
-                                voice_label=face_voice_label,
-                            )
-                            
-                            if video_path and (is_remote_url(video_path) or os.path.exists(video_path)):
-                                st.session_state["sales_video_output"] = video_path
-                                st.session_state["sales_product_name"] = product_name
-                                st.session_state["sales_product_price"] = product_price
-                                st.session_state["sales_language"] = sales_language
-                                st.session_state["sales_voice"] = sales_voice
-                                st.session_state["sales_script"] = script_text
-                                
-                                conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
-                                cursor = conn.cursor()
-                                try:
-                                    cursor.execute(
-                                        "INSERT INTO ai_sales_videos (username, product_name, product_price, language, video_path, script) VALUES (?, ?, ?, ?, ?, ?)",
-                                        (st.session_state["logged_user"], product_name, product_price, sales_language, video_path, script_text)
-                                    )
-                                    conn.commit()
-                                except Exception:
-                                    pass
-                                finally:
-                                    conn.close()
-                                
-                                st.toast("🎉 AI Sales Video generated successfully!")
-                                st.rerun()
-                            else:
-                                st.error("Sales video generation failed. Please try again.")
-    
-    with sales_col2:
-        with st.container(border=True):
-            st.markdown("""
-            <h3 style="
-                font-family: 'Orbitron', sans-serif;
-                font-size: 13px;
-                color: #EC4899;
-                margin-bottom: 12px;
-                letter-spacing: 0.5px;
-            ">
-                🎬 SALES VIDEO PLAYER
-            </h3>
-            """, unsafe_allow_html=True)
-            
-            sales_video = st.session_state.get("sales_video_output")
-            if sales_video and (is_remote_url(sales_video) or os.path.exists(sales_video)):
-                st.video(sales_video, format="video/mp4", autoplay=True, loop=True, muted=False)
-                st.markdown("<br>", unsafe_allow_html=True)
-                
-                st.markdown(f"""
-                <div style="
-                    background: rgba(236,72,153,0.04);
-                    border: 1px solid rgba(236,72,153,0.1);
-                    border-radius: 8px;
-                    padding: 10px;
-                ">
-                    <p style="font-family: Inter; font-size: 12px; color: #94a3b8; margin: 2px 0;">
-                        📦 {st.session_state.get('sales_product_name', 'Product')}
-                    </p>
-                    <p style="font-family: Orbitron; font-size: 14px; font-weight: bold; color: #EC4899; margin: 2px 0;">
-                        💰 {st.session_state.get('sales_product_price', 'N/A')}
-                    </p>
-                    <p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 2px 0;">
-                        🎙️ {st.session_state.get('sales_language', 'N/A')}
-                    </p>
-                    <p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 2px 0;">
-                        🎤 {st.session_state.get('sales_voice', 'N/A')}
-                    </p>
-                </div>
-                """, unsafe_allow_html=True)
-                
-                st.markdown("<br>", unsafe_allow_html=True)
-                col_dl, col_share, col_clr = st.columns(3)
-                
-                with col_dl:
-                    video_bytes = None
-                    if is_remote_url(sales_video):
-                        try:
-                            remote_resp = requests.get(sales_video, timeout=45)
-                            if remote_resp.status_code == 200 and len(remote_resp.content) > 1024:
-                                video_bytes = remote_resp.content
-                        except Exception:
-                            video_bytes = None
-                    else:
-                        with open(sales_video, "rb") as f:
-                            video_bytes = f.read()
-                    
-                    if video_bytes:
-                        st.download_button(
-                            label="📥 Download Sales Video",
-                            data=video_bytes,
-                            file_name=f"sales_video_{uuid.uuid4().hex[:8]}.mp4",
-                            mime="video/mp4",
-                            use_container_width=True,
-                            key="sales_download_btn"
-                        )
-                    else:
-                        st.info("Download unavailable for current cloud render.")
-                
-                with col_share:
-                    wa_msg = f"🎬 Check out this amazing product! {st.session_state.get('sales_product_name', 'Product')} - Only {st.session_state.get('sales_product_price', 'N/A')}!"
-                    wa_url = f"https://api.whatsapp.com/send?text={urllib.parse.quote(wa_msg)}"
-                    st.link_button("💬 Share on WhatsApp", wa_url, use_container_width=True)
-                
-                with col_clr:
-                    if st.button("🧹 Clear Video", key="sales_clear_btn", use_container_width=True):
-                        if not is_remote_url(sales_video):
-                            safe_remove_file(sales_video)
-                        st.session_state["sales_video_output"] = None
-                        st.rerun()
-                
-                with st.expander("📝 View Sales Script", expanded=False):
-                    st.text(st.session_state.get("sales_script", ""))
-            
-            else:
-                st.markdown("""
-                    <div style="
-                        height: 380px;
-                        min-height: 380px;
-                        display: flex;
-                        flex-direction: column;
-                        justify-content: center;
-                        align-items: center;
-                        color: #64748b;
-                        text-align: center;
-                        padding: 12px;
-                        overflow: hidden;
-                        background: rgba(10,10,12,0.4);
-                        border-radius: 12px;
-                        border: 1px dashed rgba(236,72,153,0.12);
-                    ">
-                        <span style="font-size: 48px; margin-bottom: 10px;">🎙️</span>
-                        <p style="
-                            font-family: 'Inter', sans-serif;
-                            font-size: 13px;
-                            font-weight: 500;
-                            color: #EC4899;
-                            margin: 0;
-                        ">
-                            AI Sales Video will render here
-                        </p>
-                        <p style="
-                            font-family: 'Inter', sans-serif;
-                            font-size: 11px;
-                            color: #94a3b8;
-                            max-width: 400px;
-                            text-align: center;
-                            margin-top: 4px;
-                            line-height: 1.4;
-                        ">
-                            Upload product image, set language, and generate AI sales video.
-                        </p>
-                    </div>
-                """, unsafe_allow_html=True)
 
-def generate_dynamic_ui():
-    """Dynamic UI - Matching Studio Style"""
-    
-    # ========================================================
-    # HEADER - STUDIO STYLE MATCH
-    # ========================================================
-    st.markdown("""
-    <div style="
-        background: linear-gradient(135deg, rgba(236,72,153,0.06), rgba(69,243,255,0.06));
-        border-radius: 16px;
-        border: 1px solid rgba(69,243,255,0.08);
-        padding: 16px 20px;
-        margin-bottom: 18px;
-        text-align: center;
-    ">
-        <span style="
-            display: inline-block;
-            background: rgba(236,72,153,0.12);
-            color: #EC4899;
-            padding: 4px 14px;
-            border-radius: 16px;
-            font-size: 9px;
-            font-family: 'Orbitron', sans-serif;
-            letter-spacing: 1px;
-            border: 1px solid rgba(236,72,153,0.15);
-            margin-bottom: 6px;
-        ">🧠 ADAPTIVE UI</span>
-        <h2 style="
-            font-family: 'Orbitron', sans-serif;
-            font-size: 20px;
-            color: #FFFFFF;
-            margin: 0;
-        ">
-            Dynamic Context-Aware <span style="
-                background: linear-gradient(135deg, #45f3ff, #EC4899);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                background-clip: text;
-            ">UI</span>
-        </h2>
-        <p style="
-            font-family: 'Inter', sans-serif;
-            color: #94a3b8;
-            font-size: 12px;
-            margin: 4px 0 0 0;
-        ">
-            Real-time interface adaptation based on user behavior
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    # ========================================================
-    # SESSION STATE INIT
-    # ========================================================
-    if "dynamic_ui_uploaded_file" not in st.session_state:
-        st.session_state["dynamic_ui_uploaded_file"] = None
-    if "dynamic_ui_project_files" not in st.session_state:
-        st.session_state["dynamic_ui_project_files"] = []
-    if "dynamic_ui_current_project" not in st.session_state:
-        st.session_state["dynamic_ui_current_project"] = ""
-    
-    col1, col2 = st.columns([1.1, 1.4], gap="medium")
-    
-    with col1:
-        with st.container(border=True):
-            st.markdown("""
-            <h4 style="
-                font-family: 'Orbitron', sans-serif;
-                font-size: 12px;
-                color: #EC4899;
-                margin-bottom: 12px;
-                letter-spacing: 0.5px;
-            ">
-                ⚙️ UI CONFIGURATION
-            </h4>
-            """, unsafe_allow_html=True)
-            
-            # Profile Mode
-            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">👤 SELECT PROFILE MODE</p>', unsafe_allow_html=True)
-            profile_options = ["🟢 Novice / Simple Mode", "🟡 Intermediate Mode", "🔴 Expert / Developer Mode"]
-            profile_map = {
-                "🟢 Novice / Simple Mode": "beginner",
-                "🟡 Intermediate Mode": "intermediate",
-                "🔴 Expert / Developer Mode": "advanced"
-            }
-            
-            current_profile_label = "🟡 Intermediate Mode"
-            for label, value in profile_map.items():
-                if st.session_state.get("dynamic_ui_profile_mode") == value:
-                    current_profile_label = label
-                    break
-            
-            selected_profile = st.selectbox(
-                "Choose UI Profile",
-                profile_options,
-                index=profile_options.index(current_profile_label) if current_profile_label in profile_options else 1,
-                key="dynamic_ui_profile_selector",
-                label_visibility="collapsed"
-            )
-            
-            new_profile = profile_map.get(selected_profile, "intermediate")
-            if new_profile != st.session_state.get("dynamic_ui_profile_mode"):
-                success, required_tokens, message = validate_and_deduct_tokens("Dynamic UI", "Standard")
-                if success:
-                    st.session_state["dynamic_ui_profile_mode"] = new_profile
-                    st.session_state["user_behavior_profile"] = new_profile
-                    st.session_state["dynamic_ui_token_charged"] = True
-                    st.success(message)
-                    
-                    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
-                    cursor = conn.cursor()
-                    try:
-                        cursor.execute(
-                            "INSERT OR REPLACE INTO dynamic_ui_profiles (username, behavior_profile, ui_preferences) VALUES (?, ?, ?)",
-                            (st.session_state.get("logged_user", "user"), new_profile, json.dumps({"profile": new_profile, "timestamp": time.time()}))
-                        )
-                        conn.commit()
-                    except Exception:
-                        pass
-                    finally:
-                        conn.close()
-                    st.rerun()
-                else:
-                    st.error(message)
-                    st.session_state["dynamic_ui_profile_mode"] = st.session_state.get("dynamic_ui_profile_mode", "intermediate")
-            
-            # Current Profile Display
-            profile_display = st.session_state.get("dynamic_ui_profile_mode", "intermediate")
-            profile_icons = {"beginner": "🟢", "intermediate": "🟡", "advanced": "🔴"}
-            profile_names = {
-                "beginner": "Novice / Simple Mode",
-                "intermediate": "Intermediate Mode",
-                "advanced": "Expert / Developer Mode"
-            }
-            st.info(f"📊 Current Profile: {profile_icons.get(profile_display, '🟡')} {profile_names.get(profile_display, 'Intermediate Mode')}")
-            
-            st.markdown("<hr style='border-color: rgba(255,255,255,0.06); margin: 12px 0;'>", unsafe_allow_html=True)
-            
-            # UI Actions
-            st.markdown("""
-            <h4 style="
-                font-family: 'Orbitron', sans-serif;
-                font-size: 11px;
-                color: #EC4899;
-                margin-bottom: 8px;
-                letter-spacing: 0.5px;
-            ">
-                🔧 UI ACTIONS
-            </h4>
-            """, unsafe_allow_html=True)
-            
-            if st.button("📝 New Project", key="ui_new_project", use_container_width=True):
-                project_name = f"Project_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-                st.session_state["dynamic_ui_current_project"] = project_name
-                st.session_state["dynamic_ui_project_files"] = []
-                st.toast(f"✅ New project created: {project_name}")
-                st.rerun()
-            
-            if st.button("📂 Open Project", key="ui_open_project", use_container_width=True):
-                st.session_state["dynamic_ui_open_project"] = True
-                st.rerun()
-            
-            if st.session_state.get("dynamic_ui_open_project", False):
-                st.markdown("""
-                <div style="
-                    background: rgba(69,243,255,0.04);
-                    border: 1px solid rgba(69,243,255,0.08);
-                    border-radius: 8px;
-                    padding: 12px;
-                    margin-bottom: 10px;
-                ">
-                    <p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 0 0 8px 0;">
-                        📂 Select a project file to open:
-                    </p>
-                </div>
-                """, unsafe_allow_html=True)
-                
-                uploaded_file = st.file_uploader(
-                    "Choose a project file",
-                    type=['json', 'txt', 'mp4', 'png', 'jpg', 'jpeg', 'webp', 'mp3', 'wav'],
-                    key="dynamic_ui_file_uploader",
-                    label_visibility="collapsed"
-                )
-                
-                if uploaded_file is not None:
-                    file_path = os.path.join("temp_scenes", f"uploaded_{uuid.uuid4().hex[:8]}_{uploaded_file.name}")
-                    with open(file_path, "wb") as f:
-                        f.write(uploaded_file.getbuffer())
-                    st.session_state["dynamic_ui_uploaded_file"] = file_path
-                    st.session_state["dynamic_ui_current_project"] = uploaded_file.name
-                    st.session_state["dynamic_ui_open_project"] = False
-                    st.success(f"✅ Project opened: {uploaded_file.name}")
-                    st.toast(f"📂 File loaded: {uploaded_file.name}")
-                    st.rerun()
-                
-                if st.button("❌ Close File Browser", key="ui_close_browser", use_container_width=True):
-                    st.session_state["dynamic_ui_open_project"] = False
-                    st.rerun()
-            
-            if st.button("⚡ Quick Render", key="ui_quick_render", use_container_width=True):
-                if st.session_state.get("dynamic_ui_uploaded_file"):
-                    st.toast("🔄 Rendering project...")
-                    time.sleep(0.1)
-                    st.success("✅ Quick render completed!")
-                else:
-                    st.warning("⚠️ No project loaded. Please open a project first.")
-            
-            if st.button("📊 Analytics", key="ui_analytics", use_container_width=True):
-                if st.session_state.get("dynamic_ui_current_project"):
-                    st.info(f"📊 Project: {st.session_state['dynamic_ui_current_project']}")
-                    st.info(f"📁 Files: {len(st.session_state.get('dynamic_ui_project_files', []))}")
-                    st.info(f"👤 Profile: {st.session_state.get('dynamic_ui_profile_mode', 'intermediate')}")
-                else:
-                    st.warning("⚠️ No active project.")
-            
-            if st.button("🔧 Advanced Settings", key="ui_advanced_settings", use_container_width=True):
-                with st.expander("⚙️ Advanced Settings", expanded=True):
-                    st.selectbox("Theme Mode", ["auto", "dark", "light"], key="ui_theme_mode")
-                    st.slider("Animation Speed", 0.5, 2.0, 1.0, step=0.1)
-                    st.toggle("Auto-save", value=True)
-                    st.toggle("Show Grid", value=True)
-                    st.toggle("Dark Mode", value=True)
-            
-            if st.button("🧩 Plugins", key="ui_plugins", use_container_width=True):
-                with st.expander("🧩 Plugin Manager", expanded=True):
-                    st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 8px;">Available Plugins:</p>', unsafe_allow_html=True)
-                    st.checkbox("🎨 AI Image Generator", value=True)
-                    st.checkbox("🎬 Video Editor Pro", value=True)
-                    st.checkbox("🗣️ Voice Synthesizer", value=True)
-                    st.checkbox("📐 Blueprint Creator", value=True)
-                    if st.button("🔄 Refresh Plugins", use_container_width=True):
-                        st.toast("Plugins refreshed!")
-    
-    with col2:
-        with st.container(border=True):
-            st.markdown("""
-            <h3 style="
-                font-family: 'Orbitron', sans-serif;
-                font-size: 13px;
-                color: #EC4899;
-                margin-bottom: 12px;
-                letter-spacing: 0.5px;
-            ">
-                🖥️ UI PREVIEW
-            </h3>
-            """, unsafe_allow_html=True)
-            
-            profile_display = st.session_state.get("dynamic_ui_profile_mode", "intermediate")
-            current_project = st.session_state.get("dynamic_ui_current_project", "No project loaded")
-            
-            st.markdown(f"""
-            <div style="
-                background: rgba(69,243,255,0.04);
-                border-radius: 8px;
-                padding: 6px 12px;
-                margin-bottom: 10px;
-                border: 1px solid rgba(69,243,255,0.06);
-            ">
-                <p style="font-family: Inter; font-size: 10px; color: #EC4899; margin: 0;">
-                    📂 <span style="color: #EC4899;">{current_project}</span>
-                </p>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            if profile_display == "beginner":
-                st.markdown("""
-                <div style="
-                    background: rgba(18,19,26,0.8);
-                    border-radius: 12px;
-                    padding: 20px;
-                    border: 2px solid rgba(69,243,255,0.2);
-                ">
-                    <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
-                        <span style="
-                            background: #EC4899;
-                            color: #000;
-                            padding: 10px 20px;
-                            border-radius: 8px;
-                            font-family: 'Orbitron', sans-serif;
-                            font-size: 12px;
-                            font-weight: bold;
-                        ">📝 New</span>
-                        <span style="
-                            background: #EC4899;
-                            color: #000;
-                            padding: 10px 20px;
-                            border-radius: 8px;
-                            font-family: 'Orbitron', sans-serif;
-                            font-size: 12px;
-                            font-weight: bold;
-                        ">📂 Open</span>
-                        <span style="
-                            background: #EC4899;
-                            color: #000;
-                            padding: 10px 20px;
-                            border-radius: 8px;
-                            font-family: 'Orbitron', sans-serif;
-                            font-size: 12px;
-                            font-weight: bold;
-                        ">🎓 Tutorial</span>
-                    </div>
-                    <p style="
-                        text-align: center;
-                        color: #EC4899;
-                        font-family: 'Inter', sans-serif;
-                        font-size: 12px;
-                        margin-top: 15px;
-                    ">
-                        🟢 Simple, clean interface with large buttons
-                    </p>
-                </div>
-                """, unsafe_allow_html=True)
-            
-            elif profile_display == "intermediate":
-                st.markdown("""
-                <div style="
-                    background: rgba(18,19,26,0.8);
-                    border-radius: 12px;
-                    padding: 20px;
-                    border: 2px solid rgba(255,192,203,0.2);
-                ">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                        <span style="
-                            background: #EC4899;
-                            color: #000;
-                            padding: 10px;
-                            border-radius: 6px;
-                            font-family: 'Orbitron', sans-serif;
-                            font-size: 11px;
-                            font-weight: bold;
-                            text-align: center;
-                        ">📝 New</span>
-                        <span style="
-                            background: #EC4899;
-                            color: #000;
-                            padding: 10px;
-                            border-radius: 6px;
-                            font-family: 'Orbitron', sans-serif;
-                            font-size: 11px;
-                            font-weight: bold;
-                            text-align: center;
-                        ">📂 Open</span>
-                        <span style="
-                            background: #EC4899;
-                            color: #000;
-                            padding: 10px;
-                            border-radius: 6px;
-                            font-family: 'Orbitron', sans-serif;
-                            font-size: 11px;
-                            font-weight: bold;
-                            text-align: center;
-                        ">⚡ Quick Render</span>
-                        <span style="
-                            background: #EC4899;
-                            color: #000;
-                            padding: 10px;
-                            border-radius: 6px;
-                            font-family: 'Orbitron', sans-serif;
-                            font-size: 11px;
-                            font-weight: bold;
-                            text-align: center;
-                        ">🔧 Settings</span>
-                    </div>
-                    <p style="
-                        text-align: center;
-                        color: #EC4899;
-                        font-family: 'Inter', sans-serif;
-                        font-size: 12px;
-                        margin-top: 15px;
-                    ">
-                        🟡 Balanced interface with quick actions
-                    </p>
-                </div>
-                """, unsafe_allow_html=True)
-            
-            else:
-                st.markdown("""
-                <div style="
-                    background: rgba(18,19,26,0.8);
-                    border-radius: 12px;
-                    padding: 20px;
-                    border: 2px solid rgba(236,72,153,0.2);
-                ">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px;">
-                        <span style="
-                            background: #EC4899;
-                            color: #fff;
-                            padding: 8px;
-                            border-radius: 6px;
-                            font-family: 'Orbitron', sans-serif;
-                            font-size: 10px;
-                            font-weight: bold;
-                            text-align: center;
-                        ">📝 New</span>
-                        <span style="
-                            background: #EC4899;
-                            color: #fff;
-                            padding: 8px;
-                            border-radius: 6px;
-                            font-family: 'Orbitron', sans-serif;
-                            font-size: 10px;
-                            font-weight: bold;
-                            text-align: center;
-                        ">📂 Open</span>
-                        <span style="
-                            background: #EC4899;
-                            color: #fff;
-                            padding: 8px;
-                            border-radius: 6px;
-                            font-family: 'Orbitron', sans-serif;
-                            font-size: 10px;
-                            font-weight: bold;
-                            text-align: center;
-                        ">⚡ Render</span>
-                        <span style="
-                            background: #EC4899;
-                            color: #fff;
-                            padding: 8px;
-                            border-radius: 6px;
-                            font-family: 'Orbitron', sans-serif;
-                            font-size: 10px;
-                            font-weight: bold;
-                            text-align: center;
-                        ">🔧 Advanced</span>
-                        <span style="
-                            background: #EC4899;
-                            color: #fff;
-                            padding: 8px;
-                            border-radius: 6px;
-                            font-family: 'Orbitron', sans-serif;
-                            font-size: 10px;
-                            font-weight: bold;
-                            text-align: center;
-                        ">📊 Analytics</span>
-                        <span style="
-                            background: #EC4899;
-                            color: #fff;
-                            padding: 8px;
-                            border-radius: 6px;
-                            font-family: 'Orbitron', sans-serif;
-                            font-size: 10px;
-                            font-weight: bold;
-                            text-align: center;
-                        ">🧩 Plugins</span>
-                    </div>
-                    <p style="
-                        text-align: center;
-                        color: #94a3b8;
-                        font-family: 'Inter', sans-serif;
-                        font-size: 12px;
-                        margin-top: 15px;
-                    ">
-                        🔴 Professional interface with all tools
-                    </p>
-                </div>
-                """, unsafe_allow_html=True)
-            
-            # Loaded File Preview
-            if st.session_state.get("dynamic_ui_uploaded_file") and os.path.exists(st.session_state["dynamic_ui_uploaded_file"]):
-                file_path = st.session_state["dynamic_ui_uploaded_file"]
-                ext = os.path.splitext(file_path)[1].lower()
-                
-                st.markdown("<hr style='border-color: rgba(255,255,255,0.06); margin: 12px 0;'>", unsafe_allow_html=True)
-                st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 6px;">📁 Loaded File:</p>', unsafe_allow_html=True)
-                
-                if ext in ['.png', '.jpg', '.jpeg', '.webp', '.gif']:
-                    st.image(file_path, use_container_width=True)
-                elif ext in ['.mp4', '.mov', '.avi', '.webm']:
-                    st.video(file_path, format="video/mp4", autoplay=False, loop=True, muted=False)
-                elif ext in ['.mp3', '.wav']:
-                    with open(file_path, "rb") as f:
-                        audio_bytes = f.read()
-                    st.audio(audio_bytes, format="audio/mp3")
-                elif ext in ['.json', '.txt']:
-                    with open(file_path, "r") as f:
-                        content = f.read()
-                    st.text(content[:500])
-                else:
-                    st.info(f"📄 File loaded: {os.path.basename(file_path)}")
-                
-                if st.button("🧹 Clear Loaded File", key="ui_clear_file", use_container_width=True):
-                    safe_remove_file(file_path)
-                    st.session_state["dynamic_ui_uploaded_file"] = None
-                    st.session_state["dynamic_ui_current_project"] = ""
-                    st.rerun()
-            
-            # Credits Info
-            st.markdown("""
-            <hr style='border-color: rgba(255,255,255,0.06); margin: 12px 0;'>
-            <div style="
-                background: rgba(69,243,255,0.04);
-                border-radius: 8px;
-                padding: 10px;
-                margin-top: 10px;
-            ">
-                <p style="
-                    font-family: 'Inter', sans-serif;
-                    font-size: 11px;
-                    color: #94a3b8;
-                    margin: 0;
-                    text-align: center;
-                ">
-                    ⚡ Profile change costs <span style="color: #45f3ff; font-weight: bold;">2 Credits</span> per switch
-                    <br>
-                    <span style="font-size: 9px; color: #64748b;">
-                        Current balance: <span style="color: #45f3ff;">{:.1f}</span> Credits
-                    </span>
-                </p>
-            </div>
-            """.format(st.session_state.get('user_credits', 0)), unsafe_allow_html=True)
-
-def render_live_emotion_voice():
-    """Live Emotion Voice - Matching Studio Style"""
-    
-    # ========================================================
-    # HEADER - STUDIO STYLE MATCH
-    # ========================================================
-    st.markdown("""
-    <div style="
-        background: linear-gradient(135deg, rgba(236,72,153,0.06), rgba(69,243,255,0.06));
-        border-radius: 16px;
-        border: 1px solid rgba(69,243,255,0.08);
-        padding: 16px 20px;
-        margin-bottom: 18px;
-        text-align: center;
-    ">
-        <span style="
-            display: inline-block;
-            background: rgba(236,72,153,0.12);
-            color: #EC4899;
-            padding: 4px 14px;
-            border-radius: 16px;
-            font-size: 9px;
-            font-family: 'Orbitron', sans-serif;
-            letter-spacing: 1px;
-            border: 1px solid rgba(236,72,153,0.15);
-            margin-bottom: 6px;
-        ">🎤 EMOTION AI</span>
-        <h2 style="
-            font-family: 'Orbitron', sans-serif;
-            font-size: 20px;
-            color: #FFFFFF;
-            margin: 0;
-        ">
-            Live-Emotion <span style="
-                background: linear-gradient(135deg, #45f3ff, #EC4899);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                background-clip: text;
-            ">Voice</span>
-        </h2>
-        <p style="
-            font-family: 'Inter', sans-serif;
-            color: #94a3b8;
-            font-size: 12px;
-            margin: 4px 0 0 0;
-        ">
-            Hyper-realistic voice with real human emotional dynamics
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    col1, col2 = st.columns([1.1, 1.4], gap="medium")
-    
-    with col1:
-        with st.container(border=True):
-            st.markdown("""
-            <h4 style="
-                font-family: 'Orbitron', sans-serif;
-                font-size: 12px;
-                color: #EC4899;
-                margin-bottom: 12px;
-                letter-spacing: 0.5px;
-            ">
-                ⚙️ VOICE PARAMETERS
-            </h4>
-            """, unsafe_allow_html=True)
-            
-            # Text Input
-            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">📝 Text to Speak</p>', unsafe_allow_html=True)
-            voice_text = st.text_area(
-                "Text",
-                placeholder="Write the script you want to convert to emotion-rich voice...",
-                height=100,
-                key="emotion_voice_text_area",
-                label_visibility="collapsed"
-            )
-            
-            # Language
-            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">🌐 Select Language</p>', unsafe_allow_html=True)
-            language_options = ["English", "Hindi", "Bhojpuri", "French", "Japanese"]
-            selected_language = st.selectbox(
-                "Language",
-                language_options,
-                key="emotion_voice_language",
-                label_visibility="collapsed"
-            )
-            
-            # Emotion
-            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">😊 Emotion Profile</p>', unsafe_allow_html=True)
-            emotion_options = ["neutral", "happy", "sad", "angry", "excited", "serious", "mysterious"]
-            current_emotion = st.session_state.get("emotion_voice_emotion", "neutral")
-            if current_emotion not in emotion_options:
-                current_emotion = "neutral"
-            selected_emotion = st.selectbox(
-                "Emotion",
-                emotion_options,
-                index=emotion_options.index(current_emotion),
-                key="emotion_voice_emotion",
-                label_visibility="collapsed"
-            )
-            
-            # Voice Selection
-            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">🎤 Professional Voice</p>', unsafe_allow_html=True)
-            available_voices = LANGUAGE_VOICE_MAP.get(selected_language, ["Adam (Premium Male)"])
-            show_all_voices = st.checkbox("Show All Voices", key="emotion_show_all_voices")
-            
-            if show_all_voices:
-                voice_options = list(ELEVENLABS_VOICES.keys())
-            else:
-                voice_options = available_voices
-            
-            current_voice = st.session_state.get("selected_elevenlabs_voice", "Adam (Premium Male)")
-            if current_voice not in voice_options:
-                current_voice = voice_options[0] if voice_options else "Adam (Premium Male)"
-            
-            selected_voice_label = st.selectbox(
-                "Choose Voice",
-                voice_options,
-                index=voice_options.index(current_voice) if current_voice in voice_options else 0,
-                key="emotion_voice_elevenlabs_select",
-                label_visibility="collapsed"
-            )
-            
-            if selected_voice_label != st.session_state.get("selected_elevenlabs_voice"):
-                st.session_state["selected_elevenlabs_voice"] = selected_voice_label
-            
-            voice_info = ELEVENLABS_VOICES.get(selected_voice_label, {})
-            st.markdown(f"""
-            <div style="
-                background: rgba(236,72,153,0.04);
-                border: 1px solid rgba(236,72,153,0.08);
-                border-radius: 8px;
-                padding: 8px 12px;
-                margin-bottom: 12px;
-            ">
-                <p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 0;">
-                    🎤 {selected_voice_label} <br>
-                    🧑‍🎤 {voice_info.get('gender', 'Unknown').capitalize()} • 
-                    🌍 {voice_info.get('accent', 'Unknown')} • 
-                    🌐 {voice_info.get('language', 'Unknown')}
-                </p>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            # Quick Emotion Presets
-            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 6px;">Quick Emotion Presets:</p>', unsafe_allow_html=True)
-            emoji_map = {"neutral": "😐", "happy": "😊", "sad": "😢", "angry": "😡", "excited": "🤩", "serious": "😤", "mysterious": "🕵️"}
-            emotion_cols = st.columns(7)
-            for i, (emotion, emoji) in enumerate(emoji_map.items()):
-                with emotion_cols[i]:
-                    def make_emotion_callback(em):
-                        def callback():
-                            st.session_state["emotion_voice_emotion"] = em
-                        return callback
-                    if st.button(f"{emoji}", key=f"emotion_quick_{emotion}_{i}", use_container_width=True, on_click=make_emotion_callback(emotion)):
-                        pass
-            
-            st.markdown("<br>", unsafe_allow_html=True)
-            
-            # Voice Sample
-            if st.button("🔊 Preview Voice Sample", key="emotion_preview_voice", use_container_width=True):
-                st.info(f"🎵 Voice sample for {selected_voice_label} will play here.")
-                sample_path = "assets/audio/sample.mp3"
-                if os.path.exists(sample_path):
-                    with open(sample_path, "rb") as f:
-                        sample_bytes = f.read()
-                    st.audio(sample_bytes, format="audio/mp3")
-                else:
-                    st.warning("Sample audio not found. Please add a sample.mp3 file to assets/audio/")
-            
-            # Quality
-            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">📊 Voice Quality</p>', unsafe_allow_html=True)
-            voice_quality = st.selectbox(
-                "Quality",
-                ["Standard", "HD", "Premium"],
-                key="emotion_voice_quality",
-                label_visibility="collapsed"
-            )
-            
-            st.markdown("<br>", unsafe_allow_html=True)
-            
-            if st.button("🎤 Generate Emotion Voice", key="emotion_voice_generate", use_container_width=True):
-                if not voice_text.strip():
-                    st.error("Please enter some text to speak.")
-                else:
-                    success, required_tokens, message = validate_and_deduct_tokens("Live Emotion", voice_quality)
-                    if not success:
-                        st.error(message)
-                    else:
-                        st.success(message)
-                        with st.spinner(f"🎤 Generating {selected_emotion} voice with {selected_voice_label} in {selected_language}..."):
-                            voice_id = ELEVENLABS_VOICES.get(selected_voice_label, {}).get("id", "pNInz6obpgDQ5IdwJg7p")
-                            output_path = generate_emotion_voice(
-                                voice_text,
-                                emotion=selected_emotion,
-                                voice_type="male" if voice_info.get("gender") == "male" else "female",
-                                elevenlabs_voice_id=voice_id
-                            )
-                            if output_path and os.path.exists(output_path) and os.path.getsize(output_path) > 0:
-                                st.session_state["emotion_voice_output"] = output_path
-                                st.session_state["emotion_voice_text"] = voice_text
-                                
-                                conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
-                                cursor = conn.cursor()
-                                try:
-                                    cursor.execute(
-                                        "INSERT INTO emotion_voice_history (username, text, emotion, audio_path, voice_id) VALUES (?, ?, ?, ?, ?)",
-                                        (st.session_state.get("logged_user", "user"), voice_text[:200], selected_emotion, output_path, selected_voice_label)
-                                    )
-                                    conn.commit()
-                                except Exception:
-                                    pass
-                                finally:
-                                    conn.close()
-                                
-                                st.toast("✅ Voice generated successfully!")
-                                st.rerun()
-                            else:
-                                st.error("Voice generation failed. Please try again.")
-    
-    with col2:
-        with st.container(border=True):
-            st.markdown("""
-            <h3 style="
-                font-family: 'Orbitron', sans-serif;
-                font-size: 13px;
-                color: #EC4899;
-                margin-bottom: 12px;
-                letter-spacing: 0.5px;
-            ">
-                🎧 VOICE PLAYER
-            </h3>
-            """, unsafe_allow_html=True)
-            
-            audio_output = st.session_state.get("emotion_voice_output")
-            if audio_output and os.path.exists(audio_output):
-                emotion = st.session_state.get("emotion_voice_emotion", "neutral")
-                emoji_map = {"neutral": "😐", "happy": "😊", "sad": "😢", "angry": "😡", "excited": "🤩", "serious": "😤", "mysterious": "🕵️"}
-                emotion_emoji = emoji_map.get(emotion, "😐")
-                selected_voice = st.session_state.get("selected_elevenlabs_voice", "Adam (Premium Male)")
-                
-                st.markdown(f"""
-                <div style="
-                    background: rgba(236,72,153,0.04);
-                    border: 1px solid rgba(236,72,153,0.08);
-                    border-radius: 10px;
-                    padding: 12px;
-                    margin-bottom: 12px;
-                ">
-                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
-                        <span style="font-family: Inter; font-size: 13px; color: #FFFFFF;">
-                            {emotion_emoji} {emotion.capitalize()} Voice
-                        </span>
-                        <span style="font-family: Orbitron; font-size: 11px; color: #EC4899; font-weight: bold;">
-                            {selected_voice}
-                        </span>
-                    </div>
-                    <div style="display: flex; gap: 6px; margin-top: 4px; flex-wrap: wrap;">
-                        <span style="
-                            font-family: Inter;
-                            font-size: 9px;
-                            color: #94a3b8;
-                            background: rgba(255,255,255,0.04);
-                            padding: 2px 8px;
-                            border-radius: 10px;
-                        ">🎯 {emotion}</span>
-                        <span style="
-                            font-family: Inter;
-                            font-size: 9px;
-                            color: #94a3b8;
-                            background: rgba(255,255,255,0.04);
-                            padding: 2px 8px;
-                            border-radius: 10px;
-                        ">🎤 Professional Voice</span>
-                        <span style="
-                            font-family: Inter;
-                            font-size: 9px;
-                            color: #94a3b8;
-                            background: rgba(255,255,255,0.04);
-                            padding: 2px 8px;
-                            border-radius: 10px;
-                        ">🌐 {st.session_state.get('emotion_voice_language', 'English')}</span>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-                
-                with open(audio_output, "rb") as f:
-                    audio_bytes = f.read()
-                st.audio(audio_bytes, format="audio/mp3")
-                
-                if st.session_state.get("emotion_voice_text"):
-                    with st.expander("📝 View Script", expanded=False):
-                        st.text(st.session_state["emotion_voice_text"])
-                
-                st.markdown("<br>", unsafe_allow_html=True)
-                col_dl, col_clr = st.columns(2)
-                with col_dl:
-                    st.download_button(
-                        label="📥 Download Voice (MP3)",
-                        data=audio_bytes,
-                        file_name=f"zovix_voice_{uuid.uuid4().hex[:8]}.mp3",
-                        mime="audio/mp3",
-                        use_container_width=True,
-                        key="emotion_download_btn"
-                    )
-                with col_clr:
-                    if st.button("🧹 Clear Voice", key="emotion_clear_btn", use_container_width=True):
-                        safe_remove_file(audio_output)
-                        st.session_state["emotion_voice_output"] = None
-                        st.session_state["emotion_voice_text"] = ""
-                        st.rerun()
-                
-                with st.expander("📊 Voice Analytics", expanded=False):
-                    st.markdown(f"""
-                    <div style="
-                        background: rgba(255,255,255,0.02);
-                        border-radius: 8px;
-                        padding: 10px;
-                    ">
-                        <p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 2px 0;">
-                            🎯 Emotion: <span style="color: #EC4899;">{emotion.capitalize()}</span>
-                        </p>
-                        <p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 2px 0;">
-                            🎤 Voice: <span style="color: #EC4899;">{selected_voice}</span>
-                        </p>
-                        <p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 2px 0;">
-                            🌐 Language: <span style="color: #EC4899;">{st.session_state.get('emotion_voice_language', 'English')}</span>
-                        </p>
-                        <p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 2px 0;">
-                            📝 Text Length: <span style="color: #EC4899;">{len(st.session_state.get('emotion_voice_text', ''))} characters</span>
-                        </p>
-                        <p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 2px 0;">
-                            🎵 Audio Size: <span style="color: #EC4899;">{len(audio_bytes)/1024:.1f} KB</span>
-                        </p>
-                    </div>
-                    """, unsafe_allow_html=True)
-            
-            else:
-                st.markdown("""
-                    <div style="
-                        height: 380px;
-                        min-height: 380px;
-                        display: flex;
-                        flex-direction: column;
-                        justify-content: center;
-                        align-items: center;
-                        color: #64748b;
-                        text-align: center;
-                        padding: 12px;
-                        overflow: hidden;
-                        background: rgba(10,10,12,0.4);
-                        border-radius: 12px;
-                        border: 1px dashed rgba(236,72,153,0.12);
-                    ">
-                        <span style="font-size: 48px; margin-bottom: 10px;">🎤</span>
-                        <p style="
-                            font-family: 'Inter', sans-serif;
-                            font-size: 13px;
-                            font-weight: 500;
-                            color: #EC4899;
-                            margin: 0;
-                        ">
-                            Emotion voice will render here
-                        </p>
-                        <p style="
-                            font-family: 'Inter', sans-serif;
-                            font-size: 11px;
-                            color: #94a3b8;
-                            max-width: 400px;
-                            text-align: center;
-                            margin-top: 4px;
-                            line-height: 1.4;
-                        ">
-                            Select emotion, voice type, and generate hyper-realistic voice.
-                        </p>
-                        <p style="
-                            font-family: 'Inter', sans-serif;
-                            font-size: 10px;
-                            color: #45f3ff;
-                            margin-top: 4px;
-                        ">
-                            ⚡ Real human emotional dynamics
-                        </p>
-                    </div>
-                """, unsafe_allow_html=True)
-def generate_emotion_voice(text, emotion="neutral", voice_type="male", output_path=None, elevenlabs_voice_id=None):
-    """
-    WORLD-CLASS EMOTION VOICE GENERATOR - 5-Tier Cascade
-    Tier 1: ElevenLabs (Best Emotion Quality)
-    Tier 2: Azure Cognitive Services (Premium Multilingual)
-    Tier 3: Google Cloud TTS (Natural)
-    Tier 4: Edge TTS (Free, Reliable)
-    Tier 5: Generative Fallback (Always Works)
-    """
-    if not output_path:
-        output_path = f"emotion_voice_outputs/emotion_{uuid.uuid4().hex[:8]}.mp3"
-    os.makedirs("emotion_voice_outputs", exist_ok=True)
-    safe_remove_file(output_path)
-
-    detected_language = st.session_state.get("emotion_voice_language", "English")
-    use_hindi_voice = "Hindi" in detected_language or "Hinglish" in detected_language
-
-    # --- Emotion-to-SSML Style Mapping ---
-    emotion_ssml_map = {
-        "neutral": ("neutral", "general", 0),
-        "happy": ("cheerful", "happy", 0.8),
-        "sad": ("sad", "sad", 0.3),
-        "angry": ("angry", "angry", 0.9),
-        "excited": ("excited", "excited", 1.0),
-        "serious": ("serious", "serious", 0.2),
-        "mysterious": ("whispering", "newscast", 0.4),
-    }
-
-    # --- Emotion Prompt Engineering ---
-    emotion_prefixes = {
-        "neutral": "",
-        "happy": "[Speak with bright, cheerful enthusiasm and a smile in your voice] ",
-        "sad": "[Speak with a soft, melancholic, and heart-touching tone] ",
-        "angry": "[Speak with intense anger, frustration, and aggressive tone] ",
-        "excited": "[Speak with high energy, excitement, and electrifying enthusiasm] ",
-        "serious": "[Speak with deep, serious, professional, and commanding authority] ",
-        "mysterious": "[Speak in a slow, hushed, intriguing, and enigmatic whisper] ",
-    }
-    emotion_prefix = emotion_prefixes.get(emotion, "")
-    modified_text = emotion_prefix + text
-
-    # ========== TIER 1: ELEVENLABS (BEST QUALITY) ==========
-    eleven_key = os.getenv("ELEVENLABS_API_KEY") or get_system_secret("ELEVENLABS_API_KEY")
-    if eleven_key and elevenlabs_voice_id:
-        try:
-            stability = emotion_ssml_map.get(emotion, ("neutral", "general", 0.5))[2]
-            similarity_boost = 0.75
-
-            url = f"https://api.elevenlabs.io/v1/text-to-speech/{elevenlabs_voice_id}"
-            headers = {"Accept": "audio/mpeg", "Content-Type": "application/json", "xi-api-key": eleven_key}
-
-            payload = {
-                "text": modified_text,
-                "model_id": "eleven_multilingual_v2",
-                "voice_settings": {
-                    "stability": stability,
-                    "similarity_boost": similarity_boost,
-                    "style": 0.5 if emotion != "neutral" else 0.0,
-                    "use_speaker_boost": True,
-                }
-            }
-
-            resp = requests.post(url, json=payload, headers=headers, timeout=30)
-            if resp.status_code == 200 and len(resp.content) > 2000:
-                with open(output_path, "wb") as f:
-                    f.write(resp.content)
-                if os.path.exists(output_path) and os.path.getsize(output_path) > 2000:
-                    if is_audio_audible(output_path):
-                        logger.info(f"ElevenLabs World-Class: {text[:40]}... [emotion={emotion}]")
-                        return output_path
-        except Exception as e:
-            logger.warning(f"ElevenLabs failed: {e}")
-
-    # ========== TIER 2: AZURE TTS (PREMIUM) ==========
-    azure_key = os.getenv("AZURE_SPEECH_KEY") or get_system_secret("AZURE_SPEECH_KEY")
-    azure_region = os.getenv("AZURE_SPEECH_REGION") or get_system_secret("AZURE_SPEECH_REGION", "eastus")
-    if azure_key and azure_region:
-        try:
-            if use_hindi_voice:
-                voice_name = "hi-IN-MadhurNeural" if voice_type == "male" else "hi-IN-SwaraNeural"
-            else:
-                voice_name = "en-US-GuyNeural" if voice_type == "male" else "en-US-JennyNeural"
-
-            style = emotion_ssml_map.get(emotion, ("neutral", "general", 0.5))[0]
-
-            url = f"https://{azure_region}.tts.speech.microsoft.com/cognitiveservices/v1"
-            headers = {
-                "Ocp-Apim-Subscription-Key": azure_key,
-                "Content-Type": "application/ssml+xml",
-                "X-Microsoft-OutputFormat": "audio-24khz-96kbitrate-mono-mp3"
-            }
-
-            # Build SSML safely
-            if use_hindi_voice:
-                ssml_parts = [
-                    "<speak version=\"1.0\" xmlns=\"http://www.w3.org/2001/10/synthesis\" xml:lang=\"hi-IN\">",
-                    f"<voice name=\"{voice_name}\">",
-                    f"<prosody rate=\"5%\" pitch=\"0%\">{text}</prosody>",
-                    "</voice>",
-                    "</speak>"
-                ]
-            else:
-                ssml_parts = [
-                    "<speak version=\"1.0\" xmlns=\"http://www.w3.org/2001/10/synthesis\" xmlns:mstts=\"https://www.w3.org/2001/mstts\" xml:lang=\"en-US\">",
-                    f"<voice name=\"{voice_name}\">",
-                    f"<mstts:express-as style=\"{style}\" styledegree=\"1.5\">",
-                    f"<prosody rate=\"5%\" pitch=\"0%\">{text}</prosody>",
-                    "</mstts:express-as>",
-                    "</voice>",
-                    "</speak>"
-                ]
-            ssml = "".join(ssml_parts)
-
-            resp = requests.post(url, headers=headers, data=ssml, timeout=30)
-            if resp.status_code == 200 and len(resp.content) > 1000:
-                with open(output_path, "wb") as f:
-                    f.write(resp.content)
-                if os.path.exists(output_path) and is_audio_audible(output_path):
-                    logger.info(f"Azure World-Class: {text[:40]}... [emotion={emotion}]")
-                    return output_path
-        except Exception as e:
-            logger.warning(f"Azure TTS failed: {e}")
-
-    # ========== TIER 3: GOOGLE CLOUD TTS ==========
-    google_key = os.getenv("GOOGLE_TTS_API_KEY") or get_system_secret("GOOGLE_TTS_API_KEY")
-    if not google_key:
-        google_key = os.getenv("GEMINI_API_KEY") or get_system_secret("GEMINI_API_KEY")
-    if google_key:
-        try:
-            import base64
-            ssml_gender = "MALE" if voice_type == "male" else "FEMALE"
-            lang_code = "hi-IN" if use_hindi_voice else "en-US"
-
-            emotion_rates = {"neutral": 1.0, "happy": 1.1, "sad": 0.85, "angry": 1.15, "excited": 1.2, "serious": 0.9, "mysterious": 0.8}
-            emotion_pitches = {"neutral": 0, "happy": 5, "sad": -3, "angry": 3, "excited": 6, "serious": -2, "mysterious": -4}
-            speaking_rate = emotion_rates.get(emotion, 1.0)
-            pitch = emotion_pitches.get(emotion, 0)
-
-            payload = {
-                "input": {"text": text},
-                "voice": {"languageCode": lang_code, "ssmlGender": ssml_gender},
-                "audioConfig": {
-                    "audioEncoding": "MP3",
-                    "speakingRate": speaking_rate,
-                    "pitch": pitch,
-                    "volumeGainDb": 3.0,
-                    "effectsProfileId": ["large-home-entertainment-class-device"]
-                }
-            }
-
-            resp = requests.post(
-                f"https://texttospeech.googleapis.com/v1/text:synthesize?key={google_key}",
-                json=payload, timeout=30
-            )
-            if resp.status_code == 200:
-                audio_content = resp.json().get("audioContent")
-                if audio_content:
-                    with open(output_path, "wb") as f:
-                        f.write(base64.b64decode(audio_content))
-                    if os.path.exists(output_path) and os.path.getsize(output_path) > 2000:
-                        logger.info(f"Google TTS World-Class: {text[:40]}... [emotion={emotion}]")
-                        return output_path
-        except Exception as e:
-            logger.warning(f"Google TTS failed: {e}")
-
-    # ========== TIER 4: EDGE TTS (FREE, RELIABLE) ==========
-    try:
-        if edge_tts is not None:
-            if use_hindi_voice:
-                voice_candidates = [
-                    "hi-IN-MadhurNeural" if voice_type == "male" else "hi-IN-SwaraNeural",
-                    "en-IN-PrabhatNeural" if voice_type == "male" else "en-IN-NeerjaNeural",
-                    "en-US-GuyNeural" if voice_type == "male" else "en-US-AriaNeural",
-                ]
-            else:
-                voice_candidates = [
-                    "en-US-GuyNeural" if voice_type == "male" else "en-US-AriaNeural",
-                    "en-GB-RyanNeural" if voice_type == "male" else "en-GB-SoniaNeural",
-                    "en-IN-PrabhatNeural" if voice_type == "male" else "en-IN-NeerjaNeural",
-                ]
-
-            emotion_edge_styles = {
-                "neutral": "general",
-                "happy": "cheerful",
-                "sad": "sad",
-                "angry": "angry",
-                "excited": "excited",
-                "serious": "serious",
-                "mysterious": "whispering",
-            }
-
-            for voice_name in voice_candidates:
-                try:
-                    safe_remove_file(output_path)
-                    edge_emotion = emotion_edge_styles.get(emotion, "general")
-
-                    async def _do_edge_tts():
-                        communicate = edge_tts.Communicate(text, voice_name)
-                        await communicate.save(output_path)
-
-                    run_async_in_thread(_do_edge_tts())
-
-                    if os.path.exists(output_path) and os.path.getsize(output_path) > 2048:
-                        logger.info(f"Edge TTS World-Class: {text[:40]}... [emotion={emotion}]")
-                        return output_path
-                except Exception as voice_error:
-                    logger.warning(f"Edge TTS voice failed ({voice_name}): {voice_error}")
-                    continue
-    except Exception as e:
-        logger.warning(f"Edge TTS failed: {e}")
-
-    # ========== TIER 5: GENERATIVE FALLBACK ==========
-    try:
-        if not os.path.exists(output_path) or os.path.getsize(output_path) < 1000:
-            logger.info(f"Fallback: Generating tone audio for {text[:30]}...")
-
-            import struct
-            import math
-
-            sample_rate = 22050
-            duration = max(2.0, len(text) * 0.08)
-            num_samples = int(sample_rate * duration)
-
-            freq_map = {"neutral": 220, "happy": 440, "sad": 180, "angry": 330, "excited": 550, "serious": 150, "mysterious": 100}
-            amp_map = {"neutral": 0.3, "happy": 0.4, "sad": 0.2, "angry": 0.5, "excited": 0.5, "serious": 0.25, "mysterious": 0.15}
-            freq = freq_map.get(emotion, 220)
-            amplitude = amp_map.get(emotion, 0.3)
-
-            samples = []
-            for i in range(num_samples):
-                t = i / sample_rate
-                vibrato = math.sin(2 * math.pi * 5 * t) * 0.1 if emotion in ("happy", "excited", "sad") else 0
-                value = amplitude * math.sin(2 * math.pi * freq * t + vibrato * 2 * math.pi)
-                value += 0.3 * amplitude * math.sin(2 * math.pi * freq * 2 * t)
-                value += 0.1 * amplitude * math.sin(2 * math.pi * freq * 3 * t)
-                value = max(-1.0, min(1.0, value))
-                samples.append(struct.pack("h", int(value * 32767)))
-
-            import wave
-            with wave.open(output_path, "w") as wav_file:
-                wav_file.setnchannels(1)
-                wav_file.setsampwidth(2)
-                wav_file.setframerate(sample_rate)
-                wav_file.writeframes(b"".join(samples))
-
-            mp3_path = output_path.replace(".mp3", "_temp.mp3")
-            cmd = ["ffmpeg", "-y", "-i", output_path, "-codec:a", "libmp3lame", "-qscale:a", "2", mp3_path]
-            try:
-                subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
-                if os.path.exists(mp3_path) and os.path.getsize(mp3_path) > 1000:
-                    safe_remove_file(output_path)
-                    shutil.move(mp3_path, output_path)
-            except Exception:
-                safe_remove_file(mp3_path)
-
-            if os.path.exists(output_path) and os.path.getsize(output_path) > 1000:
-                logger.info(f"Generative Fallback success: {text[:30]}... [emotion={emotion}]")
-                return output_path
-
-    except Exception as e:
-        logger.error(f"All TTS tiers failed: {e}")
-
-    safe_remove_file(output_path)
-    return None# ========================================================
-# 37. MODE FUNCTIONS - Creative Workshop, Blueprints, Upscaler, Draw, Video Editor, Face Video
-# ========================================================
-
-def run_creative_workshop():
-    """Creative Workshop - Matching Studio Style"""
-    
-    # ============================================
-    # CREATIVE WORKSHOP CSS - DARK THEME
-    # ============================================
-    st.markdown("""
-    <style>
-        /* ============================================
-           CREATIVE WORKSHOP - DARK THEME
-           ============================================ */
-        
-        /* HEADER */
-        .creative-header {
-            background: linear-gradient(135deg, rgba(236,72,153,0.06), rgba(69,243,255,0.06));
-            border-radius: 16px;
-            border: 1px solid rgba(69,243,255,0.08);
-            padding: 16px 20px;
-            margin-bottom: 18px;
-            text-align: center;
-        }
-        .creative-header .badge {
-            display: inline-block;
-            background: rgba(236,72,153,0.12);
-            color: #EC4899;
-            padding: 4px 14px;
-            border-radius: 16px;
-            font-size: 9px;
-            font-family: 'Orbitron', sans-serif;
-            letter-spacing: 1px;
-            border: 1px solid rgba(236,72,153,0.15);
-            margin-bottom: 6px;
-        }
-        .creative-header h2 {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 20px;
-            color: #FFFFFF;
-            margin: 0;
-        }
-        .creative-header h2 .highlight {
-            background: linear-gradient(135deg, #45f3ff, #EC4899);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        .creative-header p {
-            font-family: 'Inter', sans-serif;
-            color: #94a3b8;
-            font-size: 12px;
-            margin: 4px 0 0 0;
-        }
-        
-        /* ============================================
-           SELECT BOX - DARK
-           ============================================ */
-        .stSelectbox > div,
-        div[data-testid="stSelectbox"] > div {
-            background: #0a0a12 !important;
-            border: 1px solid rgba(255,255,255,0.06) !important;
-            border-radius: 10px !important;
-        }
-        .stSelectbox select,
-        div[data-testid="stSelectbox"] select {
-            background: #0a0a12 !important;
-            color: #e0e0e0 !important;
-            border: none !important;
-            border-radius: 10px !important;
-            font-family: 'Inter', sans-serif !important;
-            font-size: 13px !important;
-            padding: 8px 12px !important;
-        }
-        .stSelectbox select:focus,
-        div[data-testid="stSelectbox"] select:focus {
-            border-color: #EC4899 !important;
-            outline: none !important;
-        }
-        
-        /* Selectbox Dropdown */
-        div[data-baseweb="select"] {
-            background: #0a0a12 !important;
-            border: 1px solid rgba(255,255,255,0.06) !important;
-            border-radius: 10px !important;
-        }
-        div[data-baseweb="select"] > div {
-            background: #0a0a12 !important;
-        }
-        div[data-baseweb="select"] input {
-            background: #0a0a12 !important;
-            color: #e0e0e0 !important;
-        }
-        ul[data-baseweb="menu"] {
-            background: #0f0f1a !important;
-            border: 1px solid rgba(255,255,255,0.06) !important;
-            border-radius: 10px !important;
-        }
-        ul[data-baseweb="menu"] li {
-            background: #0f0f1a !important;
-            color: #e0e0e0 !important;
-            font-family: 'Inter', sans-serif !important;
-            font-size: 13px !important;
-        }
-        ul[data-baseweb="menu"] li:hover {
-            background: rgba(236,72,153,0.1) !important;
-            color: #FFFFFF !important;
-        }
-        ul[data-baseweb="menu"] li[aria-selected="true"] {
-            background: rgba(236,72,153,0.15) !important;
-            color: #EC4899 !important;
-        }
-        
-        /* ============================================
-           TEXT AREA - DARK
-           ============================================ */
-        .stTextArea textarea,
-        div[data-testid="stTextArea"] textarea {
-            background: #0a0a12 !important;
-            color: #e0e0e0 !important;
-            border: 1px solid rgba(255,255,255,0.06) !important;
-            border-radius: 10px !important;
-            font-family: 'Inter', sans-serif !important;
-            font-size: 13px !important;
-            padding: 12px 14px !important;
-            min-height: 80px !important;
-        }
-        .stTextArea textarea::placeholder,
-        div[data-testid="stTextArea"] textarea::placeholder {
-            color: #64748b !important;
-        }
-        .stTextArea textarea:focus,
-        div[data-testid="stTextArea"] textarea:focus {
-            border-color: #EC4899 !important;
-            box-shadow: 0 0 20px rgba(236,72,153,0.08) !important;
-            outline: none !important;
-        }
-        
-        /* ============================================
-           SLIDER - DARK
-           ============================================ */
-        div[data-testid="stSlider"] {
-            background: rgba(10,10,15,0.7) !important;
-            border-radius: 10px !important;
-            padding: 8px 12px !important;
-            border: 1px solid rgba(255,255,255,0.04) !important;
-        }
-        div[data-testid="stSlider"] label {
-            font-family: 'Inter', sans-serif !important;
-            font-size: 11px !important;
-            color: #94a3b8 !important;
-        }
-        div[data-testid="stSlider"] .stSliderValue {
-            color: #45f3ff !important;
-            font-family: 'Orbitron', sans-serif !important;
-            font-size: 11px !important;
-        }
-        
-        /* ============================================
-           BUTTONS - DARK
-           ============================================ */
-        .stButton > button {
-            background: rgba(255,255,255,0.05) !important;
-            color: #e0e0e0 !important;
-            border: 1px solid rgba(255,255,255,0.06) !important;
-            border-radius: 10px !important;
-            font-family: 'Orbitron', sans-serif !important;
-            font-size: 11px !important;
-            font-weight: 700 !important;
-            transition: all 0.3s ease !important;
-        }
-        .stButton > button:hover {
-            background: #EC4899 !important;
-            color: #FFFFFF !important;
-            border-color: #EC4899 !important;
-            box-shadow: 0 0 25px rgba(236,72,153,0.2) !important;
-        }
-        
-        /* ============================================
-           CONTAINERS - DARK
-           ============================================ */
-        div[data-testid="stVerticalBlockBorder"] {
-            background: rgba(18,19,26,0.7) !important;
-            border: 1px solid rgba(255,255,255,0.04) !important;
-            border-radius: 12px !important;
-            padding: 16px !important;
-        }
-        
-        /* ============================================
-           LABELS - DARK
-           ============================================ */
-        .creative-label {
-            font-family: 'Inter', sans-serif !important;
-            font-size: 11px !important;
-            color: #94a3b8 !important;
-            margin-bottom: 4px !important;
-        }
-        
-        .creative-title {
-            font-family: 'Orbitron', sans-serif !important;
-            font-size: 12px !important;
-            color: #FFC0CB !important;
-            margin-bottom: 12px !important;
-            letter-spacing: 0.5px !important;
-        }
-        
-        /* ============================================
-           IMAGE OUTPUT - DARK
-           ============================================ */
-        div[data-testid="stImage"] {
-            background: rgba(10,10,12,0.6) !important;
-            border-radius: 12px !important;
-            border: 1px solid rgba(255,255,255,0.04) !important;
-            padding: 8px !important;
-        }
-        
-        /* ============================================
-           EMPTY STATE - DARK
-           ============================================ */
-        .empty-state {
-            height: 380px;
-            min-height: 380px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            color: #64748b;
-            text-align: center;
-            padding: 12px;
-            overflow: hidden;
-            background: rgba(10,10,12,0.4);
-            border-radius: 12px;
-            border: 1px dashed rgba(255,192,203,0.12);
-        }
-        .empty-state .icon {
-            font-size: 48px;
-            margin-bottom: 10px;
-        }
-        .empty-state .title {
-            font-family: 'Inter', sans-serif;
-            font-size: 13px;
-            font-weight: 500;
-            color: #FFC0CB;
-            margin: 0;
-        }
-        .empty-state .desc {
-            font-family: 'Inter', sans-serif;
-            font-size: 11px;
-            color: #94a3b8;
-            max-width: 400px;
-            text-align: center;
-            margin-top: 4px;
-            line-height: 1.4;
-        }
-        
-        /* ============================================
-           MESSAGES - DARK
-           ============================================ */
-        .stAlert {
-            background: rgba(10,10,15,0.9) !important;
-            border-radius: 10px !important;
-            border: 1px solid rgba(255,255,255,0.06) !important;
-        }
-        .stAlert .stAlertContent {
-            font-family: 'Inter', sans-serif !important;
-            font-size: 12px !important;
-            color: #e0e0e0 !important;
-        }
-    </style>
-    """, unsafe_allow_html=True)
-    
-    # ============================================
-    # HEADER
-    # ============================================
-    st.markdown("""
-    <div class="creative-header">
-        <span class="badge">🎨 AI GENERATOR</span>
-        <h2>Creative <span class="highlight">Synthesis Hub</span></h2>
-        <p>High-Quality Thumbnail • Banner • Poster Generator</p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    # ============================================
-    # MAIN CONTENT
-    # ============================================
-    w_col1, w_col2 = st.columns([1.1, 1.4], gap="medium")
-    
-    with w_col1:
-        with st.container(border=True):
-            st.markdown("<style>.creative-title { color: #EC4899; !important; }</style>", unsafe_allow_html=True)
-            st.markdown('<h4 class="creative-title"><span style="color: #EC4899; !important;">⚙️ WORKSHOP PARAMETERS</span></h4>', unsafe_allow_html=True)
-            
-            # Aspect Ratio
-            st.markdown('<p class="creative-label">📐 Select Aspect Ratio</p>', unsafe_allow_html=True)
-            workshop_ar = st.selectbox(
-                "Aspect Ratio",
-                ["16:9", "9:16", "1:1", "21:9", "4:5", "3:2"],
-                key="workshop_aspect_ratio_choice",
-                label_visibility="collapsed"
-            )
-            
-            # Prompt
-            st.markdown('<p class="creative-label">🎨 Masterpiece Prompt Input</p>', unsafe_allow_html=True)
-            workshop_prompt_str = st.text_area(
-                "Prompt",
-                placeholder="E.g. A gorgeous cyberpunk temple with pink neon aurora, hyperrealistic, 8k resolution, cinematic lighting...",
-                height=120,
-                key="workshop_prompt_str_area",
-                label_visibility="collapsed"
-            )
-            
-            # Negative Prompt
-            st.markdown('<p class="creative-label">🚫 Negative Prompt</p>', unsafe_allow_html=True)
-            workshop_neg_prompt_str = st.text_area(
-                "Negative Prompt",
-                placeholder="E.g. blurry, low quality, distorted, extra limbs, bad anatomy, text, watermark...",
-                height=80,
-                key="workshop_neg_prompt_str_area",
-                label_visibility="collapsed"
-            )
-            
-            # Motion Bucket
-            st.markdown('<p class="creative-label">🎬 Motion Bucket ID (Animation Intensity)</p>', unsafe_allow_html=True)
-            motion_bucket_val = st.slider(
-                "Motion Bucket",
-                min_value=1,
-                max_value=255,
-                value=127,
-                key="workshop_motion_bucket_slider",
-                label_visibility="collapsed"
-            )
-            
-            # Quality
-            st.markdown('<p class="creative-label">📊 Image Quality</p>', unsafe_allow_html=True)
-            workshop_quality = st.selectbox(
-                "Quality",
-                ["Standard", "HD", "Pro"],
-                key="workshop_quality",
-                label_visibility="collapsed"
-            )
-            
-            st.markdown("<br>", unsafe_allow_html=True)
-            
-            # Generate Button
-            if st.button("🚀 Generate Workshop Image", key="workshop_generation_action_btn", use_container_width=True):
-                # ... generate logic ...
-                pass
-    
-    with w_col2:
-        with st.container(border=True):
-            st.markdown("<style>.creative-title { color: #EC4899; !important; }</style>", unsafe_allow_html=True)
-            st.markdown('<h4 class="creative-title"><span style="color:#EC4899; !important;">⚙️ LIVE IMAGE OUTPUT BOX</span></h4>', unsafe_allow_html=True)
-            
-            active_img_file = st.session_state.get("workshop_active_image")
-            if active_img_file and os.path.exists(active_img_file):
-                st.image(active_img_file, use_container_width=True)
-                
-                col_dl, col_clr = st.columns(2)
-                with col_dl:
-                    with open(active_img_file, "rb") as f:
-                        img_bytes = f.read()
-                    st.download_button(
-                        label="📥 Download Image",
-                        data=img_bytes,
-                        file_name=f"zovix_creative_{uuid.uuid4().hex[:8]}.png",
-                        mime="image/png",
-                        use_container_width=True,
-                        key="creative_download_btn"
-                    )
-                with col_clr:
-                    if st.button("🧹 Clear Output", key="creative_clear_btn", use_container_width=True):
-                        safe_remove_file(active_img_file)
-                        st.session_state["workshop_active_image"] = None
-                        st.rerun()
-            else:
-                st.markdown("""
-                <div class="empty-state">
-                    <span class="icon">🖼️</span>
-                    <p class="title" style="color: #EC4899; !important;">Image will render here</p>
-                    <p class="desc">Artwork will display immediately upon generation.</p>
-                </div>
-                """, unsafe_allow_html=True)
-    
-    # ========================================================
-# 43.5 BLUEPRINTS MODE 
-# ========================================================
-
-# ========================================================
-# ANALYZE BLUEPRINT FUNCTION - ADD THIS FIRST
-# ========================================================
 
 def analyze_blueprint(blueprint_path):
     """Analyze blueprint image and extract basic information"""
@@ -9412,39 +7747,25 @@ def analyze_blueprint(blueprint_path):
             "estimated_rooms": "N/A",
             "total_area": "N/A",
             "structure_type": "N/A",
-            "confidence_score": 0.0
+            "confidence_score": 0.0,
         }
-    
     try:
-        from PIL import Image
-        import re
-        
         img = Image.open(blueprint_path)
         width, height = img.size
-        
-        # Try to extract information from filename
         filename = os.path.basename(blueprint_path).lower()
-        
-        estimated_rooms = "4"
-        total_area = "1,200 sq ft"
-        structure_type = "Residential"
-        confidence_score = 0.75
-        
-        if "floor" in filename or "plan" in filename:
-            structure_type = "Residential Floor Plan"
-            confidence_score = 0.85
+        structure_type = "Residential Floor Plan"
+        confidence_score = 0.84
+        if "site" in filename:
+            structure_type = "Site Plan"
+            confidence_score = 0.80
         elif "elevation" in filename:
             structure_type = "Building Elevation"
-            confidence_score = 0.80
+            confidence_score = 0.81
         elif "section" in filename:
             structure_type = "Building Section"
-            confidence_score = 0.80
-        elif "site" in filename:
-            structure_type = "Site Plan"
-            confidence_score = 0.75
-        
-        # Try to estimate rooms from image dimensions
-        if width > 1000 and height > 600:
+            confidence_score = 0.81
+
+        if width > 1000 and height > 650:
             estimated_rooms = "5-6"
             total_area = "1,500 sq ft"
         elif width > 800 and height > 500:
@@ -9453,7 +7774,7 @@ def analyze_blueprint(blueprint_path):
         else:
             estimated_rooms = "2-3"
             total_area = "800 sq ft"
-        
+
         return {
             "format": img.format or "PNG",
             "width": width,
@@ -9461,7 +7782,7 @@ def analyze_blueprint(blueprint_path):
             "estimated_rooms": estimated_rooms,
             "total_area": total_area,
             "structure_type": structure_type,
-            "confidence_score": confidence_score
+            "confidence_score": confidence_score,
         }
     except Exception as e:
         logger.warning(f"Blueprint analysis error: {e}")
@@ -9472,20 +7793,12 @@ def analyze_blueprint(blueprint_path):
             "estimated_rooms": "N/A",
             "total_area": "N/A",
             "structure_type": "N/A",
-            "confidence_score": 0.0
+            "confidence_score": 0.0,
         }
 
 
-# ========================================================
-# BLUEPRINTS MODE - FULLY FIXED
-# ========================================================
-
 def run_blueprints_mode():
     """Blueprints Mode - Professional Architectural Drawings"""
-    
-    # ========================================================
-    # HEADER - STUDIO STYLE MATCH
-    # ========================================================
     st.markdown("""
     <div style="
         background: linear-gradient(135deg, rgba(236,72,153,0.06), rgba(69,243,255,0.06));
@@ -9506,7 +7819,7 @@ def run_blueprints_mode():
             letter-spacing: 1px;
             border: 1px solid rgba(236,72,153,0.15);
             margin-bottom: 6px;
-        ">📐 ARCHITECTURE</span>
+        ">ARCHITECTURE</span>
         <h2 style="
             font-family: 'Orbitron', sans-serif;
             font-size: 20px;
@@ -9530,9 +7843,8 @@ def run_blueprints_mode():
         </p>
     </div>
     """, unsafe_allow_html=True)
-    
+
     bp_col1, bp_col2 = st.columns([1.1, 1.4], gap="medium")
-    
     with bp_col1:
         with st.container(border=True):
             st.markdown("""
@@ -9543,12 +7855,11 @@ def run_blueprints_mode():
                 margin-bottom: 12px;
                 letter-spacing: 0.5px;
             ">
-                ⚙️ BLUEPRINT PARAMETERS
+                BLUEPRINT PARAMETERS
             </h4>
             """, unsafe_allow_html=True)
-            
-            # Blueprint Description
-            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">📝 Architectural Description</p>', unsafe_allow_html=True)
+
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">Architectural Description</p>', unsafe_allow_html=True)
             blueprint_prompt = st.text_area(
                 "Description",
                 placeholder="E.g. Modern 2-bedroom house with open kitchen, master bedroom with en-suite bathroom, large living room, study room...",
@@ -9556,102 +7867,172 @@ def run_blueprints_mode():
                 key="bp_prompt_input",
                 label_visibility="collapsed"
             )
-            
-            # Blueprint Type
-            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">📐 Blueprint Type</p>', unsafe_allow_html=True)
+
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">Blueprint Type</p>', unsafe_allow_html=True)
             blueprint_type = st.selectbox(
                 "Type",
-                ["floor_plan", "elevation", "section", "site_plan"],
+                ["floor_plan", "elevation", "section", "site_plan", "mechanical_drawing", "electrical_drawing", "structural_drawing", "technical_illustration"],
                 key="bp_type_select",
                 label_visibility="collapsed"
             )
-            
-            # Blueprint Style
-            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">🎨 Blueprint Style</p>', unsafe_allow_html=True)
+
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">Blueprint Style</p>', unsafe_allow_html=True)
             blueprint_style = st.selectbox(
                 "Style",
                 ["Modern", "Classic", "Minimalist", "Industrial", "Traditional"],
                 key="bp_style_select",
                 label_visibility="collapsed"
             )
-            
-            # Quality
-            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">📊 Blueprint Quality</p>', unsafe_allow_html=True)
+
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">Blueprint View</p>', unsafe_allow_html=True)
+            blueprint_render_mode = st.selectbox(
+                "View",
+                ["2D Technical Plan", "3D Concept View"],
+                key="bp_render_mode_select",
+                label_visibility="collapsed"
+            )
+
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">Blueprint Quality</p>', unsafe_allow_html=True)
             bp_quality = st.selectbox(
                 "Quality",
                 ["Standard", "HD"],
                 key="bp_quality_select",
                 label_visibility="collapsed"
             )
-            
+
+            template_map = {
+                "2BHK House with Garden": {
+                    "prompt": "Modern 2-bedroom house with garden, open kitchen, living room, dining area, master bedroom with attached bathroom, guest bathroom, utility area, staircase, parking and clear room labels.",
+                    "type": "floor_plan",
+                    "style": "Modern",
+                },
+                "Modern Office Building": {
+                    "prompt": "Modern office building floor plan with reception, workstations, conference room, CEO cabin, pantry, washrooms, server room, emergency exit and dimension labels.",
+                    "type": "floor_plan",
+                    "style": "Minimalist",
+                },
+                "Restaurant Floor Plan": {
+                    "prompt": "Professional restaurant floor plan with dining hall, kitchen, billing counter, washrooms, storage, waiting area, emergency exit and seating layout.",
+                    "type": "floor_plan",
+                    "style": "Industrial",
+                },
+                "School Campus Layout": {
+                    "prompt": "School campus site plan with classrooms, playground, administration block, parking, pathways, entrance gate, washrooms and staff room.",
+                    "type": "site_plan",
+                    "style": "Traditional",
+                },
+                "Hospital Wing Design": {
+                    "prompt": "Hospital wing blueprint with reception, OPD rooms, ICU, nurse station, pharmacy, diagnostic rooms, waiting hall, washrooms and emergency access.",
+                    "type": "floor_plan",
+                    "style": "Modern",
+                },
+                "Car Engine Assembly": {
+                    "prompt": "Detailed mechanical drawing of a car engine assembly showing crankshaft, pistons, cylinder block, camshaft, gearbox, timing belt, oil pump and dimension annotations.",
+                    "type": "mechanical_drawing",
+                    "style": "Industrial",
+                },
+                "Building Wiring Layout": {
+                    "prompt": "Electrical wiring diagram for a 2-floor residential building with main panel, circuit breakers, power outlets, lighting circuits, switches, earthing, and safety labels.",
+                    "type": "electrical_drawing",
+                    "style": "Minimalist",
+                },
+                "Steel Frame Structure": {
+                    "prompt": "Structural drawing of a 3-storey steel frame building showing columns, beams, slabs, foundation footing, load calculations, cross-sections and material annotations.",
+                    "type": "structural_drawing",
+                    "style": "Classic",
+                },
+                "Smart Speaker Product": {
+                    "prompt": "Technical illustration of a smart speaker device with annotated components: speaker grille, microphone array, LED ring, power button, volume dial, PCB board and chassis.",
+                    "type": "technical_illustration",
+                    "style": "Modern",
+                },
+            }
+            st.session_state.setdefault("bp_prompt_input", "")
+            st.session_state.setdefault("bp_type_select", "floor_plan")
+            st.session_state.setdefault("bp_style_select", "Modern")
+            st.session_state.setdefault("bp_render_mode_select", "2D Technical Plan")
+            st.session_state.setdefault("bp_quality_select", "Standard")
+
+            template_names = ["None"] + list(template_map.keys())
+            default_template = st.session_state.get("bp_template_select", "None")
+            if default_template not in template_names:
+                default_template = "None"
+
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">Quick Template Library</p>', unsafe_allow_html=True)
+            selected_template = st.selectbox(
+                "Choose Template",
+                template_names,
+                index=template_names.index(default_template),
+                key="bp_template_select",
+                label_visibility="collapsed"
+            )
+
             st.markdown("<br>", unsafe_allow_html=True)
-            
-            # DeepSeek AI Generate Button
             col_gen1, col_gen2 = st.columns(2)
             with col_gen1:
-                if st.button("📐 Generate Blueprint", key="bp_generate_btn", use_container_width=True):
-                    # ✅ FIXED: Proper token validation
-                    success, required_tokens, message = validate_and_deduct_tokens("Blueprints", bp_quality)
-                    if not success:
-                        st.error(message)
+                if st.button("Generate Blueprint", key="bp_generate_btn", use_container_width=True):
+                    cleaned_prompt = (blueprint_prompt or "").strip()
+                    if not cleaned_prompt:
+                        st.error("Please enter a blueprint description.")
                     else:
-                        st.success(message)
-                        if not blueprint_prompt.strip():
-                            st.error("Please enter a blueprint description.")
+                        success, required_tokens, message = validate_and_deduct_tokens("Blueprints", bp_quality)
+                        if not success:
+                            st.error(message)
                         else:
-                            with st.spinner("🧠 DeepSeek AI generating architectural blueprint..."):
+                            st.success(message)
+                            st.session_state["active_blueprint"] = None
+                            st.session_state["active_blueprint_svg"] = None
+                            st.session_state["active_blueprint_error"] = None
+                            template_context = None
+                            selected_template_name = selected_template
+                            if selected_template_name and selected_template_name != "None" and selected_template_name in template_map:
+                                template_context = template_map[selected_template_name].get("prompt", "")
+                            with st.spinner("Zovix Blueprint Engine generating professional blueprint..."):
                                 try:
-                                    # Use DeepSeek to generate blueprint
                                     blueprint_path = generate_blueprint_with_deepseek(
-                                        blueprint_prompt, 
-                                        blueprint_type, 
-                                        blueprint_style
+                                        cleaned_prompt,
+                                        blueprint_type,
+                                        blueprint_style,
+                                        blueprint_render_mode,
+                                        template_context=template_context,
                                     )
                                     if blueprint_path and os.path.exists(blueprint_path):
                                         st.session_state["active_blueprint"] = blueprint_path
-                                        
-                                        # Save to history
                                         timestamp = time.strftime("%Y%m%d_%H%M%S")
-                                        file_name = f"blueprint_{timestamp}.png"
+                                        output_ext = os.path.splitext(blueprint_path)[1] or ".png"
+                                        file_name = f"blueprint_{timestamp}{output_ext}"
                                         save_render_to_db(
                                             st.session_state["logged_user"],
                                             file_name,
-                                            blueprint_prompt[:100],
+                                            cleaned_prompt[:100],
                                             blueprint_path,
                                             "Blueprints",
                                             required_tokens
                                         )
                                         st.session_state["history_renders"] = load_renders_history_db(st.session_state["logged_user"])
-                                        
                                         st.toast("Blueprint generated successfully!")
                                         st.rerun()
                                     else:
-                                        # Fallback to local generation
-                                        st.warning("DeepSeek API failed, using local generator...")
-                                        blueprint_path = generate_blueprint(blueprint_prompt, blueprint_type)
-                                        if blueprint_path and os.path.exists(blueprint_path):
-                                            st.session_state["active_blueprint"] = blueprint_path
-                                            st.toast("Blueprint generated successfully!")
-                                            st.rerun()
-                                        else:
-                                            st.error("Blueprint generation failed. Please try a different description.")
+                                        st.error(st.session_state.get("active_blueprint_error") or "Blueprint generation failed. Please try a different description.")
                                 except Exception as e:
+                                    logger.error(f"Blueprint generation UI error: {e}")
                                     st.error(f"Error generating blueprint: {str(e)}")
-            
             with col_gen2:
-                if st.button("🎨 Quick Template", key="bp_template_btn", use_container_width=True):
-                    templates = [
-                        "2BHK House with Garden",
-                        "Modern Office Building",
-                        "Restaurant Floor Plan",
-                        "School Campus Layout",
-                        "Hospital Wing Design"
-                    ]
-                    selected_template = st.selectbox("Choose Template", templates, key="bp_template_select")
-                    if selected_template:
-                        st.session_state["bp_prompt_input"] = selected_template
+                if st.button("Quick Template", key="bp_template_btn", use_container_width=True):
+                    template_data = template_map.get(selected_template)
+                    if not template_data:
+                        st.error("Please select a valid template.")
+                    else:
+                        st.session_state["bp_prompt_input"] = template_data["prompt"]
+                        st.session_state["bp_type_select"] = template_data["type"]
+                        st.session_state["bp_style_select"] = template_data["style"]
+                        st.session_state["bp_quality_select"] = st.session_state.get("bp_quality_select", "Standard")
+                        st.session_state["active_blueprint"] = None
+                        st.session_state["active_blueprint_svg"] = None
+                        st.session_state["active_blueprint_error"] = None
+                        st.toast("Template loaded successfully! Now click Generate Blueprint.")
                         st.rerun()
-    
+
     with bp_col2:
         with st.container(border=True):
             st.markdown("""
@@ -9662,66 +8043,1723 @@ def run_blueprints_mode():
                 margin-bottom: 12px;
                 letter-spacing: 0.5px;
             ">
-                📐 BLUEPRINT VIEWER
+                BLUEPRINT VIEWER
             </h3>
             """, unsafe_allow_html=True)
-            
+
             active_bp = st.session_state.get("active_blueprint")
-            if active_bp and os.path.exists(active_bp):
-                st.image(active_bp, use_container_width=True)
-                
-                # ✅ FIXED: analyze_blueprint function ab available hai
+            active_svg = st.session_state.get("active_blueprint_svg")
+            active_error = st.session_state.get("active_blueprint_error")
+            if active_svg:
+                components.html(_wrap_svg_for_streamlit(active_svg), height=620, scrolling=False)
+                st.markdown("<br>", unsafe_allow_html=True)
+                col_dl, col_clr = st.columns(2)
+                with col_dl:
+                    st.download_button(
+                        label="Download Blueprint (SVG)",
+                        data=active_svg.encode("utf-8"),
+                        file_name=f"zovix_blueprint_{uuid.uuid4().hex[:8]}.svg",
+                        mime="image/svg+xml",
+                        use_container_width=True,
+                        key="bp_download_svg_btn"
+                    )
+                with col_clr:
+                    if st.button("Clear blueprint", key="bp_clear_btn", use_container_width=True):
+                        if active_bp and os.path.exists(active_bp):
+                            safe_remove_file(active_bp)
+                        st.session_state["active_blueprint"] = None
+                        st.session_state["active_blueprint_svg"] = None
+                        st.session_state["active_blueprint_error"] = None
+                        st.rerun()
+            elif active_bp and os.path.exists(active_bp):
+                if str(active_bp).lower().endswith(".svg"):
+                    with open(active_bp, "r", encoding="utf-8") as handle:
+                        svg_code = handle.read()
+                    components.html(_wrap_svg_for_streamlit(svg_code), height=620, scrolling=False)
+                else:
+                    st.image(active_bp, use_container_width=True)
                 try:
                     analysis = analyze_blueprint(active_bp)
                     if analysis:
-                        with st.expander("📊 Blueprint Analysis", expanded=False):
+                        with st.expander("Blueprint Analysis", expanded=False):
                             st.markdown(f"""
-                            <div style="
-                                background: rgba(255,255,255,0.02);
-                                border-radius: 8px;
-                                padding: 12px;
-                                font-family: 'Inter', sans-serif;
-                            ">
-                                <p style="font-size: 12px; color: #94a3b8; margin: 4px 0;">
-                                    <strong style="color: #FFC0CB;">Format:</strong> {analysis.get('format', 'N/A')}
-                                </p>
-                                <p style="font-size: 12px; color: #94a3b8; margin: 4px 0;">
-                                    <strong style="color: #FFC0CB;">Dimensions:</strong> {analysis.get('width', 'N/A')} x {analysis.get('height', 'N/A')} px
-                                </p>
-                                <p style="font-size: 12px; color: #94a3b8; margin: 4px 0;">
-                                    <strong style="color: #FFC0CB;">Estimated Rooms:</strong> {analysis.get('estimated_rooms', 'N/A')}
-                                </p>
-                                <p style="font-size: 12px; color: #94a3b8; margin: 4px 0;">
-                                    <strong style="color: #FFC0CB;">Total Area:</strong> {analysis.get('total_area', 'N/A')}
-                                </p>
-                                <p style="font-size: 12px; color: #94a3b8; margin: 4px 0;">
-                                    <strong style="color: #FFC0CB;">Structure Type:</strong> {analysis.get('structure_type', 'N/A')}
-                                </p>
-                                <p style="font-size: 12px; color: #94a3b8; margin: 4px 0;">
-                                    <strong style="color: #FFC0CB;">Confidence Score:</strong> {analysis.get('confidence_score', 0.0) * 100:.1f}%
-                                </p>
+                            <div style="background: rgba(255,255,255,0.02); border-radius: 8px; padding: 12px; font-family: 'Inter', sans-serif;">
+                                <p style="font-size: 12px; color: #94a3b8; margin: 4px 0;"><strong style="color: #FFC0CB;">Format:</strong> {analysis.get('format', 'N/A')}</p>
+                                <p style="font-size: 12px; color: #94a3b8; margin: 4px 0;"><strong style="color: #FFC0CB;">Dimensions:</strong> {analysis.get('width', 'N/A')} x {analysis.get('height', 'N/A')} px</p>
+                                <p style="font-size: 12px; color: #94a3b8; margin: 4px 0;"><strong style="color: #FFC0CB;">Estimated Rooms:</strong> {analysis.get('estimated_rooms', 'N/A')}</p>
+                                <p style="font-size: 12px; color: #94a3b8; margin: 4px 0;"><strong style="color: #FFC0CB;">Total Area:</strong> {analysis.get('total_area', 'N/A')}</p>
+                                <p style="font-size: 12px; color: #94a3b8; margin: 4px 0;"><strong style="color: #FFC0CB;">Structure Type:</strong> {analysis.get('structure_type', 'N/A')}</p>
+                                <p style="font-size: 12px; color: #94a3b8; margin: 4px 0;"><strong style="color: #FFC0CB;">Confidence Score:</strong> {analysis.get('confidence_score', 0.0) * 100:.1f}%</p>
                             </div>
                             """, unsafe_allow_html=True)
                 except Exception as e:
                     st.warning(f"Blueprint analysis temporarily unavailable: {str(e)[:100]}")
-                
+
                 st.markdown("<br>", unsafe_allow_html=True)
                 col_dl, col_clr = st.columns(2)
                 with col_dl:
                     with open(active_bp, "rb") as f:
                         bp_bytes = f.read()
                     st.download_button(
-                        label="📥 Download Blueprint (PNG)",
+                        label="Download Blueprint (SVG/PNG)",
                         data=bp_bytes,
-                        file_name=f"zovix_blueprint_{uuid.uuid4().hex[:8]}.png",
-                        mime="image/png",
+                        file_name=f"zovix_blueprint_{uuid.uuid4().hex[:8]}{os.path.splitext(active_bp)[1]}",
+                        mime="image/svg+xml" if str(active_bp).lower().endswith('.svg') else "image/png",
                         use_container_width=True,
                         key="bp_download_btn"
                     )
                 with col_clr:
-                    if st.button("🧹 Clear Blueprint", key="bp_clear_btn", use_container_width=True):
+                    if st.button("Clear blueprint", key="bp_clear_btn", use_container_width=True):
                         safe_remove_file(active_bp)
                         st.session_state["active_blueprint"] = None
+                        st.session_state["active_blueprint_svg"] = None
+                        st.session_state["active_blueprint_error"] = None
+                        st.rerun()
+            else:
+                if active_error:
+                    st.error(active_error)
+                st.markdown("""
+                    <div style="height: 380px; min-height: 380px; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #64748b; text-align: center; padding: 12px; overflow: hidden; background: rgba(10,10,12,0.4); border-radius: 12px; border: 1px dashed rgba(255,192,203,0.12);">
+                        <span style="font-size: 48px; margin-bottom: 10px;">📐</span>
+                        <p style="font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500; color: #EC4899; margin: 0;">Blueprint will render here</p>
+                        <p style="font-family: 'Inter', sans-serif; font-size: 11px; color: #94a3b8; max-width: 400px; text-align: center; margin-top: 4px; line-height: 1.4;">Professional architectural drawings with detailed analysis.</p>
+                        <p style="font-family: 'Inter', sans-serif; font-size: 10px; color: #45f3ff; margin-top: 4px;">Powered by Gemini SVG generation</p>
+                    </div>
+                """, unsafe_allow_html=True)
+
+def _wrap_svg_for_streamlit(svg_code):
+    """Wrap raw SVG markup so Streamlit renders it reliably inside the blueprint viewer."""
+    cleaned_svg = str(svg_code or "").strip()
+    if not cleaned_svg:
+        return "<div style='padding:16px; color:#fff;'>No blueprint output available.</div>"
+    if cleaned_svg.lower().startswith("<svg"):
+        return f"<div style='background:#08111d; padding:16px; border-radius:16px; width:100%; overflow:auto;'>{cleaned_svg}</div>"
+    return f"<div style='background:#08111d; padding:16px; border-radius:16px; color:#fff;'>{cleaned_svg}</div>"
+
+
+def _extract_room_specs_from_prompt(user_prompt):
+    """Extract simple room labels and counts from the user's prompt for fallback rendering."""
+    prompt_text = str(user_prompt or "")
+    prompt_lower = prompt_text.lower()
+    room_specs = []
+
+    def add_room(label, count=1):
+        for idx in range(count):
+            room_specs.append(label if count == 1 else f"{label} {idx + 1}")
+
+    bedroom_matches = re.findall(r"(\d+)\s*bedroom", prompt_lower)
+    if bedroom_matches:
+        add_room("Bedroom", int(bedroom_matches[-1]))
+    elif "bedroom" in prompt_lower:
+        add_room("Bedroom")
+
+    bathroom_matches = re.findall(r"(\d+)\s*bathroom", prompt_lower)
+    if bathroom_matches:
+        add_room("Bathroom", int(bathroom_matches[-1]))
+    elif "bathroom" in prompt_lower:
+        add_room("Bathroom")
+
+    if "kitchen" in prompt_lower:
+        add_room("Kitchen")
+    if "living room" in prompt_lower or "lounge" in prompt_lower:
+        add_room("Living Room")
+    if "dining" in prompt_lower:
+        add_room("Dining")
+    if "study" in prompt_lower or "office" in prompt_lower:
+        add_room("Study")
+    if "garage" in prompt_lower or "parking" in prompt_lower:
+        add_room("Garage")
+    if "reception" in prompt_lower or "lobby" in prompt_lower:
+        add_room("Reception")
+
+    if not room_specs:
+        room_specs = ["Living Room", "Kitchen", "Bedroom 1", "Bathroom"]
+    return room_specs[:8]
+
+
+def _build_fallback_svg_blueprint(user_prompt, blueprint_type="floor_plan", style="Modern", render_mode="2D Technical Plan", template_context=None):
+    """Build a valid SVG blueprint when Gemini is unavailable or returns invalid output."""
+    room_specs = _extract_room_specs_from_prompt(user_prompt)
+    title_map = {
+        "technical_illustration": "Technical Illustration Preview",
+        "mechanical_drawing": "Mechanical Drawing Preview",
+        "electrical_drawing": "Electrical Schematic Preview",
+        "structural_drawing": "Structural Drawing Preview",
+        "site_plan": "Site Plan Preview",
+        "elevation": "Elevation Preview",
+        "section": "Section Drawing Preview",
+    }
+    title = title_map.get(blueprint_type, "Architectural Blueprint Preview")
+    subtitle = f"{style} {blueprint_type.replace('_', ' ').title()} • {render_mode}"
+    prompt_summary = str(user_prompt or template_context or "Custom blueprint request").strip()
+    if len(prompt_summary) > 90:
+        prompt_summary = prompt_summary[:87] + "..."
+
+    svg_parts = [
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900">',
+        '<rect width="1400" height="900" fill="#0a192f"/>',
+        '<rect x="40" y="40" width="1320" height="820" rx="24" fill="#0b1329" stroke="#38bdf8" stroke-width="3"/>',
+        '<rect x="70" y="70" width="1260" height="760" rx="20" fill="#0f213d" stroke="#ffffff" stroke-width="2"/>',
+        '<line x1="70" y1="170" x2="1330" y2="170" stroke="#1e3a5f" stroke-width="1"/>',
+        '<line x1="70" y1="710" x2="1330" y2="710" stroke="#1e3a5f" stroke-width="1"/>',
+        f'<text x="110" y="125" fill="#ffffff" font-family="Segoe UI, Arial, sans-serif" font-size="28" font-weight="700">{title}</text>',
+        f'<text x="110" y="155" fill="#38bdf8" font-family="Segoe UI, Arial, sans-serif" font-size="16">{subtitle}</text>',
+        f'<text x="110" y="185" fill="#cbd5e1" font-family="Segoe UI, Arial, sans-serif" font-size="13">{prompt_summary}</text>',
+        '<text x="1090" y="185" fill="#ffffff" font-family="Segoe UI, Arial, sans-serif" font-size="16">N</text>',
+        '<line x1="1060" y1="178" x2="1120" y2="178" stroke="#38bdf8" stroke-width="2"/>',
+        '<polygon points="1120,178 1108,170 1108,186" fill="#38bdf8"/>',
+    ]
+
+    if blueprint_type == "technical_illustration":
+        svg_parts.extend([
+            '<rect x="220" y="260" width="960" height="360" rx="28" fill="#12253f" stroke="#ffffff" stroke-width="3"/>',
+            '<rect x="280" y="320" width="160" height="90" rx="12" fill="none" stroke="#38bdf8" stroke-width="2"/>',
+            '<rect x="960" y="320" width="120" height="90" rx="45" fill="none" stroke="#38bdf8" stroke-width="2"/>',
+            '<rect x="300" y="470" width="120" height="70" rx="10" fill="none" stroke="#38bdf8" stroke-width="2"/>',
+            '<rect x="920" y="470" width="140" height="70" rx="10" fill="none" stroke="#38bdf8" stroke-width="2"/>',
+            '<rect x="610" y="400" width="180" height="90" rx="14" fill="#0f213d" stroke="#ffffff" stroke-width="2"/>',
+            '<line x1="220" y1="260" x2="160" y2="210" stroke="#38bdf8" stroke-width="2"/>',
+            '<line x1="1180" y1="260" x2="1240" y2="210" stroke="#38bdf8" stroke-width="2"/>',
+            '<line x1="220" y1="620" x2="150" y2="690" stroke="#38bdf8" stroke-width="2"/>',
+            '<line x1="1180" y1="620" x2="1250" y2="690" stroke="#38bdf8" stroke-width="2"/>',
+        ])
+        fallback_labels = room_specs[:4] or ["Actuator pack", "Sensor array", "Battery module", "Control board"]
+        label_positions = [
+            (70, 188, 150, 210),
+            (1080, 188, 1240, 210),
+            (70, 668, 150, 690),
+            (1080, 668, 1240, 690),
+        ]
+        anchor_points = [(220, 260), (1180, 260), (220, 620), (1180, 620)]
+        for index, label in enumerate(fallback_labels[:4]):
+            lx1, ly1, lx2, ly2 = label_positions[index]
+            ax, ay = anchor_points[index]
+            svg_parts.append(f'<rect x="{lx1}" y="{ly1-18}" width="{lx2-lx1}" height="38" rx="8" fill="#0f213d" stroke="#38bdf8" stroke-width="1.5"/>')
+            svg_parts.append(f'<text x="{lx1+12}" y="{ly1+6}" fill="#ffffff" font-family="Segoe UI, Arial, sans-serif" font-size="15">{label}</text>')
+            svg_parts.append(f'<circle cx="{ax}" cy="{ay}" r="5" fill="#38bdf8"/>')
+        svg_parts.append('<line x1="220" y1="670" x2="1180" y2="670" stroke="#ffffff" stroke-width="2"/>')
+        svg_parts.append('<line x1="220" y1="655" x2="220" y2="685" stroke="#ffffff" stroke-width="2"/>')
+        svg_parts.append('<line x1="1180" y1="655" x2="1180" y2="685" stroke="#ffffff" stroke-width="2"/>')
+        svg_parts.append('<text x="620" y="650" fill="#38bdf8" font-family="Segoe UI, Arial, sans-serif" font-size="14">Overall assembly width</text>')
+        footer_text = 'Exploded callouts • Component labels • Measurement guides • Technical notes'
+    elif blueprint_type == "mechanical_drawing":
+        svg_parts.extend([
+            '<rect x="250" y="260" width="900" height="360" rx="20" fill="#12253f" stroke="#ffffff" stroke-width="3"/>',
+            '<circle cx="450" cy="440" r="90" fill="none" stroke="#38bdf8" stroke-width="3"/>',
+            '<circle cx="450" cy="440" r="36" fill="none" stroke="#ffffff" stroke-width="2"/>',
+            '<rect x="640" y="340" width="280" height="180" rx="18" fill="none" stroke="#38bdf8" stroke-width="3"/>',
+            '<line x1="580" y1="440" x2="640" y2="440" stroke="#ffffff" stroke-width="3"/>',
+            '<line x1="920" y1="440" x2="1040" y2="440" stroke="#ffffff" stroke-width="3"/>',
+            '<circle cx="1060" cy="440" r="42" fill="none" stroke="#38bdf8" stroke-width="3"/>',
+            '<line x1="250" y1="650" x2="1150" y2="650" stroke="#ffffff" stroke-width="2"/>',
+            '<line x1="250" y1="635" x2="250" y2="665" stroke="#ffffff" stroke-width="2"/>',
+            '<line x1="1150" y1="635" x2="1150" y2="665" stroke="#ffffff" stroke-width="2"/>',
+            '<text x="610" y="630" fill="#38bdf8" font-family="Segoe UI, Arial, sans-serif" font-size="14">Assembly span</text>',
+        ])
+        for index, label in enumerate((room_specs[:4] or ["Drive hub", "Gear housing", "Motor mount", "Bearing cap"])):
+            y_pos = 300 + (index * 72)
+            svg_parts.append(f'<line x1="1040" y1="{360 + (index * 35)}" x2="1210" y2="{y_pos}" stroke="#38bdf8" stroke-width="2"/>')
+            svg_parts.append(f'<text x="1220" y="{y_pos+5}" fill="#ffffff" font-family="Segoe UI, Arial, sans-serif" font-size="15">{label}</text>')
+        footer_text = 'Orthographic projection • Shaft and housing labels • Dimension guides • Notes'
+    elif blueprint_type == "electrical_drawing":
+        svg_parts.extend([
+            '<rect x="220" y="250" width="960" height="380" rx="20" fill="#12253f" stroke="#ffffff" stroke-width="3"/>',
+            '<line x1="320" y1="360" x2="1080" y2="360" stroke="#38bdf8" stroke-width="3"/>',
+            '<line x1="320" y1="520" x2="1080" y2="520" stroke="#38bdf8" stroke-width="3"/>',
+            '<rect x="450" y="315" width="120" height="90" rx="10" fill="none" stroke="#ffffff" stroke-width="2"/>',
+            '<circle cx="710" cy="360" r="42" fill="none" stroke="#ffffff" stroke-width="2"/>',
+            '<polygon points="900,320 980,360 900,400" fill="none" stroke="#ffffff" stroke-width="2"/>',
+            '<line x1="500" y1="405" x2="500" y2="520" stroke="#38bdf8" stroke-width="3"/>',
+            '<line x1="710" y1="402" x2="710" y2="520" stroke="#38bdf8" stroke-width="3"/>',
+            '<line x1="940" y1="400" x2="940" y2="520" stroke="#38bdf8" stroke-width="3"/>',
+        ])
+        for index, label in enumerate((room_specs[:4] or ["Power input", "Controller", "Sensor loop", "Output stage"])):
+            x_pos = 300 + (index * 220)
+            svg_parts.append(f'<text x="{x_pos}" y="560" fill="#ffffff" font-family="Segoe UI, Arial, sans-serif" font-size="15">{label}</text>')
+        footer_text = 'Signal paths • Component symbols • Terminal labels • Circuit annotations'
+    else:
+        room_positions = [
+            (140, 260, 360, 440),
+            (420, 260, 640, 440),
+            (700, 260, 920, 440),
+            (980, 260, 1200, 440),
+            (140, 500, 360, 680),
+            (420, 500, 640, 680),
+            (700, 500, 920, 680),
+            (980, 500, 1200, 680),
+        ]
+
+        for index, room_name in enumerate(room_specs):
+            x1, y1, x2, y2 = room_positions[index]
+            svg_parts.append(f'<rect x="{x1}" y="{y1}" width="{x2-x1}" height="{y2-y1}" rx="10" fill="#12253f" stroke="#ffffff" stroke-width="2"/>')
+            svg_parts.append(f'<rect x="{x1+8}" y="{y1+8}" width="{x2-x1-16}" height="{y2-y1-16}" rx="8" fill="none" stroke="#38bdf8" stroke-width="1"/>')
+            svg_parts.append(f'<text x="{x1+20}" y="{y1+44}" fill="#ffffff" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="600">{room_name}</text>')
+            svg_parts.append(f'<text x="{x1+20}" y="{y1+72}" fill="#38bdf8" font-family="Segoe UI, Arial, sans-serif" font-size="13">12 x 10 ft</text>')
+            svg_parts.append(f'<line x1="{x1+20}" y1="{y1+94}" x2="{x2-20}" y2="{y1+94}" stroke="#ffffff" stroke-opacity="0.6" stroke-width="1"/>')
+            svg_parts.append(f'<line x1="{x1+20}" y1="{y1+118}" x2="{x2-50}" y2="{y1+118}" stroke="#38bdf8" stroke-opacity="0.75" stroke-width="1"/>')
+        footer_text = 'Doors • Windows • Dimension Labels • Clear Architectural Annotations'
+
+    svg_parts.append('<rect x="140" y="760" width="1120" height="40" rx="8" fill="#0f213d" stroke="#38bdf8" stroke-width="2"/>')
+    svg_parts.append(f'<text x="170" y="787" fill="#ffffff" font-family="Segoe UI, Arial, sans-serif" font-size="14">{footer_text}</text>')
+    svg_parts.append('</svg>')
+    return "\n".join(svg_parts)
+
+
+def _build_blueprint_generation_prompt(user_prompt, blueprint_type="floor_plan", style="Modern", render_mode="2D Technical Plan", template_context=None):
+    """Build a prompt that prioritizes the user's explicit blueprint details while keeping template context as support."""
+    user_text = (user_prompt or "").strip()
+    template_text = (template_context or "").strip()
+
+    if user_text and template_text:
+        combined_context = (
+            f"User specification (highest priority): {user_text}\n\n"
+            f"Template context (secondary reference only): {template_text}\n\n"
+            "Prioritize the explicit room counts, dimensions, layout constraints, and style details from the user specification."
+        )
+    elif user_text:
+        combined_context = user_text
+    elif template_text:
+        combined_context = template_text
+    else:
+        combined_context = "Generate a balanced architectural floor plan with labeled rooms and dimensions."
+
+    type_guidance = {
+        "technical_illustration": {
+            "summary": f"Create a precise annotated technical illustration for a {style} {blueprint_type.replace('_', ' ')}.",
+            "details": "Draw the main product or device silhouette with internal modules, callout leaders, measurement guides, and concise component labels.",
+        },
+        "mechanical_drawing": {
+            "summary": f"Create a precise mechanical engineering drawing for a {style} {blueprint_type.replace('_', ' ')}.",
+            "details": "Use orthographic or sectional views with shafts, housings, fasteners, dimensions, tolerances, and part labels where relevant.",
+        },
+        "electrical_drawing": {
+            "summary": f"Create a clean electrical schematic blueprint for a {style} {blueprint_type.replace('_', ' ')}.",
+            "details": "Use recognizable circuit symbols, signal paths, terminal labels, component annotations, and neat wiring structure.",
+        },
+        "structural_drawing": {
+            "summary": f"Create a structural engineering drawing for a {style} {blueprint_type.replace('_', ' ')}.",
+            "details": "Show columns, beams, supports, spans, load notes, material callouts, and dimension references.",
+        },
+    }
+    guidance = type_guidance.get(
+        blueprint_type,
+        {
+            "summary": f"Create a clean top-down architectural CAD blueprint for a {style} {blueprint_type.replace('_', ' ')}.",
+            "details": "Strictly create the requested number of rooms and spaces. If the user requests 3 bedrooms, draw 3 separate bedroom rectangles with labels and dimensions. Include room names, exact dimensions, doors, windows, walls, a north arrow, and clear annotations.",
+        },
+    )
+
+    return (
+        f"{guidance['summary']} "
+        f"Render mode: {render_mode}. "
+        f"Design brief: {combined_context}. "
+        f"{guidance['details']} "
+        "Use a deep navy/cyan blueprint palette with crisp white or cyan lines and white sans-serif labels. "
+        "Return only raw SVG code with no markdown fences or explanations."
+    )
+
+
+def _extract_svg_markup(raw_text):
+    """Strip markdown fences and return a valid SVG block if present."""
+    if not raw_text:
+        return ""
+
+    content = str(raw_text).strip()
+    if content.startswith("```"):
+        content = re.sub(r"^```(?:svg|xml)?\s*", "", content, flags=re.IGNORECASE)
+        content = re.sub(r"\s*```$", "", content, flags=re.IGNORECASE)
+
+    match = re.search(r"<svg\b[^>]*>.*?</svg>", content, flags=re.IGNORECASE | re.DOTALL)
+    if match:
+        return match.group(0).strip()
+    return content.strip()
+
+
+def _generate_gemini_svg_blueprint(user_prompt, blueprint_type="floor_plan", style="Modern", render_mode="2D Technical Plan", template_context=None):
+    """Generate a raw SVG blueprint using Gemini and return the SVG string."""
+    effective_api_key = st.session_state.get("user_gemini_api_key", "").strip() or GEMINI_API_KEY
+    if not effective_api_key:
+        raise RuntimeError("Gemini API key is not configured.")
+
+    model_name = "gemini-2.5-flash"
+    if st.session_state.get("model_choice", ""):
+        if "gemini-2.5-pro" in st.session_state["model_choice"]:
+            model_name = "gemini-2.5-pro"
+        elif "gemini-2.5-flash" in st.session_state["model_choice"]:
+            model_name = "gemini-2.5-flash"
+
+    system_prompts = {
+        "technical_illustration": "You are an expert industrial designer producing ONLY clean raw SVG code for a technical illustration. The SVG must use a deep navy background (#0a192f or #0b1329), crisp white or cyan strokes (#38bdf8/#ffffff), and clear white sans-serif labels. Draw the main device or subject with component callouts, leaders, measurement guides, and professional annotation balance. Do not include markdown fences, comments, or explanations.",
+        "mechanical_drawing": "You are an expert mechanical CAD illustrator producing ONLY clean raw SVG code for an engineering drawing. The SVG must use a deep navy background (#0a192f or #0b1329), crisp white or cyan strokes (#38bdf8/#ffffff), and clear white sans-serif labels. Draw orthographic or sectional mechanical views with dimensions, component outlines, fasteners, shafts, or housings as relevant. Do not include markdown fences, comments, or explanations.",
+        "electrical_drawing": "You are an expert electrical drafting illustrator producing ONLY clean raw SVG code for a schematic blueprint. The SVG must use a deep navy background (#0a192f or #0b1329), crisp white or cyan strokes (#38bdf8/#ffffff), and clear white sans-serif labels. Draw recognizable electrical symbols, signal flow, terminals, and clean wiring annotations. Do not include markdown fences, comments, or explanations.",
+        "structural_drawing": "You are an expert structural drafting illustrator producing ONLY clean raw SVG code for a structural blueprint. The SVG must use a deep navy background (#0a192f or #0b1329), crisp white or cyan strokes (#38bdf8/#ffffff), and clear white sans-serif labels. Show beams, columns, supports, spans, load notes, and dimension references clearly. Do not include markdown fences, comments, or explanations.",
+    }
+    system_prompt = system_prompts.get(
+        blueprint_type,
+        "You are an expert architectural CAD illustrator. Produce ONLY clean raw SVG code for a professional top-down blueprint. The SVG must use a deep navy background (#0a192f or #0b1329), crisp white or cyan strokes (#38bdf8/#ffffff), and clear white sans-serif labels. Draw rooms as separate rectangles with labels and dimensions. Include doors, windows, walls, and a north arrow. Do not include markdown fences, comments, or explanations.",
+    )
+    user_message = _build_blueprint_generation_prompt(
+        user_prompt,
+        blueprint_type=blueprint_type,
+        style=style,
+        render_mode=render_mode,
+        template_context=template_context,
+    )
+
+    payload = {
+        "systemInstruction": {"parts": [{"text": system_prompt}]},
+        "contents": [{"parts": [{"text": user_message}]}],
+        "generationConfig": {
+            "temperature": 0.2,
+            "topP": 0.95,
+            "maxOutputTokens": 3000,
+        },
+    }
+
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={effective_api_key}"
+    response = requests.post(url, json=payload, timeout=60)
+    if response.status_code != 200:
+        raise RuntimeError(f"Gemini request failed ({response.status_code}): {response.text[:400]}")
+
+    response_data = response.json()
+    candidate_text = ""
+    try:
+        candidate_text = response_data["candidates"][0]["content"]["parts"][0]["text"]
+    except Exception:
+        candidate_text = ""
+
+    svg_code = _extract_svg_markup(candidate_text)
+    if not svg_code or "<svg" not in svg_code.lower():
+        logger.warning("Gemini blueprint output was invalid; using local fallback SVG.")
+        return _build_fallback_svg_blueprint(
+            user_prompt,
+            blueprint_type=blueprint_type,
+            style=style,
+            render_mode=render_mode,
+            template_context=template_context,
+        )
+
+    return svg_code
+
+
+def generate_blueprint_with_deepseek(prompt, blueprint_type="floor_plan", style="Modern", render_mode="2D Technical Plan", template_context=None):
+    """Generate a professional blueprint asset for the viewer."""
+    try:
+        combined_prompt = str(prompt or "").strip()
+        template_text = str(template_context or "").strip()
+        if template_text:
+            combined_prompt = f"{combined_prompt}\n\nTemplate reference: {template_text}" if combined_prompt else template_text
+        blueprint_data = {
+            "description": combined_prompt or "Professional technical blueprint generated from your prompt.",
+            "style": style,
+            "structure_type": blueprint_type.replace("_", " ").title(),
+            "title": f"Zovix {blueprint_type.replace('_', ' ').title()}",
+        }
+        output_path = _render_professional_blueprint(
+            prompt=combined_prompt or prompt,
+            blueprint_type=blueprint_type,
+            style=style,
+            blueprint_data=blueprint_data,
+            render_mode=render_mode,
+        )
+        st.session_state["active_blueprint"] = output_path
+        st.session_state["active_blueprint_svg"] = None
+        st.session_state["active_blueprint_error"] = None
+        return output_path
+    except Exception as e:
+        logger.error(f"Blueprint professional generation error: {e}")
+        fallback_path = generate_blueprint(prompt or template_context or "Blueprint request", blueprint_type=blueprint_type, render_mode=render_mode)
+        if fallback_path and os.path.exists(fallback_path):
+            st.session_state["active_blueprint"] = fallback_path
+            st.session_state["active_blueprint_svg"] = None
+            st.session_state["active_blueprint_error"] = None
+            return fallback_path
+        st.session_state["active_blueprint_error"] = f"Blueprint generation failed: {str(e)}"
+        return None
+
+
+def _extract_blueprint_rooms_from_text(prompt_text, blueprint_type="floor_plan"):
+    prompt_lower = str(prompt_text or "").lower()
+    room_aliases = [
+        ("living room", ["living room", "living area", "hall", "drawing room", "lounge"]),
+        ("kitchen", ["kitchen", "open kitchen", "pantry"]),
+        ("master bedroom", ["master bedroom", "primary bedroom"]),
+        ("bedroom 2", ["bedroom 2", "guest bedroom", "second bedroom"]),
+        ("bedroom 3", ["bedroom 3", "third bedroom", "kids bedroom", "children bedroom"]),
+        ("bathroom", ["bathroom", "washroom", "toilet", "restroom"]),
+        ("dining", ["dining", "dining area", "dining room"]),
+        ("study", ["study", "office", "workspace"]),
+        ("parking", ["parking", "garage", "car park"]),
+        ("staircase", ["stair", "staircase"]),
+        ("reception", ["reception", "lobby"]),
+        ("conference room", ["conference room", "meeting room"]),
+        ("classroom", ["classroom", "class room"]),
+        ("icu", ["icu", "intensive care"]),
+        ("pharmacy", ["pharmacy"]),
+        ("balcony", ["balcony", "deck", "terrace"]),
+        ("utility", ["utility", "laundry", "service area"]),
+        ("lobby", ["lobby", "foyer", "entrance hall"]),
+        ("storage", ["storage", "store room", "storeroom"]),
+        ("server room", ["server room", "it room"]),
+        ("nurse station", ["nurse station"]),
+        ("waiting area", ["waiting area", "waiting hall"]),
+        ("admin block", ["administration block", "admin block"]),
+        ("playground", ["playground", "play area"]),
+        # mechanical
+        ("engine block", ["engine block", "cylinder block", "cylinder head"]),
+        ("gearbox", ["gearbox", "transmission"]),
+        ("crankshaft", ["crankshaft", "crank"]),
+        ("piston assembly", ["piston", "connecting rod"]),
+        ("camshaft", ["camshaft", "cam"]),
+        ("cooling system", ["radiator", "cooling"]),
+        ("exhaust", ["exhaust", "muffler"]),
+        ("actuator module", ["actuator", "servo", "motor module"]),
+        ("battery pack", ["battery pack", "power pack", "battery module"]),
+        ("sensor array", ["sensor array", "sensors", "telemetry"]),
+        ("control board", ["control board", "controller", "control unit"]),
+        ("robot frame", ["robot frame", "robot skeleton", "frame"]),
+        ("joint assembly", ["joint", "joint assembly", "hinge"]),
+        # electrical
+        ("main panel", ["main panel", "distribution board", "mcb box"]),
+        ("circuit breaker", ["circuit breaker", "breaker"]),
+        ("power outlet", ["power outlet", "socket"]),
+        ("lighting circuit", ["lighting", "light circuit"]),
+        ("earthing", ["earthing", "grounding"]),
+        ("sensor", ["sensor", "detector"]),
+        ("power supply", ["power supply", "smps", "supply"]),
+        ("relay module", ["relay", "relay module"]),
+        ("control logic", ["logic", "plc", "controller logic"]),
+        ("output stage", ["output stage", "driver stage"]),
+        # structural
+        ("column", ["column", "pillar"]),
+        ("beam", ["beam", "girder"]),
+        ("slab", ["slab", "floor slab"]),
+        ("footing", ["footing", "foundation pad"]),
+        ("shear wall", ["shear wall"]),
+        ("load bearing wall", ["load bearing", "bearing wall"]),
+        ("bracing", ["bracing", "brace"]),
+        # technical illustration
+        ("pcb board", ["pcb", "circuit board", "motherboard"]),
+        ("chassis", ["chassis", "housing", "enclosure"]),
+        ("speaker grille", ["grille", "speaker"]),
+        ("microphone", ["microphone", "mic"]),
+        ("led ring", ["led", "indicator light"]),
+        ("power button", ["power button", "on/off"]),
+        ("heat sink", ["heat sink", "heatsink"]),
+        ("cooling vent", ["vent", "cooling vent"]),
+        ("display module", ["display", "screen", "monitor"]),
+    ]
+    detected = []
+    for room_name, keywords in room_aliases:
+        if any(keyword in prompt_lower for keyword in keywords):
+            detected.append(room_name.title())
+
+    if not detected:
+        if blueprint_type == "site_plan":
+            detected = ["Entrance", "Main Block", "Parking", "Landscape", "Pathways"]
+        elif blueprint_type == "elevation":
+            detected = ["Front Elevation", "Windows", "Balcony", "Entry", "Roofline"]
+        elif blueprint_type == "section":
+            detected = ["Foundation", "Ground Floor", "Upper Floor", "Roof", "Staircase"]
+        elif blueprint_type == "mechanical_drawing":
+            detected = ["Engine Block", "Gearbox", "Crankshaft", "Actuator Module", "Cooling System"]
+        elif blueprint_type == "electrical_drawing":
+            detected = ["Power Supply", "Main Panel", "Control Logic", "Relay Module", "Output Stage"]
+        elif blueprint_type == "structural_drawing":
+            detected = ["Column", "Beam", "Slab", "Footing", "Bracing"]
+        elif blueprint_type == "technical_illustration":
+            detected = ["Robot Frame", "Actuator Module", "Battery Pack", "Sensor Array", "Control Board"]
+        else:
+            detected = ["Living Room", "Kitchen", "Master Bedroom", "Bedroom 2", "Bathroom"]
+
+    deduped = []
+    seen = set()
+    for room in detected:
+        key = room.lower().strip()
+        if key and key not in seen:
+            seen.add(key)
+            deduped.append(room)
+    return deduped[:6]
+
+
+def _load_blueprint_font(size, bold=False):
+    font_candidates = ["arial.ttf", "segoeui.ttf", "DejaVuSans.ttf"]
+    if bold:
+        font_candidates = ["arialbd.ttf", "segoeuib.ttf", "DejaVuSans-Bold.ttf"] + font_candidates
+
+    windows_font_dir = os.path.join(os.environ.get("WINDIR", r"C:\Windows"), "Fonts")
+    for font_name in font_candidates:
+        candidate_path = os.path.join(windows_font_dir, font_name)
+        try:
+            if os.path.exists(candidate_path):
+                return ImageFont.truetype(candidate_path, size=size)
+            return ImageFont.truetype(font_name, size=size)
+        except Exception:
+            continue
+    return ImageFont.load_default()
+
+
+def _coerce_positive_int(value, default_value):
+    try:
+        int_value = int(float(str(value).strip()))
+        return int_value if int_value > 0 else default_value
+    except Exception:
+        return default_value
+
+
+def _get_default_room_size(room_name, blueprint_type):
+    normalized = str(room_name or "").lower()
+    defaults = {
+        "living room": (18, 14),
+        "kitchen": (12, 10),
+        "master bedroom": (15, 12),
+        "bedroom 2": (12, 11),
+        "bedroom 3": (11, 10),
+        "bathroom": (8, 6),
+        "dining": (12, 10),
+        "study": (10, 10),
+        "parking": (18, 11),
+        "staircase": (8, 10),
+        "reception": (14, 12),
+        "conference room": (16, 12),
+        "classroom": (22, 18),
+        "icu": (14, 12),
+        "pharmacy": (12, 10),
+        "balcony": (10, 6),
+        "utility": (8, 6),
+        "lobby": (12, 10),
+        "storage": (8, 8),
+        "server room": (10, 8),
+        "nurse station": (10, 8),
+        "waiting area": (14, 10),
+        "admin block": (16, 14),
+        "playground": (30, 18),
+        # mechanical
+        "engine block": (28, 20), "gearbox": (18, 14), "crankshaft": (30, 8),
+        "piston assembly": (10, 18), "camshaft": (28, 6), "cooling system": (16, 12),
+        "exhaust": (20, 6),
+        # electrical
+        "main panel": (12, 8), "circuit breaker": (8, 6), "power outlet": (4, 4),
+        "lighting circuit": (10, 6), "earthing": (6, 6), "sensor": (6, 6),
+        # structural
+        "column": (4, 4), "beam": (24, 4), "slab": (30, 20),
+        "footing": (8, 8), "shear wall": (20, 6), "load bearing wall": (20, 6),
+        # technical illustration
+        "pcb board": (14, 10), "chassis": (20, 14), "speaker grille": (12, 10),
+        "microphone": (6, 6), "led ring": (8, 8), "power button": (4, 4),
+        "heat sink": (10, 8),
+    }
+    if normalized in defaults:
+        return defaults[normalized]
+    if blueprint_type == "site_plan":
+        return (20, 14)
+    if blueprint_type == "elevation":
+        return (24, 10)
+    if blueprint_type == "section":
+        return (16, 12)
+    return (12, 10)
+
+
+def _normalize_blueprint_room_specs(rooms, prompt_text, blueprint_type):
+    resolved_rooms = rooms if isinstance(rooms, list) and rooms else _extract_blueprint_rooms_from_text(prompt_text, blueprint_type)
+    room_specs = []
+    for room in resolved_rooms[:6]:
+        if isinstance(room, dict):
+            room_name = str(room.get("name") or room.get("room") or room.get("label") or "").strip()
+            if not room_name:
+                continue
+            default_width, default_height = _get_default_room_size(room_name, blueprint_type)
+            room_specs.append(
+                {
+                    "name": room_name.title(),
+                    "width_ft": _coerce_positive_int(room.get("width_ft") or room.get("width"), default_width),
+                    "height_ft": _coerce_positive_int(room.get("height_ft") or room.get("height"), default_height),
+                    "notes": str(room.get("notes") or room.get("purpose") or "").strip(),
+                }
+            )
+            continue
+
+        room_name = str(room).strip()
+        if not room_name:
+            continue
+        default_width, default_height = _get_default_room_size(room_name, blueprint_type)
+        room_specs.append(
+            {
+                "name": room_name.title(),
+                "width_ft": default_width,
+                "height_ft": default_height,
+                "notes": "",
+            }
+        )
+
+    if not room_specs:
+        fallback_rooms = _extract_blueprint_rooms_from_text(prompt_text, blueprint_type)
+        for room_name in fallback_rooms[:6]:
+            default_width, default_height = _get_default_room_size(room_name, blueprint_type)
+            room_specs.append(
+                {
+                    "name": room_name.title(),
+                    "width_ft": default_width,
+                    "height_ft": default_height,
+                    "notes": "",
+                }
+            )
+    return room_specs[:6]
+
+
+def _get_blueprint_unit_label(blueprint_type):
+    if blueprint_type in {"technical_illustration", "mechanical_drawing", "electrical_drawing", "structural_drawing"}:
+        return "mm"
+    return "ft"
+
+
+def _format_blueprint_measurement(spec, blueprint_type):
+    width_value = max(1, _coerce_positive_int(spec.get("width_ft"), 1))
+    height_value = max(1, _coerce_positive_int(spec.get("height_ft"), 1))
+    if _get_blueprint_unit_label(blueprint_type) == "mm":
+        return f"{width_value * 25} x {height_value * 25} mm"
+    return f"{width_value} ft x {height_value} ft"
+
+
+def _get_blueprint_entity_label(blueprint_type):
+    mapping = {
+        "technical_illustration": "modules",
+        "mechanical_drawing": "assemblies",
+        "electrical_drawing": "circuits",
+        "structural_drawing": "members",
+        "site_plan": "zones",
+        "section": "levels",
+    }
+    return mapping.get(blueprint_type, "spaces")
+
+
+def _get_blueprint_spec_note(spec, blueprint_type):
+    raw_note = str(spec.get("notes") or "").strip()
+    if raw_note:
+        return raw_note
+    name = str(spec.get("name") or "").lower()
+    note_map = {
+        "robot frame": "Primary load-bearing chassis",
+        "actuator module": "Motion drive assembly",
+        "battery pack": "Power storage module",
+        "sensor array": "Vision and telemetry cluster",
+        "control board": "Signal processing core",
+        "engine block": "Main machine housing",
+        "gearbox": "Torque reduction assembly",
+        "crankshaft": "Rotary transfer element",
+        "cooling system": "Thermal management circuit",
+        "power supply": "Incoming power regulation",
+        "main panel": "Primary distribution node",
+        "control logic": "Automation command layer",
+        "relay module": "Switching interface block",
+        "output stage": "Final driven outputs",
+        "column": "Primary vertical support",
+        "beam": "Main horizontal framing",
+        "slab": "Deck or plate element",
+        "footing": "Foundation transfer pad",
+        "bracing": "Lateral stability member",
+    }
+    if name in note_map:
+        return note_map[name]
+    return _format_blueprint_measurement(spec, blueprint_type)
+
+
+def _estimate_blueprint_area(prompt_text, room_specs, explicit_dimensions=""):
+    direct_match = re.search(r"(\d[\d,]*)\s*(sq\.?\s*ft|sqft|square feet|square foot)", str(explicit_dimensions or prompt_text or ""), flags=re.IGNORECASE)
+    if direct_match:
+        return f"{direct_match.group(1).replace(',', '')} sq ft"
+
+    total_area = 0
+    for room in room_specs:
+        total_area += max(1, room.get("width_ft", 1)) * max(1, room.get("height_ft", 1))
+
+    if total_area <= 0:
+        total_area = 950
+    total_area = int(round((total_area * 1.18) / 50.0) * 50)
+    return f"{total_area:,} sq ft"
+
+
+def _extract_floor_count(prompt_text, blueprint_data):
+    if isinstance(blueprint_data, dict) and blueprint_data.get("floor_count"):
+        return _coerce_positive_int(blueprint_data.get("floor_count"), 1)
+
+    floor_match = re.search(r"(\d+)\s*(?:storey|story|floor|level)s?", str(prompt_text or ""), flags=re.IGNORECASE)
+    if floor_match:
+        return _coerce_positive_int(floor_match.group(1), 1)
+
+    prompt_lower = str(prompt_text or "").lower()
+    if "duplex" in prompt_lower:
+        return 2
+    return 1
+
+
+def _extract_special_features(prompt_text, blueprint_data):
+    features = []
+    if isinstance(blueprint_data, dict):
+        raw_features = blueprint_data.get("special_features")
+        if isinstance(raw_features, list):
+            features.extend(str(item).strip() for item in raw_features if str(item).strip())
+
+    prompt_lower = str(prompt_text or "").lower()
+    feature_map = {
+        "balcony": "Balcony",
+        "garden": "Garden",
+        "parking": "Parking",
+        "garage": "Garage",
+        "utility": "Utility zone",
+        "stair": "Internal staircase",
+        "terrace": "Terrace",
+        "elevator": "Lift core",
+        "emergency exit": "Emergency exit",
+        "playground": "Playground",
+        "landscape": "Landscape",
+        "actuator": "Actuator callouts",
+        "battery": "Battery module",
+        "sensor": "Sensor annotations",
+        "control": "Control interface",
+        "gearbox": "Gear housing detail",
+        "wiring": "Wiring route",
+        "power supply": "Power regulation",
+        "relay": "Relay bank",
+        "column": "Column grid",
+        "beam": "Beam schedule",
+        "foundation": "Foundation detail",
+    }
+    for keyword, label in feature_map.items():
+        if keyword in prompt_lower:
+            features.append(label)
+
+    deduped = []
+    seen = set()
+    for feature in features:
+        feature_key = feature.lower()
+        if feature_key not in seen:
+            seen.add(feature_key)
+            deduped.append(feature)
+    return deduped[:5]
+
+
+def _get_blueprint_palette(style_name, blueprint_type):
+    palette = {
+        "bg": (242, 246, 252),
+        "paper": (250, 252, 255),
+        "grid": (216, 224, 237),
+        "line": (35, 68, 138),
+        "fill": (244, 248, 254),
+        "accent": (216, 80, 96),
+        "text": (47, 67, 104),
+        "muted": (105, 118, 148),
+    }
+
+    style_key = str(style_name or "").strip().lower()
+    style_overrides = {
+        "minimalist": {"accent": (102, 126, 234), "fill": (247, 249, 255)},
+        "industrial": {"accent": (219, 122, 42), "line": (71, 88, 113)},
+        "traditional": {"accent": (127, 82, 49), "fill": (250, 245, 238)},
+        "classic": {"accent": (132, 92, 171), "fill": (247, 244, 252)},
+    }
+    palette.update(style_overrides.get(style_key, {}))
+
+    if blueprint_type == "site_plan":
+        palette.update({"accent": (38, 134, 91), "fill": (239, 247, 240)})
+    elif blueprint_type == "elevation":
+        palette.update({"accent": (208, 95, 66), "fill": (247, 242, 238)})
+    elif blueprint_type == "section":
+        palette.update({"accent": (126, 91, 176), "fill": (245, 241, 250)})
+    elif blueprint_type == "mechanical_drawing":
+        palette.update({"bg": (18, 22, 34), "paper": (26, 32, 46), "grid": (40, 58, 82),
+                        "line": (0, 200, 240), "fill": (26, 36, 54), "accent": (255, 180, 40),
+                        "text": (160, 210, 240), "muted": (90, 120, 155)})
+    elif blueprint_type == "electrical_drawing":
+        palette.update({"bg": (12, 14, 26), "paper": (20, 24, 40), "grid": (35, 50, 78),
+                        "line": (100, 230, 130), "fill": (18, 28, 44), "accent": (255, 230, 50),
+                        "text": (170, 240, 190), "muted": (90, 130, 100)})
+    elif blueprint_type == "structural_drawing":
+        palette.update({"bg": (248, 246, 238), "paper": (255, 253, 245), "grid": (210, 208, 196),
+                        "line": (80, 60, 40), "fill": (250, 248, 238), "accent": (185, 90, 40),
+                        "text": (70, 58, 42), "muted": (140, 120, 100)})
+    elif blueprint_type == "technical_illustration":
+        palette.update({"bg": (246, 248, 252), "paper": (255, 255, 255), "grid": (212, 220, 232),
+                        "line": (22, 80, 160), "fill": (236, 242, 252), "accent": (220, 50, 120),
+                        "text": (30, 60, 110), "muted": (100, 120, 155)})
+
+    return palette
+
+
+def _draw_dimension_line(draw, start, end, label, orientation, color, font):
+    tick = 8
+    if orientation == "horizontal":
+        x1, y = start
+        x2, _ = end
+        draw.line([(x1, y), (x2, y)], fill=color, width=2)
+        draw.line([(x1, y - tick), (x1, y + tick)], fill=color, width=2)
+        draw.line([(x2, y - tick), (x2, y + tick)], fill=color, width=2)
+        bbox = draw.textbbox((0, 0), label, font=font)
+        label_width = bbox[2] - bbox[0]
+        draw.rectangle([(x1 + ((x2 - x1 - label_width) / 2) - 6, y - 24), (x1 + ((x2 - x1 + label_width) / 2) + 6, y - 4)], fill=(250, 252, 255))
+        draw.text((x1 + ((x2 - x1 - label_width) / 2), y - 23), label, fill=color, font=font)
+    else:
+        x, y1 = start
+        _, y2 = end
+        draw.line([(x, y1), (x, y2)], fill=color, width=2)
+        draw.line([(x - tick, y1), (x + tick, y1)], fill=color, width=2)
+        draw.line([(x - tick, y2), (x + tick, y2)], fill=color, width=2)
+        bbox = draw.textbbox((0, 0), label, font=font)
+        label_width = bbox[2] - bbox[0]
+        draw.rectangle([(x - (label_width / 2) - 8, y1 + ((y2 - y1) / 2) - 10), (x + (label_width / 2) + 8, y1 + ((y2 - y1) / 2) + 10)], fill=(250, 252, 255))
+        draw.text((x - (label_width / 2), y1 + ((y2 - y1) / 2) - 8), label, fill=color, font=font)
+
+
+def _draw_centered_text(draw, box, text_value, fill_color, font):
+    bbox = draw.textbbox((0, 0), text_value, font=font)
+    text_width = bbox[2] - bbox[0]
+    text_height = bbox[3] - bbox[1]
+    x1, y1, x2, y2 = box
+    draw.text((x1 + ((x2 - x1 - text_width) / 2), y1 + ((y2 - y1 - text_height) / 2)), text_value, fill=fill_color, font=font)
+
+
+def _draw_room_box(draw, box, room_spec, palette, fonts):
+    x1, y1, x2, y2 = box
+    draw.rectangle([(x1, y1), (x2, y2)], fill=palette["fill"], outline=palette["line"], width=5)
+    draw.rectangle([(x1 + 10, y1 + 10), (x2 - 10, y2 - 10)], outline=palette["grid"], width=1)
+    _draw_centered_text(draw, (x1 + 14, y1 + 14, x2 - 14, y1 + 54), room_spec["name"], palette["line"], fonts["room"])
+    dimension_text = f"{room_spec['width_ft']} ft x {room_spec['height_ft']} ft"
+    _draw_centered_text(draw, (x1 + 14, y1 + 50, x2 - 14, y1 + 86), dimension_text, palette["muted"], fonts["small"])
+    if room_spec.get("notes"):
+        wrapped_notes = textwrap.wrap(room_spec["notes"], width=18)[:2]
+        note_y = y1 + 88
+        for note_line in wrapped_notes:
+            _draw_centered_text(draw, (x1 + 14, note_y, x2 - 14, note_y + 24), note_line, palette["muted"], fonts["tiny"])
+            note_y += 18
+    _draw_dimension_line(draw, (x1, y1 - 18), (x2, y1 - 18), f"{room_spec['width_ft']} ft", "horizontal", palette["accent"], fonts["tiny"])
+    _draw_dimension_line(draw, (x2 + 18, y1), (x2 + 18, y2), f"{room_spec['height_ft']} ft", "vertical", palette["accent"], fonts["tiny"])
+
+
+def _draw_floor_plan_layout(draw, room_specs, content_box, palette, fonts):
+    x1, y1, x2, y2 = content_box
+    draw.rectangle([(x1, y1), (x2, y2)], outline=palette["line"], width=7)
+    slots = [
+        (x1 + 26, y1 + 24, x1 + 340, y1 + 210),
+        (x1 + 370, y1 + 24, x2 - 24, y1 + 210),
+        (x1 + 26, y1 + 244, x1 + 280, y2 - 26),
+        (x1 + 312, y1 + 244, x1 + 572, y2 - 26),
+        (x1 + 604, y1 + 244, x2 - 24, y1 + 462),
+        (x1 + 604, y1 + 492, x2 - 24, y2 - 26),
+    ]
+    for index, room_spec in enumerate(room_specs[: len(slots)]):
+        _draw_room_box(draw, slots[index], room_spec, palette, fonts)
+
+    draw.line([(x1 + 295, y1 + 220), (x2 - 30, y1 + 220)], fill=palette["grid"], width=2)
+    draw.arc([(x1 - 4, y2 - 120), (x1 + 110, y2 - 6)], start=270, end=360, fill=palette["accent"], width=3)
+    draw.text((x1 + 20, y2 - 52), "Main entry", fill=palette["accent"], font=fonts["small"])
+    draw.line([(x2 - 120, y1 + 10), (x2 - 70, y1 + 10)], fill=palette["accent"], width=4)
+    draw.polygon([(x2 - 70, y1 + 10), (x2 - 82, y1 + 4), (x2 - 82, y1 + 16)], fill=palette["accent"])
+    draw.text((x2 - 158, y1 - 20), "North", fill=palette["accent"], font=fonts["small"])
+    _draw_dimension_line(draw, (x1, y2 + 28), (x2, y2 + 28), "Overall width", "horizontal", palette["line"], fonts["small"])
+    _draw_dimension_line(draw, (x2 + 36, y1), (x2 + 36, y2), "Overall depth", "vertical", palette["line"], fonts["small"])
+
+
+def _draw_site_plan_layout(draw, room_specs, content_box, palette, fonts):
+    x1, y1, x2, y2 = content_box
+    draw.rectangle([(x1, y1), (x2, y2)], outline=palette["line"], width=5)
+    building_box = (x1 + 250, y1 + 120, x1 + 620, y1 + 380)
+    parking_box = (x2 - 230, y1 + 110, x2 - 30, y1 + 300)
+    landscape_box = (x1 + 50, y1 + 420, x1 + 360, y2 - 40)
+    service_box = (x1 + 420, y1 + 440, x2 - 40, y2 - 40)
+    draw.rectangle([building_box[:2], building_box[2:]], fill=palette["fill"], outline=palette["line"], width=6)
+    draw.rectangle([parking_box[:2], parking_box[2:]], fill=(235, 244, 236), outline=palette["accent"], width=4)
+    draw.rectangle([landscape_box[:2], landscape_box[2:]], fill=(227, 241, 229), outline=palette["accent"], width=4)
+    draw.rectangle([service_box[:2], service_box[2:]], fill=(244, 248, 254), outline=palette["line"], width=4)
+    road_y = y2 - 18
+    draw.rectangle([(x1 - 10, road_y - 32), (x2 + 10, road_y + 20)], fill=(221, 227, 238), outline=palette["line"], width=2)
+    draw.text((x1 + 22, road_y - 24), "Access road / setback zone", fill=palette["line"], font=fonts["small"])
+    labels = room_specs[:4] or [{"name": "Main block"}, {"name": "Parking"}, {"name": "Landscape"}, {"name": "Services"}]
+    _draw_centered_text(draw, building_box, labels[0]["name"], palette["line"], fonts["room"])
+    if len(labels) > 1:
+        _draw_centered_text(draw, parking_box, labels[1]["name"], palette["accent"], fonts["room"])
+    if len(labels) > 2:
+        _draw_centered_text(draw, landscape_box, labels[2]["name"], palette["accent"], fonts["room"])
+    if len(labels) > 3:
+        _draw_centered_text(draw, service_box, labels[3]["name"], palette["line"], fonts["room"])
+    _draw_dimension_line(draw, (x1, y2 + 28), (x2, y2 + 28), "Plot frontage", "horizontal", palette["line"], fonts["small"])
+    _draw_dimension_line(draw, (x2 + 36, y1), (x2 + 36, y2), "Plot depth", "vertical", palette["line"], fonts["small"])
+
+
+def _draw_elevation_layout(draw, room_specs, content_box, palette, fonts, floor_count):
+    x1, y1, x2, y2 = content_box
+    base_y = y2 - 60
+    facade_left = x1 + 120
+    facade_right = x2 - 120
+    facade_top = y1 + 80
+    draw.line([(x1 + 40, base_y), (x2 - 40, base_y)], fill=palette["line"], width=4)
+    draw.rectangle([(facade_left, facade_top), (facade_right, base_y)], outline=palette["line"], width=6, fill=palette["fill"])
+    floor_height = max(120, int((base_y - facade_top) / max(1, floor_count)))
+    for floor_index in range(floor_count):
+        floor_y = base_y - (floor_height * (floor_index + 1))
+        if floor_index > 0:
+            draw.line([(facade_left, floor_y), (facade_right, floor_y)], fill=palette["grid"], width=4)
+        label = f"Level {floor_count - floor_index}"
+        draw.text((facade_left - 88, floor_y + 18), label, fill=palette["muted"], font=fonts["small"])
+        window_y1 = floor_y + 32
+        window_y2 = min(base_y - 30, window_y1 + 72)
+        for win_x in [facade_left + 60, facade_left + 190, facade_left + 320, facade_left + 450]:
+            if win_x + 70 < facade_right:
+                draw.rectangle([(win_x, window_y1), (win_x + 70, window_y2)], outline=palette["accent"], width=3)
+                draw.line([(win_x + 35, window_y1), (win_x + 35, window_y2)], fill=palette["accent"], width=2)
+    draw.polygon([(facade_left - 30, facade_top), (facade_right + 30, facade_top), ((facade_left + facade_right) / 2, facade_top - 72)], outline=palette["line"], fill=(238, 239, 246))
+    draw.rectangle([((facade_left + facade_right) / 2 - 42, base_y - 120), ((facade_left + facade_right) / 2 + 42, base_y)], outline=palette["line"], width=4)
+    if room_specs:
+        draw.text((facade_left + 18, y1 + 24), room_specs[0]["name"], fill=palette["muted"], font=fonts["small"])
+    _draw_dimension_line(draw, (facade_left, base_y + 32), (facade_right, base_y + 32), "Facade width", "horizontal", palette["line"], fonts["small"])
+    _draw_dimension_line(draw, (facade_right + 36, facade_top), (facade_right + 36, base_y), "Building height", "vertical", palette["line"], fonts["small"])
+
+
+def _draw_section_layout(draw, room_specs, content_box, palette, fonts, floor_count):
+    x1, y1, x2, y2 = content_box
+    foundation_y = y2 - 68
+    section_left = x1 + 100
+    section_right = x2 - 110
+    roof_y = y1 + 92
+    draw.rectangle([(section_left, roof_y), (section_right, foundation_y)], outline=palette["line"], width=6, fill=palette["fill"])
+    draw.rectangle([(section_left, foundation_y), (section_right, foundation_y + 34)], outline=palette["line"], fill=(222, 226, 238), width=3)
+    slab_height = max(120, int((foundation_y - roof_y) / max(1, floor_count)))
+    for floor_index in range(floor_count):
+        slab_y = foundation_y - (slab_height * floor_index)
+        draw.line([(section_left, slab_y), (section_right, slab_y)], fill=palette["grid"], width=4)
+    stair_points = [
+        (section_left + 70, foundation_y),
+        (section_left + 120, foundation_y),
+        (section_left + 120, foundation_y - 45),
+        (section_left + 170, foundation_y - 45),
+        (section_left + 170, foundation_y - 90),
+        (section_left + 220, foundation_y - 90),
+        (section_left + 220, foundation_y - 135),
+        (section_left + 270, foundation_y - 135),
+    ]
+    draw.line(stair_points, fill=palette["accent"], width=4)
+    draw.polygon([(section_left - 20, roof_y), (section_right + 20, roof_y), ((section_left + section_right) / 2, roof_y - 62)], outline=palette["line"], fill=(238, 239, 246))
+    labels = room_specs[:3] or [{"name": "Ground floor"}, {"name": "Upper floor"}, {"name": "Roof section"}]
+    for index, label in enumerate(labels):
+        box_top = roof_y + 26 + (index * 135)
+        box_bottom = min(foundation_y - 20, box_top + 88)
+        _draw_centered_text(draw, (section_left + 340, box_top, section_right - 40, box_bottom), label["name"], palette["line"], fonts["room"])
+    draw.text((section_left + 92, foundation_y - 160), "Stair core", fill=palette["accent"], font=fonts["small"])
+    draw.text((section_left + 12, foundation_y + 10), "Foundation", fill=palette["muted"], font=fonts["small"])
+    _draw_dimension_line(draw, (section_left, foundation_y + 52), (section_right, foundation_y + 52), "Section width", "horizontal", palette["line"], fonts["small"])
+    _draw_dimension_line(draw, (section_right + 36, roof_y), (section_right + 36, foundation_y), "Overall height", "vertical", palette["line"], fonts["small"])
+
+
+def _draw_mechanical_drawing_layout(draw, room_specs, content_box, palette, fonts):
+    x1, y1, x2, y2 = content_box
+    draw.rectangle([(x1, y1), (x2, y2)], outline=palette["line"], width=3, fill=palette["fill"])
+    for gx in range(int(x1) + 20, int(x2) - 20, 24):
+        draw.line([(gx, y1 + 20), (gx, y2 - 20)], fill=palette["grid"], width=1)
+    for gy in range(int(y1) + 20, int(y2) - 20, 24):
+        draw.line([(x1 + 20, gy), (x2 - 20, gy)], fill=palette["grid"], width=1)
+    mid_x = int((x1 + x2) / 2)
+    mid_y = int((y1 + y2) / 2)
+    for dash_start in range(int(x1) + 40, int(x2) - 40, 18):
+        draw.line([(dash_start, mid_y), (dash_start + 10, mid_y)], fill=palette["accent"], width=1)
+    for dash_start in range(int(y1) + 40, int(y2) - 40, 18):
+        draw.line([(mid_x, dash_start), (mid_x, dash_start + 10)], fill=palette["accent"], width=1)
+
+    left_cx = int(x1 + (x2 - x1) * 0.30)
+    right_cx = int(x1 + (x2 - x1) * 0.73)
+    outer_r = 112
+    inner_r = 42
+    draw.ellipse([(left_cx - outer_r, mid_y - outer_r), (left_cx + outer_r, mid_y + outer_r)], outline=palette["line"], width=6)
+    draw.ellipse([(left_cx - inner_r, mid_y - inner_r), (left_cx + inner_r, mid_y + inner_r)], outline=palette["accent"], width=4)
+    draw.rectangle([(left_cx + outer_r, mid_y - 26), (right_cx - 170, mid_y + 26)], fill=palette["paper"], outline=palette["line"], width=4)
+    draw.rounded_rectangle([(right_cx - 160, mid_y - 95), (right_cx + 95, mid_y + 95)], radius=24, fill=palette["paper"], outline=palette["line"], width=5)
+    draw.ellipse([(right_cx + 104, mid_y - 56), (right_cx + 216, mid_y + 56)], outline=palette["accent"], width=4)
+    for bolt_dx, bolt_dy in [(-70, -55), (70, -55), (-70, 55), (70, 55)]:
+        bx = right_cx - 32 + bolt_dx
+        by = mid_y + bolt_dy
+        draw.ellipse([(bx - 8, by - 8), (bx + 8, by + 8)], outline=palette["accent"], width=2)
+
+    labels = room_specs[:4] or [{"name": "Engine Block"}, {"name": "Crankshaft"}, {"name": "Gearbox"}, {"name": "Cooling System"}]
+    callout_anchors = [
+        (left_cx - 8, mid_y - outer_r, x1 + 46, y1 + 100),
+        (left_cx + outer_r + 38, mid_y - 26, x1 + 84, y2 - 152),
+        (right_cx + 95, mid_y - 92, x2 - 252, y1 + 104),
+        (right_cx + 160, mid_y + 58, x2 - 252, y2 - 152),
+    ]
+    for index, spec in enumerate(labels[:len(callout_anchors)]):
+        ax, ay, tx, ty = callout_anchors[index]
+        draw.line([(ax, ay), (tx, ty)], fill=palette["accent"], width=3)
+        draw.ellipse([(ax - 5, ay - 5), (ax + 5, ay + 5)], fill=palette["accent"])
+        draw.rounded_rectangle([(tx - 8, ty - 28), (tx + 192, ty + 18)], radius=10, fill=palette["paper"], outline=palette["accent"], width=2)
+        draw.text((tx + 6, ty - 22), spec["name"][:22], fill=palette["line"], font=fonts["small"])
+        draw.text((tx + 6, ty - 4), _get_blueprint_spec_note(spec, "mechanical_drawing")[:30], fill=palette["muted"], font=fonts["tiny"])
+        draw.text((tx + 146, ty - 22), f"P-{index + 1:02d}", fill=palette["accent"], font=fonts["tiny"])
+    _draw_dimension_line(draw, (x1, y2 + 28), (x2, y2 + 28), "Overall assembly width", "horizontal", palette["line"], fonts["small"])
+    _draw_dimension_line(draw, (x2 + 36, y1), (x2 + 36, y2), "Overall assembly depth", "vertical", palette["line"], fonts["small"])
+
+
+def _draw_electrical_layout(draw, room_specs, content_box, palette, fonts):
+    x1, y1, x2, y2 = content_box
+    draw.rectangle([(x1, y1), (x2, y2)], outline=palette["line"], width=3, fill=palette["fill"])
+    for gx in range(int(x1) + 40, int(x2) - 40, 40):
+        draw.line([(gx, y1 + 20), (gx, y2 - 20)], fill=palette["grid"], width=1)
+    for gy in range(int(y1) + 20, int(y2) - 20, 40):
+        draw.line([(x1 + 20, gy), (x2 - 20, gy)], fill=palette["grid"], width=1)
+    all_specs = room_specs[:5] or [{"name": "Power Supply"}, {"name": "Main Panel"}, {"name": "Control Logic"}, {"name": "Relay Module"}, {"name": "Output Stage"}]
+    bus_y = int(y1) + 80
+    lower_bus_y = int(y2) - 90
+    draw.rectangle([(int(x1) + 70, bus_y - 12), (int(x2) - 70, bus_y + 12)], fill=palette["accent"], outline=palette["line"], width=2)
+    draw.text((int(x1) + 86, bus_y - 8), "PRIMARY POWER BUS", fill=palette["paper"], font=fonts["tiny"])
+    draw.line([(int(x1) + 90, lower_bus_y), (int(x2) - 90, lower_bus_y)], fill=palette["line"], width=4)
+    draw.text((int(x1) + 96, lower_bus_y + 10), "RETURN / GROUND", fill=palette["muted"], font=fonts["tiny"])
+
+    node_spacing = int((x2 - x1 - 220) / max(1, len(all_specs) - 1))
+    start_x = int(x1) + 110
+    for idx, spec in enumerate(all_specs):
+        nx = start_x + (idx * node_spacing)
+        top_box = (nx - 62, int(y1) + 170, nx + 62, int(y1) + 248)
+        draw.rounded_rectangle([top_box[:2], top_box[2:]], radius=12, fill=palette["paper"], outline=palette["line"], width=3)
+        draw.line([(nx, bus_y + 12), (nx, top_box[1])], fill=palette["line"], width=3)
+        draw.line([(nx, top_box[3]), (nx, lower_bus_y)], fill=palette["line"], width=3)
+        if idx % 3 == 0:
+            draw.rectangle([(nx - 22, top_box[1] + 18), (nx + 22, top_box[1] + 58)], outline=palette["accent"], width=2)
+        elif idx % 3 == 1:
+            draw.ellipse([(nx - 24, top_box[1] + 16), (nx + 24, top_box[1] + 64)], outline=palette["accent"], width=2)
+        else:
+            draw.line([(nx - 24, top_box[1] + 24), (nx + 24, top_box[1] + 40)], fill=palette["accent"], width=2)
+            draw.line([(nx + 24, top_box[1] + 40), (nx - 24, top_box[1] + 56)], fill=palette["accent"], width=2)
+        _draw_centered_text(draw, (top_box[0] + 6, top_box[1] + 2, top_box[2] - 6, top_box[1] + 34), spec["name"][:18], palette["line"], fonts["tiny"])
+        draw.text((nx - 28, top_box[3] + 12), f"CKT-{idx + 1:02d}", fill=palette["accent"], font=fonts["tiny"])
+        draw.text((nx - 50, top_box[3] + 30), _get_blueprint_spec_note(spec, "electrical_drawing")[:20], fill=palette["muted"], font=fonts["tiny"])
+
+    gnd_x = int(x2) - 120
+    gnd_y = lower_bus_y + 22
+    for i, gnd_w in enumerate([24, 16, 8]):
+        draw.line([(gnd_x - gnd_w, gnd_y + i * 8), (gnd_x + gnd_w, gnd_y + i * 8)], fill=palette["line"], width=3)
+    draw.line([(gnd_x, lower_bus_y), (gnd_x, gnd_y)], fill=palette["line"], width=2)
+    draw.text((gnd_x + 14, gnd_y + 4), "GND", fill=palette["muted"], font=fonts["tiny"])
+    _draw_dimension_line(draw, (x1, y2 + 28), (x2, y2 + 28), "Circuit span", "horizontal", palette["line"], fonts["small"])
+    _draw_dimension_line(draw, (x2 + 36, y1), (x2 + 36, y2), "Distribution height", "vertical", palette["line"], fonts["small"])
+
+
+def _draw_structural_layout(draw, room_specs, content_box, palette, fonts):
+    x1, y1, x2, y2 = content_box
+    draw.rectangle([(x1, y1), (x2, y2)], outline=palette["line"], width=4, fill=palette["fill"])
+    col_size = 18
+    grid_cols = 4
+    grid_rows = 3
+    bay_w = int((x2 - x1 - 60) / grid_cols)
+    bay_h = int((y2 - y1 - 60) / grid_rows)
+    # Structural grid + columns + beams
+    for row in range(grid_rows + 1):
+        for col in range(grid_cols + 1):
+            cx = int(x1) + 30 + col * bay_w
+            cy = int(y1) + 30 + row * bay_h
+            draw.rectangle([(cx - col_size, cy - col_size), (cx + col_size, cy + col_size)],
+                           fill=palette["grid"], outline=palette["line"], width=4)
+            label = f"C{row + 1}{col + 1}"
+            draw.text((cx - 10, cy - 8), label, fill=palette["line"], font=fonts["tiny"])
+    for row in range(grid_rows + 1):
+        cy = int(y1) + 30 + row * bay_h
+        for col in range(grid_cols):
+            x_start = int(x1) + 30 + col * bay_w + col_size
+            x_end = x_start + bay_w - col_size * 2
+            draw.rectangle([(x_start, cy - 6), (x_end, cy + 6)], fill=palette["accent"], outline=palette["line"], width=2)
+    for col in range(grid_cols + 1):
+        cx = int(x1) + 30 + col * bay_w
+        for row in range(grid_rows):
+            y_start = int(y1) + 30 + row * bay_h + col_size
+            y_end = y_start + bay_h - col_size * 2
+            draw.rectangle([(cx - 6, y_start), (cx + 6, y_end)], fill=palette["line"], outline=palette["line"], width=2)
+    # Foundation strip hatching
+    fdn_y1 = int(y2) - 46
+    fdn_y2 = int(y2) - 18
+    draw.rectangle([(int(x1) + 28, fdn_y1), (int(x2) - 28, fdn_y2)], fill=(200, 195, 180), outline=palette["line"], width=3)
+    for hx in range(int(x1) + 36, int(x2) - 36, 14):
+        draw.line([(hx, fdn_y1), (hx + 10, fdn_y2)], fill=palette["muted"], width=1)
+    draw.text((int(x1) + 38, fdn_y1 + 4), "Foundation strip / raft footing", fill=palette["line"], font=fonts["tiny"])
+    # Load arrows on top
+    for col in range(1, grid_cols):
+        cx = int(x1) + 30 + col * bay_w
+        for ah in range(0, 30, 10):
+            draw.line([(cx, int(y1) + 18 - ah), (cx, int(y1) + 28 - ah)], fill=palette["accent"], width=2)
+        draw.polygon([(cx - 6, int(y1) + 28), (cx + 6, int(y1) + 28), (cx, int(y1) + 38)], fill=palette["accent"])
+        draw.text((cx + 8, int(y1) + 20), "W", fill=palette["accent"], font=fonts["tiny"])
+    labels = room_specs[:4] or [{"name": "Column"}, {"name": "Beam"}, {"name": "Slab"}, {"name": "Footing"}]
+    for idx, spec in enumerate(labels[:4]):
+        sx = int(x1) + 34 + (idx % grid_cols) * bay_w + 8
+        sy = int(y1) + 36 + (idx // grid_cols) * bay_h + 8
+        draw.text((sx, sy), spec["name"], fill=palette["muted"], font=fonts["small"])
+        draw.text((sx, sy + 18), _get_blueprint_spec_note(spec, "structural_drawing")[:22], fill=palette["line"], font=fonts["tiny"])
+    _draw_dimension_line(draw, (x1, y2 + 28), (x2, y2 + 28), "Grid span total", "horizontal", palette["line"], fonts["small"])
+    _draw_dimension_line(draw, (x2 + 36, y1), (x2 + 36, y2), "Overall height", "vertical", palette["line"], fonts["small"])
+
+
+def _draw_technical_illustration_layout(draw, room_specs, content_box, palette, fonts):
+    x1, y1, x2, y2 = content_box
+    draw.rectangle([(x1, y1), (x2, y2)], outline=palette["line"], width=3, fill=palette["fill"])
+    cx = (x1 + x2) / 2
+    cy = (y1 + y2) / 2
+    body_w = int((x2 - x1) * 0.30)
+    body_h = int((y2 - y1) * 0.56)
+    bx1, by1, bx2, by2 = int(cx - body_w), int(cy - body_h / 2), int(cx + body_w), int(cy + body_h / 2)
+    draw.rounded_rectangle([(bx1, by1), (bx2, by2)], radius=30, fill=(234, 239, 248), outline=palette["line"], width=5)
+    draw.rectangle([(bx1 + 18, by1 + 18), (bx2 - 18, by2 - 18)], outline=palette["grid"], width=2)
+    draw.rectangle([(int(cx - 68), int(cy - 42)), (int(cx + 68), int(cy + 42))], fill=palette["paper"], outline=palette["accent"], width=3)
+    draw.ellipse([(bx1 + 34, by1 + 46), (bx1 + 108, by1 + 118)], outline=palette["accent"], width=3)
+    draw.rectangle([(bx2 - 108, by1 + 44), (bx2 - 36, by1 + 120)], outline=palette["accent"], width=3)
+    draw.rounded_rectangle([(bx1 + 40, by2 - 114), (bx1 + 130, by2 - 38)], radius=14, outline=palette["accent"], width=3)
+    draw.rounded_rectangle([(bx2 - 132, by2 - 114), (bx2 - 42, by2 - 38)], radius=14, outline=palette["accent"], width=3)
+
+    ann_items = room_specs[:5] or [{"name": "Robot Frame"}, {"name": "Actuator Module"}, {"name": "Battery Pack"}, {"name": "Sensor Array"}, {"name": "Control Board"}]
+    ann_positions = [
+        (bx1 - 190, by1 + 54, bx1 + 44, by1 + 80),
+        (bx2 + 44, by1 + 58, bx2 - 40, by1 + 80),
+        (bx1 - 190, by2 - 62, bx1 + 70, by2 - 74),
+        (bx2 + 44, by2 - 62, bx2 - 70, by2 - 74),
+        (int(cx - 20), by1 - 88, int(cx - 20), by1 + 12),
+    ]
+    for idx, spec in enumerate(ann_items[:len(ann_positions)]):
+        tx, ty, ax, ay = ann_positions[idx]
+        draw.line([(tx, ty), (ax, ay)], fill=palette["accent"], width=2)
+        draw.ellipse([(ax - 5, ay - 5), (ax + 5, ay + 5)], fill=palette["accent"])
+        card_left = tx if tx < ax else tx - 180
+        card_right = card_left + 176
+        draw.rounded_rectangle([(card_left, ty - 28), (card_right, ty + 22)], radius=10, fill=palette["paper"], outline=palette["accent"], width=2)
+        draw.text((card_left + 8, ty - 22), spec["name"][:20], fill=palette["line"], font=fonts["small"])
+        draw.text((card_left + 8, ty - 2), _get_blueprint_spec_note(spec, "technical_illustration")[:28], fill=palette["muted"], font=fonts["tiny"])
+    _draw_dimension_line(draw, (bx1, by2 + 28), (bx2, by2 + 28), "Product width", "horizontal", palette["line"], fonts["small"])
+    _draw_dimension_line(draw, (bx2 + 36, by1), (bx2 + 36, by2), "Product height", "vertical", palette["line"], fonts["small"])
+
+
+def _draw_blueprint_layout(draw, room_specs, blueprint_type, content_box, palette, fonts, metadata):
+    floor_count = max(1, metadata.get("floor_count", 1))
+    if blueprint_type == "site_plan":
+        _draw_site_plan_layout(draw, room_specs, content_box, palette, fonts)
+    elif blueprint_type == "elevation":
+        _draw_elevation_layout(draw, room_specs, content_box, palette, fonts, floor_count)
+    elif blueprint_type == "section":
+        _draw_section_layout(draw, room_specs, content_box, palette, fonts, floor_count)
+    elif blueprint_type == "mechanical_drawing":
+        _draw_mechanical_drawing_layout(draw, room_specs, content_box, palette, fonts)
+    elif blueprint_type == "electrical_drawing":
+        _draw_electrical_layout(draw, room_specs, content_box, palette, fonts)
+    elif blueprint_type == "structural_drawing":
+        _draw_structural_layout(draw, room_specs, content_box, palette, fonts)
+    elif blueprint_type == "technical_illustration":
+        _draw_technical_illustration_layout(draw, room_specs, content_box, palette, fonts)
+    else:
+        _draw_floor_plan_layout(draw, room_specs, content_box, palette, fonts)
+
+
+def _draw_blueprint_title_block(draw, title_block_box, palette, fonts, metadata):
+    x1, y1, x2, y2 = title_block_box
+    draw.rectangle([(x1, y1), (x2, y2)], fill=palette["paper"], outline=palette["line"], width=4)
+    draw.line([(x1, y1 + 54), (x2, y1 + 54)], fill=palette["grid"], width=2)
+    draw.text((x1 + 18, y1 + 16), "Technical summary", fill=palette["line"], font=fonts["section"])
+    summary_rows = [
+        ("Type", metadata["structure_type"]),
+        ("Style", metadata["style"]),
+        ("Area", metadata["dimensions"]),
+        ("Rooms", str(metadata["room_count"])),
+        ("Floors", str(metadata["floor_count"])),
+        ("Generated", datetime.now().strftime("%d %b %Y")),
+    ]
+    row_y = y1 + 74
+    for label, value in summary_rows:
+        draw.text((x1 + 18, row_y), label.upper(), fill=palette["muted"], font=fonts["tiny"])
+        for line in textwrap.wrap(str(value), width=22)[:2]:
+            row_y += 18
+            draw.text((x1 + 18, row_y), line, fill=palette["text"], font=fonts["small"])
+        row_y += 24
+
+    notes_title_y = row_y + 6
+    draw.line([(x1 + 18, notes_title_y), (x2 - 18, notes_title_y)], fill=palette["grid"], width=2)
+    draw.text((x1 + 18, notes_title_y + 12), "Design notes", fill=palette["line"], font=fonts["section"])
+    notes_y = notes_title_y + 44
+    notes = metadata.get("special_features") or ["Clear labels", "Dimensioned rooms", "Architectural title block"]
+    for note in notes[:5]:
+        wrapped_note = textwrap.wrap(str(note), width=22)[:2]
+        note_text = "\n".join(f"- {line}" if idx == 0 else f"  {line}" for idx, line in enumerate(wrapped_note))
+        draw.multiline_text((x1 + 18, notes_y), note_text, fill=palette["text"], font=fonts["small"], spacing=4)
+        notes_y += 38 if len(wrapped_note) == 1 else 54
+
+
+def _render_3d_blueprint_preview(prompt, blueprint_type="floor_plan", style="Modern", blueprint_data=None):
+    """Render a simple 3D concept-style architectural preview for blueprint prompts."""
+    blueprint_data = blueprint_data or {}
+    width, height = 1400, 920
+    palette = _get_blueprint_palette(style, blueprint_type)
+    img = Image.new("RGB", (width, height), color=(247, 250, 253))
+    draw = ImageDraw.Draw(img)
+
+    if blueprint_type in {"technical_illustration", "mechanical_drawing", "electrical_drawing", "structural_drawing"}:
+        draw.rectangle([(0, 0), (width, height)], fill=palette["bg"])
+        for x in range(50, width - 40, 44):
+            draw.line([(x, 40), (x, height - 40)], fill=palette["grid"], width=1)
+        for y in range(50, height - 40, 44):
+            draw.line([(40, y), (width - 40, y)], fill=palette["grid"], width=1)
+        draw.rectangle([(24, 24), (width - 24, height - 24)], outline=palette["line"], width=4)
+        draw.rectangle([(42, 42), (width - 42, height - 42)], outline=palette["grid"], width=1)
+
+        title = str(blueprint_data.get("title") or f"{style} {blueprint_type.replace('_', ' ').title()}").strip()
+        draw.text((72, 58), title[:72], fill=palette["line"], font=_load_blueprint_font(28, bold=True))
+        draw.text((72, 100), f"3D Concept View • {blueprint_type.replace('_', ' ').title()}", fill=palette["accent"], font=_load_blueprint_font(16))
+
+        room_specs = _normalize_blueprint_room_specs(blueprint_data.get("rooms"), prompt, blueprint_type)
+        label_specs = room_specs[:4] or [
+            {"name": "Actuator Module", "notes": "Primary drive assembly"},
+            {"name": "Sensor Array", "notes": "Vision and telemetry"},
+            {"name": "Battery Core", "notes": "Power distribution"},
+            {"name": "Control Board", "notes": "Signal processing"},
+        ]
+
+        if blueprint_type == "technical_illustration":
+            body = [(430, 260), (850, 210), (1010, 360), (590, 420)]
+            side = [(590, 420), (1010, 360), (1010, 620), (590, 700)]
+            top = [(430, 260), (590, 420), (590, 700), (430, 540)]
+            draw.polygon(body, fill=(224, 233, 247), outline=palette["line"], width=4)
+            draw.polygon(side, fill=(204, 219, 239), outline=palette["line"], width=4)
+            draw.polygon(top, fill=(236, 242, 252), outline=palette["line"], width=4)
+            draw.rounded_rectangle([(620, 330), (770, 430)], radius=18, fill=palette["paper"], outline=palette["accent"], width=3)
+            draw.rounded_rectangle([(835, 405), (935, 505)], radius=18, fill=palette["paper"], outline=palette["accent"], width=3)
+            draw.rounded_rectangle([(495, 470), (585, 560)], radius=16, fill=palette["paper"], outline=palette["accent"], width=3)
+            callouts = [
+                ((610, 330), (300, 250)),
+                ((935, 455), (1110, 280)),
+                ((520, 545), (250, 640)),
+                ((750, 430), (1085, 640)),
+            ]
+            footer = "Isometric device form • Callout leaders • Component notes • Engineering presentation"
+        elif blueprint_type == "mechanical_drawing":
+            draw.ellipse([(380, 300), (620, 540)], outline=palette["line"], width=5, fill=palette["fill"])
+            draw.ellipse([(450, 370), (550, 470)], outline=palette["accent"], width=4)
+            draw.polygon([(620, 360), (890, 300), (980, 380), (710, 450)], fill=palette["paper"], outline=palette["line"], width=4)
+            draw.polygon([(620, 540), (710, 450), (980, 380), (980, 580)], fill=(214, 227, 245), outline=palette["line"], width=4)
+            draw.rectangle([(760, 410), (920, 520)], outline=palette["accent"], width=3, fill=palette["fill"])
+            callouts = [
+                ((500, 300), (250, 220)),
+                ((980, 380), (1100, 280)),
+                ((820, 520), (1080, 620)),
+                ((430, 520), (240, 610)),
+            ]
+            footer = "Exploded mechanical massing • Primary assemblies • Span notes • Presentation sheet"
+        elif blueprint_type == "electrical_drawing":
+            draw.polygon([(450, 300), (860, 240), (980, 340), (570, 410)], fill=palette["paper"], outline=palette["line"], width=4)
+            draw.polygon([(570, 410), (980, 340), (980, 620), (570, 700)], fill=(209, 225, 241), outline=palette["line"], width=4)
+            draw.polygon([(450, 300), (570, 410), (570, 700), (450, 590)], fill=(229, 237, 248), outline=palette["line"], width=4)
+            for idx in range(4):
+                x = 520 + idx * 90
+                draw.rectangle([(x, 360), (x + 56, 410)], outline=palette["accent"], width=3, fill=palette["fill"])
+                draw.line([(x + 28, 410), (x + 28, 560)], fill=palette["line"], width=3)
+            callouts = [
+                ((520, 360), (250, 260)),
+                ((850, 300), (1080, 250)),
+                ((760, 560), (1090, 640)),
+                ((450, 580), (240, 650)),
+            ]
+            footer = "Electrical block massing • Routed signal channels • Module labels • Concept sheet"
+        else:
+            draw.polygon([(430, 310), (820, 250), (980, 340), (590, 410)], fill=palette["paper"], outline=palette["line"], width=4)
+            draw.polygon([(590, 410), (980, 340), (980, 650), (590, 720)], fill=(224, 219, 204), outline=palette["line"], width=4)
+            draw.polygon([(430, 310), (590, 410), (590, 720), (430, 620)], fill=(239, 235, 223), outline=palette["line"], width=4)
+            for gx in range(460, 930, 90):
+                draw.line([(gx, 330), (gx + 130, 410)], fill=palette["grid"], width=2)
+            for gy in range(360, 650, 70):
+                draw.line([(470, gy), (900, gy - 58)], fill=palette["grid"], width=2)
+            callouts = [
+                ((530, 320), (240, 240)),
+                ((970, 360), (1110, 270)),
+                ((980, 620), (1090, 650)),
+                ((500, 670), (230, 670)),
+            ]
+            footer = "Structural massing • Framing depth • Support labeling • Concept presentation"
+
+        for idx, spec in enumerate(label_specs[:len(callouts)]):
+            (ax, ay), (tx, ty) = callouts[idx]
+            draw.line([(ax, ay), (tx, ty)], fill=palette["accent"], width=3)
+            draw.ellipse([(ax - 5, ay - 5), (ax + 5, ay + 5)], fill=palette["accent"])
+            draw.rounded_rectangle([(tx - 10, ty - 34), (tx + 220, ty + 18)], radius=10, fill=palette["paper"], outline=palette["accent"], width=2)
+            draw.text((tx + 4, ty - 26), str(spec.get("name") or "Module")[:24], fill=palette["line"], font=_load_blueprint_font(13, bold=True))
+            notes_text = str(spec.get("notes") or spec.get("size_label") or "Concept annotation")[:32]
+            draw.text((tx + 4, ty - 6), notes_text, fill=palette["muted"], font=_load_blueprint_font(11))
+
+        description = str(blueprint_data.get("description") or prompt or "Professional concept generated from your prompt.").strip()
+        draw.rounded_rectangle([(72, 780), (1328, 860)], radius=18, fill=palette["paper"], outline=palette["line"], width=2)
+        draw.text((92, 796), "Project brief", fill=palette["line"], font=_load_blueprint_font(17, bold=True))
+        for index, line in enumerate(textwrap.wrap(description, width=110)[:2]):
+            draw.text((92, 822 + index * 18), line, fill=palette["text"], font=_load_blueprint_font(12))
+        draw.text((900, 832), footer, fill=palette["muted"], font=_load_blueprint_font(11))
+
+        output_path = f"blueprints/blueprint_{uuid.uuid4().hex[:8]}.png"
+        os.makedirs("blueprints", exist_ok=True)
+        img.save(output_path)
+        return output_path
+
+    draw.rectangle([(0, 0), (width, height)], fill=(247, 250, 253))
+    draw.rectangle([(80, 660), (1320, 860)], fill=(229, 238, 244), outline=(150, 170, 185), width=3)
+
+    title = str(blueprint_data.get("title") or f"{style} {blueprint_type.replace('_', ' ').title()}").strip()
+    draw.text((80, 70), title[:70], fill=palette["line"], font=_load_blueprint_font(28, bold=True))
+    draw.text((80, 115), f"3D Concept View • {blueprint_type.replace('_', ' ').title()}", fill=palette["accent"], font=_load_blueprint_font(16))
+
+    front_left = (320, 500)
+    front_right = (760, 500)
+    back_right = (920, 380)
+    back_left = (480, 380)
+    roof_top = (600, 260)
+
+    draw.polygon([front_left, front_right, back_right, back_left], fill=(248, 236, 221), outline=(60, 72, 88), width=4)
+    draw.polygon([back_left, back_right, roof_top], fill=(231, 221, 203), outline=(60, 72, 88), width=4)
+    draw.polygon([front_left, back_left, roof_top], fill=(236, 223, 205), outline=(60, 72, 88), width=4)
+    draw.polygon([front_right, back_right, roof_top], fill=(221, 208, 188), outline=(60, 72, 88), width=4)
+
+    draw.rectangle([(360, 530), (720, 640)], fill=(218, 231, 241), outline=(80, 100, 120), width=3)
+    draw.rectangle([(380, 550), (440, 610)], fill=(255, 255, 255), outline=(120, 140, 160), width=2)
+    draw.rectangle([(500, 550), (560, 610)], fill=(255, 255, 255), outline=(120, 140, 160), width=2)
+    draw.rectangle([(620, 550), (680, 610)], fill=(255, 255, 255), outline=(120, 140, 160), width=2)
+    draw.rectangle([(420, 410), (520, 470)], fill=(218, 231, 241), outline=(80, 100, 120), width=3)
+    draw.rectangle([(600, 410), (700, 470)], fill=(218, 231, 241), outline=(80, 100, 120), width=3)
+
+    room_specs = _normalize_blueprint_room_specs(blueprint_data.get("rooms"), prompt, blueprint_type)
+    for idx, room in enumerate(room_specs[:4]):
+        x = 960 + (idx % 2) * 140
+        y = 260 + (idx // 2) * 140
+        draw.rounded_rectangle([(x, y), (x + 110, y + 80)], radius=10, fill=(250, 252, 255), outline=(180, 190, 210), width=2)
+        draw.text((x + 12, y + 18), room.get("name", "Space")[:16], fill=palette["line"], font=_load_blueprint_font(12, bold=True))
+        draw.text((x + 12, y + 42), f"{room.get('width_ft', 12)} x {room.get('height_ft', 10)} ft", fill=palette["accent"], font=_load_blueprint_font(10))
+
+    draw.rectangle([(80, 760), (1320, 830)], fill=(255, 255, 255), outline=(200, 205, 215), width=2)
+    description = str(blueprint_data.get("description") or prompt or "Professional 3D concept generated from your prompt.").strip()
+    for index, line in enumerate(textwrap.wrap(description, width=110)[:2]):
+        draw.text((100, 780 + index * 24), line, fill=(75, 85, 100), font=_load_blueprint_font(12))
+
+    output_path = f"blueprints/blueprint_{uuid.uuid4().hex[:8]}.png"
+    os.makedirs("blueprints", exist_ok=True)
+    img.save(output_path)
+    return output_path
+
+
+def _render_professional_blueprint(prompt, blueprint_type="floor_plan", style="Modern", blueprint_data=None, render_mode="2D Technical Plan"):
+    blueprint_data = blueprint_data or {}
+    if str(render_mode).lower().startswith("3d"):
+        return _render_3d_blueprint_preview(prompt=prompt, blueprint_type=blueprint_type, style=style, blueprint_data=blueprint_data)
+
+    width, height = 1400, 920
+    palette = _get_blueprint_palette(style, blueprint_type)
+    fonts = {
+        "title": _load_blueprint_font(28, bold=True),
+        "subtitle": _load_blueprint_font(16),
+        "section": _load_blueprint_font(18, bold=True),
+        "room": _load_blueprint_font(20, bold=True),
+        "small": _load_blueprint_font(14),
+        "tiny": _load_blueprint_font(12),
+    }
+
+    room_specs = _normalize_blueprint_room_specs(blueprint_data.get("rooms"), prompt, blueprint_type)
+    dimensions = str(blueprint_data.get("dimensions") or "").strip()
+    metadata = {
+        "dimensions": dimensions or _estimate_blueprint_area(prompt, room_specs),
+        "floor_count": _extract_floor_count(prompt, blueprint_data),
+        "special_features": _extract_special_features(prompt, blueprint_data),
+        "structure_type": str(blueprint_data.get("structure_type") or blueprint_type.replace("_", " ").title()),
+        "style": str(blueprint_data.get("style") or style or "Modern"),
+        "room_count": len(room_specs),
+    }
+
+    img = Image.new("RGB", (width, height), color=palette["bg"])
+    draw = ImageDraw.Draw(img)
+    for x in range(40, width - 40, 40):
+        draw.line([(x, 40), (x, height - 40)], fill=palette["grid"], width=1)
+    for y in range(40, height - 40, 40):
+        draw.line([(40, y), (width - 40, y)], fill=palette["grid"], width=1)
+
+    draw.rectangle([(18, 18), (width - 18, height - 18)], outline=palette["line"], width=4)
+    draw.rectangle([(28, 28), (width - 28, height - 28)], outline=palette["grid"], width=1)
+
+    title = str(blueprint_data.get("title") or f"Architectural {blueprint_type.replace('_', ' ').title()}").strip()
+    description = str(blueprint_data.get("description") or prompt or "Professional technical blueprint generated from your prompt.").strip()
+    draw.text((64, 52), title[:80], fill=palette["line"], font=fonts["title"])
+    subtitle = f"{metadata['style']} {blueprint_type.replace('_', ' ').title()} • {metadata['dimensions']} • {metadata['room_count']} {_get_blueprint_entity_label(blueprint_type)}"
+    draw.text((64, 90), subtitle[:95], fill=palette["accent"], font=fonts["subtitle"])
+    draw.line([(64, 118), (972, 118)], fill=palette["line"], width=2)
+
+    content_box = (64, 150, 970, 772)
+    title_block_box = (1004, 150, 1336, 772)
+    _draw_blueprint_layout(draw, room_specs, blueprint_type, content_box, palette, fonts, metadata)
+    _draw_blueprint_title_block(draw, title_block_box, palette, fonts, metadata)
+
+    description_lines = textwrap.wrap(description, width=108)[:3]
+    notes_box = (64, 800, 1336, 868)
+    draw.rectangle([(notes_box[0], notes_box[1]), (notes_box[2], notes_box[3])], fill=palette["paper"], outline=palette["grid"], width=2)
+    draw.text((notes_box[0] + 16, notes_box[1] + 12), "Project brief", fill=palette["line"], font=fonts["section"])
+    for index, description_line in enumerate(description_lines):
+        draw.text((notes_box[0] + 18, notes_box[1] + 38 + (index * 18)), description_line, fill=palette["text"], font=fonts["small"])
+    draw.text((notes_box[2] - 230, notes_box[3] - 24), "Generated by Zovix Blueprint Engine", fill=palette["muted"], font=fonts["tiny"])
+
+    output_path = f"blueprints/blueprint_{uuid.uuid4().hex[:8]}.png"
+    os.makedirs("blueprints", exist_ok=True)
+    img.save(output_path)
+    return output_path
+
+
+def generate_blueprint_from_data(blueprint_data, blueprint_type="floor_plan", prompt="", style="Modern", render_mode="2D Technical Plan"):
+    """Generate blueprint image from DeepSeek data"""
+    try:
+        return _render_professional_blueprint(prompt=prompt, blueprint_type=blueprint_type, style=style, blueprint_data=blueprint_data, render_mode=render_mode)
+    except Exception as e:
+        logger.error(f"Blueprint image generation error: {e}")
+        return None
+
+
+def generate_blueprint(prompt, blueprint_type="floor_plan", render_mode="2D Technical Plan"):
+    """Local fallback blueprint generator"""
+    try:
+        return _render_professional_blueprint(prompt=prompt, blueprint_type=blueprint_type, style="Technical", blueprint_data={}, render_mode=render_mode)
+    except Exception as e:
+        logger.error(f"Blueprint generation error: {e}")
+        return None
+
+
+# ========================================================
+# UPSCALER MODE - FIXED ✅
+# ========================================================
+
+def upscale_image_fixed(image_path, scale_factor=2, enhancement_type="standard", quality="Standard"):
+    """Production-safe image upscaler using Pillow-based enhancement fallback."""
+    if not image_path or not os.path.exists(image_path):
+        logger.warning(f"Upscaler received invalid image path: {image_path}")
+        return None
+
+    try:
+        with Image.open(image_path) as img:
+            if getattr(img, "is_animated", False):
+                img = img.convert("RGBA")
+            else:
+                img = ImageOps.exif_transpose(img)
+
+            if img.mode in ("RGBA", "LA", "P"):
+                img = img.convert("RGBA")
+            else:
+                img = img.convert("RGB")
+
+            width, height = img.size
+            new_width = max(1, int(width * max(1, int(scale_factor))))
+            new_height = max(1, int(height * max(1, int(scale_factor))))
+
+            if enhancement_type == "standard":
+                resized = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
+            elif enhancement_type == "sharp":
+                resized = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
+                resized = ImageEnhance.Sharpness(resized).enhance(1.5)
+            elif enhancement_type == "smooth":
+                resized = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
+                resized = resized.filter(ImageFilter.SMOOTH_MORE)
+            elif enhancement_type == "enhance":
+                resized = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
+                resized = ImageEnhance.Contrast(resized).enhance(1.2)
+                resized = ImageEnhance.Color(resized).enhance(1.1)
+            elif enhancement_type == "cinematic":
+                resized = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
+                resized = ImageEnhance.Contrast(resized).enhance(1.3)
+                resized = ImageEnhance.Color(resized).enhance(1.2)
+                resized = ImageEnhance.Brightness(resized).enhance(1.05)
+            elif enhancement_type == "neon":
+                resized = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
+                resized = ImageEnhance.Contrast(resized).enhance(1.5)
+                resized = ImageEnhance.Color(resized).enhance(1.4)
+            else:
+                resized = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
+
+            if resized.mode == "RGBA":
+                output_mode = "RGBA"
+            else:
+                output_mode = "RGB"
+
+            os.makedirs("upscaled_outputs", exist_ok=True)
+            output_path = f"upscaled_outputs/upscaled_{uuid.uuid4().hex[:8]}.png"
+            resized.save(output_path, optimize=True)
+            logger.info(f"Upscaler completed successfully: {output_path}")
+            return output_path
+    except Exception as e:
+        logger.exception(f"Upscaler failed for {image_path}: {e}")
+        return None
+
+
+def run_creative_workshop():
+    """Creative Workshop - image generation for thumbnails, banners, posters, and concept art."""
+    st.markdown("""
+    <div style="
+        background: linear-gradient(135deg, rgba(236,72,153,0.06), rgba(69,243,255,0.06));
+        border-radius: 16px;
+        border: 1px solid rgba(69,243,255,0.08);
+        padding: 16px 20px;
+        margin-bottom: 18px;
+        text-align: center;
+    ">
+        <span style="
+            display: inline-block;
+            background: rgba(236,72,153,0.12);
+            color: #EC4899;
+            padding: 4px 14px;
+            border-radius: 16px;
+            font-size: 9px;
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 1px;
+            border: 1px solid rgba(236,72,153,0.15);
+            margin-bottom: 6px;
+        ">🎨 AI GENERATOR</span>
+        <h2 style="
+            font-family: 'Orbitron', sans-serif;
+            font-size: 20px;
+            color: #FFFFFF;
+            margin: 0;
+        ">
+            Creative <span style="
+                background: linear-gradient(135deg, #45f3ff, #EC4899);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            ">Synthesis Hub</span>
+        </h2>
+        <p style="
+            font-family: 'Inter', sans-serif;
+            color: #94a3b8;
+            font-size: 12px;
+            margin: 4px 0 0 0;
+        ">
+            High-Quality Thumbnail • Banner • Poster Generator
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    w_col1, w_col2 = st.columns([1.1, 1.4], gap="medium")
+
+    with w_col1:
+        with st.container(border=True):
+            st.markdown("""
+            <h4 style="
+                font-family: 'Orbitron', sans-serif;
+                font-size: 12px;
+                color: #EC4899;
+                margin-bottom: 12px;
+                letter-spacing: 0.5px;
+            ">
+                ⚙️ WORKSHOP PARAMETERS
+            </h4>
+            """, unsafe_allow_html=True)
+
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">📐 Select Aspect Ratio</p>', unsafe_allow_html=True)
+            workshop_ar = st.selectbox(
+                "Aspect Ratio",
+                ["16:9", "9:16", "1:1", "21:9", "4:5", "3:2"],
+                key="workshop_aspect_ratio_choice",
+                label_visibility="collapsed"
+            )
+
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">🎨 Masterpiece Prompt Input</p>', unsafe_allow_html=True)
+            workshop_prompt_str = st.text_area(
+                "Prompt",
+                placeholder="E.g. A gorgeous cyberpunk temple with pink neon aurora, hyperrealistic, 8k resolution, cinematic lighting...",
+                height=120,
+                key="workshop_prompt_str_area",
+                label_visibility="collapsed"
+            )
+
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">🚫 Negative Prompt</p>', unsafe_allow_html=True)
+            workshop_neg_prompt_str = st.text_area(
+                "Negative Prompt",
+                placeholder="E.g. blurry, low quality, distorted, extra limbs, bad anatomy, text, watermark...",
+                height=80,
+                key="workshop_neg_prompt_str_area",
+                label_visibility="collapsed"
+            )
+
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">📊 Image Quality</p>', unsafe_allow_html=True)
+            workshop_quality = st.selectbox(
+                "Quality",
+                ["Standard", "HD", "Pro"],
+                key="workshop_quality",
+                label_visibility="collapsed"
+            )
+
+            st.markdown("<br>", unsafe_allow_html=True)
+
+            if st.button("🚀 Generate Workshop Image", key="workshop_generation_action_btn", use_container_width=True):
+                if not workshop_prompt_str.strip():
+                    st.error("❌ Please enter an image description.")
+                else:
+                    quality_map = {"Standard": 2, "HD": 3, "Pro": 4}
+                    required_tokens = quality_map.get(workshop_quality, 2)
+
+                    if st.session_state.get('user_credits', 0) < required_tokens:
+                        st.error(f"❌ Insufficient credits! Required: {required_tokens}, Available: {st.session_state.get('user_credits', 0)}")
+                    else:
+                        try:
+                            deduct_credits_db(st.session_state["logged_user"], required_tokens)
+                            st.session_state['user_credits'] = get_user_credits_db(st.session_state["logged_user"])
+
+                            with st.spinner(f"🎨 Generating {workshop_quality} image..."):
+                                img_path = generate_pro_image(
+                                    workshop_prompt_str,
+                                    workshop_ar,
+                                    workshop_neg_prompt_str
+                                )
+
+                                if img_path and os.path.exists(img_path):
+                                    st.session_state["workshop_active_image"] = img_path
+
+                                    timestamp = time.strftime("%Y%m%d_%H%M%S")
+                                    file_name = f"workshop_{timestamp}.png"
+                                    save_render_to_db(
+                                        st.session_state["logged_user"],
+                                        file_name,
+                                        workshop_prompt_str[:100],
+                                        img_path,
+                                        "Creative Workshop",
+                                        required_tokens
+                                    )
+                                    st.session_state["history_renders"] = load_renders_history_db(st.session_state["logged_user"])
+
+                                    st.toast("✅ Image generated successfully!")
+                                    st.rerun()
+                                else:
+                                    st.error("❌ Image generation failed. Please try again.")
+                        except Exception as e:
+                            st.error(f"❌ Error: {str(e)}")
+
+    with w_col2:
+        with st.container(border=True):
+            st.markdown("""
+            <h3 style="
+                font-family: 'Orbitron', sans-serif;
+                font-size: 13px;
+                color: #EC4899;
+                margin-bottom: 12px;
+                letter-spacing: 0.5px;
+            ">
+                🖼️ LIVE IMAGE OUTPUT
+            </h3>
+            """, unsafe_allow_html=True)
+
+            active_img_file = st.session_state.get("workshop_active_image")
+            if active_img_file and os.path.exists(active_img_file):
+                st.image(active_img_file, use_container_width=True)
+
+                col_dl, col_clr = st.columns(2)
+                with col_dl:
+                    with open(active_img_file, "rb") as f:
+                        img_bytes = f.read()
+                    st.download_button(
+                        label="📥 Download Image",
+                        data=img_bytes,
+                        file_name=f"zovix_creative_{uuid.uuid4().hex[:8]}.png",
+                        mime="image/png",
+                        use_container_width=True,
+                        key="creative_download_btn"
+                    )
+                with col_clr:
+                    if st.button("🧹 Clear Output", key="creative_clear_btn", use_container_width=True):
+                        safe_remove_file(active_img_file)
+                        st.session_state["workshop_active_image"] = None
                         st.rerun()
             else:
                 st.markdown("""
@@ -9740,7 +9778,7 @@ def run_blueprints_mode():
                         border-radius: 12px;
                         border: 1px dashed rgba(255,192,203,0.12);
                     ">
-                        <span style="font-size: 48px; margin-bottom: 10px;">📐</span>
+                        <span style="font-size: 48px; margin-bottom: 10px;">🖼️</span>
                         <p style="
                             font-family: 'Inter', sans-serif;
                             font-size: 13px;
@@ -9748,7 +9786,7 @@ def run_blueprints_mode():
                             color: #EC4899;
                             margin: 0;
                         ">
-                            Blueprint will render here
+                            Image will render here
                         </p>
                         <p style="
                             font-family: 'Inter', sans-serif;
@@ -9759,200 +9797,11 @@ def run_blueprints_mode():
                             margin-top: 4px;
                             line-height: 1.4;
                         ">
-                            Professional architectural drawings with detailed analysis.
-                        </p>
-                        <p style="
-                            font-family: 'Inter', sans-serif;
-                            font-size: 10px;
-                            color: #45f3ff;
-                            margin-top: 4px;
-                        ">
-                            ⚡ Powered by DeepSeek AI + Stability AI
+                            Artwork will display immediately upon generation.
                         </p>
                     </div>
                 """, unsafe_allow_html=True)
 
-
-# ========================================================
-# DEEPSEEK BLUEPRINT GENERATOR - FIXED ✅
-# ========================================================
-
-def generate_blueprint_with_deepseek(prompt, blueprint_type="floor_plan", style="Modern"):
-    """Generate architectural blueprint using DeepSeek AI"""
-    
-    if not DEEPSEEK_API_KEY:
-        logger.warning("DeepSeek API key not found, using fallback generator")
-        return generate_blueprint(prompt, blueprint_type)
-    
-    url = "https://api.deepseek.com/v1/chat/completions"
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {DEEPSEEK_API_KEY}"
-    }
-    
-    system_prompt = f"""You are an expert architectural designer. Generate a detailed blueprint description for a {style} {blueprint_type.replace('_', ' ')} based on: {prompt}
-
-Return ONLY a JSON object with these fields:
-{{
-    "title": "Blueprint Title",
-    "description": "Detailed architectural description",
-    "rooms": ["Room1", "Room2", "Room3"],
-    "dimensions": "Total area in sq ft",
-    "style": "{style}",
-    "structure_type": "Residential/Commercial/Industrial"
-}}"""
-    
-    payload = {
-        "model": "deepseek-chat",
-        "messages": [
-            {"role": "system", "content": "You are an expert architectural designer. Respond only with valid JSON."},
-            {"role": "user", "content": system_prompt}
-        ],
-        "temperature": 0.7,
-        "max_tokens": 500,
-        "response_format": {"type": "json_object"}
-    }
-    
-    try:
-        response = requests.post(url, headers=headers, json=payload, timeout=30)
-        if response.status_code == 200:
-            result = response.json()
-            blueprint_data = json.loads(result['choices'][0]['message']['content'])
-            
-            # Store blueprint data in session
-            st.session_state["deepseek_blueprint_data"] = blueprint_data
-            
-            # Generate image using Stability AI or fallback
-            return generate_blueprint_from_data(blueprint_data, blueprint_type)
-        else:
-            logger.error(f"DeepSeek API error: {response.status_code}")
-            return generate_blueprint(prompt, blueprint_type)
-            
-    except Exception as e:
-        logger.error(f"DeepSeek blueprint error: {e}")
-        return generate_blueprint(prompt, blueprint_type)
-
-
-def generate_blueprint_from_data(blueprint_data, blueprint_type="floor_plan"):
-    """Generate blueprint image from DeepSeek data"""
-    
-    try:
-        # Create a professional blueprint image
-        width, height = 1200, 800
-        img = Image.new("RGB", (width, height), color=(240, 240, 255))
-        draw = ImageDraw.Draw(img)
-        
-        # Border
-        draw.rectangle([(20, 20), (width-20, height-20)], outline=(30, 60, 150), width=3)
-        
-        # Title
-        title = blueprint_data.get('title', 'Architectural Blueprint')
-        draw.text((width//2 - 200, 30), title, fill=(30, 60, 150), font=None)
-        
-        # Blueprint grid
-        for x in range(50, width-50, 50):
-            draw.line([(x, 60), (x, height-20)], fill=(200, 210, 230), width=1)
-        for y in range(60, height-20, 50):
-            draw.line([(50, y), (width-50, y)], fill=(200, 210, 230), width=1)
-        
-        # Draw rooms based on data
-        rooms = blueprint_data.get('rooms', ['Living Room', 'Kitchen', 'Bedroom 1', 'Bedroom 2', 'Bathroom'])
-        colors = [(30, 60, 150), (40, 80, 180), (50, 100, 200), (60, 120, 220), (70, 140, 240)]
-        
-        room_positions = [
-            (100, 100, 400, 300),   # Living Room
-            (500, 100, 800, 300),   # Kitchen
-            (100, 350, 350, 600),   # Bedroom 1
-            (400, 350, 650, 600),   # Bedroom 2
-            (700, 350, 950, 600),   # Bathroom
-        ]
-        
-        for i, room in enumerate(rooms[:5]):
-            x1, y1, x2, y2 = room_positions[i]
-            color = colors[i % len(colors)]
-            draw.rectangle([(x1, y1), (x2, y2)], outline=color, width=3)
-            draw.text((x1 + 20, y1 + 20), room, fill=color)
-            
-            # Add room dimensions
-            width_room = x2 - x1
-            height_room = y2 - y1
-            draw.text((x1 + 20, y1 + 50), f"{width_room//10}x{height_room//10}", fill=(100, 120, 180))
-        
-        # Add legend
-        draw.rectangle([(width-200, height-120), (width-30, height-30)], fill=(220, 225, 240), outline=(30, 60, 150), width=2)
-        draw.text((width-190, height-110), "LEGEND", fill=(30, 60, 150))
-        draw.text((width-190, height-90), f"Style: {blueprint_data.get('style', 'Modern')}", fill=(30, 60, 150))
-        draw.text((width-190, height-70), f"Area: {blueprint_data.get('dimensions', 'N/A')}", fill=(30, 60, 150))
-        draw.text((width-190, height-50), f"Rooms: {len(rooms)}", fill=(30, 60, 150))
-        
-        # Save
-        output_path = f"blueprints/blueprint_{uuid.uuid4().hex[:8]}.png"
-        os.makedirs("blueprints", exist_ok=True)
-        img.save(output_path)
-        
-        return output_path
-        
-    except Exception as e:
-        logger.error(f"Blueprint image generation error: {e}")
-        return None
-
-
-def generate_blueprint(prompt, blueprint_type="floor_plan"):
-    """Local fallback blueprint generator"""
-    try:
-        width, height = 1200, 800
-        img = Image.new("RGB", (width, height), color=(240, 240, 255))
-        draw = ImageDraw.Draw(img)
-        
-        # Border
-        draw.rectangle([(20, 20), (width-20, height-20)], outline=(30, 60, 150), width=3)
-        
-        # Title
-        title = f"Architectural {blueprint_type.replace('_', ' ').title()}"
-        draw.text((width//2 - 200, 30), title, fill=(30, 60, 150))
-        
-        # Blueprint grid
-        for x in range(50, width-50, 50):
-            draw.line([(x, 60), (x, height-20)], fill=(200, 210, 230), width=1)
-        for y in range(60, height-20, 50):
-            draw.line([(50, y), (width-50, y)], fill=(200, 210, 230), width=1)
-        
-        # Draw rooms based on prompt
-        rooms = ["Living Room", "Kitchen", "Bedroom 1", "Bedroom 2", "Bathroom"]
-        colors = [(30, 60, 150), (40, 80, 180), (50, 100, 200), (60, 120, 220), (70, 140, 240)]
-        
-        room_positions = [
-            (100, 100, 400, 300),
-            (500, 100, 800, 300),
-            (100, 350, 350, 600),
-            (400, 350, 650, 600),
-            (700, 350, 950, 600),
-        ]
-        
-        for i, room in enumerate(rooms[:5]):
-            x1, y1, x2, y2 = room_positions[i]
-            color = colors[i % len(colors)]
-            draw.rectangle([(x1, y1), (x2, y2)], outline=color, width=3)
-            draw.text((x1 + 20, y1 + 20), room, fill=color)
-        
-        # Add legend
-        draw.rectangle([(width-200, height-120), (width-30, height-30)], fill=(220, 225, 240), outline=(30, 60, 150), width=2)
-        draw.text((width-190, height-110), "LEGEND", fill=(30, 60, 150))
-        draw.text((width-190, height-90), f"Style: Modern", fill=(30, 60, 150))
-        draw.text((width-190, height-70), f"Rooms: {len(rooms)}", fill=(30, 60, 150))
-        
-        output_path = f"blueprints/blueprint_{uuid.uuid4().hex[:8]}.png"
-        os.makedirs("blueprints", exist_ok=True)
-        img.save(output_path)
-        
-        return output_path
-    except Exception as e:
-        logger.error(f"Blueprint generation error: {e}")
-        return None
-        
-    # ========================================================
-# UPSCALER MODE - FIXED ✅
-# ========================================================
 
 def run_upscaler_mode():
     """Upscaler - AI-Powered Image Enhancement"""
@@ -11152,8 +11001,67 @@ def run_video_editor_mode():
             
             # Process Button
             if st.button("🚀 PROCESS & EDIT VIDEO", key="movie_generate_btn_editor", use_container_width=True):
-                # ... your existing logic ...
-                pass
+                current_uploads = st.session_state.get("editor_uploads", []) or uploaded_media
+                if not current_uploads:
+                    st.error("❌ Please upload at least one media file (video/image).")
+                elif not st.session_state.get("is_logged_in"):
+                    st.error("❌ Please log in first.")
+                else:
+                    quality_map = {"Standard": 3, "HD": 4, "4K": 6}
+                    required_tokens = quality_map.get(editor_quality, 3)
+                    user_credits = st.session_state.get("user_credits", 0)
+                    if user_credits < required_tokens:
+                        st.error(f"❌ Insufficient credits! Required: {required_tokens}, Available: {user_credits}")
+                    else:
+                        try:
+                            os.makedirs("editor_uploads", exist_ok=True)
+                            os.makedirs("temp_scenes", exist_ok=True)
+
+                            output_path = f"editor_uploads/edited_video_{uuid.uuid4().hex[:8]}.mp4"
+
+                            # Voiceover params
+                            vo_text = ""
+                            vo_profile = "Adam (Premium Male)"
+                            if use_editor_voiceover:
+                                vo_text = st.session_state.get("editor_voiceover_text", "")
+                                vo_profile = st.session_state.get("editor_voiceover_profile", "Adam (Premium Male)")
+
+                            with st.spinner("🎬 Processing your video..."):
+                                success = process_editor_video(
+                                    uploaded_files=current_uploads,
+                                    output_path=output_path,
+                                    effect=video_effect,
+                                    transition=transition_effect,
+                                    resolution=output_resolution,
+                                    custom_bgm=editor_bgm,
+                                    bgm_volume=editor_bgm_volume,
+                                    voiceover_text=vo_text,
+                                    voice_profile=vo_profile,
+                                    voice_language_choice=st.session_state.get("language_choice", "🇬🇧 English (US Standard)"),
+                                )
+
+                            if success and os.path.exists(output_path) and os.path.getsize(output_path) > 1000:
+                                deduct_credits_db(st.session_state["logged_user"], required_tokens)
+                                st.session_state["user_credits"] = get_user_credits_db(st.session_state["logged_user"])
+                                st.session_state["active_editor_output"] = output_path
+
+                                timestamp = time.strftime("%Y%m%d_%H%M%S")
+                                save_render_to_db(
+                                    st.session_state["logged_user"],
+                                    f"editor_video_{timestamp}.mp4",
+                                    f"Editor: {len(current_uploads)} files, {video_effect} effect",
+                                    output_path,
+                                    "Video Editor",
+                                    required_tokens
+                                )
+                                st.session_state["history_renders"] = load_renders_history_db(st.session_state["logged_user"])
+                                st.toast("✅ Video edited successfully!")
+                                st.rerun()
+                            else:
+                                st.error("❌ Video processing failed. Check uploaded files and try again.")
+                        except Exception as e:
+                            st.error(f"❌ Editor Error: {str(e)}")
+                            logger.error(f"Video editor process error: {e}")
     
     with ve_col2:
         with st.container(border=True):
@@ -11695,154 +11603,6 @@ pip install gfpgan realesrgan""",
                 st.info("No expressive render yet. Upload a face image and generate your first expressive clip.")
 
 
-def _extract_video_url_from_replicate_output(output_obj):
-    if isinstance(output_obj, str) and output_obj.startswith("http"):
-        return output_obj
-    if isinstance(output_obj, dict):
-        for key in ["video", "output", "url", "mp4", "result"]:
-            val = output_obj.get(key)
-            found = _extract_video_url_from_replicate_output(val)
-            if found:
-                return found
-    if isinstance(output_obj, (list, tuple)):
-        for item in output_obj:
-            found = _extract_video_url_from_replicate_output(item)
-            if found:
-                return found
-    return None
-
-
-def _get_replicate_api_token():
-    secret_keys = ["REPLICATE_API_TOKEN", "REPLICATE_API_KEY"]
-    for key in secret_keys:
-        try:
-            value = st.secrets.get(key)
-        except Exception:
-            value = None
-        if value:
-            return str(value).strip()
-
-    for key in secret_keys:
-        value = os.getenv(key)
-        if value:
-            return str(value).strip()
-
-    return None
-
-
-def _run_replicate_face_model(client, model_ref, image_path, audio_path, script_text):
-    image_path = str(image_path)
-    if not os.path.isfile(image_path) or os.path.getsize(image_path) <= 0:
-        raise ValueError("Replicate face generation requires a valid image file path.")
-
-    model_lc = str(model_ref).lower()
-    has_audio = bool(audio_path and os.path.isfile(audio_path) and os.path.getsize(audio_path) > 1024)
-
-    if "p-video-avatar" in model_lc:
-        input_builders = [
-            lambda i, a, t: {"image": i, "voice_script": t, "voice_prompt": "speak naturally", "video_prompt": "real human talking head with natural lip movement and subtle eye blinks", "resolution": "720p"},
-            lambda i, a, t: {"image": i, "voice_script": t, "resolution": "720p"},
-        ]
-    elif "sadtalker" in model_lc:
-        input_builders = [
-            lambda i, a, t: {"source_image": i, "driven_audio": a, "preprocess": "full"},
-            lambda i, a, t: {"source_image": i, "driven_audio": a},
-            lambda i, a, t: {"image": i, "audio": a},
-        ]
-    elif "liveportrait" in model_lc:
-        input_builders = [
-            lambda i, a, t: {"source_image": i, "driving_audio": a},
-            lambda i, a, t: {"image": i, "audio": a},
-            lambda i, a, t: {"source": i, "driving": a},
-        ]
-    else:
-        input_builders = [
-            lambda i, a, t: {"image": i, "voice_script": t},
-            lambda i, a, t: {"image": i, "text": t},
-        ]
-
-    for build_payload in input_builders:
-        try:
-            with open(image_path, "rb") as img_file:
-                aud_file = open(audio_path, "rb") if has_audio else None
-                try:
-                    payload = build_payload(img_file, aud_file, script_text)
-                    output = client.run(model_ref, input=payload)
-                finally:
-                    if aud_file:
-                        aud_file.close()
-
-            video_url = _extract_video_url_from_replicate_output(output)
-            if video_url:
-                return video_url
-        except Exception as e:
-            logger.warning(f"Replicate payload failed for {model_ref}: {e}")
-            continue
-
-    return None
-
-
-def generate_world_face_video(prompt, face_image_path, duration=10, quality="HD", animation_style="Expressive Real Human (No Lip-Only Fallback)", backend_choice="Auto (LivePortrait → SadTalker → Wav2Lip)", motion_level="high", voice_language=None, voice_label=None):
-    """Cloud-only face generation using Replicate models; no local face animation pipeline."""
-    if not face_image_path or not os.path.exists(face_image_path):
-        return None
-
-    if not HAS_REPLICATE:
-        logger.warning("Replicate library is not installed.")
-        return None
-
-    replicate_token = _get_replicate_api_token()
-    if not replicate_token:
-        logger.warning("Replicate API token is missing from Streamlit secrets or environment.")
-        return None
-
-    temp_audio = None
-    try:
-        voice_cfg = _resolve_face_voice_config(voice_language=voice_language, voice_label=voice_label, preferred_gender=st.session_state.get('fv_detected_gender') if st.session_state.get('fv_gender_auto', False) else None)
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp_aud:
-            temp_audio = tmp_aud.name
-        _synthesize_face_audio_strict(prompt, temp_audio, voice_cfg, duration_hint=duration)
-
-        client = replicate.Client(api_token=replicate_token)
-
-        model_candidates = [
-            str(os.getenv("REPLICATE_FACE_MODEL", "prunaai/p-video-avatar")).strip() or "prunaai/p-video-avatar",
-            "prunaai/p-video-avatar",
-            "lucataco/sadtalker",
-            "cjwbw/sadtalker",
-            "gandhana/liveportrait",
-            "gandhary/liveportrait",
-        ]
-
-        deduped = []
-        seen = set()
-        for model in model_candidates:
-            key = model.strip().lower()
-            if not key or key in seen:
-                continue
-            seen.add(key)
-            
-            deduped.append(model.strip())
-
-        for model_ref in deduped:
-            try:
-                video_url = _run_replicate_face_model(client, model_ref, face_image_path, temp_audio, prompt)
-                if video_url:
-                    st.session_state["face_video_engine_used"] = f"Replicate ({model_ref})"
-                    st.session_state["face_video_runtime_mode"] = "Cloud"
-                    return video_url
-            except Exception as e:
-                logger.warning(f"Replicate fallback failed for {model_ref}: {e}")
-
-        return None
-    except Exception as e:
-        logger.warning(f"Replicate face generation failed: {e}")
-        return None
-    finally:
-        if temp_audio:
-            safe_remove_file(temp_audio)
-
-# Legacy local face-engine hooks are intentionally disabled in cloud mode.
 def get_wav2lip_setup_status():
     return {
         "ready": False,
@@ -11886,27 +11646,27 @@ def get_expressive_setup_status():
 
 
 def run_wav2lip_cli(face_image_path, audio_path, output_video_path, width, height, fps=24):
-    logger.info("Local Wav2Lip path disabled. Using Replicate cloud generation only.")
+    logger.info("Local Wav2Lip path disabled. Using DeepInfra cloud generation only.")
     return False
 
 
 def run_lip_sync_pipeline(face_image_path, audio_path, output_video_path, width, height, duration=10, emotion="neutral", camera_angle="front"):
-    logger.info("Local lip-sync pipeline disabled. Using Replicate cloud generation only.")
+    logger.info("Local lip-sync pipeline disabled. Using DeepInfra cloud generation only.")
     return False
 
 
 def run_liveportrait_cli(face_image_path, audio_path, output_video_path, width, height, duration=10, motion_level="high"):
-    logger.info("Local LivePortrait path disabled. Using Replicate cloud generation only.")
+    logger.info("Local LivePortrait path disabled. Using DeepInfra cloud generation only.")
     return False
 
 
 def run_sadtalker_cli(face_image_path, audio_path, output_video_path, width, height, duration=10, motion_level="high"):
-    logger.info("Local SadTalker path disabled. Using Replicate cloud generation only.")
+    logger.info("Local SadTalker path disabled. Using DeepInfra cloud generation only.")
     return False
 
 
 def run_expressive_face_pipeline(face_image_path, audio_path, output_video_path, width, height, duration=10, preferred_engine="Auto (LivePortrait → SadTalker)", motion_level="high"):
-    logger.info("Local expressive pipeline disabled. Using Replicate cloud generation only.")
+    logger.info("Local expressive pipeline disabled. Using DeepInfra cloud generation only.")
     return False
 
 
@@ -12281,7 +12041,7 @@ def run_unified_face_video_mode():
             
             st.markdown("<br>", unsafe_allow_html=True)
             
-                        # Generate Button - Pure Replicate Cloud Engine ☁️
+                        # Generate Button - Pure DeepInfra Cloud Engine ☁️
             if st.button("🌍 Generate Global Face Video", key="unified_fv_generate_btn", use_container_width=True):
                             if not face_prompt or not face_prompt.strip():
                                 st.error("Please enter a dialogue/script for the face video.")
@@ -12321,10 +12081,10 @@ def run_unified_face_video_mode():
                                 else:
                                     st.success(f"✓ {message}")
                         
-                                    # Step 3: Generate via Replicate Cloud directly ☁️
-                                    with st.spinner(f"☁️ Generating {quality} face video on Replicate Cloud GPU..."):
+                                    # Step 3: Generate via DeepInfra Cloud directly ☁️
+                                    with st.spinner(f"☁️ Generating {quality} face video on DeepInfra Cloud..."):
                                         try:
-                                            video_url = generate_world_face_video(
+                                            video_url = generate_face_video(
                                                 prompt=face_prompt,
                                                 face_image_path=temp_face_path,
                                                 duration=video_duration,
@@ -12345,10 +12105,10 @@ def run_unified_face_video_mode():
                                                 )
                                                 st.session_state["face_video_history"] = load_face_video_history_db(st.session_state.get("logged_user", "guest"))
                                                 st.balloons()
-                                                st.toast(f"✅ Face video generated successfully on Cloud GPU!")
+                                                st.toast("✅ Face video generated successfully on DeepInfra Cloud!")
                                                 st.rerun()
                                             else:
-                                                st.error("❌ Replicate Cloud generation failed. Check API key and try again.")
+                                                st.error("❌ DeepInfra Cloud generation failed. Check API key and model configuration.")
                                         except Exception as e:
                                             st.error(f"❌ Cloud Generation Error: {str(e)}")
                                             logger.error(f"Unified face video error: {e}")
@@ -13230,10 +12990,7 @@ def run_cinematic_engine():
                 else:
                     try:
                         # Step 1: Validate tokens
-                        burn_rate = BASE_BURN_RATE.get("Cinematic Engine", 4)
-                        if cinematic_quality in ["HD", "Pro"]:
-                            burn_rate += 1 if cinematic_quality == "HD" else 2
-                            success, required_tokens, message = validate_and_deduct_tokens("Cinematic Engine", burn_rate)
+                        success, required_tokens, message = validate_and_deduct_tokens("Cinematic Engine", cinematic_quality)
                         if not success:
                             st.error(message)
                             st.stop()
@@ -13260,12 +13017,16 @@ def run_cinematic_engine():
                         
                         # Step 4: Get BGM
                         bgm_path = None
-                        if uploaded_bgm is not None:
+                        bgm_volume = 0.2  # <-- Ye line add kar do (Default 20% background music volume)
+
+                        current_bgm = locals().get('uploaded_bgm', globals().get('uploaded_bgm', None))
+
+                        if current_bgm is not None:
                             bgm_path = f"face_videos/custom_bgm_{uuid.uuid4().hex[:8]}.mp3"
                             with open(bgm_path, "wb") as f:
-                                f.write(uploaded_bgm.getbuffer())
+                                f.write(current_bgm.getbuffer())
                         else:
-                            bgm_path = get_music_path(music_mood) if 'get_music_path' in dir() else None
+                             bgm_path = get_music_path(music_mood) if 'get_music_path' in dir() else None
                         
                         # Step 5: Build video using StitcherEngine pipeline
                         with st.spinner("🎬 Generating cinematic video..."):
@@ -14850,6 +14611,589 @@ for i in range(0, len(modes), 11):
     elif st.session_state["studio_active_mode"] == "Upscaler Mode":
         run_upscaler_mode()
     elif st.session_state["studio_active_mode"] == "Draw Mode":
+        run_draw_mode()
+    elif st.session_state["studio_active_mode"] == "Video Editor Mode":
+        run_video_editor_mode()
+    elif st.session_state["studio_active_mode"] == "Face Video Mode":
+        run_unified_face_video_mode()
+    elif st.session_state["studio_active_mode"] == "Expressive Face Video Mode":
+        run_unified_face_video_mode()
+    elif st.session_state["studio_active_mode"] == "AI Agent Mode":
+        render_ai_agent_ui()
+    elif st.session_state["studio_active_mode"] == "AI Sales Mode":
+        render_ai_sales_ui()
+    elif st.session_state["studio_active_mode"] == "Dynamic UI Mode":
+        generate_dynamic_ui()
+    elif st.session_state["studio_active_mode"] == "Live Emotion Mode":
+        render_live_emotion_voice()
+
+# ========================================================
+# PRODUCTION ENGINE MODE - RunPod Infrastructure
+# ========================================================
+
+
+def render_runpod_status_ui():
+    """Show RunPod status in sidebar"""
+    if not RUNPOD_API_KEY:
+        st.sidebar.warning("RunPod not configured. Some features unavailable.")
+        return
+    face_avail = bool(FACE_ENDPOINT_ID)
+    voice_avail = bool(VOICE_ENDPOINT_ID)
+    if face_avail or voice_avail:
+        st.sidebar.markdown("---")
+        st.sidebar.markdown("### RunPod Infrastructure")
+        st.sidebar.success(f"Face Video: {'Ready' if face_avail else 'Not configured'}")
+        st.sidebar.success(f"Voice/TTS: {'Ready' if voice_avail else 'Not configured'}")
+
+
+def get_face_client():
+    """Get RunPod face client info"""
+    return type('obj', (object,), {
+        'is_available': lambda: bool(RUNPOD_API_KEY and FACE_ENDPOINT_ID),
+        'get_endpoint': lambda: FACE_ENDPOINT_ID
+    })()
+
+
+def get_voice_client():
+    """Get RunPod voice client info"""
+    return type('obj', (object,), {
+        'is_available': lambda: bool(RUNPOD_API_KEY and VOICE_ENDPOINT_ID),
+        'get_endpoint': lambda: VOICE_ENDPOINT_ID
+    })()
+
+
+def render_engine_portfolio_section():
+    """Render the shared portfolio, history, trending, and footer section below any engine page."""
+    st.markdown("<hr style='border-color: rgba(255,255,255,0.06); margin: 25px 0;'>", unsafe_allow_html=True)
+
+    current_mode = st.session_state.get("studio_active_mode", "Cinematic Engine")
+
+    def get_mode_portfolio(current_mode):
+        portfolio_renders_list = st.session_state.get("history_renders", [])
+        face_video_list = st.session_state.get("face_video_history", [])
+        valid_items = []
+        gallery_title = ""
+        no_items_msg = ""
+        display_type = "image"
+
+        if current_mode == "Face Video Mode":
+            for item in face_video_list:
+                if os.path.exists(item.get("path", "")):
+                    valid_items.append(item)
+            gallery_title = "👤 MY FACE VIDEO GENERATIONS"
+            no_items_msg = "No face videos created yet. Upload a face image and generate!"
+            display_type = "video"
+        elif current_mode == "Expressive Face Video Mode":
+            for item in face_video_list:
+                file_name = item.get("file_name", "").lower()
+                if os.path.exists(item.get("path", "")) and "expressive_face_video" in file_name:
+                    valid_items.append(item)
+            gallery_title = "🧬 EXPRESSIVE FACE GENERATIONS"
+            no_items_msg = "No expressive face videos created yet. Generate one with LivePortrait/SadTalker."
+            display_type = "video"
+        elif current_mode == "Cinematic Engine":
+            for item in portfolio_renders_list:
+                file_path = item.get("path", "")
+                file_name = item.get("file_name", "")
+                gen_type = item.get("generation_type", "")
+                if gen_type and gen_type != "Cinematic Engine":
+                    continue
+                if os.path.exists(file_path) and "cinematic" in file_name.lower():
+                    valid_items.append(item)
+            gallery_title = "🎬 CINEMATIC ENGINE VIDEOS"
+            no_items_msg = "No cinematic videos created yet. Generate your first cinematic video!"
+            display_type = "video"
+        elif current_mode == "Creative Workshop Mode":
+            for item in portfolio_renders_list:
+                file_path = item.get("path", "")
+                gen_type = item.get("generation_type", "")
+                if gen_type and gen_type != "Creative Workshop":
+                    continue
+                if os.path.exists(file_path):
+                    valid_items.append(item)
+            gallery_title = "🎨 CREATIVE WORKSHOP IMAGES"
+            no_items_msg = "No workshop images created yet. Generate your first masterpiece!"
+            display_type = "image"
+        elif current_mode == "Video Editor Mode":
+            for item in portfolio_renders_list:
+                file_path = item.get("path", "")
+                gen_type = item.get("generation_type", "")
+                if gen_type and gen_type != "Video Editor":
+                    continue
+                if os.path.exists(file_path):
+                    valid_items.append(item)
+            gallery_title = "🎬 VIDEO EDITOR OUTPUTS"
+            no_items_msg = "No edited videos created yet. Upload media and process!"
+            display_type = "video"
+        elif current_mode == "Blueprints Mode":
+            for item in portfolio_renders_list:
+                file_path = item.get("path", "")
+                gen_type = item.get("generation_type", "")
+                if gen_type and gen_type != "General":
+                    continue
+                if os.path.exists(file_path):
+                    valid_items.append(item)
+            gallery_title = "📐 BLUEPRINT GENERATIONS"
+            no_items_msg = "No blueprints created yet. Generate your first architectural blueprint!"
+            display_type = "image"
+        elif current_mode == "Upscaler Mode":
+            for item in portfolio_renders_list:
+                file_path = item.get("path", "")
+                gen_type = item.get("generation_type", "")
+                if gen_type and gen_type != "General":
+                    continue
+                if os.path.exists(file_path):
+                    valid_items.append(item)
+            gallery_title = "⚡ UPSCALED IMAGES"
+            no_items_msg = "No upscaled images created yet. Upload an image to upscale!"
+            display_type = "image"
+        elif current_mode == "Draw Mode":
+            for item in portfolio_renders_list:
+                file_path = item.get("path", "")
+                gen_type = item.get("generation_type", "")
+                if gen_type and gen_type != "General":
+                    continue
+                if os.path.exists(file_path):
+                    valid_items.append(item)
+            gallery_title = "🎨 DRAWING OUTPUTS"
+            no_items_msg = "No drawings created yet. Generate your first sketch!"
+            display_type = "image"
+        elif current_mode == "AI Agent Mode":
+            agent_logs = st.session_state.get("agent_generated_ad", "")
+            if agent_logs:
+                valid_items.append({"type": "text", "content": agent_logs, "file_name": "WhatsApp Ad", "prompt": "Generated WhatsApp advertisement"})
+            agent_caption = st.session_state.get("agent_instagram_caption", "")
+            if agent_caption:
+                valid_items.append({"type": "text", "content": agent_caption, "file_name": "Instagram Post", "prompt": "Generated Instagram post caption"})
+            gallery_title = "🤖 AI AGENT OUTPUTS"
+            no_items_msg = "No agent outputs generated yet. Configure and activate your AI agent!"
+            display_type = "text"
+        elif current_mode == "AI Sales Mode":
+            sales_video = st.session_state.get("sales_video_output")
+            if sales_video and os.path.exists(sales_video):
+                valid_items.append({"path": sales_video, "file_name": f"Sales_Video_{datetime.now().strftime('%Y%m%d')}", "prompt": st.session_state.get("sales_script", "Sales video"), "type": "video"})
+            gallery_title = "🎙️ AI SALES VIDEOS"
+            no_items_msg = "No sales videos created yet. Generate your first AI sales video!"
+            display_type = "video"
+        elif current_mode == "Dynamic UI Mode":
+            ui_profile = st.session_state.get("dynamic_ui_profile_mode", "intermediate")
+            valid_items.append({"type": "text", "content": f"Current UI Profile: {ui_profile}\n\nBehavior Profile: {st.session_state.get('user_behavior_profile', 'beginner')}\n\nUI Theme: {st.session_state.get('ui_theme_mode', 'auto')}", "file_name": "UI Configuration", "prompt": f"Dynamic UI Profile: {ui_profile}"})
+            gallery_title = "🧠 DYNAMIC UI PROFILES"
+            no_items_msg = "No UI profiles configured yet. Customize your interface!"
+            display_type = "text"
+        elif current_mode == "Live Emotion Mode":
+            audio_output = st.session_state.get("emotion_voice_output")
+            if audio_output and os.path.exists(audio_output):
+                valid_items.append({"path": audio_output, "file_name": f"Voice_{datetime.now().strftime('%Y%m%d_%H%M%S')}", "prompt": st.session_state.get("emotion_voice_text", "Emotion voice"), "emotion": st.session_state.get("emotion_voice_emotion", "neutral"), "type": "audio"})
+            gallery_title = "🎤 LIVE EMOTION VOICE OUTPUTS"
+            no_items_msg = "No voice outputs generated yet. Generate your first emotion voice!"
+            display_type = "audio"
+        else:
+            valid_items = []
+            gallery_title = "📁 MY PORTFOLIO"
+            no_items_msg = "Select a mode to view its portfolio."
+            display_type = "image"
+
+        return valid_items, gallery_title, no_items_msg, display_type
+
+    valid_items, gallery_title, no_items_msg, display_type = get_mode_portfolio(current_mode)
+    st.markdown(f"<h3 style='font-family: Orbitron; font-size: 16px; color:  #EC4899; margin-bottom: 15px; letter-spacing: 0.5px;'>{gallery_title}</h3>", unsafe_allow_html=True)
+
+    if not valid_items:
+        st.info(no_items_msg)
+    else:
+        if display_type == "audio":
+            audio_cols = st.columns(3)
+            for idx, item in enumerate(valid_items[:6]):
+                with audio_cols[idx % 3]:
+                    with st.container(border=True):
+                        emotion = item.get("emotion", "neutral")
+                        emoji_map = {"neutral": "😐", "happy": "😊", "sad": "😢", "angry": "😡", "excited": "🤩", "serious": "😤", "mysterious": "🕵️"}
+                        emotion_emoji = emoji_map.get(emotion, "😐")
+                        st.markdown(f"""
+                            <div style="font-family: 'Orbitron'; font-size: 10px; color: #EC4899; font-weight: bold; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                {emotion_emoji} {item.get("file_name", "Voice")[:30]}
+                            </div>
+                        """, unsafe_allow_html=True)
+                        if os.path.exists(item.get("path", "")):
+                            with open(item["path"], "rb") as f:
+                                audio_bytes = f.read()
+                            st.audio(audio_bytes, format="audio/mp3")
+                        st.markdown(f"""
+                            <p style="font-size: 10px; color: #EC4899; line-height: 1.3; height: 36px; overflow: hidden; text-overflow: ellipsis; margin: 8px 0 0 0; font-weight: 300;">
+                                "{item.get('prompt', '')[:60]}"
+                            </p>
+                        """, unsafe_allow_html=True)
+        elif display_type == "text":
+            text_cols = st.columns(2)
+            for idx, item in enumerate(valid_items):
+                with text_cols[idx % 2]:
+                    with st.container(border=True):
+                        st.markdown(f"""
+                            <div style="font-family: 'Orbitron'; font-size: 10px; color: #EC4899; font-weight: bold; margin-bottom: 4px;">
+                                📝 {item.get("file_name", "Output")}
+                            </div>
+                        """, unsafe_allow_html=True)
+                        st.markdown(f"""
+                            <div style="background: rgba(18, 19, 26, 0.85); border-radius: 8px; padding: 10px; max-height: 150px; overflow-y: auto; font-size: 11px; color: #94a3b8; font-family: monospace; line-height: 1.5; border: 1px solid rgba(255,255,255,0.04);">
+                                {item.get("content", "")[:500]}
+                            </div>
+                        """, unsafe_allow_html=True)
+        elif display_type == "video":
+            video_cols = st.columns(3)
+            for idx, item in enumerate(valid_items[:9]):
+                with video_cols[idx % 3]:
+                    with st.container(border=True):
+                        file_path = item.get("path", "")
+                        file_name = item.get("file_name", "Untitled")
+                        prompt = item.get("prompt", "")
+                        if "quality" in item:
+                            quality = item.get("quality", "Standard")
+                            st.markdown(f"""
+                                <div style="font-family: 'Orbitron'; font-size: 10px; color: #EC4899; font-weight: bold; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                    📁 {file_name[:25]}
+                                    <span style="font-size: 8px; color: #45f3ff; margin-left: 5px;">[{quality}]</span>
+                                </div>
+                            """, unsafe_allow_html=True)
+                        else:
+                            st.markdown(f"""
+                                <div style="font-family: 'Orbitron'; font-size: 10px; color:  #EC4899; font-weight: bold; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                    📁 {file_name[:30]}
+                                </div>
+                            """, unsafe_allow_html=True)
+                        if os.path.exists(file_path):
+                            try:
+                                st.video(file_path, format="video/mp4", autoplay=False, loop=True, muted=False)
+                            except:
+                                st.markdown("""
+                                    <div style="height: 120px; width: 100%; border-radius: 6px; overflow: hidden; border: 1px solid rgba(255,192,203,0.2); display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle, #1e1b29 0%, #0a0a0f 100%); margin-bottom: 10px;">
+                                        <span style="font-size: 36px; display: block;">🎬</span>
+                                        <span style="font-family: 'Orbitron'; font-size: 9px; color:  #EC4899; margin-top: 5px; text-transform: uppercase;">VIDEO</span>
+                                    </div>
+                                """, unsafe_allow_html=True)
+                        else:
+                            st.markdown("""
+                                <div style="height: 120px; width: 100%; border-radius: 6px; overflow: hidden; border: 1px solid rgba(255,192,203,0.2); display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle, #1e1b29 0%, #0a0a0f 100%); margin-bottom: 10px;">
+                                    <span style="font-size: 36px; display: block;">🎬</span>
+                                    <span style="font-family: 'Orbitron'; font-size: 9px; color: #EC4899; margin-top: 5px; text-transform: uppercase;">VIDEO</span>
+                                </div>
+                            """, unsafe_allow_html=True)
+                        st.markdown(f"""
+                            <p style="font-size: 10px; color:  #EC4899; line-height: 1.3; height: 36px; overflow: hidden; text-overflow: ellipsis; margin: 8px 0 0 0; font-weight: 300;">
+                                "{prompt[:60]}"
+                            </p>
+                        """, unsafe_allow_html=True)
+        else:
+            image_cols = st.columns(4)
+            for idx, item in enumerate(valid_items[:8]):
+                with image_cols[idx % 4]:
+                    with st.container(border=True):
+                        file_path = item.get("path", "")
+                        file_name = item.get("file_name", "Untitled")
+                        prompt = item.get("prompt", "")
+                        st.markdown(f"""
+                            <div style="font-family: 'Orbitron'; font-size: 10px; color: #EC4899; font-weight: bold; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                📁 {file_name[:30]}
+                            </div>
+                        """, unsafe_allow_html=True)
+                        img_b64 = get_base64_img_raw(file_path)
+                        if img_b64:
+                            ext = os.path.splitext(file_path)[1].lower().replace('.', '')
+                            if ext == 'jpg':
+                                ext = 'jpeg'
+                            mime_type = f"image/{ext}" if ext in ['png', 'jpeg', 'webp', 'gif', 'svg'] else "image/png"
+                            st.markdown(f"""
+                                <div style="height: 120px; width: 100%; border-radius: 6px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; background: #000; margin-bottom: 10px;">
+                                    <img src="data:{mime_type};base64,{img_b64}" style="max-height: 100%; max-width: 100%; object-fit: contain;" />
+                                </div>
+                            """, unsafe_allow_html=True)
+                        else:
+                            st.markdown("""
+                                <div style="height: 120px; width: 100%; border-radius: 6px; overflow: hidden; border: 1px solid rgba(255,192,203,0.2); display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle, #1e1b29 0%, #0a0a0f 100%); margin-bottom: 10px;">
+                                    <span style="font-size: 36px; display: block;">🖼️</span>
+                                    <span style="font-family: 'Orbitron'; font-size: 9px; color: #FFC0CB; margin-top: 5px; text-transform: uppercase;">IMAGE</span>
+                                </div>
+                            """, unsafe_allow_html=True)
+                        st.markdown(f"""
+                            <p style="font-size: 10px; color: #94a3b8; line-height: 1.3; height: 36px; overflow: hidden; text-overflow: ellipsis; margin: 8px 0 0 0; font-weight: 300;">
+                                "{prompt[:60]}"
+                            </p>
+                        """, unsafe_allow_html=True)
+
+    st.markdown("<hr style='border-color: rgba(255,255,255,0.06); margin: 25px 0;'>", unsafe_allow_html=True)
+    st.markdown("<h3 style='font-family: Orbitron; font-size: 16px; color: #EC4899; margin-bottom: 15px; letter-spacing: 0.5px;'>📈 GLOBAL TRENDING HOT TOPICS (ONE-CLICK IMPORT)</h3>", unsafe_allow_html=True)
+    trend_cols = st.columns(3)
+    mock_trends = [
+        {"hashtag": "#InterstellarVoid", "category": "Space Mysteries", "title": "Astronomers record unexplained radio whispers emitting from interstellar coordinates.", "clicks": "142K views/hr"},
+        {"hashtag": "#DwarkaRuins", "category": "Mythology Mysteries", "title": "Submerged architectural monoliths matching descriptions of Dwarka found near seafloor.", "clicks": "98K views/hr"},
+        {"hashtag": "#PratfallEffect", "category": "Dark Psychology", "title": "Why flawed charismatic leaders trigger obsessive loyalty inside digital echo chambers.", "clicks": "210K views/hr"}
+    ]
+    for idx_t, trend in enumerate(mock_trends):
+        with trend_cols[idx_t]:
+            with st.container(border=True):
+                st.markdown(f"""
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <span style="font-family:'Orbitron'; font-size: 10px; font-weight:bold; color:#fbbf24;">{trend["hashtag"]}</span>
+                        <span style="font-size: 9px; color:#EC4899; font-weight:bold;">🔥 {trend["clicks"]}</span>
+                    </div>
+                    <div style="font-size: 11px; color:#ffffff; font-weight:bold; height: 38px; overflow:hidden;">{trend["title"]}</div>
+                    <div style="font-size: 10px; color: #EC4899; margin-bottom: 10px;">Channel: {trend["category"]}</div>
+                """, unsafe_allow_html=True)
+                if st.button(f"One-Click Import Trend", key=f"import_trend_action_btn_{idx_t}", use_container_width=True):
+                    st.session_state["studio_prompt_value"] = trend["title"]
+                    st.session_state["studio_prompt_mode"] = "💡 Autonomous AI Topic"
+                    st.toast("Success! Hot Topic imported.")
+                    st.rerun()
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    with st.expander("ℹ Engine Technical Specs & Policies", expanded=False):
+        st.markdown("<h4 style='font-family:Orbitron; font-size:13px; color:#ffffff; margin-bottom: 12px;'>🚀 INTEGRATED WORKFLOW PIPELINE</h4>", unsafe_allow_html=True)
+        col_step1, col_step2, col_step3 = st.columns(3)
+        with col_step1:
+            st.markdown("""
+                <div style="background: rgba(18, 19, 26, 0.85); border: 1px solid rgba(255, 192, 203, 0.12); border-radius: 12px; padding: 12px; height: 100%;">
+                    <div style="font-size: 16px; font-weight: bold; color: #ffd700; margin-bottom: 8px; font-family: 'Orbitron';">01</div>
+                    <h5 style="color: #ffffff; font-family: Orbitron; font-size: 11px; margin-bottom: 6px;">1. Structured Scripting</h5>
+                    <p style="color: #EC4899; font-size: 10px; line-height: 1.5;">Constructs structured scripts with scene-by-scene keyword parameters using the LLM engine.</p>
+                </div>
+            """, unsafe_allow_html=True)
+        with col_step2:
+            st.markdown("""
+                <div style="background: rgba(18, 19, 26, 0.85); border: 1px solid rgba(255, 192, 203, 0.12); border-radius: 12px; padding: 12px; height: 100%;">
+                    <div style="font-size: 16px; font-weight: bold; color: #ffd700; margin-bottom: 8px; font-family: 'Orbitron';">02</div>
+                    <h5 style="color: #ffffff; font-family: Orbitron; font-size: 11px; margin-bottom: 6px;">2. Voice Segment Synthetics</h5>
+                    <p style="color: #EC4899; font-size: 10px; line-height: 1.5;">Generates specific voice streams per scene block and calculates precise audio timelines.</p>
+                </div>
+            """, unsafe_allow_html=True)
+        with col_step3:
+            st.markdown("""
+                <div style="background: rgba(18, 19, 26, 0.85); border: 1px solid rgba(255, 192, 203, 0.12); border-radius: 12px; padding: 12px; height: 100%;">
+                    <div style="font-size: 16px; font-weight: bold; color: #ffd700; margin-bottom: 8px; font-family: 'Orbitron';">03</div>
+                    <h5 style="color: #ffffff; font-family: Orbitron; font-size: 11px; margin-bottom: 6px;">3. Multi-Scene Stitching</h5>
+                    <p style="color: #EC4899; font-size: 10px; line-height: 1.5;">Trims visual assets to matching segment runtimes and compiles them together into final outputs.</p>
+                </div>
+            """, unsafe_allow_html=True)
+        st.markdown("<hr style='border-color: rgba(255,255,255,0.06); margin: 15px 0;'>", unsafe_allow_html=True)
+        st.markdown("<h4 style='font-family:Orbitron; font-size:13px; color:#ffffff; margin-bottom: 12px;'>🚨 DISCLAIMER & PLATFORM POLICIES</h4>", unsafe_allow_html=True)
+        disc_col1, disc_col2 = st.columns(2)
+        with disc_col1:
+            st.markdown("""
+                <div style="background: rgba(18, 19, 26, 0.85); border: 1px solid rgba(255, 192, 203, 0.12); border-radius: 12px; padding: 12px; height: 100%;">
+                    <h5 style="color: #EC4899; font-family: Orbitron; font-size: 10px; margin-bottom: 8px;">Generative Media Policy</h5>
+                    <p style="color:  #EC4899; font-size: 10px; line-height: 1.5;">ZOVIX operates as an automated synthesis tool. We do not claim ownership over stock materials retrieved from third-party APIs.</p>
+                </div>
+            """, unsafe_allow_html=True)
+        with disc_col2:
+            st.markdown("""
+                <div style="background: rgba(18, 19, 26, 0.85); border: 1px solid rgba(255, 192, 203, 0.12); border-radius: 12px; padding: 12px; height: 100%;">
+                    <h5 style="color: #EC4899; font-family: Orbitron; font-size: 10px; margin-bottom: 8px;">Usage & Credit Terms</h5>
+                    <p style="color: #EC4899; font-size: 10px; line-height: 1.5;">Access to processing nodes requires active credits. Standard 720p generations consume 1 credit.</p>
+                </div>
+            """, unsafe_allow_html=True)
+
+    show_privacy_policy()
+
+    st.markdown("<hr style='border-color: rgba(255,255,255,0.06); margin: 30px 0 15px 0;'>", unsafe_allow_html=True)
+    st.markdown("""
+        <div style="text-align: center; padding: 10px 0 20px 0; color:  #EC4899; font-family: 'Inter'; font-size: 12px;">
+            <p style="margin-bottom: 8px; font-weight: 400; color:  #EC4899;">© 2026 ZOVIX. All rights reserved.</p>
+            <div style="display: flex; justify-content: center; gap: 15px; font-family: 'Orbitron'; font-size: 10px; letter-spacing: 0.5px;">
+                <span>Privacy Policy</span>
+                <span>Terms</span>
+                <span>Support</span>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
+
+
+render_engine_portfolio_section()
+
+
+def run_production_engine_mode():
+    """Production Engine Mode - RunPod-powered face video & voice generation."""
+    
+    st.markdown("""
+    <div style="
+        background: linear-gradient(135deg, rgba(236,72,153,0.06), rgba(69,243,255,0.06));
+        border-radius: 16px;
+        border: 1px solid rgba(69,243,255,0.08);
+        padding: 16px 20px;
+        margin-bottom: 18px;
+        text-align: center;
+    ">
+        <span style="
+            display: inline-block;
+            background: rgba(236,72,153,0.12);
+            color: #EC4899;
+            padding: 4px 14px;
+            border-radius: 16px;
+            font-size: 9px;
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 1px;
+            border: 1px solid rgba(236,72,153,0.15);
+            margin-bottom: 6px;
+        ">PRODUCTION INFRASTRUCTURE</span>
+        <h2 style="
+            font-family: 'Orbitron', sans-serif;
+            font-size: 20px;
+            color: #FFFFFF;
+            margin: 0;
+        ">
+            ZOVIX <span style="
+                background: linear-gradient(135deg, #45f3ff, #EC4899);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            ">Production Engine</span>
+        </h2>
+        <p style="
+            font-family: 'Inter', sans-serif;
+            color: #94a3b8;
+            font-size: 12px;
+            margin: 4px 0 0 0;
+        ">
+            LivePortrait + CodeFormer | XTTS-v2 Multilingual | RunPod GPU
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    tab1, tab2, tab3 = st.tabs([" Face Video", " Voice / TTS", " Cost Analysis"])
+    
+    with tab1:
+        st.markdown("### Face Video Generation")
+        st.markdown("**Model:** LivePortrait + CodeFormer (4K Enhancement)")
+        st.markdown("**Cost:** ~Rs. 0.50 per video")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            face_image = st.file_uploader("Upload Face Image", type=["jpg", "jpeg", "png"], key="pe_face_image")
+            if face_image:
+                st.image(face_image, width=200, caption="Source Face")
+        
+        with col2:
+            audio_file = st.file_uploader("Upload Audio (for lip sync)", type=["mp3", "wav", "ogg"], key="pe_audio_file")
+        
+        enhancer = st.checkbox("Apply 4K Face Enhancement (CodeFormer)", value=True)
+        resolution = st.selectbox("Output Resolution", ["1024x1024", "768x768", "512x512"], index=0)
+        
+        cloud_img_url = st.text_input("Or use Image URL", placeholder="https://...")
+        cloud_aud_url = st.text_input("Or use Audio URL", placeholder="https://...")
+        
+        if st.button("Generate Face Video", use_container_width=True, type="primary"):
+            img_url = cloud_img_url.strip() or (face_image and "uploaded") or ""
+            aud_url = cloud_aud_url.strip() or (audio_file and "uploaded") or ""
+            
+            if not img_url or not aud_url:
+                st.error("Please provide face image and audio (upload or URL)")
+            else:
+                try:
+                    result = generate_production_face_video_streamlit(
+                        img_url, aud_url, enhancer=enhancer, st_instance=st
+                    )
+                    
+                    if result and result.get("video_url"):
+                        st.success("Face video generated successfully!")
+                        
+                        col_meta1, col_meta2, col_meta3 = st.columns(3)
+                        with col_meta1:
+                            st.metric("Latency", f"{result.get('latency_ms', 0)/1000:.1f}s")
+                        with col_meta2:
+                            st.metric("Cost", f"Rs. {result.get('cost_inr', 0):.2f}")
+                        with col_meta3:
+                            st.metric("Resolution", result.get("resolution", "N/A"))
+                        
+                        st.video(result["video_url"])
+                    else:
+                        st.error("Generation failed. Check RunPod endpoint configuration.")
+                        
+                except Exception as e:
+                    st.error(f"Error: {str(e)}")
+    
+    with tab2:
+        st.markdown("### Multilingual Voice / TTS Generation")
+        st.markdown("**Model:** XTTS-v2 (Voice Cloning)")
+        st.markdown("**Cost:** ~Rs. 0.33 per generation")
+        
+        col_l, col_r = st.columns(2)
+        with col_l:
+            tts_text = st.text_area("Text to Convert", placeholder="Enter text in any supported language...", height=120)
+            tts_language = st.selectbox("Language", list(get_language_list().keys()), index=1)
+        
+        with col_r:
+            tts_emotion = st.selectbox("Emotion", get_emotion_list(), index=0)
+            tts_speed = st.slider("Speed", 0.5, 2.0, 1.0, 0.1)
+            tts_clone = st.file_uploader("Voice Clone Reference (optional)", type=["mp3", "wav"], key="pe_voice_clone")
+        
+        if st.button("Generate Voice", use_container_width=True, type="primary"):
+            if not tts_text:
+                st.error("Please enter text to convert")
+            else:
+                try:
+                    result = generate_production_voice_streamlit(
+                        tts_text, tts_language, emotion=tts_emotion, st_instance=st
+                    )
+                    
+                    if result and result.get("audio_url"):
+                        st.success("Voice generated successfully!")
+                        st.audio(result["audio_url"])
+                        
+                        col_m1, col_m2, col_m3 = st.columns(3)
+                        with col_m1:
+                            st.metric("Language", result.get("language", "N/A").title())
+                        with col_m2:
+                            st.metric("Cost", f"Rs. {result.get('cost_inr', 0):.2f}")
+                        with col_m3:
+                            st.metric("Latency", f"{result.get('latency_ms', 0)/1000:.1f}s")
+                except Exception as e:
+                    st.error(f"Error: {str(e)}")
+    
+    with tab3:
+        st.markdown("### Cost Analysis & Infrastructure")
+        
+        monthly_videos = st.number_input("Monthly Face Videos", 100, 100000, 1000, step=100)
+        monthly_voices = st.number_input("Monthly Voice Generations", 100, 100000, 10000, step=100)
+        
+        estimates = get_cost_estimate(monthly_videos, monthly_voices)
+        
+        st.markdown("#### Cost Breakdown")
+        col_a, col_b, col_c = st.columns(3)
+        with col_a:
+            st.metric("Face Videos (Total)", f"Rs. {estimates['video']['total_inr']:,.0f}")
+        with col_b:
+            st.metric("Voice/TTS (Total)", f"Rs. {estimates['voice']['total_inr']:,.0f}")
+        with col_c:
+            st.metric("GRAND TOTAL", f"Rs. {estimates['total']['inr']:,.0f}", 
+                     delta=f"~{estimates['total']['usd']:,.0f} USD")
+        
+        st.markdown("#### Per-Unit Cost")
+        st.markdown(f"- **Face Video:** Rs. {estimates['video']['cost_per_video_inr']} each (USD ${estimates['video']['cost_per_video_usd']})")
+        st.markdown(f"- **Voice Gen:** Rs. {estimates['voice']['cost_per_voice_inr']} each (USD ${estimates['voice']['cost_per_voice_usd']})")
+        
+        st.markdown("#### vs Previous Costs (Savings)")
+        old_video_cost = 0.43 * 83  # Rs. 35.69
+        old_voice_cost = 0.05 * 83  # Rs. 4.15 (approximate ElevenLabs)
+        new_video_cost = estimates['video']['cost_per_video_inr']
+        new_voice_cost = estimates['voice']['cost_per_voice_inr']
+        
+        video_savings = ((old_video_cost - new_video_cost) / old_video_cost) * 100
+        voice_savings = ((old_voice_cost - new_voice_cost) / old_voice_cost) * 100
+        
+        st.markdown(f"- **Face Video:** Rs. {old_video_cost:.2f} -> Rs. {new_video_cost:.2f} (**{video_savings:.0f}% savings**)")
+        st.markdown(f"- **Voice/TTS:** Rs. {old_voice_cost:.2f} -> Rs. {new_voice_cost:.2f} (**{voice_savings:.0f}% savings**)")
+        
+        st.markdown("#### Endpoint Status")
+        col_s1, col_s2 = st.columns(2)
+        with col_s1:
+            health_face = check_endpoint_health(os.getenv("RUNPOD_ENDPOINT_FACE", ""))
+            status_color = "🟢" if health_face.get("status") == "healthy" else "🔴"
+            st.markdown(f"{status_color} **Face Video:** {health_face.get('status', 'Not configured').title()}")
+        with col_s2:
+            health_voice = check_endpoint_health(os.getenv("RUNPOD_ENDPOINT_VOICE", ""))
+            status_color = "🟢" if health_voice.get("status") == "healthy" else "🔴"
+            st.markdown(f"{status_color} **Voice/TTS:** {health_voice.get('status', 'Not configured').title()}")
+
+
+    if st.session_state["studio_active_mode"] == "Draw Mode":
         run_draw_mode()
     elif st.session_state["studio_active_mode"] == "Video Editor Mode":
         run_video_editor_mode()

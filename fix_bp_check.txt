@@ -1,0 +1,6 @@
+_bp_func = globals().get("generate_blueprint_with_deepseek") or generate_blueprint_with_deepseek
+                                                                        blueprint_path = _bp_func(
+                                                                            blueprint_prompt, 
+                                                                            blueprint_type, 
+                                                                            blueprint_style
+                        

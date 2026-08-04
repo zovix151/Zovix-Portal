@@ -1,0 +1,28 @@
+bool(VOICE_ENDPOINT_ID)
+    if face_avail or voice_avail:
+        st.sidebar.markdown("---")
+        st.sidebar.markdown("### RunPod Infrastructure")
+        st.sidebar.success(f"Face Video: {'Ready' if face_avail else 'Not configured'}")
+        st.sidebar.success(f"Voice/TTS: {'Ready' if voice_avail else 'Not configured'}")
+
+
+def get_face_client():
+    """Get RunPod face client info"""
+    return type('obj', (object,), {
+        'is_available': lambda: bool(RUNPOD_API_KEY and FACE_ENDPOINT_ID),
+        'get_endpoint': lambda: FACE_ENDPOINT_ID
+    })()
+
+
+def get_voice_client():
+    """Get RunPod voice client info"""
+    return type('obj', (object,), {
+        'is_available': lambda: bool(RUNPOD_API_KEY and VOICE_ENDPOINT_ID),
+        'get_endpoint': lambda: VOICE_ENDPOINT_ID
+    })()
+
+
+
+
+def run_production_engine_mode():
+    """Production Engine Mode - RunPod-powered face video & voice 

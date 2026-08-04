@@ -1,0 +1,9 @@
+def generate_world_class_blueprint(prompt, blueprint_type="floor_plan", style="Modern"):
+    """WORLD CLASS BLUEPRINT GENERATOR - Auto-detects category"""
+    category = detect_blueprint_category(prompt)
+    print(f"🔍 Detected Category: {category}")
+    blueprint_data = generate_blueprint_data_with_deepseek(prompt, category, style)
+    output_path = render_world_class_blueprint(blueprint_data, category, prompt)
+    return output_path
+
+

@@ -1,0 +1,20 @@
+e_client():
+    """Get RunPod face client info"""
+    return type('obj', (object,), {
+        'is_available': lambda: bool(RUNPOD_API_KEY and FACE_ENDPOINT_ID),
+        'get_endpoint': lambda: FACE_ENDPOINT_ID
+    })()
+
+
+def get_voice_client():
+    """Get RunPod voice client info"""
+    return type('obj', (object,), {
+        'is_available': lambda: bool(RUNPOD_API_KEY and VOICE_ENDPOINT_ID),
+        'get_endpoint': lambda: VOICE_ENDPOINT_ID
+    })()
+
+
+
+
+def run_production_engine_mode():
+    """

@@ -1,0 +1,66 @@
+def run_production_engine_mode():
+    """Production Engine Mode - RunPod-powered face video & voice generation"""
+    
+    st.markdown("""
+    <div style="
+        background: linear-gradient(135deg, rgba(236,72,153,0.06), rgba(69,243,255,0.06));
+        border-radius: 16px;
+        border: 1px solid rgba(69,243,255,0.08);
+        padding: 16px 20px;
+        margin-bottom: 18px;
+        text-align: center;
+    ">
+        <span style="
+            display: inline-block;
+            background: rgba(236,72,153,0.12);
+            color: #EC4899;
+            padding: 4px 14px;
+            border-radius: 16px;
+            font-size: 9px;
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 1px;
+            border: 1px solid rgba(236,72,153,0.15);
+            margin-bottom: 6px;
+        ">PRODUCTION INFRASTRUCTURE</span>
+        <h2 style="
+            font-family: 'Orbitron', sans-serif;
+            font-size: 20px;
+            color: #FFFFFF;
+            margin: 0;
+        ">
+            ZOVIX <span style="
+                background: linear-gradient(135deg, #45f3ff, #EC4899);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            ">Production Engine</span>
+        </h2>
+        <p style="
+            font-family: 'Inter', sans-serif;
+            color: #94a3b8;
+            font-size: 12px;
+            margin: 4px 0 0 0;
+        ">
+            LivePortrait + CodeFormer | XTTS-v2 Multilingual | RunPod GPU
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    tab1, tab2, tab3 = st.tabs([" Face Video", " Voice / TTS", " Cost Analysis"])
+    
+    with tab1:
+        st.markdown("### Face Video Generation")
+        st.markdown("**Model:** LivePortrait + CodeFormer (4K Enhancement)")
+        st.markdown("**Cost:** ~Rs. 0.50 per video")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            face_image = st.file_uploader("Upload Face Image", type=["jpg", "jpeg", "png"], key="pe_face_image")
+            if face_image:
+                st.image(face_image, width=200, caption="Source Face")
+        
+        with col2:
+            audio_file = st.file_uploader("Upload Audio (for lip sync)", type=["mp3", "wav", "ogg"], key="pe_audio_file")
+        
+        enhancer = st.checkbox("Apply 4K Face Enhancement (CodeFormer)", value=True)
+        resolution = st.selectbox("Output Resolution", ["1024x1024", "768x768", "512x512"], in

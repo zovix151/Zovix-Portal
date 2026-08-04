@@ -1,0 +1,34 @@
+               },
+                "Smart Speaker Product": {
+                    "prompt": "Technical illustration of a smart speaker device with annotated components: speaker grille, microphone array, LED ring, power button, volume dial, PCB board and chassis.",
+                    "type": "technical_illustration",
+                    "style": "Modern",
+                },
+            }
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">Quick Template Library</p>', unsafe_allow_html=True)
+            selected_template = st.selectbox(
+                "Choose Template",
+                list(template_map.keys()),
+                key="bp_template_select",
+                label_visibility="collapsed"
+            )
+
+            st.markdown("<br>", unsafe_allow_html=True)
+            col_gen1, col_gen2 = st.columns(2)
+            with col_gen1:
+                if st.button("Generate Blueprint", key="bp_generate_btn", use_container_width=True):
+                    cleaned_prompt = (blueprint_prompt or "").strip()
+                    if not cleaned_prompt:
+                        st.error("Please enter a blueprint description.")
+                    else:
+                        success, required_tokens, message = validate_and_deduct_tokens("Blueprints", bp_quality)
+                        if not success:
+                            st.error(message)
+                        else:
+                            st.success(message)
+                            with st.spinner("DeepSeek AI generating architectural blueprint..."):
+                                try:
+                                    blueprint_path = generate_blueprint_with_deepseek(cleaned_prompt, blueprint_type, blueprint_style)
+                                    if blueprint_path and os.path.exists(blueprint_path):
+                                        st.session_state["active_blueprint"] = blueprint_path
+                                        timest
