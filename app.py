@@ -4928,7 +4928,11 @@ def generate_pro_image(prompt, aspect_ratio="16:9", negative_prompt="", strict_s
     if api_key and api_key != "mock" and len(api_key.strip()) > 5:
         url = "https://api.stability.ai/v2beta/stable-image/generate/core"
         headers = {"authorization": f"Bearer {api_key}", "accept": "image/*"}
-        files = {"prompt": (None, f"{prompt}, cinematic lighting, 8k, photorealistic"), "aspect_ratio": (None, aspect_ratio)}
+        files = {
+            "prompt": (None, f"{prompt}, cinematic lighting, 8k, photorealistic"),
+            "aspect_ratio": (None, aspect_ratio),
+            "output_format": (None, "png"),
+        }
         if negative_prompt.strip():
             files["negative_prompt"] = (None, negative_prompt.strip())
         try:
@@ -4938,6 +4942,7 @@ def generate_pro_image(prompt, aspect_ratio="16:9", negative_prompt="", strict_s
                 with open(output_path, "wb") as f:
                     f.write(response.content)
                 return output_path
+            logger.warning(f"Creative Workshop Stability request failed: status={response.status_code}, body={response.text[:200]}")
         except Exception as e:
             logger.error(f"Generate pro image error: {e}")
         if strict_stability:
@@ -9702,9 +9707,7 @@ def run_creative_workshop():
                     st.error("❌ Please enter an image description.")
                 else:
                     stability_key = os.getenv("STABILITY_API_KEY") or get_system_secret("STABILITY_API_KEY")
-                    if not stability_key or stability_key == "mock" or len(stability_key.strip()) <= 5:
-                        st.error("❌ Creative Workshop is now Stability-only. Please configure a valid STABILITY_API_KEY.")
-                        return
+                    stability_ready = bool(stability_key and stability_key != "mock" and len(stability_key.strip()) > 5)
 
                     quality_map = {"Standard": 2, "HD": 3, "Pro": 4}
                     required_tokens = quality_map.get(workshop_quality, 2)
@@ -9716,12 +9719,14 @@ def run_creative_workshop():
                             deduct_credits_db(st.session_state["logged_user"], required_tokens)
                             st.session_state['user_credits'] = get_user_credits_db(st.session_state["logged_user"])
 
+                            if not stability_ready:
+                                st.warning("⚠️ STABILITY_API_KEY missing hai. Workshop fallback image engine use karega.")
+
                             with st.spinner(f"🎨 Generating {workshop_quality} image..."):
                                 img_path = generate_pro_image(
                                     workshop_prompt_str,
                                     workshop_ar,
-                                    workshop_neg_prompt_str,
-                                    strict_stability=True
+                                    workshop_neg_prompt_str
                                 )
 
                                 if img_path and os.path.exists(img_path):
@@ -9742,7 +9747,7 @@ def run_creative_workshop():
                                     st.toast("✅ Image generated successfully!")
                                     st.rerun()
                                 else:
-                                    st.error("❌ Stability generation failed. Please try again in a few seconds.")
+                                    st.error("❌ Image generation failed. Stability aur fallback dono unsuccessful rahe. Please try again.")
                         except Exception as e:
                             st.error(f"❌ Error: {str(e)}")
 
