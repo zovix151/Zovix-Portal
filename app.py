@@ -840,6 +840,10 @@ if "history_renders" not in st.session_state:
     st.session_state["history_renders"] = []
 if "face_video_history" not in st.session_state:
     st.session_state["face_video_history"] = []
+if "portfolio_preview_path" not in st.session_state:
+    st.session_state["portfolio_preview_path"] = None
+if "portfolio_preview_name" not in st.session_state:
+    st.session_state["portfolio_preview_name"] = ""
 if "logged_user" not in st.session_state:
     st.session_state["logged_user"] = ""
 if "xp_points" not in st.session_state:
@@ -4908,7 +4912,7 @@ def get_scene_asset(description, output_filename, scene_text=None, idx=None, sta
         logger.error(f"Get scene asset error: {e}")
     return False
 
-def generate_pro_image(prompt, aspect_ratio="16:9", negative_prompt=""):
+def generate_pro_image(prompt, aspect_ratio="16:9", negative_prompt="", strict_stability=False):
     api_key = os.getenv("STABILITY_API_KEY") or get_system_secret("STABILITY_API_KEY")
     width, height = 1024, 1024
     if aspect_ratio == "16:9":
@@ -4936,6 +4940,16 @@ def generate_pro_image(prompt, aspect_ratio="16:9", negative_prompt=""):
                 return output_path
         except Exception as e:
             logger.error(f"Generate pro image error: {e}")
+        if strict_stability:
+            logger.warning("Strict Stability mode enabled: skipping fallback generators.")
+            return None
+    elif strict_stability:
+        logger.warning("Strict Stability mode enabled but STABILITY_API_KEY is unavailable.")
+        return None
+
+    if strict_stability:
+        return None
+
     try:
         clean_prompt = prompt.replace('"', '').replace("'", "").strip()
         encoded_prompt = urllib.parse.quote(f"{clean_prompt}, cinematic, 8k resolution, highly detailed")
@@ -9687,6 +9701,11 @@ def run_creative_workshop():
                 if not workshop_prompt_str.strip():
                     st.error("❌ Please enter an image description.")
                 else:
+                    stability_key = os.getenv("STABILITY_API_KEY") or get_system_secret("STABILITY_API_KEY")
+                    if not stability_key or stability_key == "mock" or len(stability_key.strip()) <= 5:
+                        st.error("❌ Creative Workshop is now Stability-only. Please configure a valid STABILITY_API_KEY.")
+                        return
+
                     quality_map = {"Standard": 2, "HD": 3, "Pro": 4}
                     required_tokens = quality_map.get(workshop_quality, 2)
 
@@ -9701,7 +9720,8 @@ def run_creative_workshop():
                                 img_path = generate_pro_image(
                                     workshop_prompt_str,
                                     workshop_ar,
-                                    workshop_neg_prompt_str
+                                    workshop_neg_prompt_str,
+                                    strict_stability=True
                                 )
 
                                 if img_path and os.path.exists(img_path):
@@ -9722,7 +9742,7 @@ def run_creative_workshop():
                                     st.toast("✅ Image generated successfully!")
                                     st.rerun()
                                 else:
-                                    st.error("❌ Image generation failed. Please try again.")
+                                    st.error("❌ Stability generation failed. Please try again in a few seconds.")
                         except Exception as e:
                             st.error(f"❌ Error: {str(e)}")
 
@@ -14481,8 +14501,55 @@ for i in range(0, len(modes), 11):
                             st.caption(item['prompt'][:80] + "..." if len(item['prompt']) > 80 else item['prompt'])
                         with col_b:
                             st.caption(item['timestamp'])
+                            if st.button("👁️ View", key=f"view_portfolio_{idx}", use_container_width=True):
+                                st.session_state["portfolio_preview_path"] = item.get("path")
+                                st.session_state["portfolio_preview_name"] = item.get("file_name", "Portfolio Item")
                             if st.button("🗑️ Delete", key=f"del_{idx}"):
                                 st.toast("Delete functionality coming soon!")
+
+                preview_path = st.session_state.get("portfolio_preview_path")
+                preview_name = st.session_state.get("portfolio_preview_name", "Portfolio Item")
+                if preview_path and os.path.exists(preview_path):
+                    st.markdown("---")
+                    st.markdown(f"**Selected Output:** {preview_name}")
+                    ext = os.path.splitext(preview_path)[1].lower()
+
+                    if ext in [".mp4", ".mov", ".avi", ".mkv", ".webm"]:
+                        st.video(preview_path)
+                    elif ext in [".mp3", ".wav", ".m4a", ".ogg"]:
+                        with open(preview_path, "rb") as f:
+                            audio_bytes = f.read()
+                        st.audio(audio_bytes)
+                    elif ext in [".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp"]:
+                        st.image(preview_path, use_container_width=True)
+                    else:
+                        st.info("Preview is not supported for this file type, but you can still download it.")
+
+                    mime_map = {
+                        ".png": "image/png",
+                        ".jpg": "image/jpeg",
+                        ".jpeg": "image/jpeg",
+                        ".webp": "image/webp",
+                        ".gif": "image/gif",
+                        ".bmp": "image/bmp",
+                        ".mp4": "video/mp4",
+                        ".mov": "video/quicktime",
+                        ".webm": "video/webm",
+                        ".mp3": "audio/mpeg",
+                        ".wav": "audio/wav",
+                        ".m4a": "audio/mp4",
+                        ".ogg": "audio/ogg",
+                    }
+                    download_key = re.sub(r"[^a-zA-Z0-9_]", "_", preview_path)[-64:]
+                    with open(preview_path, "rb") as f:
+                        st.download_button(
+                            "📥 Download Selected Output",
+                            data=f.read(),
+                            file_name=os.path.basename(preview_path),
+                            mime=mime_map.get(ext, "application/octet-stream"),
+                            use_container_width=True,
+                            key=f"portfolio_download_{download_key}"
+                        )
             else:
                 st.info("No items in portfolio yet. Start creating!")
     
@@ -14667,6 +14734,7 @@ def render_engine_portfolio_section():
     st.markdown("<hr style='border-color: rgba(255,255,255,0.06); margin: 25px 0;'>", unsafe_allow_html=True)
 
     current_mode = st.session_state.get("studio_active_mode", "Cinematic Engine")
+    preview_key_prefix = "engine_portfolio_shared"
 
     def get_mode_portfolio(current_mode):
         portfolio_renders_list = st.session_state.get("history_renders", [])
@@ -14824,6 +14892,10 @@ def render_engine_portfolio_section():
                                 "{item.get('prompt', '')[:60]}"
                             </p>
                         """, unsafe_allow_html=True)
+                        if os.path.exists(item.get("path", "")):
+                            if st.button("👁️ Open", key=f"{preview_key_prefix}_open_audio_{current_mode}_{idx}", use_container_width=True):
+                                st.session_state["portfolio_preview_path"] = item.get("path")
+                                st.session_state["portfolio_preview_name"] = item.get("file_name", "Portfolio Item")
         elif display_type == "text":
             text_cols = st.columns(2)
             for idx, item in enumerate(valid_items):
@@ -14883,6 +14955,10 @@ def render_engine_portfolio_section():
                                 "{prompt[:60]}"
                             </p>
                         """, unsafe_allow_html=True)
+                        if os.path.exists(file_path):
+                            if st.button("👁️ Open", key=f"{preview_key_prefix}_open_video_{current_mode}_{idx}", use_container_width=True):
+                                st.session_state["portfolio_preview_path"] = file_path
+                                st.session_state["portfolio_preview_name"] = file_name
         else:
             image_cols = st.columns(4)
             for idx, item in enumerate(valid_items[:8]):
@@ -14919,6 +14995,53 @@ def render_engine_portfolio_section():
                                 "{prompt[:60]}"
                             </p>
                         """, unsafe_allow_html=True)
+                        if os.path.exists(file_path):
+                            if st.button("👁️ Open", key=f"{preview_key_prefix}_open_image_{current_mode}_{idx}", use_container_width=True):
+                                st.session_state["portfolio_preview_path"] = file_path
+                                st.session_state["portfolio_preview_name"] = file_name
+
+        preview_path = st.session_state.get("portfolio_preview_path")
+        preview_name = st.session_state.get("portfolio_preview_name", "Portfolio Item")
+        if preview_path and os.path.exists(preview_path):
+            st.markdown("---")
+            st.markdown(f"**Selected Output:** {preview_name}")
+            ext = os.path.splitext(preview_path)[1].lower()
+
+            if ext in [".mp4", ".mov", ".avi", ".mkv", ".webm"]:
+                st.video(preview_path)
+            elif ext in [".mp3", ".wav", ".m4a", ".ogg"]:
+                with open(preview_path, "rb") as f:
+                    st.audio(f.read())
+            elif ext in [".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp"]:
+                st.image(preview_path, use_container_width=True)
+            else:
+                st.info("Preview is not supported for this file type, but you can still download it.")
+
+            mime_map = {
+                ".png": "image/png",
+                ".jpg": "image/jpeg",
+                ".jpeg": "image/jpeg",
+                ".webp": "image/webp",
+                ".gif": "image/gif",
+                ".bmp": "image/bmp",
+                ".mp4": "video/mp4",
+                ".mov": "video/quicktime",
+                ".webm": "video/webm",
+                ".mp3": "audio/mpeg",
+                ".wav": "audio/wav",
+                ".m4a": "audio/mp4",
+                ".ogg": "audio/ogg",
+            }
+            download_key = re.sub(r"[^a-zA-Z0-9_]", "_", preview_path)[-64:]
+            with open(preview_path, "rb") as f:
+                st.download_button(
+                    "📥 Download Selected Output",
+                    data=f.read(),
+                    file_name=os.path.basename(preview_path),
+                    mime=mime_map.get(ext, "application/octet-stream"),
+                    use_container_width=True,
+                    key=f"{preview_key_prefix}_download_{download_key}"
+                )
 
     st.markdown("<hr style='border-color: rgba(255,255,255,0.06); margin: 25px 0;'>", unsafe_allow_html=True)
     st.markdown("<h3 style='font-family: Orbitron; font-size: 16px; color: #EC4899; margin-bottom: 15px; letter-spacing: 0.5px;'>📈 GLOBAL TRENDING HOT TOPICS (ONE-CLICK IMPORT)</h3>", unsafe_allow_html=True)
@@ -15216,6 +15339,7 @@ def run_production_engine_mode():
     st.markdown("<hr style='border-color: rgba(255,255,255,0.06); margin: 25px 0;'>", unsafe_allow_html=True)
 
     current_mode = st.session_state["studio_active_mode"]
+    preview_key_prefix = "engine_portfolio_inline"
 
     def get_mode_portfolio(current_mode):
         portfolio_renders_list = st.session_state.get("history_renders", [])
@@ -15373,6 +15497,10 @@ def run_production_engine_mode():
                                 "{item.get('prompt', '')[:60]}"
                             </p>
                         """, unsafe_allow_html=True)
+                        if os.path.exists(item.get("path", "")):
+                            if st.button("👁️ Open", key=f"{preview_key_prefix}_open_audio_{current_mode}_{idx}", use_container_width=True):
+                                st.session_state["portfolio_preview_path"] = item.get("path")
+                                st.session_state["portfolio_preview_name"] = item.get("file_name", "Portfolio Item")
         elif display_type == "text":
             text_cols = st.columns(2)
             for idx, item in enumerate(valid_items):
@@ -15432,6 +15560,10 @@ def run_production_engine_mode():
                                 "{prompt[:60]}"
                             </p>
                         """, unsafe_allow_html=True)
+                        if os.path.exists(file_path):
+                            if st.button("👁️ Open", key=f"{preview_key_prefix}_open_video_{current_mode}_{idx}", use_container_width=True):
+                                st.session_state["portfolio_preview_path"] = file_path
+                                st.session_state["portfolio_preview_name"] = file_name
         else:
             image_cols = st.columns(4)
             for idx, item in enumerate(valid_items[:8]):
@@ -15468,6 +15600,53 @@ def run_production_engine_mode():
                                 "{prompt[:60]}"
                             </p>
                         """, unsafe_allow_html=True)
+                        if os.path.exists(file_path):
+                            if st.button("👁️ Open", key=f"{preview_key_prefix}_open_image_{current_mode}_{idx}", use_container_width=True):
+                                st.session_state["portfolio_preview_path"] = file_path
+                                st.session_state["portfolio_preview_name"] = file_name
+
+        preview_path = st.session_state.get("portfolio_preview_path")
+        preview_name = st.session_state.get("portfolio_preview_name", "Portfolio Item")
+        if preview_path and os.path.exists(preview_path):
+            st.markdown("---")
+            st.markdown(f"**Selected Output:** {preview_name}")
+            ext = os.path.splitext(preview_path)[1].lower()
+
+            if ext in [".mp4", ".mov", ".avi", ".mkv", ".webm"]:
+                st.video(preview_path)
+            elif ext in [".mp3", ".wav", ".m4a", ".ogg"]:
+                with open(preview_path, "rb") as f:
+                    st.audio(f.read())
+            elif ext in [".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp"]:
+                st.image(preview_path, use_container_width=True)
+            else:
+                st.info("Preview is not supported for this file type, but you can still download it.")
+
+            mime_map = {
+                ".png": "image/png",
+                ".jpg": "image/jpeg",
+                ".jpeg": "image/jpeg",
+                ".webp": "image/webp",
+                ".gif": "image/gif",
+                ".bmp": "image/bmp",
+                ".mp4": "video/mp4",
+                ".mov": "video/quicktime",
+                ".webm": "video/webm",
+                ".mp3": "audio/mpeg",
+                ".wav": "audio/wav",
+                ".m4a": "audio/mp4",
+                ".ogg": "audio/ogg",
+            }
+            download_key = re.sub(r"[^a-zA-Z0-9_]", "_", preview_path)[-64:]
+            with open(preview_path, "rb") as f:
+                st.download_button(
+                    "📥 Download Selected Output",
+                    data=f.read(),
+                    file_name=os.path.basename(preview_path),
+                    mime=mime_map.get(ext, "application/octet-stream"),
+                    use_container_width=True,
+                    key=f"{preview_key_prefix}_download_{download_key}"
+                )
     
     st.markdown("<hr style='border-color: rgba(255,255,255,0.06); margin: 25px 0;'>", unsafe_allow_html=True)
     st.markdown("<h3 style='font-family: Orbitron; font-size: 16px; color: #EC4899; margin-bottom: 15px; letter-spacing: 0.5px;'>📈 GLOBAL TRENDING HOT TOPICS (ONE-CLICK IMPORT)</h3>", unsafe_allow_html=True)
