@@ -12270,6 +12270,46 @@ def run_unified_face_video_mode():
             
             st.markdown("<br>", unsafe_allow_html=True)
             
+            # ============================================
+            # 🎭 MANUAL VOICE SELECTION (Male/Female apne aap select karo)
+            # ============================================
+            st.markdown('<p class="face-label">🎭 Voice Type (Choose Manually)</p>', unsafe_allow_html=True)
+            manual_voice_type = st.radio(
+                "Voice Type",
+                ["👨 Male Voice", "👩 Female Voice", "🤖 Auto (Detect from Photo)"],
+                index=2,
+                key="unified_fv_manual_voice_type",
+                label_visibility="collapsed",
+                horizontal=True
+            )
+            
+            if manual_voice_type == "👨 Male Voice":
+                male_voices = [v for v, m in ELEVENLABS_VOICES.items() if m.get('gender') == 'male']
+                manual_voice = st.selectbox(
+                    "Select Male Voice",
+                    male_voices,
+                    key="unified_fv_manual_voice",
+                    label_visibility="collapsed"
+                )
+                st.session_state["fv_manual_voice_selected"] = manual_voice
+                st.session_state["fv_manual_voice_mode"] = "male"
+            elif manual_voice_type == "👩 Female Voice":
+                female_voices = [v for v, m in ELEVENLABS_VOICES.items() if m.get('gender') == 'female']
+                manual_voice = st.selectbox(
+                    "Select Female Voice",
+                    female_voices,
+                    key="unified_fv_manual_voice",
+                    label_visibility="collapsed"
+                )
+                st.session_state["fv_manual_voice_selected"] = manual_voice
+                st.session_state["fv_manual_voice_mode"] = "female"
+            else:
+                st.session_state["fv_manual_voice_selected"] = None
+                st.session_state["fv_manual_voice_mode"] = "auto"
+                st.caption("🤖 Photo scan karke gender detect hoga aur matching voice auto-select hogi")
+            
+            st.markdown("<br>", unsafe_allow_html=True)
+            
                         # Generate Button - Pure Replicate Cloud Engine ☁️
             if st.button("🌍 Generate Global Face Video", key="unified_fv_generate_btn", use_container_width=True):
                             if not face_prompt or not face_prompt.strip():
@@ -12313,13 +12353,16 @@ def run_unified_face_video_mode():
                                     # Step 3: Generate via Replicate Cloud directly ☁️
                                     with st.spinner(f"☁️ Generating {quality} face video on Replicate Cloud..."):
                                         try:
+                                            # Manual voice priority: agar user ne manual select kiya hai to use karo, warna auto-detected voice
+                                            manual_voice_selected = st.session_state.get("fv_manual_voice_selected")
+                                            voice_to_use = manual_voice_selected or st.session_state.get("fv_auto_selected_voice", None)
                                             video_url = generate_face_video(
                                                 prompt=face_prompt,
                                                 face_image_path=temp_face_path,
                                                 duration=video_duration,
                                                 quality=quality,
                                                 voice_language="English",
-                                                voice_label=st.session_state.get("fv_auto_selected_voice", None),
+                                                voice_label=voice_to_use,
                                             )
                                 
                                             if video_url:
