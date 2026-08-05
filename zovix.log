@@ -13379,3 +13379,79 @@ detail: - input.resolution: resolution must be one of the following: "720p", "10
 2026-08-05 13:03:59,511 - Zovix - INFO - Load balancer initialized with 4 workers
 2026-08-05 13:04:01,544 - Zovix - INFO - Redis cache connected
 2026-08-05 13:04:01,550 - Zovix - INFO - Database initialized successfully
+2026-08-05 13:19:38,100 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 13:19:38,124 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 13:19:40,158 - Zovix - INFO - Redis cache connected
+2026-08-05 13:19:40,176 - Zovix - INFO - Database initialized successfully
+2026-08-05 13:20:21,668 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 13:20:21,670 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 13:20:23,699 - Zovix - INFO - Redis cache connected
+2026-08-05 13:20:23,705 - Zovix - INFO - Database initialized successfully
+2026-08-05 13:20:39,176 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 13:20:39,177 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 13:20:41,213 - Zovix - INFO - Redis cache connected
+2026-08-05 13:20:41,219 - Zovix - INFO - Database initialized successfully
+2026-08-05 13:20:49,120 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 13:20:49,121 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 13:20:51,170 - Zovix - INFO - Redis cache connected
+2026-08-05 13:20:51,175 - Zovix - INFO - Database initialized successfully
+2026-08-05 13:20:55,491 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 13:20:55,493 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 13:20:57,518 - Zovix - INFO - Redis cache connected
+2026-08-05 13:20:57,527 - Zovix - INFO - Database initialized successfully
+2026-08-05 13:21:10,777 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 13:21:10,778 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 13:21:12,807 - Zovix - INFO - Redis cache connected
+2026-08-05 13:21:12,813 - Zovix - INFO - Database initialized successfully
+2026-08-05 13:21:41,102 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 13:21:41,102 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 13:21:41,181 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 13:21:41,182 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 13:21:43,131 - Zovix - INFO - Redis cache connected
+2026-08-05 13:21:43,363 - Zovix - INFO - Redis cache connected
+2026-08-05 13:21:43,372 - Zovix - INFO - Database initialized successfully
+2026-08-05 13:21:58,537 - Zovix - WARNING - DeepFace scan failed (using default voice): name 'DeepFace' is not defined
+2026-08-05 13:21:58,559 - Zovix - INFO - Image validated: (1920, 1080), mode=RGBA
+2026-08-05 13:21:58,588 - Zovix - INFO - Deducted 4 credits from zovixenterprises@gmail.com
+2026-08-05 13:21:58,609 - Zovix - WARNING - DeepFace scan failed (using default voice): name 'DeepFace' is not defined
+2026-08-05 13:21:58,611 - Zovix - INFO - Image validated: (1920, 1080), mode=RGBA
+2026-08-05 13:21:58,613 - Zovix - INFO - DeepFace Auto-Voice: Adult Male (Age:25) -> Adam (Premium Male)
+2026-08-05 13:21:58,616 - Zovix - WARNING - Replicate API token missing or invalid. Set REPLICATE_API_TOKEN/REPLICATE_API_KEY and restart app if needed.
+2026-08-05 13:21:58,617 - Zovix - WARNING - Cloud generation failed. Trying local face video pipeline using the SAME uploaded face...
+2026-08-05 13:22:00,525 - Zovix - WARNING - LivePortrait cmd failed rc=1: Traceback (most recent call last):
+  File "C:\Zovix-Clean\LivePortrait\inference.py", line 14, in <module>
+    from src.live_portrait_pipeline import LivePortraitPipeline
+  File "C:\Zovix-Clean\LivePortrait\src\live_portrait_pipeline.py", line 7, in <module>
+    import torch
+ModuleNotFoundError: No module named 'torch'
+
+2026-08-05 13:22:00,839 - Zovix - WARNING - LivePortrait cmd failed rc=1: Traceback (most recent call last):
+  File "C:\Zovix-Clean\LivePortrait\inference.py", line 14, in <module>
+    from src.live_portrait_pipeline import LivePortraitPipeline
+  File "C:\Zovix-Clean\LivePortrait\src\live_portrait_pipeline.py", line 7, in <module>
+    import torch
+ModuleNotFoundError: No module named 'torch'
+
+2026-08-05 13:22:06,720 - Zovix - WARNING - SadTalker cmd failed rc=1: Traceback (most recent call last):
+  File "C:\Zovix-Clean\SadTalker\inference.py", line 10, in <module>
+    from src.facerender.animate import AnimateFromCoeff
+  File "C:\Zovix-Clean\SadTalker\src\facerender\animate.py", line 23, in <module>
+    from src.utils.face_enhancer import enhancer_generator_with_len, enhancer_list
+  File "C:\Zovix-Clean\Sa
+2026-08-05 13:22:12,416 - Zovix - WARNING - SadTalker cmd failed rc=1: Traceback (most recent call last):
+  File "C:\Zovix-Clean\SadTalker\inference.py", line 10, in <module>
+    from src.facerender.animate import AnimateFromCoeff
+  File "C:\Zovix-Clean\SadTalker\src\facerender\animate.py", line 23, in <module>
+    from src.utils.face_enhancer import enhancer_generator_with_len, enhancer_list
+  File "C:\Zovix-Clean\Sa
+2026-08-05 13:22:17,912 - Zovix - WARNING - SadTalker cmd failed rc=1: Traceback (most recent call last):
+  File "C:\Zovix-Clean\SadTalker\inference.py", line 10, in <module>
+    from src.facerender.animate import AnimateFromCoeff
+  File "C:\Zovix-Clean\SadTalker\src\facerender\animate.py", line 23, in <module>
+    from src.utils.face_enhancer import enhancer_generator_with_len, enhancer_list
+  File "C:\Zovix-Clean\Sa
+2026-08-05 13:22:17,915 - Zovix - INFO - Using built-in audio-driven lip-only fallback.
+2026-08-05 13:22:24,352 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 13:22:24,353 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 13:22:26,378 - Zovix - INFO - Redis cache connected
+2026-08-05 13:22:26,384 - Zovix - INFO - Database initialized successfully

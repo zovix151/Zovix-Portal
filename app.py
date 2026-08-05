@@ -7129,7 +7129,7 @@ def generate_face_video(prompt, face_image_path, duration=30, emotion="neutral",
         preferred_gender=st.session_state.get('fv_detected_gender') if st.session_state.get('fv_gender_auto', False) else None
     )
 
-    # --- Cloud-Only: Directly call Replicate API --- #
+    # --- Cloud: Directly call Replicate API --- #
     video_result = generate_world_face_video(
         prompt=prompt,
         face_image_path=face_image_path,
@@ -7142,7 +7142,81 @@ def generate_face_video(prompt, face_image_path, duration=30, emotion="neutral",
     if video_result:
         return video_result
 
-    logger.error("All Replicate cloud models failed. No local fallback enabled.")
+    # --- LOCAL FALLBACK PIPELINE (Uploaded face ka hi use hoga) --- #
+    logger.warning("Cloud generation failed. Trying local face video pipeline using the SAME uploaded face...")
+    try:
+        # 1) Wav2Lip local pipeline (lip-sync) - SIRF UPLOADED FACE USE HOGA
+        wav2lip_setup = get_wav2lip_setup_status()
+        if wav2lip_setup.get("ready"):
+            audio_fallback_path = f"face_videos/fallback_audio_{uuid.uuid4().hex[:8]}.mp3"
+            local_video_path = f"face_videos/face_video_local_{uuid.uuid4().hex[:8]}.mp4"
+            quality_size_map = {"Standard": (512, 512), "HD": (768, 768), "4K": (1024, 1024)}
+            out_w, out_h = quality_size_map.get(quality, (512, 512))
+
+            audio_ok = _synthesize_face_audio_strict(prompt, audio_fallback_path, voice_cfg, duration_hint=duration)
+            if audio_ok and os.path.exists(audio_fallback_path):
+                if run_wav2lip_cli(face_image_path, audio_fallback_path, local_video_path, out_w, out_h, fps=24):
+                    st.session_state["face_video_engine_used"] = "Wav2Lip (Local Fallback)"
+                    st.session_state["face_video_runtime_mode"] = "Local"
+                    safe_remove_file(audio_fallback_path)
+                    return local_video_path
+                elif run_lip_sync_pipeline(face_image_path, audio_fallback_path, local_video_path, out_w, out_h, duration=duration, emotion=emotion, camera_angle=camera_angle):
+                    st.session_state["face_video_engine_used"] = "Built-in Lip-Only (Local Fallback)"
+                    st.session_state["face_video_runtime_mode"] = "Local"
+                    safe_remove_file(audio_fallback_path)
+                    return local_video_path
+            safe_remove_file(audio_fallback_path)
+
+        # 2) Expressive pipeline (LivePortrait / SadTalker) - SIRF UPLOADED FACE
+        expressive_setup = get_expressive_setup_status()
+        if expressive_setup.get("any_ready"):
+            audio_fallback_path = f"face_videos/fallback_audio_exp_{uuid.uuid4().hex[:8]}.mp3"
+            local_video_path = f"face_videos/expressive_local_{uuid.uuid4().hex[:8]}.mp4"
+            quality_size_map = {"Standard": (512, 512), "HD": (768, 768), "4K": (1024, 1024)}
+            out_w, out_h = quality_size_map.get(quality, (768, 768))
+
+            audio_ok = _synthesize_face_audio_strict(prompt, audio_fallback_path, voice_cfg, duration_hint=duration)
+            if audio_ok and os.path.exists(audio_fallback_path):
+                if run_expressive_face_pipeline(
+                    face_image_path, audio_fallback_path, local_video_path, out_w, out_h,
+                    duration=duration, preferred_engine="Auto (LivePortrait → SadTalker → Wav2Lip)", motion_level="high"
+                ):
+                    st.session_state["face_video_engine_used"] = "Expressive Local Pipeline"
+                    st.session_state["face_video_runtime_mode"] = "Local"
+                    safe_remove_file(audio_fallback_path)
+                    return local_video_path
+            safe_remove_file(audio_fallback_path)
+
+        # 3) Last-resort: Uploaded face + audio video (ALWAYS same face)
+        audio_fallback_path = f"face_videos/fallback_audio_simple_{uuid.uuid4().hex[:8]}.mp3"
+        simple_video_path = f"face_videos/face_video_simple_{uuid.uuid4().hex[:8]}.mp4"
+        quality_size_map = {"Standard": (512, 512), "HD": (768, 768), "4K": (1024, 1024)}
+        out_w, out_h = quality_size_map.get(quality, (512, 512))
+
+        audio_ok = _synthesize_face_audio_strict(prompt, audio_fallback_path, voice_cfg, duration_hint=duration)
+        if audio_ok and os.path.exists(audio_fallback_path):
+            try:
+                subprocess.run(
+                    ['ffmpeg', '-y', '-loop', '1', '-i', face_image_path,
+                     '-i', audio_fallback_path,
+                     '-t', str(max(1.0, float(get_audio_duration(audio_fallback_path) or duration))),
+                     '-vf', f"scale={out_w}:{out_h}:force_original_aspect_ratio=decrease,pad={out_w}:{out_h}:(ow-iw)/2:(oh-ih)/2,setsar=1",
+                     '-c:v', 'libx264', '-preset', 'fast', '-crf', '20',
+                     '-c:a', 'aac', '-shortest', simple_video_path],
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True
+                )
+                if os.path.exists(simple_video_path) and os.path.getsize(simple_video_path) > 1000:
+                    st.session_state["face_video_engine_used"] = "Static Face + Audio (Fallback)"
+                    st.session_state["face_video_runtime_mode"] = "Local"
+                    safe_remove_file(audio_fallback_path)
+                    return simple_video_path
+            except Exception as fb_e:
+                logger.warning(f"Simple fallback video failed: {fb_e}")
+        safe_remove_file(audio_fallback_path)
+    except Exception as fallback_e:
+        logger.error(f"Local face fallback error: {fallback_e}")
+
+    logger.error("All cloud models and local fallbacks failed.")
     return None
 
 def generate_elevenlabs_audio_for_face(text, output_path, voice_id="21m00Tcm4TlvDq8ikWAM"):
