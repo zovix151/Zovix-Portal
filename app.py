@@ -6841,6 +6841,8 @@ def _humanize_deepinfra_error(status_code, response_text):
         return "DeepInfra access denied for this model/account (HTTP 403)."
     if status_code == 404:
         return "DeepInfra model endpoint not found (HTTP 404). Verify model name and API base URL."
+    if status_code == 422:
+        return "DeepInfra payload schema mismatch (HTTP 422). Trying alternate payload formats may be required for this model."
     if status_code == 429:
         return "DeepInfra rate limit exceeded (HTTP 429). Retry after a short delay."
     if "not authorized" in normalized or "unauthorized" in normalized:
@@ -6870,6 +6872,24 @@ def _encode_file_to_data_uri(file_path, mime_type):
     with open(file_path, "rb") as f:
         encoded = base64.b64encode(f.read()).decode("utf-8")
     return f"data:{mime_type};base64,{encoded}"
+
+
+def _prune_none_fields(value):
+    if isinstance(value, dict):
+        cleaned = {}
+        for k, v in value.items():
+            pruned = _prune_none_fields(v)
+            if pruned is not None:
+                cleaned[k] = pruned
+        return cleaned
+    if isinstance(value, list):
+        cleaned_list = []
+        for v in value:
+            pruned = _prune_none_fields(v)
+            if pruned is not None:
+                cleaned_list.append(pruned)
+        return cleaned_list
+    return value
 
 
 def _run_deepinfra_face_model(api_token, model_ref, image_path, audio_path, script_text, duration, quality):
@@ -6926,29 +6946,43 @@ def _run_deepinfra_face_model(api_token, model_ref, image_path, audio_path, scri
     last_error = None
     for build_payload in input_builders:
         try:
-            payload = {"input": build_payload(image_data_uri, audio_data_uri, script_text)}
-            attempts = max(1, int(DEEPINFRA_HTTP_RETRIES))
-            for attempt in range(1, attempts + 1):
-                resp = requests.post(endpoint, headers=headers, json=payload, timeout=DEEPINFRA_REQUEST_TIMEOUT)
-                if resp.status_code >= 400:
-                    detail = _humanize_deepinfra_error(resp.status_code, resp.text)
-                    last_error = f"{detail} Raw: {resp.text[:500]}"
-                    logger.warning(f"DeepInfra request failed for {model_ref} (attempt {attempt}/{attempts}): {last_error}")
-                    if resp.status_code in {401, 402, 403, 404}:
-                        break
+            base_input = _prune_none_fields(build_payload(image_data_uri, audio_data_uri, script_text))
+            payload_variants = [
+                ("nested_input", {"input": base_input}),
+                ("top_level", dict(base_input)),
+                ("nested_inputs", {"inputs": base_input}),
+            ]
+
+            for payload_name, payload in payload_variants:
+                attempts = max(1, int(DEEPINFRA_HTTP_RETRIES))
+                for attempt in range(1, attempts + 1):
+                    resp = requests.post(endpoint, headers=headers, json=payload, timeout=DEEPINFRA_REQUEST_TIMEOUT)
+                    if resp.status_code >= 400:
+                        detail = _humanize_deepinfra_error(resp.status_code, resp.text)
+                        last_error = f"{detail} Raw: {resp.text[:500]}"
+                        logger.warning(
+                            f"DeepInfra request failed for {model_ref} [{payload_name}] (attempt {attempt}/{attempts}): {last_error}"
+                        )
+                        if resp.status_code in {401, 402, 403, 404}:
+                            break
+                        if resp.status_code == 422:
+                            # Unprocessable payload: try next payload variant instead of retrying same body.
+                            break
+                        if attempt < attempts:
+                            time.sleep(min(2 * attempt, 6))
+                        continue
+
+                    response_json = resp.json()
+                    video_url = _extract_video_url_from_deepinfra_output(response_json)
+                    if video_url:
+                        return video_url
+
+                    last_error = f"No video URL in response for {model_ref}. Response: {str(response_json)[:500]}"
+                    logger.warning(
+                        f"DeepInfra response missing video URL for {model_ref} [{payload_name}] (attempt {attempt}/{attempts})."
+                    )
                     if attempt < attempts:
                         time.sleep(min(2 * attempt, 6))
-                    continue
-
-                response_json = resp.json()
-                video_url = _extract_video_url_from_deepinfra_output(response_json)
-                if video_url:
-                    return video_url
-
-                last_error = f"No video URL in response for {model_ref}. Response: {str(response_json)[:500]}"
-                logger.warning(f"DeepInfra response missing video URL for {model_ref} (attempt {attempt}/{attempts}).")
-                if attempt < attempts:
-                    time.sleep(min(2 * attempt, 6))
         except requests.RequestException as req_err:
             last_error = str(req_err)
             logger.warning(f"DeepInfra payload failed for {model_ref}: {req_err}")
