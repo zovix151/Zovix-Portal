@@ -13042,3 +13042,233 @@ ConnectionResetError: [WinError 10054] An existing connection was forcibly close
 2026-08-05 11:24:53,400 - Zovix - INFO - Load balancer initialized with 4 workers
 2026-08-05 11:24:55,434 - Zovix - INFO - Redis cache connected
 2026-08-05 11:24:55,449 - Zovix - INFO - Database initialized successfully
+2026-08-05 11:50:47,854 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 11:50:47,884 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 11:50:49,919 - Zovix - INFO - Redis cache connected
+2026-08-05 11:50:49,942 - Zovix - INFO - Database initialized successfully
+2026-08-05 11:50:59,924 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 11:50:59,926 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 11:51:01,967 - Zovix - INFO - Redis cache connected
+2026-08-05 11:51:01,995 - Zovix - INFO - Database initialized successfully
+2026-08-05 11:51:09,733 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 11:51:09,735 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 11:51:11,776 - Zovix - INFO - Redis cache connected
+2026-08-05 11:51:11,787 - Zovix - INFO - Database initialized successfully
+2026-08-05 11:51:22,611 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 11:51:22,612 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 11:51:24,655 - Zovix - INFO - Redis cache connected
+2026-08-05 11:51:24,665 - Zovix - INFO - Database initialized successfully
+2026-08-05 11:51:29,088 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 11:51:29,090 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 11:51:31,144 - Zovix - INFO - Redis cache connected
+2026-08-05 11:51:31,153 - Zovix - INFO - Database initialized successfully
+2026-08-05 11:51:46,816 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 11:51:46,819 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 11:51:48,861 - Zovix - INFO - Redis cache connected
+2026-08-05 11:51:48,871 - Zovix - INFO - Database initialized successfully
+2026-08-05 11:52:12,687 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 11:52:12,689 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 11:52:14,717 - Zovix - INFO - Redis cache connected
+2026-08-05 11:52:15,445 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 11:52:15,448 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 11:52:17,473 - Zovix - INFO - Redis cache connected
+2026-08-05 11:52:17,480 - Zovix - INFO - Database initialized successfully
+2026-08-05 11:52:25,229 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 11:52:25,236 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 11:52:27,274 - Zovix - INFO - Redis cache connected
+2026-08-05 11:52:27,282 - Zovix - INFO - Database initialized successfully
+2026-08-05 11:53:05,330 - Zovix - WARNING - DeepFace scan failed (using default voice): name 'DeepFace' is not defined
+2026-08-05 11:53:05,359 - Zovix - INFO - Image validated: (2560, 1440), mode=RGBA
+2026-08-05 11:53:05,389 - Zovix - INFO - Deducted 4 credits from raviranjan2k14@gmail.com
+2026-08-05 11:53:05,408 - Zovix - WARNING - DeepFace scan failed (using default voice): name 'DeepFace' is not defined
+2026-08-05 11:53:05,411 - Zovix - INFO - Image validated: (2560, 1440), mode=RGBA
+2026-08-05 11:53:05,413 - Zovix - INFO - DeepFace Auto-Voice: Adult Male (Age:25) -> Adam (Premium Male)
+2026-08-05 11:53:08,332 - Zovix - INFO - No DeepInfra model configured. Using default: PrunaAI/p-video-avatar
+2026-08-05 11:53:13,787 - Zovix - WARNING - DeepInfra request failed for PrunaAI/p-video-avatar [top_level|data_uri] (attempt 1/2): DeepInfra payload schema mismatch (HTTP 422). Trying alternate payload formats may be required for this model. Raw: {"detail":[{"type":"literal_error","loc":["resolution"],"msg":"Input should be '720p' or '1080p'","input":"1024x576","ctx":{"expected":"'720p' or '1080p'"},"url":"https://errors.pydantic.dev/2.11/v/literal_error"}]}
+2026-08-05 11:53:42,064 - Zovix - WARNING - DeepInfra request failed for PrunaAI/p-video-avatar [nested_input|data_uri] (attempt 1/2): DeepInfra payload schema mismatch (HTTP 422). Trying alternate payload formats may be required for this model. Raw: {"detail":[{"type":"missing","loc":["image"],"msg":"Field required","input":{"input":{"image":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAACgAAAAWgCAYAAACSABrfAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAIABJREFUeJzsvduy7KyuJgjO8a9VtbsuundH9FVH1673f8SaM+kLGyyEJCQOTjsHX8ScI21AiLOQZPD/419bcAvXwTvnnXMhOOd9HhTgD49eorgE2ZzOatWFmYD9E/dVIq533m3euX9e3m2bd1sM8s79bM69tv19JBPCTtb7+NenbLzPh0U+jnz2HABPkVb+HhbAuUAUIsaFfDlfDslQ/KijZ5iG/D81TVgn+2TE0dXRi/XhAh03EHNY/Ln5vW0hjm7gXpsr+ldA/GD2Q3AuhOBCcO7PO7i
+2026-08-05 11:54:08,480 - Zovix - WARNING - DeepInfra request failed for PrunaAI/p-video-avatar [nested_inputs|data_uri] (attempt 1/2): DeepInfra payload schema mismatch (HTTP 422). Trying alternate payload formats may be required for this model. Raw: {"detail":[{"type":"missing","loc":["image"],"msg":"Field required","input":{"inputs":{"image":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAACgAAAAWgCAYAAACSABrfAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAIABJREFUeJzsvduy7KyuJgjO8a9VtbsuundH9FVH1673f8SaM+kLGyyEJCQOTjsHX8ScI21AiLOQZPD/419bcAvXwTvnnXMhOOd9HhTgD49eorgE2ZzOatWFmYD9E/dVIq533m3euX9e3m2bd1sM8s79bM69tv19JBPCTtb7+NenbLzPh0U+jnz2HABPkVb+HhbAuUAUIsaFfDlfDslQ/KijZ5iG/D81TVgn+2TE0dXRi/XhAh03EHNY/Ln5vW0hjm7gXpsr+ldA/GD2Q3AuhOBCcO7PO7
+2026-08-05 11:54:13,489 - Zovix - WARNING - DeepInfra request failed for PrunaAI/p-video-avatar [top_level|raw_base64] (attempt 1/2): DeepInfra payload schema mismatch (HTTP 422). Trying alternate payload formats may be required for this model. Raw: {"detail":[{"type":"literal_error","loc":["resolution"],"msg":"Input should be '720p' or '1080p'","input":"1024x576","ctx":{"expected":"'720p' or '1080p'"},"url":"https://errors.pydantic.dev/2.11/v/literal_error"}]}
+2026-08-05 11:54:42,591 - Zovix - WARNING - DeepInfra request failed for PrunaAI/p-video-avatar [nested_input|raw_base64] (attempt 1/2): DeepInfra payload schema mismatch (HTTP 422). Trying alternate payload formats may be required for this model. Raw: {"detail":[{"type":"missing","loc":["image"],"msg":"Field required","input":{"input":{"image":"iVBORw0KGgoAAAANSUhEUgAACgAAAAWgCAYAAACSABrfAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAIABJREFUeJzsvduy7KyuJgjO8a9VtbsuundH9FVH1673f8SaM+kLGyyEJCQOTjsHX8ScI21AiLOQZPD/419bcAvXwTvnnXMhOOd9HhTgD49eorgE2ZzOatWFmYD9E/dVIq533m3euX9e3m2bd1sM8s79bM69tv19JBPCTtb7+NenbLzPh0U+jnz2HABPkVb+HhbAuUAUIsaFfDlfDslQ/KijZ5iG/D81TVgn+2TE0dXRi/XhAh03EHNY/Ln5vW0hjm7gXpsr+ldA/GD2Q3AuhOBCcO7PO7i/wbl3CO7ve/8bwkkS9i08H
+2026-08-05 11:55:10,341 - Zovix - WARNING - DeepInfra request failed for PrunaAI/p-video-avatar [nested_inputs|raw_base64] (attempt 1/2): DeepInfra payload schema mismatch (HTTP 422). Trying alternate payload formats may be required for this model. Raw: {"detail":[{"type":"missing","loc":["image"],"msg":"Field required","input":{"inputs":{"image":"iVBORw0KGgoAAAANSUhEUgAACgAAAAWgCAYAAACSABrfAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAIABJREFUeJzsvduy7KyuJgjO8a9VtbsuundH9FVH1673f8SaM+kLGyyEJCQOTjsHX8ScI21AiLOQZPD/419bcAvXwTvnnXMhOOd9HhTgD49eorgE2ZzOatWFmYD9E/dVIq533m3euX9e3m2bd1sM8s79bM69tv19JBPCTtb7+NenbLzPh0U+jnz2HABPkVb+HhbAuUAUIsaFfDlfDslQ/KijZ5iG/D81TVgn+2TE0dXRi/XhAh03EHNY/Ln5vW0hjm7gXpsr+ldA/GD2Q3AuhOBCcO7PO7i/wbl3CO7ve/8bwkkS9i08
+2026-08-05 11:55:15,442 - Zovix - WARNING - DeepInfra request failed for PrunaAI/p-video-avatar [top_level|data_uri] (attempt 1/2): DeepInfra payload schema mismatch (HTTP 422). Trying alternate payload formats may be required for this model. Raw: {"detail":[{"type":"literal_error","loc":["resolution"],"msg":"Input should be '720p' or '1080p'","input":"1024x576","ctx":{"expected":"'720p' or '1080p'"},"url":"https://errors.pydantic.dev/2.11/v/literal_error"}]}
+2026-08-05 11:56:36,347 - Zovix - WARNING - DeepInfra request failed for PrunaAI/p-video-avatar [nested_input|data_uri] (attempt 1/2): DeepInfra payload schema mismatch (HTTP 422). Trying alternate payload formats may be required for this model. Raw: {"detail":[{"type":"missing","loc":["image"],"msg":"Field required","input":{"input":{"image":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAACgAAAAWgCAYAAACSABrfAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAIABJREFUeJzsvduy7KyuJgjO8a9VtbsuundH9FVH1673f8SaM+kLGyyEJCQOTjsHX8ScI21AiLOQZPD/419bcAvXwTvnnXMhOOd9HhTgD49eorgE2ZzOatWFmYD9E/dVIq533m3euX9e3m2bd1sM8s79bM69tv19JBPCTtb7+NenbLzPh0U+jnz2HABPkVb+HhbAuUAUIsaFfDlfDslQ/KijZ5iG/D81TVgn+2TE0dXRi/XhAh03EHNY/Ln5vW0hjm7gXpsr+ldA/GD2Q3AuhOBCcO7PO7i
+2026-08-05 11:57:01,644 - Zovix - WARNING - DeepInfra request failed for PrunaAI/p-video-avatar [nested_inputs|data_uri] (attempt 1/2): DeepInfra payload schema mismatch (HTTP 422). Trying alternate payload formats may be required for this model. Raw: {"detail":[{"type":"missing","loc":["image"],"msg":"Field required","input":{"inputs":{"image":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAACgAAAAWgCAYAAACSABrfAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAIABJREFUeJzsvduy7KyuJgjO8a9VtbsuundH9FVH1673f8SaM+kLGyyEJCQOTjsHX8ScI21AiLOQZPD/419bcAvXwTvnnXMhOOd9HhTgD49eorgE2ZzOatWFmYD9E/dVIq533m3euX9e3m2bd1sM8s79bM69tv19JBPCTtb7+NenbLzPh0U+jnz2HABPkVb+HhbAuUAUIsaFfDlfDslQ/KijZ5iG/D81TVgn+2TE0dXRi/XhAh03EHNY/Ln5vW0hjm7gXpsr+ldA/GD2Q3AuhOBCcO7PO7
+2026-08-05 11:57:05,665 - Zovix - WARNING - DeepInfra request failed for PrunaAI/p-video-avatar [top_level|raw_base64] (attempt 1/2): DeepInfra payload schema mismatch (HTTP 422). Trying alternate payload formats may be required for this model. Raw: {"detail":[{"type":"literal_error","loc":["resolution"],"msg":"Input should be '720p' or '1080p'","input":"1024x576","ctx":{"expected":"'720p' or '1080p'"},"url":"https://errors.pydantic.dev/2.11/v/literal_error"}]}
+2026-08-05 11:57:11,080 - Zovix - WARNING - DeepInfra request failed for PrunaAI/p-video-avatar [nested_input|raw_base64] (attempt 1/2): DeepInfra payload schema mismatch (HTTP 422). Trying alternate payload formats may be required for this model. Raw: {"detail":[{"type":"missing","loc":["image"],"msg":"Field required","input":{"input":{"image":"iVBORw0KGgoAAAANSUhEUgAACgAAAAWgCAYAAACSABrfAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAIABJREFUeJzsvduy7KyuJgjO8a9VtbsuundH9FVH1673f8SaM+kLGyyEJCQOTjsHX8ScI21AiLOQZPD/419bcAvXwTvnnXMhOOd9HhTgD49eorgE2ZzOatWFmYD9E/dVIq533m3euX9e3m2bd1sM8s79bM69tv19JBPCTtb7+NenbLzPh0U+jnz2HABPkVb+HhbAuUAUIsaFfDlfDslQ/KijZ5iG/D81TVgn+2TE0dXRi/XhAh03EHNY/Ln5vW0hjm7gXpsr+ldA/GD2Q3AuhOBCcO7PO7i/wbl3CO7ve/8bwkkS9i08H
+2026-08-05 11:57:15,998 - Zovix - WARNING - DeepInfra request failed for PrunaAI/p-video-avatar [nested_inputs|raw_base64] (attempt 1/2): DeepInfra payload schema mismatch (HTTP 422). Trying alternate payload formats may be required for this model. Raw: {"detail":[{"type":"missing","loc":["image"],"msg":"Field required","input":{"inputs":{"image":"iVBORw0KGgoAAAANSUhEUgAACgAAAAWgCAYAAACSABrfAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAIABJREFUeJzsvduy7KyuJgjO8a9VtbsuundH9FVH1673f8SaM+kLGyyEJCQOTjsHX8ScI21AiLOQZPD/419bcAvXwTvnnXMhOOd9HhTgD49eorgE2ZzOatWFmYD9E/dVIq533m3euX9e3m2bd1sM8s79bM69tv19JBPCTtb7+NenbLzPh0U+jnz2HABPkVb+HhbAuUAUIsaFfDlfDslQ/KijZ5iG/D81TVgn+2TE0dXRi/XhAh03EHNY/Ln5vW0hjm7gXpsr+ldA/GD2Q3AuhOBCcO7PO7i/wbl3CO7ve/8bwkkS9i08
+2026-08-05 11:57:19,029 - Zovix - WARNING - DeepInfra request failed for PrunaAI/p-video-avatar [top_level|data_uri] (attempt 1/2): DeepInfra payload schema mismatch (HTTP 422). Trying alternate payload formats may be required for this model. Raw: {"detail":[{"type":"literal_error","loc":["resolution"],"msg":"Input should be '720p' or '1080p'","input":"1024x576","ctx":{"expected":"'720p' or '1080p'"},"url":"https://errors.pydantic.dev/2.11/v/literal_error"}]}
+2026-08-05 11:57:24,047 - Zovix - WARNING - DeepInfra request failed for PrunaAI/p-video-avatar [nested_input|data_uri] (attempt 1/2): DeepInfra payload schema mismatch (HTTP 422). Trying alternate payload formats may be required for this model. Raw: {"detail":[{"type":"missing","loc":["image"],"msg":"Field required","input":{"input":{"image":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAACgAAAAWgCAYAAACSABrfAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAIABJREFUeJzsvduy7KyuJgjO8a9VtbsuundH9FVH1673f8SaM+kLGyyEJCQOTjsHX8ScI21AiLOQZPD/419bcAvXwTvnnXMhOOd9HhTgD49eorgE2ZzOatWFmYD9E/dVIq533m3euX9e3m2bd1sM8s79bM69tv19JBPCTtb7+NenbLzPh0U+jnz2HABPkVb+HhbAuUAUIsaFfDlfDslQ/KijZ5iG/D81TVgn+2TE0dXRi/XhAh03EHNY/Ln5vW0hjm7gXpsr+ldA/GD2Q3AuhOBCcO7PO7i
+2026-08-05 11:57:38,506 - Zovix - WARNING - DeepInfra request failed for PrunaAI/p-video-avatar [nested_inputs|data_uri] (attempt 1/2): DeepInfra payload schema mismatch (HTTP 422). Trying alternate payload formats may be required for this model. Raw: {"detail":[{"type":"missing","loc":["image"],"msg":"Field required","input":{"inputs":{"image":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAACgAAAAWgCAYAAACSABrfAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAIABJREFUeJzsvduy7KyuJgjO8a9VtbsuundH9FVH1673f8SaM+kLGyyEJCQOTjsHX8ScI21AiLOQZPD/419bcAvXwTvnnXMhOOd9HhTgD49eorgE2ZzOatWFmYD9E/dVIq533m3euX9e3m2bd1sM8s79bM69tv19JBPCTtb7+NenbLzPh0U+jnz2HABPkVb+HhbAuUAUIsaFfDlfDslQ/KijZ5iG/D81TVgn+2TE0dXRi/XhAh03EHNY/Ln5vW0hjm7gXpsr+ldA/GD2Q3AuhOBCcO7PO7
+2026-08-05 11:57:41,357 - Zovix - WARNING - DeepInfra request failed for PrunaAI/p-video-avatar [top_level|raw_base64] (attempt 1/2): DeepInfra payload schema mismatch (HTTP 422). Trying alternate payload formats may be required for this model. Raw: {"detail":[{"type":"literal_error","loc":["resolution"],"msg":"Input should be '720p' or '1080p'","input":"1024x576","ctx":{"expected":"'720p' or '1080p'"},"url":"https://errors.pydantic.dev/2.11/v/literal_error"}]}
+2026-08-05 11:57:46,975 - Zovix - WARNING - DeepInfra request failed for PrunaAI/p-video-avatar [nested_input|raw_base64] (attempt 1/2): DeepInfra payload schema mismatch (HTTP 422). Trying alternate payload formats may be required for this model. Raw: {"detail":[{"type":"missing","loc":["image"],"msg":"Field required","input":{"input":{"image":"iVBORw0KGgoAAAANSUhEUgAACgAAAAWgCAYAAACSABrfAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAIABJREFUeJzsvduy7KyuJgjO8a9VtbsuundH9FVH1673f8SaM+kLGyyEJCQOTjsHX8ScI21AiLOQZPD/419bcAvXwTvnnXMhOOd9HhTgD49eorgE2ZzOatWFmYD9E/dVIq533m3euX9e3m2bd1sM8s79bM69tv19JBPCTtb7+NenbLzPh0U+jnz2HABPkVb+HhbAuUAUIsaFfDlfDslQ/KijZ5iG/D81TVgn+2TE0dXRi/XhAh03EHNY/Ln5vW0hjm7gXpsr+ldA/GD2Q3AuhOBCcO7PO7i/wbl3CO7ve/8bwkkS9i08H
+2026-08-05 11:57:51,457 - Zovix - WARNING - DeepInfra request failed for PrunaAI/p-video-avatar [nested_inputs|raw_base64] (attempt 1/2): DeepInfra payload schema mismatch (HTTP 422). Trying alternate payload formats may be required for this model. Raw: {"detail":[{"type":"missing","loc":["image"],"msg":"Field required","input":{"inputs":{"image":"iVBORw0KGgoAAAANSUhEUgAACgAAAAWgCAYAAACSABrfAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAIABJREFUeJzsvduy7KyuJgjO8a9VtbsuundH9FVH1673f8SaM+kLGyyEJCQOTjsHX8ScI21AiLOQZPD/419bcAvXwTvnnXMhOOd9HhTgD49eorgE2ZzOatWFmYD9E/dVIq533m3euX9e3m2bd1sM8s79bM69tv19JBPCTtb7+NenbLzPh0U+jnz2HABPkVb+HhbAuUAUIsaFfDlfDslQ/KijZ5iG/D81TVgn+2TE0dXRi/XhAh03EHNY/Ln5vW0hjm7gXpsr+ldA/GD2Q3AuhOBCcO7PO7i/wbl3CO7ve/8bwkkS9i08
+2026-08-05 11:57:51,458 - Zovix - ERROR - DeepInfra model PrunaAI/p-video-avatar failed: DeepInfra payload schema mismatch (HTTP 422). Trying alternate payload formats may be required for this model. Raw: {"detail":[{"type":"missing","loc":["image"],"msg":"Field required","input":{"inputs":{"image":"iVBORw0KGgoAAAANSUhEUgAACgAAAAWgCAYAAACSABrfAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAOxAAADsQBlSsOGwAAIABJREFUeJzsvduy7KyuJgjO8a9VtbsuundH9FVH1673f8SaM+kLGyyEJCQOTjsHX8ScI21AiLOQZPD/419bcAvXwTvnnXMhOOd9HhTgD49eorgE2ZzOatWFmYD9E/dVIq533m3euX9e3m2bd1sM8s79bM69tv19JBPCTtb7+NenbLzPh0U+jnz2HABPkVb+HhbAuUAUIsaFfDlfDslQ/KijZ5iG/D81TVgn+2TE0dXRi/XhAh03EHNY/Ln5vW0hjm7gXpsr+ldA/GD2Q3AuhOBCcO7PO7i/wbl3CO7ve/8bwkkS9i08
+2026-08-05 11:57:51,461 - Zovix - ERROR - All DeepInfra cloud models failed. No local fallback available.
+2026-08-05 12:34:18,184 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 12:34:18,216 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 12:34:20,259 - Zovix - INFO - Redis cache connected
+2026-08-05 12:34:20,275 - Zovix - INFO - Database initialized successfully
+2026-08-05 12:34:26,273 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 12:34:26,273 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 12:34:28,309 - Zovix - INFO - Redis cache connected
+2026-08-05 12:34:28,316 - Zovix - INFO - Database initialized successfully
+2026-08-05 12:34:36,403 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 12:34:36,404 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 12:34:38,444 - Zovix - INFO - Redis cache connected
+2026-08-05 12:34:38,450 - Zovix - INFO - Database initialized successfully
+2026-08-05 12:34:46,888 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 12:34:46,889 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 12:34:48,931 - Zovix - INFO - Redis cache connected
+2026-08-05 12:34:48,938 - Zovix - INFO - Database initialized successfully
+2026-08-05 12:34:53,271 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 12:34:53,271 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 12:34:55,296 - Zovix - INFO - Redis cache connected
+2026-08-05 12:34:55,300 - Zovix - INFO - Database initialized successfully
+2026-08-05 12:35:16,574 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 12:35:16,575 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 12:35:18,597 - Zovix - INFO - Redis cache connected
+2026-08-05 12:35:18,603 - Zovix - INFO - Database initialized successfully
+2026-08-05 12:35:40,796 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 12:35:40,797 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 12:35:42,833 - Zovix - INFO - Redis cache connected
+2026-08-05 12:35:42,839 - Zovix - INFO - Database initialized successfully
+2026-08-05 12:35:57,105 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 12:35:57,108 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 12:35:57,184 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 12:35:57,186 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 12:35:59,149 - Zovix - INFO - Redis cache connected
+2026-08-05 12:35:59,370 - Zovix - INFO - Redis cache connected
+2026-08-05 12:35:59,376 - Zovix - INFO - Database initialized successfully
+2026-08-05 12:36:15,444 - Zovix - WARNING - DeepFace scan failed (using default voice): name 'DeepFace' is not defined
+2026-08-05 12:36:15,464 - Zovix - INFO - Image validated: (1920, 1080), mode=RGBA
+2026-08-05 12:36:26,020 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 12:36:26,020 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 12:36:28,057 - Zovix - INFO - Redis cache connected
+2026-08-05 12:36:28,061 - Zovix - INFO - Database initialized successfully
+2026-08-05 12:36:33,103 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 12:36:33,104 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 12:36:35,130 - Zovix - INFO - Redis cache connected
+2026-08-05 12:36:35,136 - Zovix - INFO - Database initialized successfully
+2026-08-05 12:36:38,757 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 12:36:38,759 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 12:36:40,780 - Zovix - INFO - Redis cache connected
+2026-08-05 12:36:40,788 - Zovix - INFO - Database initialized successfully
+2026-08-05 12:36:50,474 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 12:36:50,476 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 12:36:52,512 - Zovix - INFO - Redis cache connected
+2026-08-05 12:36:52,519 - Zovix - INFO - Database initialized successfully
+2026-08-05 12:36:58,294 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 12:36:58,295 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 12:37:00,324 - Zovix - INFO - Redis cache connected
+2026-08-05 12:37:00,329 - Zovix - INFO - Database initialized successfully
+2026-08-05 12:37:05,352 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 12:37:05,353 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 12:37:07,391 - Zovix - INFO - Redis cache connected
+2026-08-05 12:37:07,396 - Zovix - INFO - Database initialized successfully
+2026-08-05 12:37:18,978 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 12:37:18,981 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 12:37:21,003 - Zovix - INFO - Redis cache connected
+2026-08-05 12:37:21,010 - Zovix - INFO - Database initialized successfully
+2026-08-05 12:37:30,688 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 12:37:30,689 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 12:37:32,730 - Zovix - INFO - Redis cache connected
+2026-08-05 12:37:32,737 - Zovix - INFO - Database initialized successfully
+2026-08-05 12:37:41,748 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 12:37:41,749 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 12:37:43,781 - Zovix - INFO - Redis cache connected
+2026-08-05 12:37:43,795 - Zovix - INFO - Database initialized successfully
+2026-08-05 12:37:53,224 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 12:37:53,225 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 12:37:55,264 - Zovix - INFO - Redis cache connected
+2026-08-05 12:37:55,271 - Zovix - INFO - Database initialized successfully
+2026-08-05 12:38:21,226 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 12:38:21,227 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 12:38:23,251 - Zovix - INFO - Redis cache connected
+2026-08-05 12:38:23,259 - Zovix - INFO - Database initialized successfully
+2026-08-05 12:38:29,615 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 12:38:29,615 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 12:38:31,645 - Zovix - INFO - Redis cache connected
+2026-08-05 12:38:31,650 - Zovix - INFO - Database initialized successfully
+2026-08-05 12:38:36,597 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 12:38:36,597 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 12:38:38,629 - Zovix - INFO - Redis cache connected
+2026-08-05 12:38:38,635 - Zovix - INFO - Database initialized successfully
+2026-08-05 12:38:49,280 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 12:38:49,281 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 12:38:51,308 - Zovix - INFO - Redis cache connected
+2026-08-05 12:38:51,313 - Zovix - INFO - Database initialized successfully
+2026-08-05 12:38:59,643 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 12:38:59,644 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 12:39:01,682 - Zovix - INFO - Redis cache connected
+2026-08-05 12:39:01,685 - Zovix - INFO - Database initialized successfully
+2026-08-05 12:39:22,122 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 12:39:22,123 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 12:39:22,204 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 12:39:22,205 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 12:39:24,155 - Zovix - INFO - Redis cache connected
+2026-08-05 12:39:25,059 - Zovix - INFO - Redis cache connected
+2026-08-05 12:39:25,068 - Zovix - INFO - Database initialized successfully
+2026-08-05 12:39:27,783 - Zovix - WARNING - DeepFace scan failed (using default voice): name 'DeepFace' is not defined
+2026-08-05 12:39:27,803 - Zovix - INFO - Image validated: (1920, 1080), mode=RGBA
+2026-08-05 12:39:27,827 - Zovix - INFO - Deducted 4 credits from zovixenterprises@gmail.com
+2026-08-05 12:39:27,843 - Zovix - WARNING - DeepFace scan failed (using default voice): name 'DeepFace' is not defined
+2026-08-05 12:39:27,847 - Zovix - INFO - Image validated: (1920, 1080), mode=RGBA
+2026-08-05 12:39:27,849 - Zovix - INFO - DeepFace Auto-Voice: Adult Male (Age:25) -> Adam (Premium Male)
+2026-08-05 12:39:29,308 - Zovix - INFO - No DeepInfra model configured. Using default: PrunaAI/p-video-avatar
+2026-08-05 12:39:33,629 - Zovix - WARNING - DeepInfra request failed for PrunaAI/p-video-avatar [top_level|data_uri] (attempt 1/2): DeepInfra payload schema mismatch (HTTP 422). Trying alternate payload formats may be required for this model. Raw: {"detail":[{"type":"literal_error","loc":["resolution"],"msg":"Input should be '720p' or '1080p'","input":"1024x576","ctx":{"expected":"'720p' or '1080p'"},"url":"https://errors.pydantic.dev/2.11/v/literal_error"}]}
+2026-08-05 12:39:37,643 - Zovix - WARNING - DeepInfra request failed for PrunaAI/p-video-avatar [nested_input|data_uri] (attempt 1/2): DeepInfra payload schema mismatch (HTTP 422). Trying alternate payload formats may be required for this model. Raw: {"detail":[{"type":"missing","loc":["image"],"msg":"Field required","input":{"input":{"image":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAB4AAAAQ4CAYAAADo08FDAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAP+lSURBVHhe7P1pu6u6rq6NSpDWxyzW3mdX6/296ze/59pnzjF6wOeD9NhC2FQBAonv3pMWXMhyCUbY8K+fJpCD9W9Qnz6E6MbMEiCYgPpzJIjGjiGEFJXZiiBS0YRoiGuSpJCShizQmN+RQQJ5JAgTLwgLXPZHzPlXLoZpayO3HL5yNeyWep9KBvj+5Y/nmAoPvyV623B5eck1aF/9n/940K+HxlI3z1Tfm/BazVQ5HEUpb0vLfCkia4cceqX60uBaZgctsvBRghf
+2026-08-05 12:39:41,846 - Zovix - WARNING - DeepInfra request failed for PrunaAI/p-video-avatar [nested_inputs|data_uri] (attempt 1/2): DeepInfra payload schema mismatch (HTTP 422). Trying alternate payload formats may be required for this model. Raw: {"detail":[{"type":"missing","loc":["image"],"msg":"Field required","input":{"inputs":{"image":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAB4AAAAQ4CAYAAADo08FDAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAP+lSURBVHhe7P1pu6u6rq6NSpDWxyzW3mdX6/296ze/59pnzjF6wOeD9NhC2FQBAonv3pMWXMhyCUbY8K+fJpCD9W9Qnz6E6MbMEiCYgPpzJIjGjiGEFJXZiiBS0YRoiGuSpJCShizQmN+RQQJ5JAgTLwgLXPZHzPlXLoZpayO3HL5yNeyWep9KBvj+5Y/nmAoPvyV623B5eck1aF/9n/940K+HxlI3z1Tfm/BazVQ5HEUpb0vLfCkia4cceqX60uBaZgctsvBRgh
+2026-08-05 12:39:44,289 - Zovix - WARNING - DeepInfra request failed for PrunaAI/p-video-avatar [top_level|raw_base64] (attempt 1/2): DeepInfra payload schema mismatch (HTTP 422). Trying alternate payload formats may be required for this model. Raw: {"detail":[{"type":"literal_error","loc":["resolution"],"msg":"Input should be '720p' or '1080p'","input":"1024x576","ctx":{"expected":"'720p' or '1080p'"},"url":"https://errors.pydantic.dev/2.11/v/literal_error"}]}
+2026-08-05 12:39:48,360 - Zovix - WARNING - DeepInfra request failed for PrunaAI/p-video-avatar [nested_input|raw_base64] (attempt 1/2): DeepInfra payload schema mismatch (HTTP 422). Trying alternate payload formats may be required for this model. Raw: {"detail":[{"type":"missing","loc":["image"],"msg":"Field required","input":{"input":{"image":"iVBORw0KGgoAAAANSUhEUgAAB4AAAAQ4CAYAAADo08FDAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAP+lSURBVHhe7P1pu6u6rq6NSpDWxyzW3mdX6/296ze/59pnzjF6wOeD9NhC2FQBAonv3pMWXMhyCUbY8K+fJpCD9W9Qnz6E6MbMEiCYgPpzJIjGjiGEFJXZiiBS0YRoiGuSpJCShizQmN+RQQJ5JAgTLwgLXPZHzPlXLoZpayO3HL5yNeyWep9KBvj+5Y/nmAoPvyV623B5eck1aF/9n/940K+HxlI3z1Tfm/BazVQ5HEUpb0vLfCkia4cceqX60uBaZgctsvBRghfSaHHQoLyB76GZsnwBm/Ups
+2026-08-05 12:39:52,540 - Zovix - WARNING - DeepInfra request failed for PrunaAI/p-video-avatar [nested_inputs|raw_base64] (attempt 1/2): DeepInfra payload schema mismatch (HTTP 422). Trying alternate payload formats may be required for this model. Raw: {"detail":[{"type":"missing","loc":["image"],"msg":"Field required","input":{"inputs":{"image":"iVBORw0KGgoAAAANSUhEUgAAB4AAAAQ4CAYAAADo08FDAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAP+lSURBVHhe7P1pu6u6rq6NSpDWxyzW3mdX6/296ze/59pnzjF6wOeD9NhC2FQBAonv3pMWXMhyCUbY8K+fJpCD9W9Qnz6E6MbMEiCYgPpzJIjGjiGEFJXZiiBS0YRoiGuSpJCShizQmN+RQQJ5JAgTLwgLXPZHzPlXLoZpayO3HL5yNeyWep9KBvj+5Y/nmAoPvyV623B5eck1aF/9n/940K+HxlI3z1Tfm/BazVQ5HEUpb0vLfCkia4cceqX60uBaZgctsvBRghfSaHHQoLyB76GZsnwBm/Up
+2026-08-05 12:39:55,033 - Zovix - WARNING - DeepInfra request failed for PrunaAI/p-video-avatar [top_level|data_uri] (attempt 1/2): DeepInfra payload schema mismatch (HTTP 422). Trying alternate payload formats may be required for this model. Raw: {"detail":[{"type":"literal_error","loc":["resolution"],"msg":"Input should be '720p' or '1080p'","input":"1024x576","ctx":{"expected":"'720p' or '1080p'"},"url":"https://errors.pydantic.dev/2.11/v/literal_error"}]}
+2026-08-05 12:39:59,082 - Zovix - WARNING - DeepInfra request failed for PrunaAI/p-video-avatar [nested_input|data_uri] (attempt 1/2): DeepInfra payload schema mismatch (HTTP 422). Trying alternate payload formats may be required for this model. Raw: {"detail":[{"type":"missing","loc":["image"],"msg":"Field required","input":{"input":{"image":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAB4AAAAQ4CAYAAADo08FDAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAP+lSURBVHhe7P1pu6u6rq6NSpDWxyzW3mdX6/296ze/59pnzjF6wOeD9NhC2FQBAonv3pMWXMhyCUbY8K+fJpCD9W9Qnz6E6MbMEiCYgPpzJIjGjiGEFJXZiiBS0YRoiGuSpJCShizQmN+RQQJ5JAgTLwgLXPZHzPlXLoZpayO3HL5yNeyWep9KBvj+5Y/nmAoPvyV623B5eck1aF/9n/940K+HxlI3z1Tfm/BazVQ5HEUpb0vLfCkia4cceqX60uBaZgctsvBRghf
+2026-08-05 12:40:03,146 - Zovix - WARNING - DeepInfra request failed for PrunaAI/p-video-avatar [nested_inputs|data_uri] (attempt 1/2): DeepInfra payload schema mismatch (HTTP 422). Trying alternate payload formats may be required for this model. Raw: {"detail":[{"type":"missing","loc":["image"],"msg":"Field required","input":{"inputs":{"image":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAB4AAAAQ4CAYAAADo08FDAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAP+lSURBVHhe7P1pu6u6rq6NSpDWxyzW3mdX6/296ze/59pnzjF6wOeD9NhC2FQBAonv3pMWXMhyCUbY8K+fJpCD9W9Qnz6E6MbMEiCYgPpzJIjGjiGEFJXZiiBS0YRoiGuSpJCShizQmN+RQQJ5JAgTLwgLXPZHzPlXLoZpayO3HL5yNeyWep9KBvj+5Y/nmAoPvyV623B5eck1aF/9n/940K+HxlI3z1Tfm/BazVQ5HEUpb0vLfCkia4cceqX60uBaZgctsvBRgh
+2026-08-05 12:40:05,596 - Zovix - WARNING - DeepInfra request failed for PrunaAI/p-video-avatar [top_level|raw_base64] (attempt 1/2): DeepInfra payload schema mismatch (HTTP 422). Trying alternate payload formats may be required for this model. Raw: {"detail":[{"type":"literal_error","loc":["resolution"],"msg":"Input should be '720p' or '1080p'","input":"1024x576","ctx":{"expected":"'720p' or '1080p'"},"url":"https://errors.pydantic.dev/2.11/v/literal_error"}]}
+2026-08-05 12:40:09,849 - Zovix - WARNING - DeepInfra request failed for PrunaAI/p-video-avatar [nested_input|raw_base64] (attempt 1/2): DeepInfra payload schema mismatch (HTTP 422). Trying alternate payload formats may be required for this model. Raw: {"detail":[{"type":"missing","loc":["image"],"msg":"Field required","input":{"input":{"image":"iVBORw0KGgoAAAANSUhEUgAAB4AAAAQ4CAYAAADo08FDAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAP+lSURBVHhe7P1pu6u6rq6NSpDWxyzW3mdX6/296ze/59pnzjF6wOeD9NhC2FQBAonv3pMWXMhyCUbY8K+fJpCD9W9Qnz6E6MbMEiCYgPpzJIjGjiGEFJXZiiBS0YRoiGuSpJCShizQmN+RQQJ5JAgTLwgLXPZHzPlXLoZpayO3HL5yNeyWep9KBvj+5Y/nmAoPvyV623B5eck1aF/9n/940K+HxlI3z1Tfm/BazVQ5HEUpb0vLfCkia4cceqX60uBaZgctsvBRghfSaHHQoLyB76GZsnwBm/Ups
+2026-08-05 12:40:14,140 - Zovix - WARNING - DeepInfra request failed for PrunaAI/p-video-avatar [nested_inputs|raw_base64] (attempt 1/2): DeepInfra payload schema mismatch (HTTP 422). Trying alternate payload formats may be required for this model. Raw: {"detail":[{"type":"missing","loc":["image"],"msg":"Field required","input":{"inputs":{"image":"iVBORw0KGgoAAAANSUhEUgAAB4AAAAQ4CAYAAADo08FDAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAP+lSURBVHhe7P1pu6u6rq6NSpDWxyzW3mdX6/296ze/59pnzjF6wOeD9NhC2FQBAonv3pMWXMhyCUbY8K+fJpCD9W9Qnz6E6MbMEiCYgPpzJIjGjiGEFJXZiiBS0YRoiGuSpJCShizQmN+RQQJ5JAgTLwgLXPZHzPlXLoZpayO3HL5yNeyWep9KBvj+5Y/nmAoPvyV623B5eck1aF/9n/940K+HxlI3z1Tfm/BazVQ5HEUpb0vLfCkia4cceqX60uBaZgctsvBRghfSaHHQoLyB76GZsnwBm/Up
+2026-08-05 12:40:16,659 - Zovix - WARNING - DeepInfra request failed for PrunaAI/p-video-avatar [top_level|data_uri] (attempt 1/2): DeepInfra payload schema mismatch (HTTP 422). Trying alternate payload formats may be required for this model. Raw: {"detail":[{"type":"literal_error","loc":["resolution"],"msg":"Input should be '720p' or '1080p'","input":"1024x576","ctx":{"expected":"'720p' or '1080p'"},"url":"https://errors.pydantic.dev/2.11/v/literal_error"}]}
+2026-08-05 12:40:20,632 - Zovix - WARNING - DeepInfra request failed for PrunaAI/p-video-avatar [nested_input|data_uri] (attempt 1/2): DeepInfra payload schema mismatch (HTTP 422). Trying alternate payload formats may be required for this model. Raw: {"detail":[{"type":"missing","loc":["image"],"msg":"Field required","input":{"input":{"image":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAB4AAAAQ4CAYAAADo08FDAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAP+lSURBVHhe7P1pu6u6rq6NSpDWxyzW3mdX6/296ze/59pnzjF6wOeD9NhC2FQBAonv3pMWXMhyCUbY8K+fJpCD9W9Qnz6E6MbMEiCYgPpzJIjGjiGEFJXZiiBS0YRoiGuSpJCShizQmN+RQQJ5JAgTLwgLXPZHzPlXLoZpayO3HL5yNeyWep9KBvj+5Y/nmAoPvyV623B5eck1aF/9n/940K+HxlI3z1Tfm/BazVQ5HEUpb0vLfCkia4cceqX60uBaZgctsvBRghf
+2026-08-05 12:40:24,708 - Zovix - WARNING - DeepInfra request failed for PrunaAI/p-video-avatar [nested_inputs|data_uri] (attempt 1/2): DeepInfra payload schema mismatch (HTTP 422). Trying alternate payload formats may be required for this model. Raw: {"detail":[{"type":"missing","loc":["image"],"msg":"Field required","input":{"inputs":{"image":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAB4AAAAQ4CAYAAADo08FDAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAP+lSURBVHhe7P1pu6u6rq6NSpDWxyzW3mdX6/296ze/59pnzjF6wOeD9NhC2FQBAonv3pMWXMhyCUbY8K+fJpCD9W9Qnz6E6MbMEiCYgPpzJIjGjiGEFJXZiiBS0YRoiGuSpJCShizQmN+RQQJ5JAgTLwgLXPZHzPlXLoZpayO3HL5yNeyWep9KBvj+5Y/nmAoPvyV623B5eck1aF/9n/940K+HxlI3z1Tfm/BazVQ5HEUpb0vLfCkia4cceqX60uBaZgctsvBRgh
+2026-08-05 12:40:27,256 - Zovix - WARNING - DeepInfra request failed for PrunaAI/p-video-avatar [top_level|raw_base64] (attempt 1/2): DeepInfra payload schema mismatch (HTTP 422). Trying alternate payload formats may be required for this model. Raw: {"detail":[{"type":"literal_error","loc":["resolution"],"msg":"Input should be '720p' or '1080p'","input":"1024x576","ctx":{"expected":"'720p' or '1080p'"},"url":"https://errors.pydantic.dev/2.11/v/literal_error"}]}
+2026-08-05 12:40:31,588 - Zovix - WARNING - DeepInfra request failed for PrunaAI/p-video-avatar [nested_input|raw_base64] (attempt 1/2): DeepInfra payload schema mismatch (HTTP 422). Trying alternate payload formats may be required for this model. Raw: {"detail":[{"type":"missing","loc":["image"],"msg":"Field required","input":{"input":{"image":"iVBORw0KGgoAAAANSUhEUgAAB4AAAAQ4CAYAAADo08FDAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAP+lSURBVHhe7P1pu6u6rq6NSpDWxyzW3mdX6/296ze/59pnzjF6wOeD9NhC2FQBAonv3pMWXMhyCUbY8K+fJpCD9W9Qnz6E6MbMEiCYgPpzJIjGjiGEFJXZiiBS0YRoiGuSpJCShizQmN+RQQJ5JAgTLwgLXPZHzPlXLoZpayO3HL5yNeyWep9KBvj+5Y/nmAoPvyV623B5eck1aF/9n/940K+HxlI3z1Tfm/BazVQ5HEUpb0vLfCkia4cceqX60uBaZgctsvBRghfSaHHQoLyB76GZsnwBm/Ups
+2026-08-05 12:40:35,762 - Zovix - WARNING - DeepInfra request failed for PrunaAI/p-video-avatar [nested_inputs|raw_base64] (attempt 1/2): DeepInfra payload schema mismatch (HTTP 422). Trying alternate payload formats may be required for this model. Raw: {"detail":[{"type":"missing","loc":["image"],"msg":"Field required","input":{"inputs":{"image":"iVBORw0KGgoAAAANSUhEUgAAB4AAAAQ4CAYAAADo08FDAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAP+lSURBVHhe7P1pu6u6rq6NSpDWxyzW3mdX6/296ze/59pnzjF6wOeD9NhC2FQBAonv3pMWXMhyCUbY8K+fJpCD9W9Qnz6E6MbMEiCYgPpzJIjGjiGEFJXZiiBS0YRoiGuSpJCShizQmN+RQQJ5JAgTLwgLXPZHzPlXLoZpayO3HL5yNeyWep9KBvj+5Y/nmAoPvyV623B5eck1aF/9n/940K+HxlI3z1Tfm/BazVQ5HEUpb0vLfCkia4cceqX60uBaZgctsvBRghfSaHHQoLyB76GZsnwBm/Up
+2026-08-05 12:40:35,762 - Zovix - ERROR - DeepInfra model PrunaAI/p-video-avatar failed: DeepInfra payload schema mismatch (HTTP 422). Trying alternate payload formats may be required for this model. Raw: {"detail":[{"type":"missing","loc":["image"],"msg":"Field required","input":{"inputs":{"image":"iVBORw0KGgoAAAANSUhEUgAAB4AAAAQ4CAYAAADo08FDAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAP+lSURBVHhe7P1pu6u6rq6NSpDWxyzW3mdX6/296ze/59pnzjF6wOeD9NhC2FQBAonv3pMWXMhyCUbY8K+fJpCD9W9Qnz6E6MbMEiCYgPpzJIjGjiGEFJXZiiBS0YRoiGuSpJCShizQmN+RQQJ5JAgTLwgLXPZHzPlXLoZpayO3HL5yNeyWep9KBvj+5Y/nmAoPvyV623B5eck1aF/9n/940K+HxlI3z1Tfm/BazVQ5HEUpb0vLfCkia4cceqX60uBaZgctsvBRghfSaHHQoLyB76GZsnwBm/Up
+2026-08-05 12:40:35,763 - Zovix - WARNING - DeepInfra cloud generation failed. Trying local face video pipeline...
+2026-08-05 12:40:38,071 - Zovix - WARNING - LivePortrait cmd failed rc=1: Traceback (most recent call last):
+  File "C:\Zovix-Clean\LivePortrait\inference.py", line 14, in <module>
+    from src.live_portrait_pipeline import LivePortraitPipeline
+  File "C:\Zovix-Clean\LivePortrait\src\live_portrait_pipeline.py", line 7, in <module>
+    import torch
+ModuleNotFoundError: No module named 'torch'
+
+2026-08-05 12:40:38,389 - Zovix - WARNING - LivePortrait cmd failed rc=1: Traceback (most recent call last):
+  File "C:\Zovix-Clean\LivePortrait\inference.py", line 14, in <module>
+    from src.live_portrait_pipeline import LivePortraitPipeline
+  File "C:\Zovix-Clean\LivePortrait\src\live_portrait_pipeline.py", line 7, in <module>
+    import torch
+ModuleNotFoundError: No module named 'torch'
+
+2026-08-05 12:40:52,552 - Zovix - WARNING - SadTalker cmd failed rc=1: Traceback (most recent call last):
+  File "C:\Zovix-Clean\SadTalker\inference.py", line 10, in <module>
+    from src.facerender.animate import AnimateFromCoeff
+  File "C:\Zovix-Clean\SadTalker\src\facerender\animate.py", line 23, in <module>
+    from src.utils.face_enhancer import enhancer_generator_with_len, enhancer_list
+  File "C:\Zovix-Clean\Sa
+2026-08-05 12:40:59,582 - Zovix - WARNING - SadTalker cmd failed rc=1: Traceback (most recent call last):
+  File "C:\Zovix-Clean\SadTalker\inference.py", line 10, in <module>
+    from src.facerender.animate import AnimateFromCoeff
+  File "C:\Zovix-Clean\SadTalker\src\facerender\animate.py", line 23, in <module>
+    from src.utils.face_enhancer import enhancer_generator_with_len, enhancer_list
+  File "C:\Zovix-Clean\Sa
+2026-08-05 12:41:04,909 - Zovix - WARNING - SadTalker cmd failed rc=1: Traceback (most recent call last):
+  File "C:\Zovix-Clean\SadTalker\inference.py", line 10, in <module>
+    from src.facerender.animate import AnimateFromCoeff
+  File "C:\Zovix-Clean\SadTalker\src\facerender\animate.py", line 23, in <module>
+    from src.utils.face_enhancer import enhancer_generator_with_len, enhancer_list
+  File "C:\Zovix-Clean\Sa
+2026-08-05 12:41:04,912 - Zovix - INFO - Using built-in audio-driven lip-only fallback.
+2026-08-05 12:41:09,298 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 12:41:09,298 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 12:41:11,324 - Zovix - INFO - Redis cache connected
+2026-08-05 12:41:11,330 - Zovix - INFO - Database initialized successfully

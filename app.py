@@ -115,12 +115,9 @@ LUMA_API_KEY = get_system_secret("LUMA_API_KEY")
 RUNWAY_API_KEY = get_system_secret("RUNWAY_API_KEY")
 HUGGINGFACE_API_KEY = get_system_secret("HUGGINGFACE_API_KEY")
 DEEPSEEK_API_KEY = get_system_secret("DEEPSEEK_API_KEY")
-DEEPINFRA_API_KEY = get_system_secret("DEEPINFRA_API_KEY")
-DEEPINFRA_FACE_MODEL = get_system_secret("DEEPINFRA_FACE_MODEL", "") or os.getenv("DEEPINFRA_FACE_MODEL", "")
-DEEPINFRA_FACE_MODELS = get_system_secret("DEEPINFRA_FACE_MODELS", "") or os.getenv("DEEPINFRA_FACE_MODELS", "")
-DEEPINFRA_API_URL = os.getenv("DEEPINFRA_API_URL", "https://api.deepinfra.com/v1")
-DEEPINFRA_REQUEST_TIMEOUT = int(os.getenv("DEEPINFRA_REQUEST_TIMEOUT", "180"))
-DEEPINFRA_HTTP_RETRIES = int(os.getenv("DEEPINFRA_HTTP_RETRIES", "2"))
+REPLICATE_API_KEY = get_system_secret("REPLICATE_API_KEY")
+REPLICATE_FACE_MODEL = get_system_secret("REPLICATE_FACE_MODEL", "") or os.getenv("REPLICATE_FACE_MODEL", "")
+FACE_VIDEO_MAX_SECONDS = 10
 # RunPod Production Infrastructure
 RUNPOD_API_KEY = os.getenv("RUNPOD_API_KEY", "") or get_system_secret("RUNPOD_API_KEY")
 FACE_ENDPOINT_ID = os.getenv("FACE_ENDPOINT_ID", "") or get_system_secret("FACE_ENDPOINT_ID")
@@ -149,6 +146,14 @@ try:
     from huggingface_hub import InferenceClient
 except ImportError:
     InferenceClient = None
+
+try:
+    import replicate
+    HAS_REPLICATE = True
+except ImportError:
+    replicate = None
+    HAS_REPLICATE = False
+    logger.warning("replicate not installed. Face Studio cloud mode will be unavailable.")
 
 try:
     import razorpay
@@ -4054,6 +4059,9 @@ def safe_generate_face_video_wrapper(prompt, face_image_path, duration=30, emoti
         if os.path.getsize(resolved_path) < 100:
             return None, "Face image file is corrupted or too small. Please re-upload."
         
+        # Enforce hard limit: face videos are capped at 10 seconds.
+        duration = _clamp_face_video_duration(duration)
+
         # Run generation
         video_path = generate_face_video(
             prompt, resolved_path,
@@ -6791,20 +6799,20 @@ def deepface_scan_face_and_select_voice(face_image_path):
     return result
 
 
-def _extract_video_url_from_deepinfra_output(output_obj):
+def _extract_video_url_from_replicate_output(output_obj):
     if isinstance(output_obj, str):
         candidate = output_obj.strip()
         if candidate.startswith("http://") or candidate.startswith("https://"):
             return candidate
     if isinstance(output_obj, dict):
-        for key in ["video_url", "video", "url", "output", "result", "mp4"]:
+        for key in ["video", "video_url", "url", "output", "result", "mp4"]:
             val = output_obj.get(key)
-            found = _extract_video_url_from_deepinfra_output(val)
+            found = _extract_video_url_from_replicate_output(val)
             if found:
                 return found
     if isinstance(output_obj, (list, tuple)):
         for item in output_obj:
-            found = _extract_video_url_from_deepinfra_output(item)
+            found = _extract_video_url_from_replicate_output(item)
             if found:
                 return found
     return None
@@ -6823,36 +6831,26 @@ def _normalize_api_token(raw_token):
     return token
 
 
-def _set_deepinfra_last_error(message):
+def _set_replicate_last_error(message):
     try:
-        st.session_state["deepinfra_last_error"] = str(message or "Unknown DeepInfra error")
+        st.session_state["replicate_last_error"] = str(message or "Unknown Replicate error")
     except Exception:
         pass
 
 
-def _humanize_deepinfra_error(status_code, response_text):
-    text = str(response_text or "").strip()
-    normalized = text.lower()
-    if status_code == 401:
-        return "DeepInfra API key invalid/expired or wrong project scope (HTTP 401)."
-    if status_code == 402:
-        return "DeepInfra balance/top-up issue (HTTP 402). Check account balance and auto top-up."
-    if status_code == 403:
-        return "DeepInfra access denied for this model/account (HTTP 403)."
-    if status_code == 404:
-        return "DeepInfra model endpoint not found (HTTP 404). Verify model name and API base URL."
-    if status_code == 422:
-        return "DeepInfra payload schema mismatch (HTTP 422). Trying alternate payload formats may be required for this model."
-    if status_code == 429:
-        return "DeepInfra rate limit exceeded (HTTP 429). Retry after a short delay."
-    if "not authorized" in normalized or "unauthorized" in normalized:
-        return "DeepInfra authorization failed. Re-check token value and remove any extra quotes/prefixes."
-    return f"DeepInfra request failed (HTTP {status_code})."
+def _clamp_face_video_duration(duration):
+    try:
+        requested = int(float(duration))
+    except Exception:
+        requested = FACE_VIDEO_MAX_SECONDS
+    clamped = max(1, min(FACE_VIDEO_MAX_SECONDS, requested))
+    if requested != clamped:
+        logger.info(f"Face video duration clamped from {requested}s to {clamped}s")
+    return clamped
 
 
-def _get_deepinfra_api_token():
-    # Prefer runtime environment first so newly rotated keys can take effect immediately.
-    secret_keys = ["DEEPINFRA_API_KEY", "DEEPINFRA_TOKEN"]
+def _get_replicate_api_token():
+    secret_keys = ["REPLICATE_API_TOKEN", "REPLICATE_API_KEY"]
     for key in secret_keys:
         value = _normalize_api_token(os.getenv(key))
         if value:
@@ -6868,229 +6866,97 @@ def _get_deepinfra_api_token():
     return None
 
 
-def _encode_file_to_data_uri(file_path, mime_type):
-    with open(file_path, "rb") as f:
-        encoded = base64.b64encode(f.read()).decode("utf-8")
-    return f"data:{mime_type};base64,{encoded}"
-
-
-def _prune_none_fields(value):
-    if isinstance(value, dict):
-        cleaned = {}
-        for k, v in value.items():
-            pruned = _prune_none_fields(v)
-            if pruned is not None:
-                cleaned[k] = pruned
-        return cleaned
-    if isinstance(value, list):
-        cleaned_list = []
-        for v in value:
-            pruned = _prune_none_fields(v)
-            if pruned is not None:
-                cleaned_list.append(pruned)
-        return cleaned_list
-    return value
-
-
-def _run_deepinfra_face_model(api_token, model_ref, image_path, audio_path, script_text, duration, quality):
+def _run_replicate_face_model(client, model_ref, image_path, audio_path, script_text, duration, quality):
     if not os.path.isfile(image_path) or os.path.getsize(image_path) <= 0:
-        raise ValueError("DeepInfra face generation requires a valid image file path.")
-
-    image_ext = os.path.splitext(image_path)[1].lower()
-    image_mime = "image/png" if image_ext == ".png" else "image/jpeg"
-    image_data_uri = _encode_file_to_data_uri(image_path, image_mime)
-
-    has_audio = bool(audio_path and os.path.isfile(audio_path) and os.path.getsize(audio_path) > 1024)
-    audio_data_uri = _encode_file_to_data_uri(audio_path, "audio/mpeg") if has_audio else None
-
-    endpoint = f"{DEEPINFRA_API_URL.rstrip('/')}/inference/{model_ref}"
-    auth_headers = {
-        "Authorization": f"Bearer {api_token}",
-    }
-    json_headers = {
-        "Authorization": f"Bearer {api_token}",
-        "Content-Type": "application/json",
-    }
-
-    image_keys = {"image", "source_image", "face_image", "input_image", "source"}
-    audio_keys = {"audio", "driving_audio", "driven_audio", "audio_url", "input_audio", "driving"}
-
-    def _extract_video_url_from_response(resp_obj):
-        try:
-            response_json = resp_obj.json()
-            return _extract_video_url_from_deepinfra_output(response_json), response_json
-        except Exception:
-            text = (resp_obj.text or "").strip()
-            if text.startswith("http://") or text.startswith("https://"):
-                return text, text
-            match = re.search(r"https?://[^\s\"']+", text)
-            if match:
-                return match.group(0), text
-            return None, text
-
-    def _build_multipart_parts(payload_dict):
-        data = {}
-        files = {}
-        file_handles = []
-
-        for key, value in payload_dict.items():
-            if value is None:
-                continue
-            if key in image_keys:
-                img_fh = open(image_path, "rb")
-                file_handles.append(img_fh)
-                files[key] = (os.path.basename(image_path), img_fh, image_mime)
-                continue
-            if key in audio_keys and has_audio:
-                aud_fh = open(audio_path, "rb")
-                file_handles.append(aud_fh)
-                files[key] = (os.path.basename(audio_path), aud_fh, "audio/mpeg")
-                continue
-            if isinstance(value, (dict, list)):
-                data[key] = json.dumps(value)
-            else:
-                data[key] = str(value)
-
-        return data, files, file_handles
+        raise ValueError("Replicate face generation requires a valid image file path.")
 
     model_lc = str(model_ref).strip().lower()
     quality_lc = str(quality or "standard").strip().lower()
-    resolution = "1280x720" if quality_lc in {"hd", "pro", "4k"} else "1024x576"
+    has_audio = bool(audio_path and os.path.isfile(audio_path) and os.path.getsize(audio_path) > 1024)
+    resolution = "1280x720" if quality_lc in {"hd", "4k", "pro"} else "1024x576"
 
     if "p-video-avatar" in model_lc:
-        # Optimized payload sequence for PrunaAI/p-video-avatar.
         input_builders = [
             lambda i, a, t: {
                 "image": i,
                 "audio": a,
                 "voice_script": t,
-                "voice_prompt": "speak naturally with clean lip sync",
-                "video_prompt": "real human talking head, natural eye blinks, cinematic lighting",
+                "voice_prompt": "speak naturally",
+                "video_prompt": "real human talking head with natural lip movement and subtle eye blinks",
                 "resolution": resolution,
                 "duration": duration,
             },
             lambda i, a, t: {
                 "image": i,
                 "voice_script": t,
-                "voice_prompt": "natural conversational speech",
+                "voice_prompt": "speak naturally",
                 "video_prompt": "photorealistic talking head",
                 "resolution": resolution,
+                "duration": duration,
             },
-            lambda i, a, t: {"image": i, "text": t, "resolution": resolution},
+            lambda i, a, t: {"image": i, "text": t, "resolution": resolution, "duration": duration},
+        ]
+    elif "sadtalker" in model_lc:
+        input_builders = [
+            lambda i, a, t: {"source_image": i, "driven_audio": a, "preprocess": "full"},
+            lambda i, a, t: {"source_image": i, "driven_audio": a},
+            lambda i, a, t: {"image": i, "audio": a},
+        ]
+    elif "liveportrait" in model_lc:
+        input_builders = [
+            lambda i, a, t: {"source_image": i, "driving_audio": a},
+            lambda i, a, t: {"image": i, "audio": a},
+            lambda i, a, t: {"source": i, "driving": a},
         ]
     else:
         input_builders = [
-            lambda i, a, t: {"image": i, "audio": a, "text": t, "duration": duration, "quality": quality},
-            lambda i, a, t: {"source_image": i, "driving_audio": a, "prompt": t, "duration": duration},
-            lambda i, a, t: {"face_image": i, "audio_url": a, "script": t, "quality": quality},
-            lambda i, a, t: {"input_image": i, "input_audio": a, "voice_script": t},
-            lambda i, a, t: {"image": i, "prompt": t},
+            lambda i, a, t: {"image": i, "voice_script": t},
+            lambda i, a, t: {"image": i, "text": t},
         ]
 
     last_error = None
     for build_payload in input_builders:
         try:
-            base_input = _prune_none_fields(build_payload(image_data_uri, audio_data_uri, script_text))
-            payload_variants = [
-                ("nested_input", {"input": base_input}),
-                ("top_level", dict(base_input)),
-                ("nested_inputs", {"inputs": base_input}),
-            ]
-
-            multipart_variants = [
-                ("multipart_top_level", dict(base_input)),
-            ]
-
-            for payload_name, payload in payload_variants:
-                attempts = max(1, int(DEEPINFRA_HTTP_RETRIES))
-                for attempt in range(1, attempts + 1):
-                    resp = requests.post(endpoint, headers=json_headers, json=payload, timeout=DEEPINFRA_REQUEST_TIMEOUT)
-                    if resp.status_code >= 400:
-                        detail = _humanize_deepinfra_error(resp.status_code, resp.text)
-                        last_error = f"{detail} Raw: {resp.text[:500]}"
-                        logger.warning(
-                            f"DeepInfra request failed for {model_ref} [{payload_name}] (attempt {attempt}/{attempts}): {last_error}"
-                        )
-                        if resp.status_code in {401, 402, 403, 404}:
-                            break
-                        if resp.status_code == 422:
-                            # Unprocessable payload: try next payload variant instead of retrying same body.
-                            break
-                        if attempt < attempts:
-                            time.sleep(min(2 * attempt, 6))
-                        continue
-
-                    video_url, parsed_obj = _extract_video_url_from_response(resp)
-                    if video_url:
-                        return video_url
-
-                    last_error = f"No video URL in response for {model_ref}. Response: {str(parsed_obj)[:500]}"
-                    logger.warning(
-                        f"DeepInfra response missing video URL for {model_ref} [{payload_name}] (attempt {attempt}/{attempts})."
-                    )
-                    if attempt < attempts:
-                        time.sleep(min(2 * attempt, 6))
-
-            for payload_name, payload in multipart_variants:
-                attempts = max(1, int(DEEPINFRA_HTTP_RETRIES))
-                for attempt in range(1, attempts + 1):
-                    data, files, file_handles = _build_multipart_parts(payload)
-                    try:
-                        resp = requests.post(endpoint, headers=auth_headers, data=data, files=files, timeout=DEEPINFRA_REQUEST_TIMEOUT)
-                    finally:
-                        for fh in file_handles:
-                            try:
-                                fh.close()
-                            except Exception:
-                                pass
-
-                    if resp.status_code >= 400:
-                        detail = _humanize_deepinfra_error(resp.status_code, resp.text)
-                        last_error = f"{detail} Raw: {resp.text[:500]}"
-                        logger.warning(
-                            f"DeepInfra request failed for {model_ref} [{payload_name}] (attempt {attempt}/{attempts}): {last_error}"
-                        )
-                        if resp.status_code in {401, 402, 403, 404}:
-                            break
-                        if resp.status_code == 422:
-                            break
-                        if attempt < attempts:
-                            time.sleep(min(2 * attempt, 6))
-                        continue
-
-                    video_url, parsed_obj = _extract_video_url_from_response(resp)
-                    if video_url:
-                        return video_url
-
-                    last_error = f"No video URL in response for {model_ref}. Response: {str(parsed_obj)[:500]}"
-                    logger.warning(
-                        f"DeepInfra response missing video URL for {model_ref} [{payload_name}] (attempt {attempt}/{attempts})."
-                    )
-                    if attempt < attempts:
-                        time.sleep(min(2 * attempt, 6))
-        except requests.RequestException as req_err:
-            last_error = str(req_err)
-            logger.warning(f"DeepInfra payload failed for {model_ref}: {req_err}")
-        except ValueError as parse_err:
-            last_error = str(parse_err)
-            logger.warning(f"DeepInfra response parse failed for {model_ref}: {parse_err}")
+            with open(image_path, "rb") as img_file:
+                aud_file = open(audio_path, "rb") if has_audio else None
+                try:
+                    payload = build_payload(img_file, aud_file, script_text)
+                    output = client.run(model_ref, input=payload)
+                finally:
+                    if aud_file:
+                        aud_file.close()
+            video_url = _extract_video_url_from_replicate_output(output)
+            if video_url:
+                return video_url
+            last_error = f"No video URL returned from {model_ref}."
+        except Exception as e:
+            last_error = str(e)
+            logger.warning(f"Replicate payload failed for {model_ref}: {e}")
+            continue
 
     if last_error:
-        logger.error(f"DeepInfra model {model_ref} failed: {last_error}")
-        _set_deepinfra_last_error(last_error)
+        _set_replicate_last_error(last_error)
     return None
 
 
-def generate_world_face_video(prompt, face_image_path, duration=10, quality="HD", animation_style="Expressive Real Human (No Lip-Only Fallback)", backend_choice="DeepInfra Cloud", motion_level="high", voice_language=None, voice_label=None):
-    """Cloud-only face generation using DeepInfra models; no local face animation pipeline."""
+def generate_world_face_video(prompt, face_image_path, duration=10, quality="HD", animation_style="Expressive Real Human (No Lip-Only Fallback)", backend_choice="Replicate Cloud", motion_level="high", voice_language=None, voice_label=None):
+    """Cloud-only face generation using Replicate models; no local face animation pipeline."""
     if not face_image_path or not os.path.exists(face_image_path):
         return None
 
-    deepinfra_token = _get_deepinfra_api_token()
-    if not deepinfra_token:
-        msg = "DeepInfra API token missing or invalid. Set DEEPINFRA_API_KEY/DEEPINFRA_TOKEN and restart app if needed."
+    duration = _clamp_face_video_duration(duration)
+
+    if not HAS_REPLICATE:
+        msg = "Replicate library is not installed. Run: pip install replicate"
         logger.warning(msg)
-        _set_deepinfra_last_error(msg)
+        _set_replicate_last_error(msg)
+        return None
+
+    replicate_token = _get_replicate_api_token()
+    if not replicate_token:
+        msg = "Replicate API token missing or invalid. Set REPLICATE_API_TOKEN/REPLICATE_API_KEY and restart app if needed."
+        logger.warning(msg)
+        _set_replicate_last_error(msg)
         return None
 
     temp_audio = None
@@ -7104,14 +6970,17 @@ def generate_world_face_video(prompt, face_image_path, duration=10, quality="HD"
             temp_audio = tmp_aud.name
         _synthesize_face_audio_strict(prompt, temp_audio, voice_cfg, duration_hint=duration)
 
-        raw_candidates = []
-        if DEEPINFRA_FACE_MODELS:
-            raw_candidates.extend([m.strip() for m in DEEPINFRA_FACE_MODELS.split(",") if m.strip()])
-        if DEEPINFRA_FACE_MODEL:
-            raw_candidates.append(str(DEEPINFRA_FACE_MODEL).strip())
-        raw_candidates.extend([
-            os.getenv("DEEPINFRA_FACE_MODEL", "").strip(),
-        ])
+        client = replicate.Client(api_token=replicate_token)
+
+        raw_candidates = [
+            str(REPLICATE_FACE_MODEL or "").strip(),
+            str(os.getenv("REPLICATE_FACE_MODEL", "")).strip(),
+            "prunaai/p-video-avatar",
+            "lucataco/sadtalker",
+            "cjwbw/sadtalker",
+            "gandhana/liveportrait",
+            "gandhary/liveportrait",
+        ]
         model_candidates = []
         seen = set()
         for model in raw_candidates:
@@ -7121,25 +6990,21 @@ def generate_world_face_video(prompt, face_image_path, duration=10, quality="HD"
             seen.add(key)
             model_candidates.append(model.strip())
 
-        if not model_candidates:
-            model_candidates = ["PrunaAI/p-video-avatar"]
-            logger.info("No DeepInfra model configured. Using default: PrunaAI/p-video-avatar")
-
         for model_ref in model_candidates:
-            video_url = _run_deepinfra_face_model(
-                deepinfra_token, model_ref, face_image_path, temp_audio, prompt, duration, quality
+            video_url = _run_replicate_face_model(
+                client, model_ref, face_image_path, temp_audio, prompt, duration, quality
             )
             if video_url:
-                _set_deepinfra_last_error("")
-                st.session_state["face_video_engine_used"] = f"DeepInfra ({model_ref})"
+                _set_replicate_last_error("")
+                st.session_state["face_video_engine_used"] = f"Replicate ({model_ref})"
                 st.session_state["face_video_runtime_mode"] = "Cloud"
                 return video_url
 
-        _set_deepinfra_last_error(st.session_state.get("deepinfra_last_error") or "All configured DeepInfra models failed.")
+        _set_replicate_last_error(st.session_state.get("replicate_last_error") or "All configured Replicate models failed.")
         return None
     except Exception as e:
-        logger.warning(f"DeepInfra face generation failed: {e}")
-        _set_deepinfra_last_error(str(e))
+        logger.warning(f"Replicate face generation failed: {e}")
+        _set_replicate_last_error(str(e))
         return None
     finally:
         if temp_audio:
@@ -7147,9 +7012,11 @@ def generate_world_face_video(prompt, face_image_path, duration=10, quality="HD"
 
 
 def generate_face_video(prompt, face_image_path, duration=30, emotion="neutral", camera_angle="front", quality="Standard", voice_language=None, voice_label=None):
-    """Pure Cloud Face Video Generation via DeepInfra API."""
+    """Pure Cloud Face Video Generation via Replicate API."""
     if not face_image_path or not os.path.exists(face_image_path):
         return None
+
+    duration = _clamp_face_video_duration(duration)
 
     # --- DeepFace Auto-Scan: Detect age & gender, auto-select voice --- #
     try:
@@ -7182,7 +7049,7 @@ def generate_face_video(prompt, face_image_path, duration=30, emotion="neutral",
         preferred_gender=st.session_state.get('fv_detected_gender') if st.session_state.get('fv_gender_auto', False) else None
     )
 
-    # --- Cloud-Only: Directly call DeepInfra API --- #
+    # --- Cloud-Only: Directly call Replicate API --- #
     video_result = generate_world_face_video(
         prompt=prompt,
         face_image_path=face_image_path,
@@ -7194,8 +7061,8 @@ def generate_face_video(prompt, face_image_path, duration=30, emotion="neutral",
     
     if video_result:
         return video_result
-    
-    logger.error("All DeepInfra cloud models failed. No local fallback available.")
+
+    logger.error("All Replicate cloud models failed. No local fallback enabled.")
     return None
 
 def generate_elevenlabs_audio_for_face(text, output_path, voice_id="21m00Tcm4TlvDq8ikWAM"):
@@ -11477,7 +11344,7 @@ def run_face_video_mode():
             with col_motion:
                 st.selectbox("Motion:", ["No Head Motion"], key="fv_motion", disabled=True)
             with col_dur:
-                video_duration = st.select_slider("Duration (seconds)", options=[5, 10, 15, 20, 30, 45, 60], value=10, key="fv_duration")
+                video_duration = st.select_slider("Duration (seconds)", options=[10], value=10, key="fv_duration")
             with col_qual:
                 quality = st.selectbox("Video Quality:", ["Standard", "HD", "4K"], key="fv_quality")
             fv_voice_language = st.selectbox(
@@ -11592,7 +11459,7 @@ def run_face_video_mode():
                     elif not st.session_state.get("face_image_upload") or not os.path.exists(st.session_state["face_image_upload"]):
                         st.error("Please upload a face image or take a photo using camera mode.")
                     else:
-                        with st.spinner(f"Generating {quality} lip-sync face video (motion locked)..."):
+                        with st.spinner(f"Generating {quality} lip-sync face video on Replicate Cloud..."):
                             # Use safe wrapper with error handling
                             video_path, gen_error = safe_generate_face_video_wrapper(
                                 face_prompt,
@@ -11604,7 +11471,7 @@ def run_face_video_mode():
                             )
                             if gen_error:
                                 st.error(gen_error)
-                            elif video_path and os.path.exists(video_path):
+                            elif video_path and (video_path.startswith("http") or os.path.exists(video_path)):
                                 st.session_state["active_face_video"] = video_path
                                 timestamp = time.strftime("%Y%m%d_%H%M%S")
                                 file_name = f"zovix_face_video_{quality.lower()}_{timestamp}.mp4"
@@ -11613,12 +11480,16 @@ def run_face_video_mode():
                                 st.toast(f"Face video generated successfully in {quality} quality!")
                                 st.rerun()
                             else:
-                                st.error("Lip-sync generation failed. Please ensure Wav2Lip backend is available and try again.")
+                                failure_reason = st.session_state.get("replicate_last_error", "Unknown Replicate error")
+                                st.error(f"Replicate generation failed. {failure_reason}")
     with fv_col2:
         with st.container(border=True):
             st.markdown("<h3 style='font-family: Orbitron; font-size: 15px; color: #FFC0CB; margin-bottom: 15px; letter-spacing: 0.5px;'>👤 FACE VIDEO PLAYER</h3>", unsafe_allow_html=True)
             active_face_video = st.session_state.get("active_face_video")
-            if active_face_video and os.path.exists(active_face_video):
+            is_remote_video = isinstance(active_face_video, str) and active_face_video.startswith("http")
+            is_local_video = isinstance(active_face_video, str) and os.path.exists(active_face_video)
+
+            if active_face_video and (is_remote_video or is_local_video):
                 engine_used = st.session_state.get("face_video_engine_used", "Unknown")
                 runtime_mode = st.session_state.get("face_video_runtime_mode", "Unknown")
                 fv_module_key = st.session_state.get("fv_voice_module_key", "")
@@ -11633,12 +11504,29 @@ def run_face_video_mode():
                 st.markdown("<br>", unsafe_allow_html=True)
                 col_dl, col_clr = st.columns(2)
                 with col_dl:
-                    with open(active_face_video, "rb") as f:
-                        video_bytes = f.read()
-                    st.download_button(label="📥 Download Face Video", data=video_bytes, file_name=f"zovix_face_video_{uuid.uuid4().hex[:8]}.mp4", mime="video/mp4", use_container_width=True, key="fv_download_btn")
+                    download_data = None
+                    if is_remote_video:
+                        try:
+                            dl = requests.get(active_face_video, timeout=30)
+                            if dl.status_code == 200 and len(dl.content) > 1024:
+                                download_data = dl.content
+                        except Exception:
+                            download_data = None
+                    elif is_local_video:
+                        try:
+                            with open(active_face_video, "rb") as f:
+                                download_data = f.read()
+                        except Exception:
+                            download_data = None
+
+                    if download_data:
+                        st.download_button(label="📥 Download Face Video", data=download_data, file_name=f"zovix_face_video_{uuid.uuid4().hex[:8]}.mp4", mime="video/mp4", use_container_width=True, key="fv_download_btn")
+                    else:
+                        st.info("Download temporarily unavailable")
                 with col_clr:
                     if st.button("🧹 Clear Video", key="fv_clear_btn", use_container_width=True):
-                        safe_remove_file(active_face_video)
+                        if is_local_video:
+                            safe_remove_file(active_face_video)
                         st.session_state["active_face_video"] = None
                         st.rerun()
             else:
@@ -11806,71 +11694,6 @@ pip install gfpgan realesrgan""",
                 st.info("No expressive render yet. Upload a face image and generate your first expressive clip.")
 
 
-def get_wav2lip_setup_status():
-    return {
-        "ready": False,
-        "repo_path": None,
-        "script_path": None,
-        "checkpoint_path": None,
-        "s3fd_path": None,
-        "s3fd_ready": False,
-        "cwd": os.getcwd(),
-        "app_dir": os.path.dirname(__file__),
-        "forced_mode": False,
-    }
-
-
-def get_wav2lip_runtime_profile():
-    return {
-        "mode": "Cloud",
-        "face_det_batch_size": "0",
-        "wav2lip_batch_size": "0",
-        "resize_factor": "1",
-    }
-
-
-def get_expressive_setup_status():
-    return {
-        "liveportrait_repo": None,
-        "liveportrait_script": None,
-        "liveportrait_python": None,
-        "liveportrait_ready": False,
-        "liveportrait_models_ready": False,
-        "sadtalker_repo": None,
-        "sadtalker_script": None,
-        "sadtalker_python": None,
-        "sadtalker_ready": False,
-        "sadtalker_models_ready": False,
-        "sadtalker_force_ready": False,
-        "runtime_mode": "Cloud",
-        "any_ready": False,
-        "force_enable": False,
-    }
-
-
-def run_wav2lip_cli(face_image_path, audio_path, output_video_path, width, height, fps=24):
-    logger.info("Local Wav2Lip path disabled. Using DeepInfra cloud generation only.")
-    return False
-
-
-def run_lip_sync_pipeline(face_image_path, audio_path, output_video_path, width, height, duration=10, emotion="neutral", camera_angle="front"):
-    logger.info("Local lip-sync pipeline disabled. Using DeepInfra cloud generation only.")
-    return False
-
-
-def run_liveportrait_cli(face_image_path, audio_path, output_video_path, width, height, duration=10, motion_level="high"):
-    logger.info("Local LivePortrait path disabled. Using DeepInfra cloud generation only.")
-    return False
-
-
-def run_sadtalker_cli(face_image_path, audio_path, output_video_path, width, height, duration=10, motion_level="high"):
-    logger.info("Local SadTalker path disabled. Using DeepInfra cloud generation only.")
-    return False
-
-
-def run_expressive_face_pipeline(face_image_path, audio_path, output_video_path, width, height, duration=10, preferred_engine="Auto (LivePortrait → SadTalker)", motion_level="high"):
-    logger.info("Local expressive pipeline disabled. Using DeepInfra cloud generation only.")
-    return False
 
 
 def run_unified_face_video_mode():
@@ -12228,7 +12051,7 @@ def run_unified_face_video_mode():
                 st.markdown('<p class="face-label">⏱️ Duration</p>', unsafe_allow_html=True)
                 video_duration = st.select_slider(
                     "Duration",
-                    options=[5, 10, 15, 20, 30, 45, 60],
+                    options=[10],
                     value=10,
                     key="fv_duration",
                     label_visibility="collapsed"
@@ -12244,7 +12067,7 @@ def run_unified_face_video_mode():
             
             st.markdown("<br>", unsafe_allow_html=True)
             
-                        # Generate Button - Pure DeepInfra Cloud Engine ☁️
+                        # Generate Button - Pure Replicate Cloud Engine ☁️
             if st.button("🌍 Generate Global Face Video", key="unified_fv_generate_btn", use_container_width=True):
                             if not face_prompt or not face_prompt.strip():
                                 st.error("Please enter a dialogue/script for the face video.")
@@ -12284,8 +12107,8 @@ def run_unified_face_video_mode():
                                 else:
                                     st.success(f"✓ {message}")
                         
-                                    # Step 3: Generate via DeepInfra Cloud directly ☁️
-                                    with st.spinner(f"☁️ Generating {quality} face video on DeepInfra Cloud..."):
+                                    # Step 3: Generate via Replicate Cloud directly ☁️
+                                    with st.spinner(f"☁️ Generating {quality} face video on Replicate Cloud..."):
                                         try:
                                             video_url = generate_face_video(
                                                 prompt=face_prompt,
@@ -12308,12 +12131,12 @@ def run_unified_face_video_mode():
                                                 )
                                                 st.session_state["face_video_history"] = load_face_video_history_db(st.session_state.get("logged_user", "guest"))
                                                 st.balloons()
-                                                st.toast("✅ Face video generated successfully on DeepInfra Cloud!")
+                                                st.toast("✅ Face video generated successfully on Replicate Cloud!")
                                                 st.rerun()
                                             else:
-                                                failure_reason = st.session_state.get("deepinfra_last_error", "Unknown DeepInfra error")
-                                                st.error(f"❌ DeepInfra Cloud generation failed. {failure_reason}")
-                                                st.info("Troubleshoot: verify DEEPINFRA_API_KEY is valid, account has positive balance, and model name in DEEPINFRA_FACE_MODEL is correct.")
+                                                failure_reason = st.session_state.get("replicate_last_error", "Unknown Replicate error")
+                                                st.error(f"❌ Replicate Cloud generation failed. {failure_reason}")
+                                                st.info("Troubleshoot: verify REPLICATE_API_TOKEN/REPLICATE_API_KEY is valid and model name in REPLICATE_FACE_MODEL is correct.")
                                         except Exception as e:
                                             st.error(f"❌ Cloud Generation Error: {str(e)}")
                                             logger.error(f"Unified face video error: {e}")
