@@ -6904,10 +6904,54 @@ def _run_deepinfra_face_model(api_token, model_ref, image_path, audio_path, scri
     audio_data_uri = _encode_file_to_data_uri(audio_path, "audio/mpeg") if has_audio else None
 
     endpoint = f"{DEEPINFRA_API_URL.rstrip('/')}/inference/{model_ref}"
-    headers = {
+    auth_headers = {
+        "Authorization": f"Bearer {api_token}",
+    }
+    json_headers = {
         "Authorization": f"Bearer {api_token}",
         "Content-Type": "application/json",
     }
+
+    image_keys = {"image", "source_image", "face_image", "input_image", "source"}
+    audio_keys = {"audio", "driving_audio", "driven_audio", "audio_url", "input_audio", "driving"}
+
+    def _extract_video_url_from_response(resp_obj):
+        try:
+            response_json = resp_obj.json()
+            return _extract_video_url_from_deepinfra_output(response_json), response_json
+        except Exception:
+            text = (resp_obj.text or "").strip()
+            if text.startswith("http://") or text.startswith("https://"):
+                return text, text
+            match = re.search(r"https?://[^\s\"']+", text)
+            if match:
+                return match.group(0), text
+            return None, text
+
+    def _build_multipart_parts(payload_dict):
+        data = {}
+        files = {}
+        file_handles = []
+
+        for key, value in payload_dict.items():
+            if value is None:
+                continue
+            if key in image_keys:
+                img_fh = open(image_path, "rb")
+                file_handles.append(img_fh)
+                files[key] = (os.path.basename(image_path), img_fh, image_mime)
+                continue
+            if key in audio_keys and has_audio:
+                aud_fh = open(audio_path, "rb")
+                file_handles.append(aud_fh)
+                files[key] = (os.path.basename(audio_path), aud_fh, "audio/mpeg")
+                continue
+            if isinstance(value, (dict, list)):
+                data[key] = json.dumps(value)
+            else:
+                data[key] = str(value)
+
+        return data, files, file_handles
 
     model_lc = str(model_ref).strip().lower()
     quality_lc = str(quality or "standard").strip().lower()
@@ -6953,10 +6997,14 @@ def _run_deepinfra_face_model(api_token, model_ref, image_path, audio_path, scri
                 ("nested_inputs", {"inputs": base_input}),
             ]
 
+            multipart_variants = [
+                ("multipart_top_level", dict(base_input)),
+            ]
+
             for payload_name, payload in payload_variants:
                 attempts = max(1, int(DEEPINFRA_HTTP_RETRIES))
                 for attempt in range(1, attempts + 1):
-                    resp = requests.post(endpoint, headers=headers, json=payload, timeout=DEEPINFRA_REQUEST_TIMEOUT)
+                    resp = requests.post(endpoint, headers=json_headers, json=payload, timeout=DEEPINFRA_REQUEST_TIMEOUT)
                     if resp.status_code >= 400:
                         detail = _humanize_deepinfra_error(resp.status_code, resp.text)
                         last_error = f"{detail} Raw: {resp.text[:500]}"
@@ -6972,12 +7020,49 @@ def _run_deepinfra_face_model(api_token, model_ref, image_path, audio_path, scri
                             time.sleep(min(2 * attempt, 6))
                         continue
 
-                    response_json = resp.json()
-                    video_url = _extract_video_url_from_deepinfra_output(response_json)
+                    video_url, parsed_obj = _extract_video_url_from_response(resp)
                     if video_url:
                         return video_url
 
-                    last_error = f"No video URL in response for {model_ref}. Response: {str(response_json)[:500]}"
+                    last_error = f"No video URL in response for {model_ref}. Response: {str(parsed_obj)[:500]}"
+                    logger.warning(
+                        f"DeepInfra response missing video URL for {model_ref} [{payload_name}] (attempt {attempt}/{attempts})."
+                    )
+                    if attempt < attempts:
+                        time.sleep(min(2 * attempt, 6))
+
+            for payload_name, payload in multipart_variants:
+                attempts = max(1, int(DEEPINFRA_HTTP_RETRIES))
+                for attempt in range(1, attempts + 1):
+                    data, files, file_handles = _build_multipart_parts(payload)
+                    try:
+                        resp = requests.post(endpoint, headers=auth_headers, data=data, files=files, timeout=DEEPINFRA_REQUEST_TIMEOUT)
+                    finally:
+                        for fh in file_handles:
+                            try:
+                                fh.close()
+                            except Exception:
+                                pass
+
+                    if resp.status_code >= 400:
+                        detail = _humanize_deepinfra_error(resp.status_code, resp.text)
+                        last_error = f"{detail} Raw: {resp.text[:500]}"
+                        logger.warning(
+                            f"DeepInfra request failed for {model_ref} [{payload_name}] (attempt {attempt}/{attempts}): {last_error}"
+                        )
+                        if resp.status_code in {401, 402, 403, 404}:
+                            break
+                        if resp.status_code == 422:
+                            break
+                        if attempt < attempts:
+                            time.sleep(min(2 * attempt, 6))
+                        continue
+
+                    video_url, parsed_obj = _extract_video_url_from_response(resp)
+                    if video_url:
+                        return video_url
+
+                    last_error = f"No video URL in response for {model_ref}. Response: {str(parsed_obj)[:500]}"
                     logger.warning(
                         f"DeepInfra response missing video URL for {model_ref} [{payload_name}] (attempt {attempt}/{attempts})."
                     )
