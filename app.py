@@ -118,6 +118,8 @@ DEEPSEEK_API_KEY = get_system_secret("DEEPSEEK_API_KEY")
 REPLICATE_API_KEY = get_system_secret("REPLICATE_API_KEY")
 REPLICATE_FACE_MODEL = get_system_secret("REPLICATE_FACE_MODEL", "") or os.getenv("REPLICATE_FACE_MODEL", "")
 FACE_VIDEO_MAX_SECONDS = 10
+REPLICATE_COOLDOWN_FALLBACK_SECONDS = int(os.getenv("REPLICATE_COOLDOWN_FALLBACK_SECONDS", "10"))
+REPLICATE_MAX_THROTTLE_RETRIES = int(os.getenv("REPLICATE_MAX_THROTTLE_RETRIES", "1"))
 # RunPod Production Infrastructure
 RUNPOD_API_KEY = os.getenv("RUNPOD_API_KEY", "") or get_system_secret("RUNPOD_API_KEY")
 FACE_ENDPOINT_ID = os.getenv("FACE_ENDPOINT_ID", "") or get_system_secret("FACE_ENDPOINT_ID")
@@ -6849,6 +6851,57 @@ def _clamp_face_video_duration(duration):
     return clamped
 
 
+def _is_replicate_throttle_error(err_text):
+    text = str(err_text or "").lower()
+    return (
+        "status: 429" in text
+        or "http 429" in text
+        or "request was throttled" in text
+        or "rate limit" in text
+        or "too many requests" in text
+    )
+
+
+def _parse_replicate_retry_seconds(err_text):
+    text = str(err_text or "")
+    patterns = [
+        r"resets\s+in\s*~?\s*(\d+)\s*s",
+        r"retry\s+after\s*[:=]?\s*(\d+)\s*s",
+        r"wait\s*(\d+)\s*s",
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, text, flags=re.IGNORECASE)
+        if match:
+            try:
+                seconds = int(match.group(1))
+                return max(1, min(60, seconds))
+            except Exception:
+                pass
+    return max(1, REPLICATE_COOLDOWN_FALLBACK_SECONDS)
+
+
+def _set_replicate_cooldown(seconds, reason=""):
+    try:
+        wait_sec = max(1, int(seconds))
+    except Exception:
+        wait_sec = REPLICATE_COOLDOWN_FALLBACK_SECONDS
+    try:
+        st.session_state["replicate_rate_limited_until"] = time.time() + wait_sec
+    except Exception:
+        pass
+    if reason:
+        _set_replicate_last_error(reason)
+
+
+def _get_replicate_cooldown_remaining():
+    try:
+        until_ts = float(st.session_state.get("replicate_rate_limited_until", 0) or 0)
+        remaining = int(round(until_ts - time.time()))
+        return max(0, remaining)
+    except Exception:
+        return 0
+
+
 def _get_replicate_api_token():
     secret_keys = ["REPLICATE_API_TOKEN", "REPLICATE_API_KEY"]
     for key in secret_keys:
@@ -6873,7 +6926,8 @@ def _run_replicate_face_model(client, model_ref, image_path, audio_path, script_
     model_lc = str(model_ref).strip().lower()
     quality_lc = str(quality or "standard").strip().lower()
     has_audio = bool(audio_path and os.path.isfile(audio_path) and os.path.getsize(audio_path) > 1024)
-    resolution = "1280x720" if quality_lc in {"hd", "4k", "pro"} else "1024x576"
+    # Replicate p-video-avatar accepts only symbolic presets, not WxH strings.
+    resolution = "1080p" if quality_lc in {"4k", "pro"} else "720p"
 
     if "p-video-avatar" in model_lc:
         input_builders = [
@@ -6889,12 +6943,9 @@ def _run_replicate_face_model(client, model_ref, image_path, audio_path, script_
             lambda i, a, t: {
                 "image": i,
                 "voice_script": t,
-                "voice_prompt": "speak naturally",
-                "video_prompt": "photorealistic talking head",
                 "resolution": resolution,
                 "duration": duration,
             },
-            lambda i, a, t: {"image": i, "text": t, "resolution": resolution, "duration": duration},
         ]
     elif "sadtalker" in model_lc:
         input_builders = [
@@ -6921,7 +6972,29 @@ def _run_replicate_face_model(client, model_ref, image_path, audio_path, script_
                 aud_file = open(audio_path, "rb") if has_audio else None
                 try:
                     payload = build_payload(img_file, aud_file, script_text)
-                    output = client.run(model_ref, input=payload)
+                    max_retries = max(0, int(REPLICATE_MAX_THROTTLE_RETRIES))
+                    attempt = 0
+                    output = None
+                    while True:
+                        try:
+                            output = client.run(model_ref, input=payload)
+                            break
+                        except Exception as run_err:
+                            run_err_text = str(run_err)
+                            if _is_replicate_throttle_error(run_err_text) and attempt < max_retries:
+                                wait_sec = _parse_replicate_retry_seconds(run_err_text)
+                                attempt += 1
+                                msg = f"Replicate rate limit hit. Auto-retrying in {wait_sec}s (retry {attempt}/{max_retries})."
+                                logger.warning(msg)
+                                _set_replicate_cooldown(wait_sec, msg)
+                                time.sleep(wait_sec)
+                                continue
+
+                            if _is_replicate_throttle_error(run_err_text):
+                                wait_sec = _parse_replicate_retry_seconds(run_err_text)
+                                msg = f"Replicate is throttling requests. Please wait {wait_sec}s and retry."
+                                _set_replicate_cooldown(wait_sec, msg)
+                            raise
                 finally:
                     if aud_file:
                         aud_file.close()
@@ -6932,6 +7005,8 @@ def _run_replicate_face_model(client, model_ref, image_path, audio_path, script_
         except Exception as e:
             last_error = str(e)
             logger.warning(f"Replicate payload failed for {model_ref}: {e}")
+            if _is_replicate_throttle_error(last_error):
+                break
             continue
 
     if last_error:
@@ -6948,6 +7023,13 @@ def generate_world_face_video(prompt, face_image_path, duration=10, quality="HD"
 
     if not HAS_REPLICATE:
         msg = "Replicate library is not installed. Run: pip install replicate"
+        logger.warning(msg)
+        _set_replicate_last_error(msg)
+        return None
+
+    cooldown_remaining = _get_replicate_cooldown_remaining()
+    if cooldown_remaining > 0:
+        msg = f"Replicate is cooling down due to rate limit. Please wait {cooldown_remaining}s and retry."
         logger.warning(msg)
         _set_replicate_last_error(msg)
         return None
@@ -6976,10 +7058,6 @@ def generate_world_face_video(prompt, face_image_path, duration=10, quality="HD"
             str(REPLICATE_FACE_MODEL or "").strip(),
             str(os.getenv("REPLICATE_FACE_MODEL", "")).strip(),
             "prunaai/p-video-avatar",
-            "lucataco/sadtalker",
-            "cjwbw/sadtalker",
-            "gandhana/liveportrait",
-            "gandhary/liveportrait",
         ]
         model_candidates = []
         seen = set()
@@ -6999,6 +7077,8 @@ def generate_world_face_video(prompt, face_image_path, duration=10, quality="HD"
                 st.session_state["face_video_engine_used"] = f"Replicate ({model_ref})"
                 st.session_state["face_video_runtime_mode"] = "Cloud"
                 return video_url
+            if _get_replicate_cooldown_remaining() > 0:
+                break
 
         _set_replicate_last_error(st.session_state.get("replicate_last_error") or "All configured Replicate models failed.")
         return None

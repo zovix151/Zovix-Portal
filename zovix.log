@@ -13272,3 +13272,110 @@ ModuleNotFoundError: No module named 'torch'
 2026-08-05 12:41:09,298 - Zovix - INFO - Load balancer initialized with 4 workers
 2026-08-05 12:41:11,324 - Zovix - INFO - Redis cache connected
 2026-08-05 12:41:11,330 - Zovix - INFO - Database initialized successfully
+2026-08-05 12:53:42,104 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 12:53:42,133 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 12:53:44,176 - Zovix - INFO - Redis cache connected
+2026-08-05 12:53:44,187 - Zovix - INFO - Database initialized successfully
+2026-08-05 12:55:37,185 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 12:55:37,186 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 12:55:39,211 - Zovix - INFO - Redis cache connected
+2026-08-05 12:55:39,224 - Zovix - INFO - Database initialized successfully
+2026-08-05 12:55:45,079 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 12:55:45,080 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 12:55:47,107 - Zovix - INFO - Redis cache connected
+2026-08-05 12:55:47,113 - Zovix - INFO - Database initialized successfully
+2026-08-05 12:56:09,665 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 12:56:09,667 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 12:56:11,703 - Zovix - INFO - Redis cache connected
+2026-08-05 12:56:11,709 - Zovix - INFO - Database initialized successfully
+2026-08-05 12:56:19,103 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 12:56:19,105 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 12:56:21,149 - Zovix - INFO - Redis cache connected
+2026-08-05 12:56:21,158 - Zovix - INFO - Database initialized successfully
+2026-08-05 12:56:25,506 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 12:56:25,507 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 12:56:27,549 - Zovix - INFO - Redis cache connected
+2026-08-05 12:56:27,555 - Zovix - INFO - Database initialized successfully
+2026-08-05 12:56:44,159 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 12:56:44,159 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 12:56:46,201 - Zovix - INFO - Redis cache connected
+2026-08-05 12:56:46,209 - Zovix - INFO - Database initialized successfully
+2026-08-05 12:57:16,891 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 12:57:16,891 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 12:57:16,968 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 12:57:16,969 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 12:57:18,924 - Zovix - INFO - Redis cache connected
+2026-08-05 12:57:19,178 - Zovix - INFO - Redis cache connected
+2026-08-05 12:57:19,188 - Zovix - INFO - Database initialized successfully
+2026-08-05 12:57:34,519 - Zovix - WARNING - DeepFace scan failed (using default voice): name 'DeepFace' is not defined
+2026-08-05 12:57:34,543 - Zovix - INFO - Image validated: (1920, 1080), mode=RGBA
+2026-08-05 12:57:34,572 - Zovix - INFO - Deducted 4 credits from zovixenterprises@gmail.com
+2026-08-05 12:57:34,590 - Zovix - WARNING - DeepFace scan failed (using default voice): name 'DeepFace' is not defined
+2026-08-05 12:57:34,596 - Zovix - INFO - Image validated: (1920, 1080), mode=RGBA
+2026-08-05 12:57:34,600 - Zovix - INFO - DeepFace Auto-Voice: Adult Male (Age:25) -> Adam (Premium Male)
+2026-08-05 12:57:42,377 - httpx - INFO - HTTP Request: POST https://api.replicate.com/v1/models/prunaai/p-video-avatar/predictions "HTTP/1.1 422 Unprocessable Entity"
+2026-08-05 12:57:42,380 - Zovix - WARNING - Replicate payload failed for prunaai/p-video-avatar: ReplicateError Details:
+title: Input validation failed
+status: 422
+detail: - input.resolution: resolution must be one of the following: "720p", "1080p"
+
+2026-08-05 12:57:43,200 - httpx - INFO - HTTP Request: POST https://api.replicate.com/v1/models/prunaai/p-video-avatar/predictions "HTTP/1.1 429 Too Many Requests"
+2026-08-05 12:57:43,201 - Zovix - WARNING - Replicate rate limit hit. Auto-retrying in 8s (retry 1/1).
+2026-08-05 12:57:54,722 - httpx - INFO - HTTP Request: POST https://api.replicate.com/v1/models/prunaai/p-video-avatar/predictions "HTTP/1.1 422 Unprocessable Entity"
+2026-08-05 12:57:54,723 - Zovix - WARNING - Replicate payload failed for prunaai/p-video-avatar: ReplicateError Details:
+title: Input validation failed
+status: 422
+detail: - input.resolution: resolution must be one of the following: "720p", "1080p"
+
+2026-08-05 12:57:54,725 - Zovix - ERROR - All Replicate cloud models failed. No local fallback enabled.
+2026-08-05 13:01:35,638 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 13:01:35,639 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 13:01:37,677 - Zovix - INFO - Redis cache connected
+2026-08-05 13:01:37,688 - Zovix - INFO - Database initialized successfully
+2026-08-05 13:01:46,970 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 13:01:46,972 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 13:01:49,019 - Zovix - INFO - Redis cache connected
+2026-08-05 13:01:49,027 - Zovix - INFO - Database initialized successfully
+2026-08-05 13:02:18,026 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 13:02:18,028 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 13:02:20,054 - Zovix - INFO - Redis cache connected
+2026-08-05 13:02:20,060 - Zovix - INFO - Database initialized successfully
+2026-08-05 13:02:31,095 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 13:02:31,096 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 13:02:33,112 - Zovix - INFO - Redis cache connected
+2026-08-05 13:02:33,118 - Zovix - INFO - Database initialized successfully
+2026-08-05 13:02:38,000 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 13:02:38,000 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 13:02:40,030 - Zovix - INFO - Redis cache connected
+2026-08-05 13:02:40,036 - Zovix - INFO - Database initialized successfully
+2026-08-05 13:02:58,209 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 13:02:58,210 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 13:03:00,254 - Zovix - INFO - Redis cache connected
+2026-08-05 13:03:00,260 - Zovix - INFO - Database initialized successfully
+2026-08-05 13:03:34,883 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 13:03:34,885 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 13:03:34,915 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 13:03:34,918 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 13:03:36,922 - Zovix - INFO - Redis cache connected
+2026-08-05 13:03:37,880 - Zovix - INFO - Redis cache connected
+2026-08-05 13:03:37,889 - Zovix - INFO - Database initialized successfully
+2026-08-05 13:03:40,894 - Zovix - WARNING - DeepFace scan failed (using default voice): name 'DeepFace' is not defined
+2026-08-05 13:03:40,913 - Zovix - INFO - Image validated: (1920, 1080), mode=RGBA
+2026-08-05 13:03:40,943 - Zovix - INFO - Deducted 4 credits from zovixenterprises@gmail.com
+2026-08-05 13:03:40,959 - Zovix - WARNING - DeepFace scan failed (using default voice): name 'DeepFace' is not defined
+2026-08-05 13:03:40,960 - Zovix - INFO - Image validated: (1920, 1080), mode=RGBA
+2026-08-05 13:03:40,967 - Zovix - INFO - DeepFace Auto-Voice: Adult Male (Age:25) -> Adam (Premium Male)
+2026-08-05 13:03:46,921 - httpx - INFO - HTTP Request: POST https://api.replicate.com/v1/models/prunaai/p-video-avatar/predictions "HTTP/1.1 201 Created"
+2026-08-05 13:03:47,920 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/bpjah9xsq9rmt0czt3bs5cr748 "HTTP/1.1 200 OK"
+2026-08-05 13:03:48,834 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/bpjah9xsq9rmt0czt3bs5cr748 "HTTP/1.1 200 OK"
+2026-08-05 13:03:50,253 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/bpjah9xsq9rmt0czt3bs5cr748 "HTTP/1.1 200 OK"
+2026-08-05 13:03:51,229 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/bpjah9xsq9rmt0czt3bs5cr748 "HTTP/1.1 200 OK"
+2026-08-05 13:03:52,161 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/bpjah9xsq9rmt0czt3bs5cr748 "HTTP/1.1 200 OK"
+2026-08-05 13:03:53,073 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/bpjah9xsq9rmt0czt3bs5cr748 "HTTP/1.1 200 OK"
+2026-08-05 13:03:54,034 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/bpjah9xsq9rmt0czt3bs5cr748 "HTTP/1.1 200 OK"
+2026-08-05 13:03:55,530 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/bpjah9xsq9rmt0czt3bs5cr748 "HTTP/1.1 200 OK"
+2026-08-05 13:03:56,453 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/bpjah9xsq9rmt0czt3bs5cr748 "HTTP/1.1 200 OK"
+2026-08-05 13:03:59,510 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 13:03:59,511 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 13:04:01,544 - Zovix - INFO - Redis cache connected
+2026-08-05 13:04:01,550 - Zovix - INFO - Database initialized successfully
