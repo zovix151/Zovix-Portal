@@ -13038,3 +13038,7 @@ ConnectionResetError: [WinError 10054] An existing connection was forcibly close
 2026-08-04 17:32:29,682 - Zovix - INFO - Load balancer initialized with 4 workers
 2026-08-04 17:32:31,708 - Zovix - INFO - Redis cache connected
 2026-08-04 17:32:31,714 - Zovix - INFO - Database initialized successfully
+2026-08-05 11:24:53,383 - Zovix - INFO - Redis connected for rate limiting
+2026-08-05 11:24:53,400 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-05 11:24:55,434 - Zovix - INFO - Redis cache connected
+2026-08-05 11:24:55,449 - Zovix - INFO - Database initialized successfully

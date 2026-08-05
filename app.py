@@ -119,6 +119,8 @@ DEEPINFRA_API_KEY = get_system_secret("DEEPINFRA_API_KEY")
 DEEPINFRA_FACE_MODEL = get_system_secret("DEEPINFRA_FACE_MODEL", "") or os.getenv("DEEPINFRA_FACE_MODEL", "")
 DEEPINFRA_FACE_MODELS = get_system_secret("DEEPINFRA_FACE_MODELS", "") or os.getenv("DEEPINFRA_FACE_MODELS", "")
 DEEPINFRA_API_URL = os.getenv("DEEPINFRA_API_URL", "https://api.deepinfra.com/v1")
+DEEPINFRA_REQUEST_TIMEOUT = int(os.getenv("DEEPINFRA_REQUEST_TIMEOUT", "180"))
+DEEPINFRA_HTTP_RETRIES = int(os.getenv("DEEPINFRA_HTTP_RETRIES", "2"))
 # RunPod Production Infrastructure
 RUNPOD_API_KEY = os.getenv("RUNPOD_API_KEY", "") or get_system_secret("RUNPOD_API_KEY")
 FACE_ENDPOINT_ID = os.getenv("FACE_ENDPOINT_ID", "") or get_system_secret("FACE_ENDPOINT_ID")
@@ -6808,20 +6810,59 @@ def _extract_video_url_from_deepinfra_output(output_obj):
     return None
 
 
+def _normalize_api_token(raw_token):
+    if not raw_token:
+        return None
+    token = str(raw_token).strip().strip('"').strip("'")
+    if token.lower().startswith("bearer "):
+        token = token[7:].strip()
+    if token.lower() in {"none", "null", "undefined", "changeme", "your_key_here"}:
+        return None
+    if len(token) < 10:
+        return None
+    return token
+
+
+def _set_deepinfra_last_error(message):
+    try:
+        st.session_state["deepinfra_last_error"] = str(message or "Unknown DeepInfra error")
+    except Exception:
+        pass
+
+
+def _humanize_deepinfra_error(status_code, response_text):
+    text = str(response_text or "").strip()
+    normalized = text.lower()
+    if status_code == 401:
+        return "DeepInfra API key invalid/expired or wrong project scope (HTTP 401)."
+    if status_code == 402:
+        return "DeepInfra balance/top-up issue (HTTP 402). Check account balance and auto top-up."
+    if status_code == 403:
+        return "DeepInfra access denied for this model/account (HTTP 403)."
+    if status_code == 404:
+        return "DeepInfra model endpoint not found (HTTP 404). Verify model name and API base URL."
+    if status_code == 429:
+        return "DeepInfra rate limit exceeded (HTTP 429). Retry after a short delay."
+    if "not authorized" in normalized or "unauthorized" in normalized:
+        return "DeepInfra authorization failed. Re-check token value and remove any extra quotes/prefixes."
+    return f"DeepInfra request failed (HTTP {status_code})."
+
+
 def _get_deepinfra_api_token():
+    # Prefer runtime environment first so newly rotated keys can take effect immediately.
     secret_keys = ["DEEPINFRA_API_KEY", "DEEPINFRA_TOKEN"]
     for key in secret_keys:
+        value = _normalize_api_token(os.getenv(key))
+        if value:
+            return value
+
+    for key in secret_keys:
         try:
-            value = st.secrets.get(key)
+            value = _normalize_api_token(st.secrets.get(key))
         except Exception:
             value = None
         if value:
-            return str(value).strip()
-
-    for key in secret_keys:
-        value = os.getenv(key)
-        if value:
-            return str(value).strip()
+            return value
     return None
 
 
@@ -6886,16 +6927,28 @@ def _run_deepinfra_face_model(api_token, model_ref, image_path, audio_path, scri
     for build_payload in input_builders:
         try:
             payload = {"input": build_payload(image_data_uri, audio_data_uri, script_text)}
-            resp = requests.post(endpoint, headers=headers, json=payload, timeout=180)
-            if resp.status_code >= 400:
-                last_error = f"HTTP {resp.status_code}: {resp.text[:500]}"
-                logger.warning(f"DeepInfra request failed for {model_ref}: {last_error}")
-                continue
-            response_json = resp.json()
-            video_url = _extract_video_url_from_deepinfra_output(response_json)
-            if video_url:
-                return video_url
-            last_error = f"No video URL in response for {model_ref}"
+            attempts = max(1, int(DEEPINFRA_HTTP_RETRIES))
+            for attempt in range(1, attempts + 1):
+                resp = requests.post(endpoint, headers=headers, json=payload, timeout=DEEPINFRA_REQUEST_TIMEOUT)
+                if resp.status_code >= 400:
+                    detail = _humanize_deepinfra_error(resp.status_code, resp.text)
+                    last_error = f"{detail} Raw: {resp.text[:500]}"
+                    logger.warning(f"DeepInfra request failed for {model_ref} (attempt {attempt}/{attempts}): {last_error}")
+                    if resp.status_code in {401, 402, 403, 404}:
+                        break
+                    if attempt < attempts:
+                        time.sleep(min(2 * attempt, 6))
+                    continue
+
+                response_json = resp.json()
+                video_url = _extract_video_url_from_deepinfra_output(response_json)
+                if video_url:
+                    return video_url
+
+                last_error = f"No video URL in response for {model_ref}. Response: {str(response_json)[:500]}"
+                logger.warning(f"DeepInfra response missing video URL for {model_ref} (attempt {attempt}/{attempts}).")
+                if attempt < attempts:
+                    time.sleep(min(2 * attempt, 6))
         except requests.RequestException as req_err:
             last_error = str(req_err)
             logger.warning(f"DeepInfra payload failed for {model_ref}: {req_err}")
@@ -6905,6 +6958,7 @@ def _run_deepinfra_face_model(api_token, model_ref, image_path, audio_path, scri
 
     if last_error:
         logger.error(f"DeepInfra model {model_ref} failed: {last_error}")
+        _set_deepinfra_last_error(last_error)
     return None
 
 
@@ -6915,7 +6969,9 @@ def generate_world_face_video(prompt, face_image_path, duration=10, quality="HD"
 
     deepinfra_token = _get_deepinfra_api_token()
     if not deepinfra_token:
-        logger.warning("DeepInfra API token is missing from Streamlit secrets or environment.")
+        msg = "DeepInfra API token missing or invalid. Set DEEPINFRA_API_KEY/DEEPINFRA_TOKEN and restart app if needed."
+        logger.warning(msg)
+        _set_deepinfra_last_error(msg)
         return None
 
     temp_audio = None
@@ -6955,13 +7011,16 @@ def generate_world_face_video(prompt, face_image_path, duration=10, quality="HD"
                 deepinfra_token, model_ref, face_image_path, temp_audio, prompt, duration, quality
             )
             if video_url:
+                _set_deepinfra_last_error("")
                 st.session_state["face_video_engine_used"] = f"DeepInfra ({model_ref})"
                 st.session_state["face_video_runtime_mode"] = "Cloud"
                 return video_url
 
+        _set_deepinfra_last_error(st.session_state.get("deepinfra_last_error") or "All configured DeepInfra models failed.")
         return None
     except Exception as e:
         logger.warning(f"DeepInfra face generation failed: {e}")
+        _set_deepinfra_last_error(str(e))
         return None
     finally:
         if temp_audio:
@@ -12133,7 +12192,9 @@ def run_unified_face_video_mode():
                                                 st.toast("✅ Face video generated successfully on DeepInfra Cloud!")
                                                 st.rerun()
                                             else:
-                                                st.error("❌ DeepInfra Cloud generation failed. Check API key and model configuration.")
+                                                failure_reason = st.session_state.get("deepinfra_last_error", "Unknown DeepInfra error")
+                                                st.error(f"❌ DeepInfra Cloud generation failed. {failure_reason}")
+                                                st.info("Troubleshoot: verify DEEPINFRA_API_KEY is valid, account has positive balance, and model name in DEEPINFRA_FACE_MODEL is correct.")
                                         except Exception as e:
                                             st.error(f"❌ Cloud Generation Error: {str(e)}")
                                             logger.error(f"Unified face video error: {e}")
