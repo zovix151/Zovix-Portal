@@ -1080,14 +1080,24 @@ VOICE_MODULE_SPLIT = {
 
 def get_voice_module_by_age_gender(age, gender):
     """Return the VOICE_MODULE_SPLIT entry matching age and gender."""
-    if gender == 'male' and age < 14:
+    gender_norm = str(gender or "").strip().lower()
+    try:
+        age_norm = int(float(age or 25))
+    except Exception:
+        age_norm = 25
+
+    if gender_norm.startswith("male") and age_norm < 14:
         return VOICE_MODULE_SPLIT["Boy"]
-    elif gender == 'female' and age < 14:
+    elif gender_norm.startswith("female") and age_norm < 14:
         return VOICE_MODULE_SPLIT["Girl"]
-    elif gender == 'male' and age >= 14:
+    elif gender_norm.startswith("male") and age_norm >= 14:
         return VOICE_MODULE_SPLIT["Adult_Male"]
-    elif gender == 'female' and age >= 14:
+    elif gender_norm.startswith("female") and age_norm >= 14:
         return VOICE_MODULE_SPLIT["Adult_Female"]
+    elif "man" in gender_norm or "boy" in gender_norm:
+        return VOICE_MODULE_SPLIT["Adult_Male"] if age_norm >= 14 else VOICE_MODULE_SPLIT["Boy"]
+    elif "woman" in gender_norm or "girl" in gender_norm:
+        return VOICE_MODULE_SPLIT["Adult_Female"] if age_norm >= 14 else VOICE_MODULE_SPLIT["Girl"]
     return None
 
 def get_voice_module_by_category(category_str):
