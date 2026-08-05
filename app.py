@@ -1105,6 +1105,16 @@ def get_default_face_voice_for_gender(age, gender):
         return module.get("default_voice", "Adam (Premium Male)")
     return "Adam (Premium Male)"
 
+
+def normalize_gender_label(gender_value):
+    """Normalize DeepFace-style gender outputs into male/female labels."""
+    text = str(gender_value or "").strip().lower()
+    if text in {"male", "man", "boy", "m", "masculine"}:
+        return "male"
+    if text in {"female", "woman", "girl", "f", "feminine"}:
+        return "female"
+    return text
+
 LANGUAGE_VOICE_MAP = {
     "English": ["Adam (Premium Male)", "Rachel (Premium Female)", "Drew (Professional Male)", "Bella (Warm Female)", "Antoni (Deep Male)", "Charlotte (Elegant Female)", "Josh (Young Male)", "Emily (Professional Female)", "James (Narrator Male)", "Sarah (Soothing Female)"],
     "Hindi": ["Arjun (Hindi Male)", "Priya (Hindi Female)", "Ravi (Hindi Professional Male)", "Anjura (Expressive Hindi Female)", "Adit (Youthful Hindi Male)", "Anvi (Soft Hindi Female)"],
@@ -4003,11 +4013,11 @@ def safe_deepface_analyze(image_path, actions=None):
         # Extract gender
         gender_data = face_data.get('gender', {})
         if isinstance(gender_data, dict) and gender_data:
-            detected_gender = max(gender_data, key=gender_data.get).lower().strip()
+            detected_gender = normalize_gender_label(max(gender_data, key=gender_data.get))
         elif isinstance(gender_data, str):
-            detected_gender = gender_data.lower().strip()
+            detected_gender = normalize_gender_label(gender_data)
         else:
-            detected_gender = "Male"
+            detected_gender = "male"
         
         result["gender"] = detected_gender
         
@@ -6646,14 +6656,14 @@ def _resolve_face_voice_config(voice_language=None, voice_label=None, preferred_
     else:
         available_voices = list(ELEVENLABS_VOICES.keys())
 
-    preferred_gender = str(preferred_gender or "").strip().lower()
+    preferred_gender = normalize_gender_label(preferred_gender)
 
     # Filter by gender preference if provided
     if preferred_gender and available_voices:
         gender_filtered = []
         for v in available_voices:
             meta = ELEVENLABS_VOICES.get(v, {})
-            if str(meta.get('gender', '')).strip().lower() == preferred_gender:
+            if normalize_gender_label(meta.get('gender', '')) == preferred_gender:
                 gender_filtered.append(v)
         if gender_filtered:
             available_voices = gender_filtered
@@ -6666,7 +6676,7 @@ def _resolve_face_voice_config(voice_language=None, voice_label=None, preferred_
         default_gender_voice = None
         for voice_name in available_voices:
             meta = ELEVENLABS_VOICES.get(voice_name, {})
-            if str(meta.get("gender", "")).strip().lower() == preferred_gender:
+            if normalize_gender_label(meta.get("gender", "")) == preferred_gender:
                 default_gender_voice = voice_name
                 break
         if default_gender_voice:
@@ -7125,7 +7135,7 @@ def generate_face_video(prompt, face_image_path, duration=30, emotion="neutral",
         scan_result = deepface_scan_face_and_select_voice(face_image_path)
         detected_category = scan_result.get("category", "Adult Male")
         detected_age = scan_result.get("age", 25)
-        detected_gender = scan_result.get("gender", "Male")
+        detected_gender = normalize_gender_label(scan_result.get("gender", "male"))
         
         if voice_label is None or voice_label == "":
             auto_voice = st.session_state.get("fv_auto_selected_voice")
@@ -11390,7 +11400,7 @@ def detect_gender_from_image(image_path):
             logger.warning(f"detect_gender_from_image: Scan failed: {scan_result.get('error')}")
             return None
         
-        detected_gender = scan_result.get("gender", "Male")
+        detected_gender = normalize_gender_label(scan_result.get("gender", "male"))
         detected_age = scan_result.get("age", 25)
         detected_category = scan_result.get("category", "Adult Male")
         detected_voice = scan_result.get("voice_label", "Adam (Premium Male)")
