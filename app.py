@@ -1097,6 +1097,14 @@ def get_voice_module_by_category(category_str):
             return val
     return None
 
+
+def get_default_face_voice_for_gender(age, gender):
+    """Return the canonical default voice for a detected age/gender pair."""
+    module = get_voice_module_by_age_gender(int(age or 25), str(gender or "").strip().lower())
+    if module:
+        return module.get("default_voice", "Adam (Premium Male)")
+    return "Adam (Premium Male)"
+
 LANGUAGE_VOICE_MAP = {
     "English": ["Adam (Premium Male)", "Rachel (Premium Female)", "Drew (Professional Male)", "Bella (Warm Female)", "Antoni (Deep Male)", "Charlotte (Elegant Female)", "Josh (Young Male)", "Emily (Professional Female)", "James (Narrator Male)", "Sarah (Soothing Female)"],
     "Hindi": ["Arjun (Hindi Male)", "Priya (Hindi Female)", "Ravi (Hindi Professional Male)", "Anjura (Expressive Hindi Female)", "Adit (Youthful Hindi Male)", "Anvi (Soft Hindi Female)"],
@@ -6638,12 +6646,14 @@ def _resolve_face_voice_config(voice_language=None, voice_label=None, preferred_
     else:
         available_voices = list(ELEVENLABS_VOICES.keys())
 
+    preferred_gender = str(preferred_gender or "").strip().lower()
+
     # Filter by gender preference if provided
     if preferred_gender and available_voices:
         gender_filtered = []
         for v in available_voices:
             meta = ELEVENLABS_VOICES.get(v, {})
-            if meta.get('gender') == preferred_gender:
+            if str(meta.get('gender', '')).strip().lower() == preferred_gender:
                 gender_filtered.append(v)
         if gender_filtered:
             available_voices = gender_filtered
@@ -6652,6 +6662,15 @@ def _resolve_face_voice_config(voice_language=None, voice_label=None, preferred_
         available_voices = ["Adam (Premium Male)"]
 
     selected_voice = voice_label or st.session_state.get("face_voice_model") or available_voices[0]
+    if preferred_gender in {"male", "female"}:
+        default_gender_voice = None
+        for voice_name in available_voices:
+            meta = ELEVENLABS_VOICES.get(voice_name, {})
+            if str(meta.get("gender", "")).strip().lower() == preferred_gender:
+                default_gender_voice = voice_name
+                break
+        if default_gender_voice:
+            selected_voice = default_gender_voice
     if selected_voice not in available_voices:
         selected_voice = available_voices[0]
 
@@ -7099,6 +7118,9 @@ def generate_face_video(prompt, face_image_path, duration=30, emotion="neutral",
     duration = _clamp_face_video_duration(duration)
 
     # --- DeepFace Auto-Scan: Detect age & gender, auto-select voice --- #
+    detected_gender = None
+    detected_age = 25
+    detected_category = "Adult Male"
     try:
         scan_result = deepface_scan_face_and_select_voice(face_image_path)
         detected_category = scan_result.get("category", "Adult Male")
@@ -7123,6 +7145,10 @@ def generate_face_video(prompt, face_image_path, duration=30, emotion="neutral",
     # --- End DeepFace Auto-Scan --- #
 
     # Resolve voice config
+    if st.session_state.get("fv_gender_auto", False) and detected_gender:
+        voice_label = get_default_face_voice_for_gender(detected_age, detected_gender)
+        st.session_state["face_voice_model"] = voice_label
+
     voice_cfg = _resolve_face_voice_config(
         voice_language=voice_language, 
         voice_label=voice_label, 
@@ -11539,6 +11565,9 @@ def run_face_video_mode():
             
             detected_gender = st.session_state.get("fv_detected_gender")
             if gender_auto and detected_gender and face_available:
+                auto_voice = get_default_face_voice_for_gender(st.session_state.get("fv_detected_age", 25), detected_gender)
+                st.session_state["fv_auto_selected_voice"] = auto_voice
+                st.session_state["face_voice_model"] = auto_voice
                 emoji = "👨" if detected_gender == 'male' else "👩"
                 st.markdown(f"""<div style='background: rgba(69,243,255,0.08); border: 1px solid rgba(69,243,255,0.2); 
                     border-radius: 8px; padding: 8px 12px; margin: 5px 0; display: flex; align-items: center; gap: 8px;'>
