@@ -8077,12 +8077,10 @@ def render_ai_sales_ui():
                                     img_path = st.session_state["sales_product_image"]
                                     quality_sizes = {"Standard": (512, 512), "HD": (768, 768), "4K": (1024, 1024)}
                                     w, h = quality_sizes.get(sales_quality, (512, 512))
-                                    subprocess.run(['ffmpeg', '-y', '-loop', '1', '-i', img_path, '-i', audio_path, '-t', str(max(1.0, float(get_audio_duration(audio_path) or 5))), '-vf', f"scale={w}:{h}:force_original_aspect_ratio=decrease,pad={w}:{h}:(ow-iw)/2:(oh-ih)/2,setsar=1,drawtext=text='{product_name}:fontcolor=white:fontsize=24:box=1:boxcolor=black@0.5:boxborderw=8:x=(w-text_w)/2:y=h-th-20'", '-c:v', 'libx264', '-preset', 'fast', '-crf', '20', '-c:a', 'aac', '-shortest', output_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+                                    safe_name = str(product_name).replace("'", "").replace('"', '')[:40]
+                                    subprocess.run(['ffmpeg', '-y', '-loop', '1', '-i', img_path, '-i', audio_path, '-t', str(max(1.0, float(get_audio_duration(audio_path) or 5))), '-vf', f"scale={w}:{h}:force_original_aspect_ratio=decrease,pad={w}:{h}:(ow-iw)/2:(oh-ih)/2,setsar=1,drawtext=text='{safe_name}':fontcolor=white:fontsize=24:box=1:boxcolor=black@0.5:boxborderw=8:x=(w-text_w)/2:y=h-th-20", '-c:v', 'libx264', '-preset', 'fast', '-crf', '20', '-c:a', 'aac', '-shortest', output_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
                                     if os.path.exists(output_path) and os.path.getsize(output_path) > 1000:
                                         st.session_state["sales_video_output"] = output_path
-                                        st.session_state["sales_product_name"] = product_name
-                                        st.session_state["sales_product_price"] = product_price
-                                        st.session_state["sales_script"] = script
                                         st.toast("✅ Sales video generated!")
                                         st.rerun()
                                     else:
