@@ -8001,6 +8001,250 @@ def render_ai_agent_ui():
 
 
 
+def render_ai_sales_ui():
+    """AI Sales Video Generator - Product videos with AI voice & image"""
+    st.markdown("""
+    <div style="
+        background: linear-gradient(135deg, rgba(236,72,153,0.06), rgba(69,243,255,0.06));
+        border-radius: 16px; border: 1px solid rgba(69,243,255,0.08);
+        padding: 16px 20px; margin-bottom: 18px; text-align: center;
+    ">
+        <span style="display: inline-block; background: rgba(236,72,153,0.12); color: #EC4899;
+            padding: 4px 14px; border-radius: 16px; font-size: 9px;
+            font-family: 'Orbitron', sans-serif; letter-spacing: 1px;
+            border: 1px solid rgba(236,72,153,0.15); margin-bottom: 6px;">🎙️ SALES AI</span>
+        <h2 style="font-family: 'Orbitron', sans-serif; font-size: 20px; color: #FFFFFF; margin: 0;">
+            AI <span style="background: linear-gradient(135deg, #45f3ff, #EC4899);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;">Sales</span> Engine
+        </h2>
+        <p style="font-family: 'Inter', sans-serif; color: #94a3b8; font-size: 12px; margin: 4px 0 0 0;">
+            Generate product sales videos with AI voiceovers in multiple languages
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    col1, col2 = st.columns([1.1, 1.4], gap="medium")
+    with col1:
+        with st.container(border=True):
+            st.markdown('<h4 style="font-family: Orbitron; font-size: 12px; color: #EC4899; margin-bottom: 12px;">⚙️ SALES PARAMETERS</h4>', unsafe_allow_html=True)
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">📷 Product Image</p>', unsafe_allow_html=True)
+            product_image = st.file_uploader("Upload Product Image", type=['jpg', 'jpeg', 'png', 'webp'], key="sales_product_img", label_visibility="collapsed")
+            if product_image:
+                temp_path = f"temp_scenes/sales_product_{uuid.uuid4().hex[:8]}.png"
+                os.makedirs("temp_scenes", exist_ok=True)
+                with open(temp_path, "wb") as f:
+                    f.write(product_image.getbuffer())
+                st.session_state["sales_product_image"] = temp_path
+                st.image(temp_path, caption="Product Image", use_container_width=True)
+
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">🏷️ Product Name</p>', unsafe_allow_html=True)
+            product_name = st.text_input("Product Name", placeholder="e.g. Premium Wireless Earbuds", key="sales_product_name", label_visibility="collapsed")
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">💰 Price</p>', unsafe_allow_html=True)
+            product_price = st.text_input("Price", placeholder="e.g. Rs. 999", key="sales_product_price", label_visibility="collapsed")
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">🌐 Language</p>', unsafe_allow_html=True)
+            sales_language = st.selectbox("Language", ["Hindi", "English", "Hinglish", "Bhojpuri", "French", "Japanese"], key="sales_language", label_visibility="collapsed")
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">🎤 Voice Profile</p>', unsafe_allow_html=True)
+            voice_options = list(ELEVENLABS_VOICES.keys())
+            sales_voice = st.selectbox("Voice", voice_options, key="sales_voice", label_visibility="collapsed")
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">📊 Quality</p>', unsafe_allow_html=True)
+            sales_quality = st.selectbox("Quality", ["Standard", "HD", "4K"], key="sales_quality", label_visibility="collapsed")
+
+            if st.button("🎙️ Generate Sales Video", key="sales_generate_btn", use_container_width=True):
+                if not product_name.strip():
+                    st.error("Please enter a product name.")
+                elif not st.session_state.get("sales_product_image"):
+                    st.error("Please upload a product image.")
+                else:
+                    quality_map = {"Standard": 3, "HD": 4, "4K": 6}
+                    required_tokens = quality_map.get(sales_quality, 3)
+                    if st.session_state.get('user_credits', 0) < required_tokens:
+                        st.error(f"Insufficient credits! Required: {required_tokens}, Available: {st.session_state.get('user_credits', 0)}")
+                    else:
+                        deduct_credits_db(st.session_state["logged_user"], required_tokens)
+                        st.session_state['user_credits'] = get_user_credits_db(st.session_state["logged_user"])
+                        with st.spinner(f"Generating {sales_language} sales video..."):
+                            try:
+                                script = f"Introducing {product_name} at just {product_price}! Amazing quality, best in class. Buy now!"
+                                audio_path = f"face_videos/sales_audio_{uuid.uuid4().hex[:8]}.mp3"
+                                voice_meta = ELEVENLABS_VOICES.get(sales_voice, {})
+                                voice_id = voice_meta.get("id", "21m00Tcm4TlvDq8ikWAM")
+                                audio_ok = generate_elevenlabs_audio_for_face(script, audio_path, voice_id)
+                                if not audio_ok:
+                                    audio_ok = AudioEngine.run_fallback_tts(text=script, output_filename=audio_path, language_choice=f"🇮🇳 Hinglish (Fluent Hindi Mix)" if sales_language in ["Hindi", "Hinglish"] else "🇬🇧 English (US Standard)", voice_profile=sales_voice)
+                                if audio_ok and os.path.exists(audio_path):
+                                    output_path = f"face_videos/sales_video_{uuid.uuid4().hex[:8]}.mp4"
+                                    img_path = st.session_state["sales_product_image"]
+                                    quality_sizes = {"Standard": (512, 512), "HD": (768, 768), "4K": (1024, 1024)}
+                                    w, h = quality_sizes.get(sales_quality, (512, 512))
+                                    subprocess.run(['ffmpeg', '-y', '-loop', '1', '-i', img_path, '-i', audio_path, '-t', str(max(1.0, float(get_audio_duration(audio_path) or 5))), '-vf', f"scale={w}:{h}:force_original_aspect_ratio=decrease,pad={w}:{h}:(ow-iw)/2:(oh-ih)/2,setsar=1,drawtext=text='{product_name}:fontcolor=white:fontsize=24:box=1:boxcolor=black@0.5:boxborderw=8:x=(w-text_w)/2:y=h-th-20'", '-c:v', 'libx264', '-preset', 'fast', '-crf', '20', '-c:a', 'aac', '-shortest', output_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+                                    if os.path.exists(output_path) and os.path.getsize(output_path) > 1000:
+                                        st.session_state["sales_video_output"] = output_path
+                                        st.session_state["sales_product_name"] = product_name
+                                        st.session_state["sales_product_price"] = product_price
+                                        st.session_state["sales_script"] = script
+                                        st.toast("✅ Sales video generated!")
+                                        st.rerun()
+                                    else:
+                                        st.error("Video generation failed.")
+                                else:
+                                    st.error("Audio generation failed.")
+                            except Exception as e:
+                                st.error(f"Error: {str(e)}")
+
+    with col2:
+        with st.container(border=True):
+            st.markdown('<h3 style="font-family: Orbitron; font-size: 14px; color: #EC4899; margin-bottom: 12px;">🎬 SALES VIDEO OUTPUT</h3>', unsafe_allow_html=True)
+            sales_output = st.session_state.get("sales_video_output")
+            if sales_output and os.path.exists(sales_output):
+                st.video(sales_output)
+                col_dl, col_clr = st.columns(2)
+                with col_dl:
+                    with open(sales_output, "rb") as f:
+                        st.download_button("📥 Download", data=f.read(), file_name=f"sales_video_{uuid.uuid4().hex[:8]}.mp4", mime="video/mp4", use_container_width=True)
+                with col_clr:
+                    if st.button("Clear", key="sales_clear", use_container_width=True):
+                        safe_remove_file(sales_output)
+                        st.session_state["sales_video_output"] = None
+                        st.rerun()
+            else:
+                st.info("No sales video generated yet. Upload product image and fill details.")
+
+def generate_dynamic_ui():
+    """Dynamic UI Mode - AI-Powered Interface Customization"""
+    st.markdown("""
+    <div style="
+        background: linear-gradient(135deg, rgba(236,72,153,0.06), rgba(69,243,255,0.06));
+        border-radius: 16px; border: 1px solid rgba(69,243,255,0.08);
+        padding: 16px 20px; margin-bottom: 18px; text-align: center;
+    ">
+        <span style="display: inline-block; background: rgba(236,72,153,0.12); color: #EC4899;
+            padding: 4px 14px; border-radius: 16px; font-size: 9px;
+            font-family: 'Orbitron', sans-serif; letter-spacing: 1px;
+            border: 1px solid rgba(236,72,153,0.15); margin-bottom: 6px;">🧠 ADAPTIVE UI</span>
+        <h2 style="font-family: 'Orbitron', sans-serif; font-size: 20px; color: #FFFFFF; margin: 0;">
+            Dynamic <span style="background: linear-gradient(135deg, #45f3ff, #EC4899);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;">UI</span> Engine
+        </h2>
+        <p style="font-family: 'Inter', sans-serif; color: #94a3b8; font-size: 12px; margin: 4px 0 0 0;">
+            AI learns your behavior and adapts the interface automatically
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    col1, col2 = st.columns([1.1, 1.4], gap="medium")
+    with col1:
+        with st.container(border=True):
+            st.markdown('<h4 style="font-family: Orbitron; font-size: 12px; color: #EC4899; margin-bottom: 12px;">🧠 BEHAVIOR PROFILE</h4>', unsafe_allow_html=True)
+            profile = st.selectbox("UI Experience Level", ["beginner", "intermediate", "advanced"], key="dyn_ui_profile", label_visibility="collapsed")
+            st.session_state["dynamic_ui_profile_mode"] = profile
+            st.session_state["user_behavior_profile"] = profile
+            theme = st.selectbox("Theme Mode", ["Auto", "Dark", "Light"], key="dyn_ui_theme", label_visibility="collapsed")
+            st.session_state["ui_theme_mode"] = theme
+            if profile == "beginner":
+                st.info("🧑 Beginner mode: Simplified interface with tooltips and guided workflows")
+            elif profile == "intermediate":
+                st.info("👨‍💻 Intermediate mode: Balanced interface with moderate complexity")
+            else:
+                st.info("🧑‍🔬 Advanced mode: Full control with expert tools and shortcuts")
+
+            if st.button("Apply UI Settings", key="dyn_ui_apply", use_container_width=True):
+                st.toast(f"UI Profile set to {profile.title()}!")
+                st.rerun()
+
+    with col2:
+        with st.container(border=True):
+            st.markdown('<h3 style="font-family: Orbitron; font-size: 14px; color: #EC4899; margin-bottom: 12px;">📊 DYNAMIC UI PANEL</h3>', unsafe_allow_html=True)
+            profile = st.session_state.get("dynamic_ui_profile_mode", "intermediate")
+            theme = st.session_state.get("ui_theme_mode", "auto")
+            st.markdown(f"""
+            <div style="background: rgba(69,243,255,0.04); border: 1px solid rgba(69,243,255,0.08); border-radius: 12px; padding: 14px;">
+                <p style="font-size: 12px; color: #94a3b8;">🧠 Active Profile: <b style="color: #45f3ff;">{profile.title()}</b></p>
+                <p style="font-size: 12px; color: #94a3b8;">🎨 Theme: <b style="color: #45f3ff;">{theme.title()}</b></p>
+                <p style="font-size: 12px; color: #94a3b8;">🧑 Behavior: <b style="color: #45f3ff;">{st.session_state.get('user_behavior_profile', 'beginner').title()}</b></p>
+            </div>
+            """, unsafe_allow_html=True)
+
+def render_live_emotion_voice():
+    """Live Emotion Voice Mode - Emotion-based TTS generation"""
+    st.markdown("""
+    <div style="
+        background: linear-gradient(135deg, rgba(236,72,153,0.06), rgba(69,243,255,0.06));
+        border-radius: 16px; border: 1px solid rgba(69,243,255,0.08);
+        padding: 16px 20px; margin-bottom: 18px; text-align: center;
+    ">
+        <span style="display: inline-block; background: rgba(236,72,153,0.12); color: #EC4899;
+            padding: 4px 14px; border-radius: 16px; font-size: 9px;
+            font-family: 'Orbitron', sans-serif; letter-spacing: 1px;
+            border: 1px solid rgba(236,72,153,0.15); margin-bottom: 6px;">🎤 LIVE TTS</span>
+        <h2 style="font-family: 'Orbitron', sans-serif; font-size: 20px; color: #FFFFFF; margin: 0;">
+            Live <span style="background: linear-gradient(135deg, #45f3ff, #EC4899);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;">Emotion</span> Voice
+        </h2>
+        <p style="font-family: 'Inter', sans-serif; color: #94a3b8; font-size: 12px; margin: 4px 0 0 0;">
+            Generate emotion-rich voiceovers with customizable emotions
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    col1, col2 = st.columns([1.1, 1.4], gap="medium")
+    with col1:
+        with st.container(border=True):
+            st.markdown('<h4 style="font-family: Orbitron; font-size: 12px; color: #EC4899; margin-bottom: 12px;">🎤 EMOTION PARAMETERS</h4>', unsafe_allow_html=True)
+            emotion_text = st.text_area("Text to speak", placeholder="Enter text for emotional voice generation...", height=100, key="emotion_voice_text_input")
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">😊 Select Emotion</p>', unsafe_allow_html=True)
+            emotion = st.selectbox("Emotion", ["neutral", "happy", "sad", "angry", "excited", "fearful", "mysterious", "serious"], key="emotion_voice_select", label_visibility="collapsed")
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">🎤 Voice Gender</p>', unsafe_allow_html=True)
+            voice_gender = st.selectbox("Voice Gender", ["male", "female"], key="emotion_voice_gender", label_visibility="collapsed")
+            voice_opts = [v for v, m in ELEVENLABS_VOICES.items() if m.get('gender') == voice_gender]
+            emotion_voice = st.selectbox("Voice", voice_opts or list(ELEVENLABS_VOICES.keys()), key="emotion_voice_voice", label_visibility="collapsed")
+
+            if st.button("🎤 Generate Emotion Voice", key="emotion_generate_btn", use_container_width=True):
+                if not emotion_text.strip():
+                    st.error("Please enter text.")
+                else:
+                    with st.spinner(f"Generating {emotion} voice..."):
+                        try:
+                            voice_meta = ELEVENLABS_VOICES.get(emotion_voice, {})
+                            voice_id = voice_meta.get("id", "21m00Tcm4TlvDq8ikWAM")
+                            output_path = f"face_videos/emotion_voice_{uuid.uuid4().hex[:8]}.mp3"
+                            audio_ok = generate_elevenlabs_audio_for_face(emotion_text, output_path, voice_id)
+                            if not audio_ok:
+                                audio_ok = AudioEngine.run_fallback_tts(text=emotion_text, output_filename=output_path, language_choice="🇬🇧 English (US Standard)", voice_profile=emotion_voice)
+                            if audio_ok and os.path.exists(output_path):
+                                st.session_state["emotion_voice_output"] = output_path
+                                st.session_state["emotion_voice_text"] = emotion_text
+                                st.session_state["emotion_voice_emotion"] = emotion
+                                st.toast(f"✅ {emotion.title()} voice generated!")
+                                st.rerun()
+                            else:
+                                st.error("Voice generation failed.")
+                        except Exception as e:
+                            st.error(f"Error: {str(e)}")
+
+    with col2:
+        with st.container(border=True):
+            st.markdown('<h3 style="font-family: Orbitron; font-size: 14px; color: #EC4899; margin-bottom: 12px;">🎧 VOICE OUTPUT</h3>', unsafe_allow_html=True)
+            audio_output = st.session_state.get("emotion_voice_output")
+            emotion_used = st.session_state.get("emotion_voice_emotion", "neutral")
+            text_used = st.session_state.get("emotion_voice_text", "")
+            if audio_output and os.path.exists(audio_output):
+                emoji_map = {"neutral": "😐", "happy": "😊", "sad": "😢", "angry": "😡", "excited": "🤩", "fearful": "😨", "mysterious": "🕵️", "serious": "😤"}
+                st.markdown(f"**Emotion:** {emoji_map.get(emotion_used, '😐')} {emotion_used.title()}")
+                st.audio(audio_output)
+                if text_used:
+                    st.caption(f'"{text_used[:100]}..."' if len(text_used) > 100 else f'"{text_used}"')
+                with open(audio_output, "rb") as f:
+                    st.download_button("📥 Download Audio", data=f.read(), file_name=f"emotion_voice_{emotion_used}.mp3", mime="audio/mpeg", use_container_width=True)
+                if st.button("Clear", key="emotion_clear", use_container_width=True):
+                    safe_remove_file(audio_output)
+                    st.session_state["emotion_voice_output"] = None
+                    st.rerun()
+            else:
+                st.info("No voice generated yet. Enter text and select emotion.")
+
 def analyze_blueprint(blueprint_path):
     """Analyze blueprint image and extract basic information"""
     if not blueprint_path or not os.path.exists(blueprint_path):
