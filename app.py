@@ -98,8 +98,8 @@ SYSTEM_CONFIG = {
 }
 
 # API Keys - ALL REAL
-RAZORPAY_KEY_ID = get_system_secret("RAZORPAY_KEY_ID")
-RAZORPAY_KEY_SECRET = get_system_secret("RAZORPAY_KEY_SECRET")
+RAZORPAY_KEY_ID = st.secrets.get("RAZORPAY_KEY_ID")
+RAZORPAY_KEY_SECRET = st.secrets.get("RAZORPAY_KEY_SECRET")
 PIXABAY_API_KEY = get_system_secret("PIXABAY_API_KEY")
 PEXELS_API_KEY = get_system_secret("PEXELS_API_KEY")
 STABILITY_API_KEY = get_system_secret("STABILITY_API_KEY")
@@ -992,7 +992,10 @@ if "sales_video_output" not in st.session_state:
 
 try:
     if razorpay is not None:
-        razorpay_client = razorpay.Client(auth=(RAZORPAY_KEY_ID or "mock", RAZORPAY_KEY_SECRET or "mock"))
+        if RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET:
+            razorpay_client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
+        else:
+            razorpay_client = None
     else:
         razorpay_client = None
 except Exception:
@@ -2227,30 +2230,22 @@ def get_support_tier(username):
 
 def create_payment_order(amount_paise, plan_name=""):
     """Create real Razorpay order"""
-    if not RAZORPAY_KEY_ID or not RAZORPAY_KEY_SECRET or RAZORPAY_KEY_ID == "mock" or RAZORPAY_KEY_SECRET == "mock":
-        logger.error("Razorpay keys not configured properly")
-        return {
-            "id": f"order_mock_{uuid.uuid4().hex[:8]}",
-            "amount": int(amount_paise),
-            "status": "mock",
-            "debug": "Razorpay keys not configured. Please add valid keys."
-        }
+    if not RAZORPAY_KEY_ID or not RAZORPAY_KEY_SECRET:
+        message = "Razorpay keys are missing. Add RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET in Streamlit secrets."
+        logger.error(message)
+        st.error(f"❌ {message}")
+        return None
 
     try:
         if razorpay is None:
             raise ImportError("Razorpay Python package is not installed.")
 
         client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
-        data = {
+        order = client.order.create({
             "amount": int(amount_paise),
             "currency": "INR",
-            "receipt": f"receipt_{int(time.time())}",
-            "notes": {
-                "plan": str(plan_name or "Zovix Credits"),
-                "user": st.session_state.get("logged_user", "guest")
-            }
-        }
-        order = client.order.create(data=data)
+            "payment_capture": 1
+        })
         if isinstance(order, dict) and order.get("id"):
             logger.info(f"Razorpay order created: {order['id']}")
             return {
@@ -2263,16 +2258,12 @@ def create_payment_order(amount_paise, plan_name=""):
         raise ValueError(f"Unexpected Razorpay payload: {order}")
     except Exception as e:
         logger.error(f"Razorpay order error: {e}")
-        return {
-            "id": f"order_mock_{uuid.uuid4().hex[:8]}",
-            "amount": int(amount_paise),
-            "status": "error",
-            "debug": str(e)
-        }
+        st.error(f"❌ Failed to create Razorpay order: {e}")
+        return None
 
 def verify_payment_signature(order_id, payment_id, signature):
     """Verify Razorpay payment signature"""
-    if not RAZORPAY_KEY_SECRET or RAZORPAY_KEY_SECRET == "mock":
+    if not RAZORPAY_KEY_SECRET:
         return True
     try:
         client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
@@ -2659,9 +2650,8 @@ def render_payment_modal():
 
                 # ---- PAY WITH RAZORPAY BUTTON ----
                 if st.button("💳 Pay with Razorpay", key="razorpay_pay_btn", use_container_width=True):
-                    if not RAZORPAY_KEY_ID or RAZORPAY_KEY_ID == "mock":
-                        st.error("❌ Razorpay not configured. Please add Razorpay keys in environment variables.")
-                        st.info("Add: RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET to your .env file")
+                    if not RAZORPAY_KEY_ID or not RAZORPAY_KEY_SECRET:
+                        st.error("❌ Razorpay not configured. Add RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET in Streamlit secrets.")
                     else:
                         amount_paise = int(amount * 100)
                         order = create_payment_order(amount_paise, plan_name)
@@ -3199,7 +3189,7 @@ def try_auto_finalize_razorpay_payment():
     if not order_id or not username or credits_to_add <= 0:
         return
 
-    if not RAZORPAY_KEY_ID or not RAZORPAY_KEY_SECRET or RAZORPAY_KEY_ID == "mock" or RAZORPAY_KEY_SECRET == "mock":
+    if not RAZORPAY_KEY_ID or not RAZORPAY_KEY_SECRET:
         return
 
     if razorpay is None:
@@ -3255,7 +3245,7 @@ def reconcile_pending_razorpay_payments(username):
     if not username:
         return
 
-    if not RAZORPAY_KEY_ID or not RAZORPAY_KEY_SECRET or RAZORPAY_KEY_ID == "mock" or RAZORPAY_KEY_SECRET == "mock":
+    if not RAZORPAY_KEY_ID or not RAZORPAY_KEY_SECRET:
         return
 
     if razorpay is None:
