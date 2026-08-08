@@ -12476,9 +12476,12 @@ def run_unified_face_video_mode():
                 "Dialogue / Script",
                 placeholder="Type what the person should speak naturally...",
                 height=80,
+                max_chars=120,
                 key="unified_fv_prompt",
-                label_visibility="collapsed"
+                label_visibility="collapsed",
+                help="Starter plan allows max 120 characters (~10-12 seconds video)."
             )
+            st.caption(f"{len(face_prompt)}/120 characters")
             
             # Duration & Quality
             col_f1, col_f2 = st.columns(2)
@@ -12545,7 +12548,9 @@ def run_unified_face_video_mode():
                         # Generate Button - Pure Replicate Cloud Engine ☁️
             if st.button("🌍 Generate Global Face Video", key="unified_fv_generate_btn", use_container_width=True):
                             if not face_prompt or not face_prompt.strip():
-                                st.error("Please enter a dialogue/script for the face video.")
+                                st.error("Kripya pehle text script likhein!")
+                            elif len(face_prompt) > 120:
+                                st.error("Starter plan par max 120 characters allow hain (~10 sec video). Chhota script likhein ya Pro plan lein!")
                             elif not face_image_upload:
                                 st.error("Please upload a face photo first.")
                             else:
