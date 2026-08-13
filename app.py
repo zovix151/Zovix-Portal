@@ -813,6 +813,8 @@ if "render_status" not in st.session_state:
     st.session_state["render_status"] = "idle"
 if "studio_prompt_value" not in st.session_state:
     st.session_state["studio_prompt_value"] = ""
+if "user_prompt" not in st.session_state:
+    st.session_state["user_prompt"] = st.session_state.get("studio_prompt_value", "")
 if "studio_prompt_mode" not in st.session_state:
     st.session_state["studio_prompt_mode"] = "💡 Autonomous AI Topic"
 if "workshop_active_image" not in st.session_state:
@@ -13592,16 +13594,16 @@ def run_cinematic_engine():
             label_visibility="collapsed"
         )
         
-        initial_topic_val = st.session_state.get("studio_prompt_value", "")
+        if not st.session_state.get("user_prompt") and st.session_state.get("studio_prompt_value"):
+            st.session_state["user_prompt"] = st.session_state.get("studio_prompt_value", "")
         
         if input_mode == "🧠 DeepSeek AI Blueprint":
             user_input = st.text_area(
                 "Prompt Input",
-                value=initial_topic_val,
                 placeholder="Explain video concept: e.g. Ek kisan ke paas do beej the...",
                 height=90,
                 label_visibility="collapsed",
-                key="studio_prompt_deepseek_input"
+                key="user_prompt"
             )
             
             st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">📐 Aspect Ratio</p>', unsafe_allow_html=True)
@@ -13625,6 +13627,7 @@ def run_cinematic_engine():
                             st.session_state["deepseek_blueprint_data"] = blueprint
                             st.session_state["deepseek_blueprint_visible"] = True
                             st.session_state["studio_prompt_value"] = user_input
+                            st.session_state["user_prompt"] = user_input
                             st.toast("✅ Blueprint generated successfully!")
                             st.rerun()
 
@@ -13691,6 +13694,7 @@ def run_cinematic_engine():
                         st.session_state["blueprint_scenes"] = scenes
                         st.session_state["blueprint_mood"] = mood
                         st.session_state["studio_prompt_value"] = description or title
+                        st.session_state["user_prompt"] = description or title
                     st.success("✅ Blueprint loaded! Now click Generate to create video.")
                     st.toast("Blueprint ready for generation! 🚀")
 
@@ -13703,12 +13707,11 @@ def run_cinematic_engine():
         else:
             user_input = st.text_area(
                 "Prompt Input",
-                value=initial_topic_val,
                 placeholder="Explain video concept: e.g. Bermuda triangle ka ansuljha rahasya jo kisi ko nahi pata tha." if input_mode == "💡 Autonomous AI Topic" 
                 else "Write a custom script separated by paragraph breaks...",
                 height=90,
                 label_visibility="collapsed",
-                key="studio_prompt_standard_input"
+                key="user_prompt"
             )
         
         # Render Quality
@@ -13727,6 +13730,7 @@ def run_cinematic_engine():
                 if not user_input.strip():
                     st.error("Please enter a video topic or script.")
                 else:
+                    st.session_state["studio_prompt_value"] = user_input
                     try:
                         # Step 1: Validate tokens
                         success, required_tokens, message = validate_and_deduct_tokens("Cinematic Engine", cinematic_quality)
@@ -15766,9 +15770,30 @@ def render_engine_portfolio_section():
     st.markdown("<h3 style='font-family: Orbitron; font-size: 16px; color: #EC4899; margin-bottom: 15px; letter-spacing: 0.5px;'>📈 GLOBAL TRENDING HOT TOPICS (ONE-CLICK IMPORT)</h3>", unsafe_allow_html=True)
     trend_cols = st.columns(3)
     mock_trends = [
-        {"hashtag": "#InterstellarVoid", "category": "Space Mysteries", "title": "Astronomers record unexplained radio whispers emitting from interstellar coordinates.", "clicks": "142K views/hr"},
-        {"hashtag": "#DwarkaRuins", "category": "Mythology Mysteries", "title": "Submerged architectural monoliths matching descriptions of Dwarka found near seafloor.", "clicks": "98K views/hr"},
-        {"hashtag": "#PratfallEffect", "category": "Dark Psychology", "title": "Why flawed charismatic leaders trigger obsessive loyalty inside digital echo chambers.", "clicks": "210K views/hr"}
+        {
+            "trend_id": "InterstellarVoid",
+            "hashtag": "#InterstellarVoid",
+            "category": "Space Mysteries",
+            "title": "Astronomers record unexplained radio whispers emitting from interstellar coordinates.",
+            "clicks": "142K views/hr",
+            "prompt": "Create a high-retention cinematic documentary script on #InterstellarVoid. Hook in first 3 seconds with an impossible radio signal from deep space. Build 4 scenes: discovery timeline, decoded frequency patterns, expert conflict, and chilling unresolved conclusion. Use dramatic Hinglish narration, curiosity loops, and CTA: 'Signal kisne bheja?'."
+        },
+        {
+            "trend_id": "DwarkaRuins",
+            "hashtag": "#DwarkaRuins",
+            "category": "Mythology Mysteries",
+            "title": "Submerged architectural monoliths matching descriptions of Dwarka found near seafloor.",
+            "clicks": "98K views/hr",
+            "prompt": "Generate a viral mytho-history cinematic script for #DwarkaRuins. Start with a powerful hook about city beneath the sea. Cover sonar evidence, scripture references, archaeologist viewpoints, and debate between faith vs science. Tone should be epic, emotional, and suspenseful with scene-ready visual cues."
+        },
+        {
+            "trend_id": "PratfallEffect",
+            "hashtag": "#PratfallEffect",
+            "category": "Dark Psychology",
+            "title": "Why flawed charismatic leaders trigger obsessive loyalty inside digital echo chambers.",
+            "clicks": "210K views/hr",
+            "prompt": "Write a sharp dark-psychology explainer on #PratfallEffect for short-form video. Open with a shocking example, then break down why visible flaws increase trust, how echo chambers amplify obedience, and how audiences can detect manipulation. Keep language punchy, evidence-based, and ending actionable."
+        }
     ]
     for idx_t, trend in enumerate(mock_trends):
         with trend_cols[idx_t]:
@@ -15781,10 +15806,11 @@ def render_engine_portfolio_section():
                     <div style="font-size: 11px; color:#ffffff; font-weight:bold; height: 38px; overflow:hidden;">{trend["title"]}</div>
                     <div style="font-size: 10px; color: #EC4899; margin-bottom: 10px;">Channel: {trend["category"]}</div>
                 """, unsafe_allow_html=True)
-                if st.button(f"One-Click Import Trend", key=f"import_trend_action_btn_{idx_t}", use_container_width=True):
-                    st.session_state["studio_prompt_value"] = trend["title"]
+                if st.button("ONE-CLICK IMPORT TREND", key=f"import_{trend['trend_id']}", use_container_width=True):
+                    st.session_state["user_prompt"] = trend["prompt"]
+                    st.session_state["studio_prompt_value"] = trend["prompt"]
                     st.session_state["studio_prompt_mode"] = "💡 Autonomous AI Topic"
-                    st.toast("Success! Hot Topic imported.")
+                    st.toast("Trend prompt imported successfully!")
                     st.rerun()
 
     st.markdown("<br>", unsafe_allow_html=True)
@@ -16371,9 +16397,30 @@ def run_production_engine_mode():
     st.markdown("<h3 style='font-family: Orbitron; font-size: 16px; color: #EC4899; margin-bottom: 15px; letter-spacing: 0.5px;'>📈 GLOBAL TRENDING HOT TOPICS (ONE-CLICK IMPORT)</h3>", unsafe_allow_html=True)
     trend_cols = st.columns(3)
     mock_trends = [
-        {"hashtag": "#InterstellarVoid", "category": "Space Mysteries", "title": "Astronomers record unexplained radio whispers emitting from interstellar coordinates.", "clicks": "142K views/hr"},
-        {"hashtag": "#DwarkaRuins", "category": "Mythology Mysteries", "title": "Submerged architectural monoliths matching descriptions of Dwarka found near seafloor.", "clicks": "98K views/hr"},
-        {"hashtag": "#PratfallEffect", "category": "Dark Psychology", "title": "Why flawed charismatic leaders trigger obsessive loyalty inside digital echo chambers.", "clicks": "210K views/hr"}
+        {
+            "trend_id": "InterstellarVoid",
+            "hashtag": "#InterstellarVoid",
+            "category": "Space Mysteries",
+            "title": "Astronomers record unexplained radio whispers emitting from interstellar coordinates.",
+            "clicks": "142K views/hr",
+            "prompt": "Create a high-retention cinematic documentary script on #InterstellarVoid. Hook in first 3 seconds with an impossible radio signal from deep space. Build 4 scenes: discovery timeline, decoded frequency patterns, expert conflict, and chilling unresolved conclusion. Use dramatic Hinglish narration, curiosity loops, and CTA: 'Signal kisne bheja?'."
+        },
+        {
+            "trend_id": "DwarkaRuins",
+            "hashtag": "#DwarkaRuins",
+            "category": "Mythology Mysteries",
+            "title": "Submerged architectural monoliths matching descriptions of Dwarka found near seafloor.",
+            "clicks": "98K views/hr",
+            "prompt": "Generate a viral mytho-history cinematic script for #DwarkaRuins. Start with a powerful hook about city beneath the sea. Cover sonar evidence, scripture references, archaeologist viewpoints, and debate between faith vs science. Tone should be epic, emotional, and suspenseful with scene-ready visual cues."
+        },
+        {
+            "trend_id": "PratfallEffect",
+            "hashtag": "#PratfallEffect",
+            "category": "Dark Psychology",
+            "title": "Why flawed charismatic leaders trigger obsessive loyalty inside digital echo chambers.",
+            "clicks": "210K views/hr",
+            "prompt": "Write a sharp dark-psychology explainer on #PratfallEffect for short-form video. Open with a shocking example, then break down why visible flaws increase trust, how echo chambers amplify obedience, and how audiences can detect manipulation. Keep language punchy, evidence-based, and ending actionable."
+        }
     ]
     for idx_t, trend in enumerate(mock_trends):
         with trend_cols[idx_t]:
@@ -16386,10 +16433,11 @@ def run_production_engine_mode():
                     <div style="font-size: 11px; color:#ffffff; font-weight:bold; height: 38px; overflow:hidden;">{trend["title"]}</div>
                     <div style="font-size: 10px; color: #EC4899; margin-bottom: 10px;">Channel: {trend["category"]}</div>
                 """, unsafe_allow_html=True)
-                if st.button(f"One-Click Import Trend", key=f"import_trend_action_btn_{idx_t}", use_container_width=True):
-                    st.session_state["studio_prompt_value"] = trend["title"]
+                if st.button("ONE-CLICK IMPORT TREND", key=f"import_{trend['trend_id']}_alt", use_container_width=True):
+                    st.session_state["user_prompt"] = trend["prompt"]
+                    st.session_state["studio_prompt_value"] = trend["prompt"]
                     st.session_state["studio_prompt_mode"] = "💡 Autonomous AI Topic"
-                    st.toast("Success! Hot Topic imported.")
+                    st.toast("Trend prompt imported successfully!")
                     st.rerun()
     
     st.markdown("<br>", unsafe_allow_html=True)
