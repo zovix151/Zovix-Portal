@@ -1339,7 +1339,7 @@ GLOBAL_PLANS = {
             "badge": "",
             "color": "#64748b",
             "description": "Free plan with limited features"
-            
+
         },
         "standard": {
             "name": "Standard",
@@ -2420,7 +2420,7 @@ def clear_payment_state():
     st.session_state["payment_processing"] = False
 
 def render_enhanced_payment_ui():
-    st.markdown("<h4 style='font-family: Orbitron; color: #FFC0CB;'>💎 Buy Credits</h4>", unsafe_allow_html=True)
+    st.markdown("<h4 style='font-family: Orbitron; color: #EC4899;'>💎 Buy Credits</h4>", unsafe_allow_html=True)
 
     if st.session_state.get("razorpay_popup_requested", False):
         st.info("🪟 Razorpay checkout popup request was sent. If it did not open, please allow popups for this site.")
