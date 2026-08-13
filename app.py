@@ -15454,6 +15454,15 @@ def get_voice_client():
 
 def render_engine_portfolio_section():
     """Render the shared portfolio, history, trending, and footer section below any engine page."""
+    if "user_prompt" not in st.session_state:
+        st.session_state["user_prompt"] = st.session_state.get("studio_prompt_value", "")
+
+    def set_trend_prompt(prompt_text):
+        st.session_state["user_prompt"] = prompt_text
+        st.session_state["studio_prompt_value"] = prompt_text
+        st.session_state["studio_prompt_mode"] = "💡 Autonomous AI Topic"
+        st.toast("Trend prompt imported successfully!")
+
     st.markdown("<hr style='border-color: rgba(255,255,255,0.06); margin: 25px 0;'>", unsafe_allow_html=True)
 
     current_mode = st.session_state.get("studio_active_mode", "Cinematic Engine")
@@ -15806,12 +15815,13 @@ def render_engine_portfolio_section():
                     <div style="font-size: 11px; color:#ffffff; font-weight:bold; height: 38px; overflow:hidden;">{trend["title"]}</div>
                     <div style="font-size: 10px; color: #EC4899; margin-bottom: 10px;">Channel: {trend["category"]}</div>
                 """, unsafe_allow_html=True)
-                if st.button("ONE-CLICK IMPORT TREND", key=f"import_{trend['trend_id']}", use_container_width=True):
-                    st.session_state["user_prompt"] = trend["prompt"]
-                    st.session_state["studio_prompt_value"] = trend["prompt"]
-                    st.session_state["studio_prompt_mode"] = "💡 Autonomous AI Topic"
-                    st.toast("Trend prompt imported successfully!")
-                    st.rerun()
+                st.button(
+                    "ONE-CLICK IMPORT TREND",
+                    key=f"btn_import_{idx_t}",
+                    on_click=set_trend_prompt,
+                    args=(trend["prompt"],),
+                    use_container_width=True,
+                )
 
     st.markdown("<br>", unsafe_allow_html=True)
     with st.expander("ℹ Engine Technical Specs & Policies", expanded=False):
@@ -16433,12 +16443,13 @@ def run_production_engine_mode():
                     <div style="font-size: 11px; color:#ffffff; font-weight:bold; height: 38px; overflow:hidden;">{trend["title"]}</div>
                     <div style="font-size: 10px; color: #EC4899; margin-bottom: 10px;">Channel: {trend["category"]}</div>
                 """, unsafe_allow_html=True)
-                if st.button("ONE-CLICK IMPORT TREND", key=f"import_{trend['trend_id']}_alt", use_container_width=True):
-                    st.session_state["user_prompt"] = trend["prompt"]
-                    st.session_state["studio_prompt_value"] = trend["prompt"]
-                    st.session_state["studio_prompt_mode"] = "💡 Autonomous AI Topic"
-                    st.toast("Trend prompt imported successfully!")
-                    st.rerun()
+                st.button(
+                    "ONE-CLICK IMPORT TREND",
+                    key=f"import_{trend['trend_id']}_alt",
+                    use_container_width=True,
+                    on_click=set_trend_prompt,
+                    args=(trend["prompt"],),
+                )
     
     st.markdown("<br>", unsafe_allow_html=True)
     with st.expander("ℹ Engine Technical Specs & Policies", expanded=False):

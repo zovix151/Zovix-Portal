@@ -14456,3 +14456,19 @@ detail: - input.audio: Invalid type. Expected: string, given: null
 2026-08-13 12:11:16,936 - Zovix - INFO - Load balancer initialized with 4 workers
 2026-08-13 12:11:18,964 - Zovix - INFO - Redis cache connected
 2026-08-13 12:11:18,969 - Zovix - INFO - Database initialized successfully
+2026-08-13 20:13:42,483 - Zovix - INFO - Redis connected for rate limiting
+2026-08-13 20:13:42,500 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-13 20:13:44,539 - Zovix - INFO - Redis cache connected
+2026-08-13 20:13:44,559 - Zovix - INFO - Database initialized successfully
+2026-08-13 20:14:06,935 - Zovix - INFO - Redis connected for rate limiting
+2026-08-13 20:14:06,936 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-13 20:14:08,990 - Zovix - INFO - Redis cache connected
+2026-08-13 20:14:08,999 - Zovix - INFO - Database initialized successfully
+2026-08-13 20:14:18,059 - Zovix - INFO - Redis connected for rate limiting
+2026-08-13 20:14:18,060 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-13 20:14:20,112 - Zovix - INFO - Redis cache connected
+2026-08-13 20:14:20,118 - Zovix - INFO - Database initialized successfully
+2026-08-13 20:17:20,556 - Zovix - INFO - Redis connected for rate limiting
+2026-08-13 20:17:20,557 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-13 20:17:22,598 - Zovix - INFO - Redis cache connected
+2026-08-13 20:17:22,607 - Zovix - INFO - Database initialized successfully
