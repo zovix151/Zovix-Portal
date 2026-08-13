@@ -1141,19 +1141,19 @@ LANGUAGE_VOICE_MAP = {
 # ========================================================
 
 BASE_BURN_RATE = {
-    "Face Video Generator": 4,
-    "Face Video Studio": 5,
-    "Expressive Face Video": 5,
-    "Cinematic Engine": 4,
+    "Face Video Generator": 25,
+    "Face Video Studio": 25,
+    "Expressive Face Video": 25,
+    "Cinematic Engine": 25,
     "Creative Workshop": 3,
     "AI Agent": 2,
     "AI Sales": 2,
     "Dynamic UI": 2,
-    "Live Emotion": 4,
-    "Blueprints": 2,
-    "Upscaler": 2,
-    "Draw": 2,
-    "Video Editor": 4,
+    "Live Emotion": 10,
+    "Blueprints": 3,
+    "Upscaler": 3,
+    "Draw": 3,
+    "Video Editor": 10,
 }
 
 def calculate_tokens(mode_name: str, selected_quality: str) -> int:
@@ -1343,7 +1343,7 @@ GLOBAL_PLANS = {
         "starter": {
             "name": "Starter",
             "price": 49,
-            "tokens": 30,
+            "tokens": 40,
             "amount_paise": 4900,
             "emoji": "🌱",
             "features": ["30 Tokens Monthly", "No Watermark", "All AI Features"],
@@ -1355,7 +1355,7 @@ GLOBAL_PLANS = {
         "standard": {
             "name": "Standard",
             "price": 99,
-            "tokens": 60+10,
+            "tokens": 90+10,
             "amount_paise": 9900,
             "emoji": "🥇",
             "features": ["70 Tokens Monthly", "No Watermark", "All AI Features"],
@@ -1367,7 +1367,7 @@ GLOBAL_PLANS = {
         "cinematic": {
             "name": "Cinematic",
             "price": 299,
-            "tokens": 180+50,
+            "tokens": 250+50,
             "amount_paise": 29900,
             "emoji": "🥈",
             "features": ["230 Tokens Monthly", "No Watermark", "All AI Features"],
@@ -1379,8 +1379,8 @@ GLOBAL_PLANS = {
         "premium": {
             "name": "Premium",
             "price": 499,
-            "tokens": 310+90,
-            "amount_paise": 49900,
+            "tokens": 410+90,
+            "amount_paise": 49999,
             "emoji": "💎",
             "features": ["400 Tokens Monthly", "No Watermark", "All AI Features"],
             "type": "monthly",
@@ -1391,7 +1391,7 @@ GLOBAL_PLANS = {
         "pro": {
             "name": "Pro",
             "price": 999,
-            "tokens": 620+220,
+            "tokens": 780+220,
             "amount_paise": 99900,
             "emoji": "👑",
             "features": ["850 Tokens Monthly", "No Watermark", "All AI Features"],
@@ -1403,7 +1403,7 @@ GLOBAL_PLANS = {
         "enterprise": {
             "name": "Enterprise",
             "price": 1999,
-            "tokens": 1250+500,
+            "tokens": 1500+500,
             "amount_paise": 199900,
             "emoji": "🏢",
             "features": ["1750 Tokens Monthly", "No Watermark", "All AI Features", "Priority Support", "Custom AI Models"],
@@ -1417,7 +1417,7 @@ GLOBAL_PLANS = {
         "topup_49": {
             "name": "Token Top-up",
             "price": 49,
-            "tokens": 30,
+            "tokens": 50,
             "amount_paise": 4900,
             "emoji": "🎯",
             "type": "prepaid",
@@ -1428,7 +1428,7 @@ GLOBAL_PLANS = {
         "topup_99": {
             "name": "Token Top-up",
             "price": 99,
-            "tokens": 65,
+            "tokens": 100,
             "amount_paise": 9900,
             "emoji": "🎯",
             "type": "prepaid",
@@ -1439,7 +1439,7 @@ GLOBAL_PLANS = {
         "topup_299": {
             "name": "Token Top-up",
             "price": 299,
-            "tokens": 200,
+            "tokens": 300,
             "amount_paise": 29900,
             "emoji": "🎯",
             "type": "prepaid",
@@ -1450,7 +1450,7 @@ GLOBAL_PLANS = {
         "topup_499": {
             "name": "Token Top-up",
             "price": 499,
-            "tokens": 380,
+            "tokens": 500,
             "amount_paise": 49900,
             "emoji": "🎯",
             "type": "prepaid",
@@ -1461,7 +1461,7 @@ GLOBAL_PLANS = {
         "topup_999": {
             "name": "Token Top-up",
             "price": 999,
-            "tokens": 800,
+            "tokens": 1000,
             "amount_paise": 99900,
             "emoji": "🎯",
             "type": "prepaid",
@@ -1472,7 +1472,7 @@ GLOBAL_PLANS = {
         "topup_1999": {
             "name": "Token Top-up",
             "price": 1999,
-            "tokens": 1800,
+            "tokens": 2000,
             "amount_paise": 199900,
             "emoji": "🎯",
             "type": "prepaid",
@@ -4629,6 +4629,19 @@ def run_async_in_thread(coro):
         raise exception[0]
     return result[0] if result else None
 
+DEFAULT_ELEVENLABS_VOICE_ID = "21m00Tcm4TlvDq8ikWAM"
+
+
+def get_safe_elevenlabs_voice_id(voice_id=None, default_id=DEFAULT_ELEVENLABS_VOICE_ID):
+    """Return a safe, non-empty voice ID and fall back to a known-good default."""
+    value = (voice_id or default_id).strip()
+    if not value or value.lower() in {"none", "null", "nan", "false"}:
+        return default_id
+    if value.startswith("http://") or value.startswith("https://"):
+        return default_id
+    return value
+
+
 class ScriptingEngine:
     @staticmethod
     def generate_script(topic, duration_choice, selected_model, language_choice):
@@ -5296,18 +5309,32 @@ class AudioEngine:
         eleven_key = os.getenv("ELEVENLABS_API_KEY") or get_system_secret("ELEVENLABS_API_KEY")
         if not eleven_key:
             return False
-        safe_remove_file(output_filename)
-        url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
-        headers = {"Accept": "audio/mpeg", "Content-Type": "application/json", "xi-api-key": eleven_key}
-        data = {"text": text, "model_id": "eleven_multilingual_v2", "voice_settings": {"stability": 0.5, "similarity_boost": 0.75}}
-        try:
-            box = requests.post(url, json=data, headers=headers, timeout=30)
-            if box.status_code == 200:
-                with open(output_filename, "wb") as f: 
-                    f.write(box.content)
-                return True
-        except Exception as e:
-            logger.error(f"ElevenLabs error: {e}")
+
+        fallback_voice_id = DEFAULT_ELEVENLABS_VOICE_ID
+        candidate_ids = []
+        safe_voice_id = get_safe_elevenlabs_voice_id(voice_id, fallback_voice_id)
+        if safe_voice_id:
+            candidate_ids.append(safe_voice_id)
+        if safe_voice_id != fallback_voice_id:
+            candidate_ids.append(fallback_voice_id)
+
+        for candidate_id in dict.fromkeys(candidate_ids):
+            safe_remove_file(output_filename)
+            url = f"https://api.elevenlabs.io/v1/text-to-speech/{candidate_id}"
+            headers = {"Accept": "audio/mpeg", "Content-Type": "application/json", "xi-api-key": eleven_key}
+            data = {"text": text, "model_id": "eleven_multilingual_v2", "voice_settings": {"stability": 0.5, "similarity_boost": 0.75}}
+            try:
+                box = requests.post(url, json=data, headers=headers, timeout=30)
+                if box.status_code == 200:
+                    with open(output_filename, "wb") as f:
+                        f.write(box.content)
+                    if os.path.exists(output_filename) and os.path.getsize(output_filename) > 2000:
+                        return True
+                elif box.status_code in {400, 401, 404, 422}:
+                    logger.warning(f"ElevenLabs voice ID {candidate_id} rejected ({box.status_code}); retrying with default voice.")
+                    continue
+            except Exception as e:
+                logger.error(f"ElevenLabs error: {e}")
         return False
 
     @staticmethod
@@ -7259,18 +7286,31 @@ def generate_elevenlabs_audio_for_face(text, output_path, voice_id="21m00Tcm4Tlv
     eleven_key = os.getenv("ELEVENLABS_API_KEY") or get_system_secret("ELEVENLABS_API_KEY")
     if not eleven_key:
         return False
-    safe_remove_file(output_path)
-    url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
-    headers = {"Accept": "audio/mpeg", "Content-Type": "application/json", "xi-api-key": eleven_key}
-    data = {"text": text, "model_id": "eleven_multilingual_v2", "voice_settings": {"stability": 0.5, "similarity_boost": 0.75}}
-    try:
-        response = requests.post(url, json=data, headers=headers, timeout=30)
-        if response.status_code == 200:
-            with open(output_path, "wb") as f:
-                f.write(response.content)
-            return True
-    except Exception:
-        pass
+
+    candidate_ids = []
+    safe_voice_id = get_safe_elevenlabs_voice_id(voice_id, DEFAULT_ELEVENLABS_VOICE_ID)
+    if safe_voice_id:
+        candidate_ids.append(safe_voice_id)
+    if safe_voice_id != DEFAULT_ELEVENLABS_VOICE_ID:
+        candidate_ids.append(DEFAULT_ELEVENLABS_VOICE_ID)
+
+    for candidate_id in dict.fromkeys(candidate_ids):
+        safe_remove_file(output_path)
+        url = f"https://api.elevenlabs.io/v1/text-to-speech/{candidate_id}"
+        headers = {"Accept": "audio/mpeg", "Content-Type": "application/json", "xi-api-key": eleven_key}
+        data = {"text": text, "model_id": "eleven_multilingual_v2", "voice_settings": {"stability": 0.5, "similarity_boost": 0.75}}
+        try:
+            response = requests.post(url, json=data, headers=headers, timeout=30)
+            if response.status_code == 200:
+                with open(output_path, "wb") as f:
+                    f.write(response.content)
+                if os.path.exists(output_path) and os.path.getsize(output_path) > 2000:
+                    return True
+            elif response.status_code in {400, 401, 404, 422}:
+                logger.warning(f"ElevenLabs voice ID {candidate_id} rejected ({response.status_code}); retrying with default voice.")
+                continue
+        except Exception as e:
+            logger.warning(f"ElevenLabs request failed for voice {candidate_id}: {e}")
     return False
 
 def process_editor_video(uploaded_files, output_path, effect="none", transition="fade", resolution="1080p", custom_bgm=None, bgm_volume=0.3, voiceover_text="", voice_profile="Adam (Premium Male)", voice_language_choice="🇬🇧 English (US Standard)"):
@@ -8154,6 +8194,196 @@ def generate_dynamic_ui():
             </div>
             """, unsafe_allow_html=True)
 
+
+def generate_emotion_voice(text, emotion="neutral", voice_type="male", output_path=None, elevenlabs_voice_id=None):
+    """Generate emotion-infused voice with 5-tier cascade TTS.
+    
+    FIXED 2026-08-09:
+    - st.error() shows exact exception message (FIX 1)
+    - Auto-detect Devanagari (Hindi) script, force Hindi voice (FIX 2)
+    - API key pre-check before all TTS tiers (FIX 3)
+    """
+    if not output_path:
+        output_path = f"emotion_voice_outputs/emotion_{uuid.uuid4().hex[:8]}.mp3"
+    os.makedirs("emotion_voice_outputs", exist_ok=True)
+    safe_remove_file(output_path)
+
+    # --- FIX 1: Helper that shows exact error via st.error() ---
+    def _fail(msg: str):
+        logger.error(msg)
+        st.error(f"Voice generation failed: {msg}")
+
+    # --- FIX 2: DEVANAGARI SCRIPT DETECTION ---
+    has_devanagari = bool(re.search(r'[\u0900-\u097F]', text)) if text else False
+    user_language = st.session_state.get("emotion_voice_language", "English")
+    use_hindi_voice = (
+        has_devanagari or 
+        "Hindi" in user_language or 
+        "Hinglish" in user_language
+    )
+    if has_devanagari:
+        logger.info("Devanagari script detected - auto-enabling Hindi voice model")
+
+    # --- FIX 3: API KEY PRE-CHECK ---
+    available_tiers = []
+    eleven_key = os.getenv("ELEVENLABS_API_KEY") or get_system_secret("ELEVENLABS_API_KEY")
+    if eleven_key: available_tiers.append("ElevenLabs")
+    azure_key = os.getenv("AZURE_SPEECH_KEY") or get_system_secret("AZURE_SPEECH_KEY")
+    azure_region = os.getenv("AZURE_SPEECH_REGION") or get_system_secret("AZURE_SPEECH_REGION", "eastus")
+    if azure_key and azure_region: available_tiers.append("Azure")
+    google_key = os.getenv("GOOGLE_TTS_API_KEY") or get_system_secret("GOOGLE_TTS_API_KEY")
+    if not google_key: google_key = os.getenv("GEMINI_API_KEY") or get_system_secret("GEMINI_API_KEY")
+    if google_key: available_tiers.append("Google")
+    if edge_tts is not None: available_tiers.append("Edge-TTS")
+    available_tiers.append("GenerativeFallback")
+    logger.info(f"TTS tiers available: {available_tiers}")
+    if len(available_tiers) <= 1:
+        st.warning("⚠️ No TTS API keys configured (ElevenLabs/Azure/Google). Using built-in tone generator only. Set ELEVENLABS_API_KEY, AZURE_SPEECH_KEY, or GEMINI_API_KEY for real voice synthesis.")
+
+    # ═══ TIER 1: ELEVENLABS ═══
+    if eleven_key:
+        candidate_ids = []
+        safe_voice_id = get_safe_elevenlabs_voice_id(elevenlabs_voice_id, DEFAULT_ELEVENLABS_VOICE_ID)
+        if safe_voice_id:
+            candidate_ids.append(safe_voice_id)
+        if safe_voice_id != DEFAULT_ELEVENLABS_VOICE_ID:
+            candidate_ids.append(DEFAULT_ELEVENLABS_VOICE_ID)
+        for voice_id_to_try in dict.fromkeys(candidate_ids):
+            try:
+                url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id_to_try}"
+                headers = {"Accept": "audio/mpeg", "Content-Type": "application/json", "xi-api-key": eleven_key}
+                payload = {"text": text, "model_id": "eleven_multilingual_v2", "voice_settings": {"stability": 0.5, "similarity_boost": 0.75}}
+                resp = requests.post(url, json=payload, headers=headers, timeout=30)
+                if resp.status_code == 200 and len(resp.content) > 2000:
+                    with open(output_path, "wb") as f: f.write(resp.content)
+                    if os.path.exists(output_path) and os.path.getsize(output_path) > 2000:
+                        logger.info(f"ElevenLabs OK: {text[:40]}...")
+                        return output_path
+                elif resp.status_code in {400, 401, 404, 422}:
+                    logger.warning(f"ElevenLabs voice ID {voice_id_to_try} rejected ({resp.status_code}); retrying with default voice.")
+                    continue
+                elif resp.status_code == 401: _fail("ElevenLabs: Invalid API key (HTTP 401)")
+                elif resp.status_code == 429: _fail("ElevenLabs: Quota exceeded (HTTP 429). Check your usage limits.")
+                else: logger.warning(f"ElevenLabs HTTP {resp.status_code}: {resp.text[:200]}")
+            except requests.exceptions.Timeout: _fail("ElevenLabs: Request timed out (30s)")
+            except requests.exceptions.ConnectionError as e: _fail(f"ElevenLabs: Connection error - {e}")
+            except Exception as e: _fail(f"ElevenLabs: {str(e)}")
+
+    # ═══ TIER 2: AZURE TTS ═══
+    if azure_key and azure_region:
+        try:
+            voice_name = ("hi-IN-MadhurNeural" if voice_type == "male" else "hi-IN-SwaraNeural") if use_hindi_voice else ("en-US-GuyNeural" if voice_type == "male" else "en-US-JennyNeural")
+            url = f"https://{azure_region}.tts.speech.microsoft.com/cognitiveservices/v1"
+            headers = {"Ocp-Apim-Subscription-Key": azure_key, "Content-Type": "application/ssml+xml", "X-Microsoft-OutputFormat": "audio-24khz-96kbitrate-mono-mp3"}
+            if use_hindi_voice:
+                ssml = f'<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="hi-IN"><voice name="{voice_name}"><prosody rate="0%" pitch="0%">{text}</prosody></voice></speak>'
+            else:
+                ssml = f'<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xmlns:mstts="https://www.w3.org/2001/mstts" xml:lang="en-US"><voice name="{voice_name}"><mstts:express-as style="cheerful"><prosody rate="0%" pitch="0%">{text}</prosody></mstts:express-as></voice></speak>'
+            resp = requests.post(url, headers=headers, data=ssml, timeout=30)
+            if resp.status_code == 200 and len(resp.content) > 1000:
+                with open(output_path, "wb") as f: f.write(resp.content)
+                if os.path.exists(output_path) and is_audio_audible(output_path):
+                    logger.info(f"Azure OK: {text[:40]}... [voice={voice_name}]")
+                    return output_path
+            elif resp.status_code == 401: _fail("Azure: Invalid subscription key (HTTP 401)")
+            elif resp.status_code == 429: _fail("Azure: Quota exceeded (HTTP 429). Check your Azure portal.")
+            else: logger.warning(f"Azure HTTP {resp.status_code}: {resp.text[:200]}")
+        except requests.exceptions.Timeout: _fail("Azure TTS: Request timed out (30s)")
+        except requests.exceptions.ConnectionError as e: _fail(f"Azure TTS: Connection error - {e}")
+        except Exception as e: _fail(f"Azure TTS: {str(e)}")
+
+    # ═══ TIER 3: GOOGLE CLOUD TTS ═══
+    if google_key:
+        try:
+            import base64 as _b64
+            ssml_gender = "MALE" if voice_type == "male" else "FEMALE"
+            lang_code = "hi-IN" if use_hindi_voice else "en-US"
+            payload = {"input": {"text": text}, "voice": {"languageCode": lang_code, "ssmlGender": ssml_gender}, "audioConfig": {"audioEncoding": "MP3"}}
+            resp = requests.post(f"https://texttospeech.googleapis.com/v1/text:synthesize?key={google_key}", json=payload, timeout=30)
+            if resp.status_code == 200:
+                audio_content = resp.json().get("audioContent")
+                if audio_content:
+                    with open(output_path, "wb") as f: f.write(_b64.b64decode(audio_content))
+                    if os.path.exists(output_path) and os.path.getsize(output_path) > 2000:
+                        logger.info(f"Google OK: {text[:40]}...")
+                        return output_path
+            elif resp.status_code == 403: _fail("Google TTS: API key forbidden (HTTP 403). Check key restrictions.")
+            elif resp.status_code == 429: _fail("Google TTS: Quota exceeded (HTTP 429).")
+            else: logger.warning(f"Google TTS HTTP {resp.status_code}: {resp.text[:200]}")
+        except requests.exceptions.Timeout: _fail("Google TTS: Request timed out (30s)")
+        except requests.exceptions.ConnectionError as e: _fail(f"Google TTS: Connection error - {e}")
+        except Exception as e: _fail(f"Google TTS: {str(e)}")
+
+    # ═══ TIER 4: EDGE TTS ═══
+    try:
+        if edge_tts is not None:
+            if use_hindi_voice:
+                voice_candidates = [
+                    "hi-IN-MadhurNeural" if voice_type == "male" else "hi-IN-SwaraNeural",
+                    "en-IN-PrabhatNeural" if voice_type == "male" else "en-IN-NeerjaNeural",
+                    "en-US-GuyNeural" if voice_type == "male" else "en-US-AriaNeural",
+                ]
+            else:
+                voice_candidates = [
+                    "en-US-GuyNeural" if voice_type == "male" else "en-US-AriaNeural",
+                    "en-GB-RyanNeural" if voice_type == "male" else "en-GB-SoniaNeural",
+                    "en-IN-PrabhatNeural" if voice_type == "male" else "en-IN-NeerjaNeural",
+                ]
+            for voice_name in voice_candidates:
+                try:
+                    safe_remove_file(output_path)
+                    run_async_in_thread(edge_tts.Communicate(text, voice_name).save(output_path))
+                    if os.path.exists(output_path) and os.path.getsize(output_path) > 2048:
+                        logger.info(f"Edge-TTS OK: {text[:40]}... [voice={voice_name}]")
+                        return output_path
+                except Exception as voice_error:
+                    logger.warning(f"Edge-TTS voice '{voice_name}' failed: {voice_error}")
+                    continue
+        else: logger.warning("edge_tts module not available")
+    except Exception as e: _fail(f"Edge-TTS: {str(e)}")
+
+    # ═══ TIER 5: GENERATIVE FALLBACK ═══
+    try:
+        if not os.path.exists(output_path) or os.path.getsize(output_path) < 1000:
+            logger.info(f"Fallback: tone generator for {text[:30]}...")
+            import struct, math
+            sample_rate = 22050
+            duration = max(2.0, len(text) * 0.08)
+            num_samples = int(sample_rate * duration)
+            freq_map = {"neutral": 220, "happy": 440, "sad": 180, "angry": 330, "excited": 550, "serious": 150, "mysterious": 100}
+            amp_map = {"neutral": 0.3, "happy": 0.4, "sad": 0.2, "angry": 0.5, "excited": 0.5, "serious": 0.25, "mysterious": 0.15}
+            freq = freq_map.get(emotion, 220)
+            amplitude = amp_map.get(emotion, 0.3)
+            samples = []
+            for i in range(num_samples):
+                t = i / sample_rate
+                vibrato = math.sin(2 * math.pi * 5 * t) * 0.1 if emotion in ("happy", "excited", "sad") else 0
+                value = amplitude * math.sin(2 * math.pi * freq * t + vibrato * 2 * math.pi)
+                value += 0.3 * amplitude * math.sin(2 * math.pi * freq * 2 * t)
+                value += 0.1 * amplitude * math.sin(2 * math.pi * freq * 3 * t)
+                value = max(-1.0, min(1.0, value))
+                samples.append(struct.pack("h", int(value * 32767)))
+            import wave
+            with wave.open(output_path, "w") as wav_file:
+                wav_file.setnchannels(1); wav_file.setsampwidth(2); wav_file.setframerate(sample_rate)
+                wav_file.writeframes(b"".join(samples))
+            mp3_path = output_path.replace(".mp3", "_temp.mp3")
+            cmd = ["ffmpeg", "-y", "-i", output_path, "-codec:a", "libmp3lame", "-qscale:a", "2", mp3_path]
+            try:
+                subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+                if os.path.exists(mp3_path) and os.path.getsize(mp3_path) > 1000:
+                    safe_remove_file(output_path); shutil.move(mp3_path, output_path)
+            except Exception: safe_remove_file(mp3_path)
+            if os.path.exists(output_path) and os.path.getsize(output_path) > 1000:
+                logger.info(f"Fallback OK: {text[:30]}... [emotion={emotion}]")
+                return output_path
+    except Exception as e: _fail(f"Tone generator fallback also failed: {str(e)}")
+
+    safe_remove_file(output_path)
+    _fail("All TTS providers failed. Check API keys, quotas, and network connectivity.")
+    return None
+
+
 def render_live_emotion_voice():
     """Live Emotion Voice Mode - Emotion-based TTS generation"""
     st.markdown("""
@@ -8198,17 +8428,26 @@ def render_live_emotion_voice():
                             voice_meta = ELEVENLABS_VOICES.get(emotion_voice, {})
                             voice_id = voice_meta.get("id", "21m00Tcm4TlvDq8ikWAM")
                             output_path = f"face_videos/emotion_voice_{uuid.uuid4().hex[:8]}.mp3"
-                            audio_ok = generate_elevenlabs_audio_for_face(emotion_text, output_path, voice_id)
-                            if not audio_ok:
-                                audio_ok = AudioEngine.run_fallback_tts(text=emotion_text, output_filename=output_path, language_choice="🇬🇧 English (US Standard)", voice_profile=emotion_voice)
-                            if audio_ok and os.path.exists(output_path):
-                                st.session_state["emotion_voice_output"] = output_path
+                            
+                            # ✅ FIX: Call generate_emotion_voice() instead of generate_elevenlabs_audio_for_face()
+                            audio_ok = generate_emotion_voice(
+                                text=emotion_text,
+                                emotion=emotion,
+                                voice_type=voice_gender,
+                                output_path=output_path,
+                                elevenlabs_voice_id=voice_id
+                            )
+                            
+                            # ✅ FIX: Check if audio_ok is a path (string) or boolean
+                            if audio_ok and os.path.exists(audio_ok if isinstance(audio_ok, str) else output_path):
+                                actual_path = audio_ok if isinstance(audio_ok, str) else output_path
+                                st.session_state["emotion_voice_output"] = actual_path
                                 st.session_state["emotion_voice_text"] = emotion_text
                                 st.session_state["emotion_voice_emotion"] = emotion
                                 st.toast(f"✅ {emotion.title()} voice generated!")
                                 st.rerun()
                             else:
-                                st.error("Voice generation failed.")
+                                st.error("Voice generation failed. Check API keys and try again.")
                         except Exception as e:
                             st.error(f"Error: {str(e)}")
 
