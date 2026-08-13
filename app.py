@@ -1339,18 +1339,7 @@ GLOBAL_PLANS = {
             "badge": "",
             "color": "#64748b",
             "description": "Free plan with limited features"
-        },
-        "starter": {
-            "name": "Starter",
-            "price": 49,
-            "tokens": 40,
-            "amount_paise": 4900,
-            "emoji": "🌱",
-            "features": ["30 Tokens Monthly", "No Watermark", "All AI Features"],
-            "type": "monthly",
-            "badge": "🎫 VOUCHER",
-            "color": "#10b981",
-            "description": "Best for beginners"
+            
         },
         "standard": {
             "name": "Standard",
