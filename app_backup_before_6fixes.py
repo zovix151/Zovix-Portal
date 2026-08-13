@@ -1462,7 +1462,7 @@ def init_database():
             CREATE TABLE IF NOT EXISTS users (
                 username TEXT PRIMARY KEY,
                 password TEXT,
-                credits REAL DEFAULT 50.0,
+                credits REAL DEFAULT 10.0,
                 xp_points REAL DEFAULT 10.0,
                 streak_count INTEGER DEFAULT 0,
                 last_claim_date TEXT,
