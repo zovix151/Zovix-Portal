@@ -13423,9 +13423,11 @@ def run_cinematic_engine():
                 "Prompt Input",
                 placeholder="Explain video concept: e.g. Ek kisan ke paas do beej the...",
                 height=90,
+                max_chars=2000,
                 label_visibility="collapsed",
                 key="user_prompt"
             )
+            st.caption(f"✍️ Characters: **{len(user_input or '')}/2000**")
             
             st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">📐 Aspect Ratio</p>', unsafe_allow_html=True)
             aspect_choice = st.selectbox(
