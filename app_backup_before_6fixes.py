@@ -1288,7 +1288,7 @@ GLOBAL_PLANS = {
         "starter": {
             "name": "Starter",
             "price": 49,
-            "tokens": 30,
+            "tokens": 50,
             "amount_paise": 4900,
             "emoji": "🌱",
             "features": ["30 Tokens Monthly", "No Watermark", "All AI Features"],
@@ -1300,7 +1300,7 @@ GLOBAL_PLANS = {
         "standard": {
             "name": "Standard",
             "price": 99,
-            "tokens": 60+10,
+            "tokens": 90+10,
             "amount_paise": 9900,
             "emoji": "🥇",
             "features": ["70 Tokens Monthly", "No Watermark", "All AI Features"],
@@ -1312,7 +1312,7 @@ GLOBAL_PLANS = {
         "cinematic": {
             "name": "Cinematic",
             "price": 299,
-            "tokens": 180+50,
+            "tokens": 250+50,
             "amount_paise": 29900,
             "emoji": "🥈",
             "features": ["230 Tokens Monthly", "No Watermark", "All AI Features"],
@@ -1324,7 +1324,7 @@ GLOBAL_PLANS = {
         "premium": {
             "name": "Premium",
             "price": 499,
-            "tokens": 310+90,
+            "tokens": 410+90,
             "amount_paise": 49900,
             "emoji": "💎",
             "features": ["400 Tokens Monthly", "No Watermark", "All AI Features"],
@@ -1336,7 +1336,7 @@ GLOBAL_PLANS = {
         "pro": {
             "name": "Pro",
             "price": 999,
-            "tokens": 620+220,
+            "tokens": 780+220,
             "amount_paise": 99900,
             "emoji": "👑",
             "features": ["850 Tokens Monthly", "No Watermark", "All AI Features"],
@@ -1348,7 +1348,7 @@ GLOBAL_PLANS = {
         "enterprise": {
             "name": "Enterprise",
             "price": 1999,
-            "tokens": 1250+500,
+            "tokens": 1500+500,
             "amount_paise": 199900,
             "emoji": "🏢",
             "features": ["1750 Tokens Monthly", "No Watermark", "All AI Features", "Priority Support", "Custom AI Models"],
@@ -1362,7 +1362,7 @@ GLOBAL_PLANS = {
         "topup_49": {
             "name": "Token Top-up",
             "price": 49,
-            "tokens": 30,
+            "tokens": 50,
             "amount_paise": 4900,
             "emoji": "🎯",
             "type": "prepaid",
@@ -1373,7 +1373,7 @@ GLOBAL_PLANS = {
         "topup_99": {
             "name": "Token Top-up",
             "price": 99,
-            "tokens": 65,
+            "tokens": 100,
             "amount_paise": 9900,
             "emoji": "🎯",
             "type": "prepaid",
@@ -1384,7 +1384,7 @@ GLOBAL_PLANS = {
         "topup_299": {
             "name": "Token Top-up",
             "price": 299,
-            "tokens": 200,
+            "tokens": 300,
             "amount_paise": 29900,
             "emoji": "🎯",
             "type": "prepaid",
@@ -1395,7 +1395,7 @@ GLOBAL_PLANS = {
         "topup_499": {
             "name": "Token Top-up",
             "price": 499,
-            "tokens": 380,
+            "tokens": 500,
             "amount_paise": 49900,
             "emoji": "🎯",
             "type": "prepaid",
@@ -1406,7 +1406,7 @@ GLOBAL_PLANS = {
         "topup_999": {
             "name": "Token Top-up",
             "price": 999,
-            "tokens": 800,
+            "tokens": 1000,
             "amount_paise": 99900,
             "emoji": "🎯",
             "type": "prepaid",
@@ -1417,7 +1417,7 @@ GLOBAL_PLANS = {
         "topup_1999": {
             "name": "Token Top-up",
             "price": 1999,
-            "tokens": 1800,
+            "tokens": 2000,
             "amount_paise": 199900,
             "emoji": "🎯",
             "type": "prepaid",
