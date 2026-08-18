@@ -1508,7 +1508,7 @@ def init_database():
             CREATE TABLE IF NOT EXISTS users (
                 username TEXT PRIMARY KEY,
                 password TEXT,
-                credits REAL DEFAULT 50.0,
+                credits REAL DEFAULT 10.0,
                 xp_points REAL DEFAULT 10.0,
                 streak_count INTEGER DEFAULT 0,
                 last_claim_date TEXT,
@@ -13627,7 +13627,11 @@ def run_cinematic_engine():
                             st.session_state["deepseek_blueprint_data"] = blueprint
                             st.session_state["deepseek_blueprint_visible"] = True
                             st.session_state["studio_prompt_value"] = user_input
-                            st.session_state["user_prompt"] = user_input
+                            # Do NOT directly mutate st.session_state["user_prompt"] here:
+                            # the text_area uses key="user_prompt", so Streamlit already
+                            # auto-syncs widget state to st.session_state["user_prompt"].
+                            # Use a local variable for all downstream logic instead.
+                            final_prompt = user_input or st.session_state.get("user_prompt", "")
                             st.toast("✅ Blueprint generated successfully!")
                             st.rerun()
 

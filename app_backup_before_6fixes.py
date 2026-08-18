@@ -1742,7 +1742,7 @@ def register_user_db(username, password):
         cursor.execute(
             """INSERT OR IGNORE INTO users 
                (username, password, credits, xp_points, streak_count, last_claim_date, voucher_credits, voucher_expires_at, language) 
-               VALUES (?, ?, 50.0, 10.0, 0, '', 0, '', 'en')""",
+               VALUES (?, ?, 10.0, 10.0, 0, '', 0, '', 'en')""",
             (username, password)
         )
         conn.commit()
