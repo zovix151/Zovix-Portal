@@ -7642,386 +7642,6 @@ def generate_video_blueprint_with_deepseek(user_prompt, aspect_ratio="16:9"):
 # 36. MODE FUNCTIONS - AI Agent, AI Sales, Dynamic UI, Live Emotion
 # ========================================================
 
-def validate_and_deduct_tokens(mode_name: str, quality: str):
-    if not st.session_state.get("is_logged_in"):
-        return False, 0, "Please log in first."
-    
-    user_credits = get_user_credits_db(st.session_state["logged_user"])
-    required_tokens = calculate_tokens(mode_name, quality)
-    
-    if user_credits < required_tokens:
-        return False, required_tokens, f"Insufficient credits! Required: {required_tokens}, Available: {user_credits}"
-    
-    deduct_credits_db(st.session_state["logged_user"], required_tokens)
-    st.session_state['user_credits'] = get_user_credits_db(st.session_state["logged_user"])
-    
-    return True, required_tokens, f"✅ Deducted {required_tokens} credits for {mode_name}"
-
-def render_ai_agent_ui():
-    """AI Agent - Fully Fixed"""
-    
-    st.markdown("""
-    <div style="
-        background: linear-gradient(135deg, rgba(236,72,153,0.06), rgba(69,243,255,0.06));
-        border-radius: 16px;
-        border: 1px solid rgba(69,243,255,0.08);
-        padding: 16px 20px;
-        margin-bottom: 18px;
-        text-align: center;
-    ">
-        <span style="
-            display: inline-block;
-            background: rgba(236,72,153,0.12);
-            color: #EC4899;
-            padding: 4px 14px;
-            border-radius: 16px;
-            font-size: 9px;
-            font-family: 'Orbitron', sans-serif;
-            letter-spacing: 1px;
-            border: 1px solid rgba(236,72,153,0.15);
-            margin-bottom: 6px;
-        ">🤖 BUSINESS AI</span>
-        <h2 style="
-            font-family: 'Orbitron', sans-serif;
-            font-size: 20px;
-            color: #FFFFFF;
-            margin: 0;
-        ">
-            AI <span style="
-                background: linear-gradient(135deg, #45f3ff, #EC4899);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                background-clip: text;
-            ">Cyber-Agent</span>
-        </h2>
-        <p style="
-            font-family: 'Inter', sans-serif;
-            color: #94a3b8;
-            font-size: 12px;
-            margin: 4px 0 0 0;
-        ">
-            Auto-pilot your business • Generate content • Manage orders • Collect payments
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    agent_col1, agent_col2 = st.columns([1.1, 1.4], gap="medium")
-    
-    with agent_col1:
-        with st.container(border=True):
-            st.markdown("""
-            <h4 style="
-                font-family: 'Orbitron', sans-serif;
-                font-size: 12px;
-                color: #EC4899;
-                margin-bottom: 12px;
-                letter-spacing: 0.5px;
-            ">
-                ⚙️ AGENT CONFIGURATION
-            </h4>
-            """, unsafe_allow_html=True)
-            
-            # Business Details
-            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">🏪 Business Details</p>', unsafe_allow_html=True)
-            business_name = st.text_input(
-                "Business Name",
-                placeholder="Your Shop/Brand Name",
-                key="agent_business_name_input",
-                label_visibility="collapsed"
-            )
-            
-            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">📂 Business Category</p>', unsafe_allow_html=True)
-            business_category = st.selectbox(
-                "Category",
-                ["Retail Store", "Restaurant/Cafe", "Clothing Brand", "Tech Services", "Beauty/Salon", "Other"],
-                key="agent_category",
-                label_visibility="collapsed"
-            )
-            
-            # Products
-            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">📦 Products/Services (one per line)</p>', unsafe_allow_html=True)
-            products_text = st.text_area(
-                "Products",
-                placeholder="e.g.\n₹499 - T-Shirt\n₹999 - Jeans\n₹1499 - Jacket",
-                height=100,
-                key="agent_products_input",
-                label_visibility="collapsed"
-            )
-            
-            # Business Hours
-            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">🕐 Business Hours</p>', unsafe_allow_html=True)
-            col_time1, col_time2 = st.columns(2)
-            with col_time1:
-                opening_time = st.time_input(
-                    "Opening Time",
-                    value=datetime.strptime("09:00", "%H:%M").time(),
-                    key="agent_open_time",
-                    label_visibility="collapsed"
-                )
-            with col_time2:
-                closing_time = st.time_input(
-                    "Closing Time",
-                    value=datetime.strptime("21:00", "%H:%M").time(),
-                    key="agent_close_time",
-                    label_visibility="collapsed"
-                )
-            
-            # Social Media
-            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">📱 Social Media Accounts</p>', unsafe_allow_html=True)
-            instagram_handle = st.text_input(
-                "Instagram Handle",
-                placeholder="@your_business",
-                key="agent_instagram",
-                label_visibility="collapsed"
-            )
-            whatsapp_number = st.text_input(
-                "WhatsApp Number",
-                placeholder="+91XXXXXXXXXX",
-                key="agent_whatsapp",
-                label_visibility="collapsed"
-            )
-            
-            st.markdown("<br>", unsafe_allow_html=True)
-            
-            # Quality
-            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">📊 Agent Quality</p>', unsafe_allow_html=True)
-            agent_quality = st.selectbox(
-                "Quality",
-                ["Standard", "Pro"],
-                key="agent_quality",
-                label_visibility="collapsed"
-            )
-            
-            # ✅ FIXED: Activate Button with proper logic
-            if st.button("🚀 Activate AI Agent", key="agent_activate_btn", use_container_width=True):
-                if not business_name.strip():
-                    st.error("❌ Please enter a business name.")
-                elif not products_text.strip():
-                    st.error("❌ Please list at least one product or service.")
-                else:
-                    required_tokens = 2 if agent_quality == "Standard" else 4
-                    
-                    if st.session_state.get('user_credits', 0) < required_tokens:
-                        st.error(f"❌ Insufficient credits! Required: {required_tokens}, Available: {st.session_state.get('user_credits', 0)}")
-                    else:
-                        try:
-                            # Deduct credits
-                            deduct_credits_db(st.session_state["logged_user"], required_tokens)
-                            st.session_state['user_credits'] = get_user_credits_db(st.session_state["logged_user"])
-                            
-                            with st.spinner("🔄 Configuring AI Agent for your business..."):
-                                st.session_state["agent_business_name"] = business_name
-                                st.session_state["agent_products"] = [p.strip() for p in products_text.split("\n") if p.strip()]
-                                st.session_state["agent_schedule"] = {
-                                    "open": str(opening_time),
-                                    "close": str(closing_time),
-                                    "instagram": instagram_handle,
-                                    "whatsapp": whatsapp_number,
-                                    "category": business_category
-                                }
-                                
-                                # Save to database
-                                conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
-                                cursor = conn.cursor()
-                                try:
-                                    cursor.execute(
-                                        "INSERT OR REPLACE INTO ai_agent_config (username, business_name, products, schedule) VALUES (?, ?, ?, ?)",
-                                        (st.session_state["logged_user"], business_name, json.dumps(st.session_state["agent_products"]), json.dumps(st.session_state["agent_schedule"]))
-                                    )
-                                    conn.commit()
-                                except Exception as db_e:
-                                    logger.warning(f"DB save error: {db_e}")
-                                finally:
-                                    conn.close()
-                                
-                                st.session_state["ai_agent_mode"] = True
-                                st.toast("✅ AI Agent activated successfully!")
-                                st.rerun()
-                        except Exception as e:
-                            st.error(f"❌ Error: {str(e)}")
-    
-    with agent_col2:
-        with st.container(border=True):
-            st.markdown("""
-            <h3 style="
-                font-family: 'Orbitron', sans-serif;
-                font-size: 13px;
-                color: #EC4899;
-                margin-bottom: 12px;
-                letter-spacing: 0.5px;
-            ">
-                📊 AGENT DASHBOARD
-            </h3>
-            """, unsafe_allow_html=True)
-            
-            if st.session_state.get("ai_agent_mode") and st.session_state.get("agent_business_name"):
-                st.markdown(f"""
-                <div style="
-                    background: rgba(69,243,255,0.04);
-                    border: 1px solid rgba(69,243,255,0.1);
-                    border-radius: 12px;
-                    padding: 14px;
-                    margin-bottom: 12px;
-                ">
-                    <h4 style="
-                        font-family: 'Orbitron', sans-serif;
-                        font-size: 11px;
-                        color: #45f3ff;
-                        margin: 0 0 4px 0;
-                    ">
-                        🟢 ACTIVE
-                    </h4>
-                    <p style="
-                        font-family: 'Inter', sans-serif;
-                        font-size: 16px;
-                        font-weight: bold;
-                        color: #FFFFFF;
-                        margin: 0;
-                    ">
-                        {st.session_state['agent_business_name']}
-                    </p>
-                    <p style="
-                        font-family: 'Inter', sans-serif;
-                        font-size: 11px;
-                        color: #94a3b8;
-                        margin: 0;
-                    ">
-                        Category: {st.session_state.get('agent_schedule', {}).get('category', 'N/A')}
-                    </p>
-                </div>
-                """, unsafe_allow_html=True)
-                
-                products = st.session_state.get("agent_products", [])
-                if products:
-                    st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">📦 Your Products/Services:</p>', unsafe_allow_html=True)
-                    for p in products[:5]:
-                        st.markdown(f'<p style="font-family: Inter; font-size: 12px; color: #e0e0e0; margin: 2px 0;">- {p}</p>', unsafe_allow_html=True)
-                    if len(products) > 5:
-                        st.caption(f"... and {len(products) - 5} more")
-                
-                schedule = st.session_state.get("agent_schedule", {})
-                st.markdown(f"""
-                <div style="
-                    background: rgba(255,255,255,0.02);
-                    border-radius: 8px;
-                    padding: 10px;
-                    margin-top: 10px;
-                ">
-                    <p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 2px 0;">
-                        🕐 Hours: {schedule.get('open', 'N/A')} - {schedule.get('close', 'N/A')}
-                    </p>
-                    <p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 2px 0;">
-                        📱 WhatsApp: {schedule.get('whatsapp', 'N/A')}
-                    </p>
-                    <p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 2px 0;">
-                        📸 Instagram: {schedule.get('instagram', 'N/A')}
-                    </p>
-                </div>
-                """, unsafe_allow_html=True)
-                
-                st.markdown("<br>", unsafe_allow_html=True)
-                st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 8px;">⚡ Quick Actions:</p>', unsafe_allow_html=True)
-                
-                col_qa1, col_qa2 = st.columns(2)
-                with col_qa1:
-                    if st.button("📱 Generate WhatsApp Ad", key="agent_whatsapp_ad", use_container_width=True):
-                        with st.spinner("Generating WhatsApp ad..."):
-                            ad_text = f"🏪 {st.session_state['agent_business_name']} - Now Open!\n\n"
-                            ad_text += "📍 Our Products:\n"
-                            for p in products[:3]:
-                                ad_text += f"• {p}\n"
-                            ad_text += f"\n🕐 Hours: {schedule.get('open', 'N/A')} - {schedule.get('close', 'N/A')}\n"
-                            ad_text += f"📱 Contact: {schedule.get('whatsapp', 'N/A')}\n\n"
-                            ad_text += "Visit us today! 🚀"
-                            st.session_state["agent_generated_ad"] = ad_text
-                            st.toast("WhatsApp ad generated!")
-                            st.rerun()
-                
-                with col_qa2:
-                    if st.button("📸 Generate Instagram Post", key="agent_instagram_post", use_container_width=True):
-                        with st.spinner("Generating Instagram post..."):
-                            post_prompt = f"Beautiful product photography showcasing {st.session_state['agent_business_name']} products, professional, clean background, studio lighting"
-                            img_path = generate_pro_image(post_prompt, "1:1")
-                            if img_path and os.path.exists(img_path):
-                                st.session_state["agent_instagram_image"] = img_path
-                                caption = f"🌟 Introducing {st.session_state['agent_business_name']}!\n\n"
-                                caption += "Check out our amazing collection:\n"
-                                for p in products[:3]:
-                                    caption += f"• {p}\n"
-                                caption += f"\n🕐 Open: {schedule.get('open', 'N/A')} - {schedule.get('close', 'N/A')}\n"
-                                caption += f"📱 WhatsApp: {schedule.get('whatsapp', 'N/A')}\n"
-                                caption += "\n#SmallBusiness #LocalShop #MadeWithZovix"
-                                st.session_state["agent_instagram_caption"] = caption
-                                st.toast("Instagram post generated!")
-                                st.rerun()
-                            else:
-                                st.error("❌ Image generation failed. Try again.")
-                
-                if st.session_state.get("agent_generated_ad"):
-                    with st.expander("📱 WhatsApp Ad Preview", expanded=False):
-                        st.text(st.session_state["agent_generated_ad"])
-                        st.download_button(
-                            label="📥 Copy Ad",
-                            data=st.session_state["agent_generated_ad"],
-                            file_name="whatsapp_ad.txt",
-                            mime="text/plain",
-                            key="agent_download_ad"
-                        )
-                
-                if st.session_state.get("agent_instagram_image") and os.path.exists(st.session_state["agent_instagram_image"]):
-                    with st.expander("📸 Instagram Post Preview", expanded=False):
-                        st.image(st.session_state["agent_instagram_image"], caption="Generated Post Image", use_container_width=True)
-                        st.text(st.session_state.get("agent_instagram_caption", ""))
-                        st.download_button(
-                            label="📥 Download Image",
-                            data=open(st.session_state["agent_instagram_image"], "rb").read(),
-                            file_name="instagram_post.png",
-                            mime="image/png",
-                            key="agent_download_ig"
-                        )
-            else:
-                st.markdown("""
-                    <div style="
-                        height: 380px;
-                        min-height: 380px;
-                        display: flex;
-                        flex-direction: column;
-                        justify-content: center;
-                        align-items: center;
-                        color: #64748b;
-                        text-align: center;
-                        padding: 12px;
-                        overflow: hidden;
-                        background: rgba(10,10,12,0.4);
-                        border-radius: 12px;
-                        border: 1px dashed rgba(69,243,255,0.12);
-                    ">
-                        <span style="font-size: 48px; margin-bottom: 10px;">🤖</span>
-                        <p style="
-                            font-family: 'Inter', sans-serif;
-                            font-size: 13px;
-                            font-weight: 500;
-                            color: #EC4899;
-                            margin: 0;
-                        ">
-                            AI Agent Inactive
-                        </p>
-                        <p style="
-                            font-family: 'Inter', sans-serif;
-                            font-size: 11px;
-                            color: #94a3b8;
-                            max-width: 400px;
-                            text-align: center;
-                            margin-top: 4px;
-                            line-height: 1.4;
-                        ">
-                            Configure your business details and activate the agent.
-                        </p>
-                    </div>
-                """, unsafe_allow_html=True)
-
-
-
 def render_ai_sales_ui():
     """AI Sales Video Generator - Product videos with AI voice & image"""
     st.markdown("""
@@ -8049,6 +7669,50 @@ def render_ai_sales_ui():
     with col1:
         with st.container(border=True):
             st.markdown('<h4 style="font-family: Orbitron; font-size: 12px; color: #EC4899; margin-bottom: 12px;">⚙️ SALES PARAMETERS</h4>', unsafe_allow_html=True)
+            
+            # ============================================
+            # ✅ NEW: SCRIPT / PROMPT OPTION
+            # ============================================
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">📝 Sales Script / Prompt</p>', unsafe_allow_html=True)
+            
+            script_mode = st.radio(
+                "Choose Script Mode",
+                ["🤖 Auto-Generate Script", "✍️ Write Custom Script"],
+                horizontal=True,
+                key="sales_script_mode"
+            )
+            
+            if script_mode == "🤖 Auto-Generate Script":
+                # Auto-generate from product details
+                st.info("💡 Script will be auto-generated based on product name, price, and category")
+                sales_prompt = st.text_area(
+                    "Additional Instructions (Optional)",
+                    placeholder="e.g. Make it funny, target young audience, emphasize quality...",
+                    height=60,
+                    key="sales_auto_prompt",
+                    help="Add extra instructions for script generation"
+                )
+                sales_script = ""  # Will be generated on the fly
+            else:
+                # Custom script with 1000 character limit
+                sales_script = st.text_area(
+                    "📝 Custom Sales Script",
+                    placeholder="Write your sales script here... (Max 1000 characters)\n\nExample:\n'Introducing our premium wireless earbuds with 24-hour battery life and crystal clear sound. Perfect for music lovers and fitness enthusiasts. Get yours today at just Rs. 999!'",
+                    height=120,
+                    key="sales_custom_script",
+                    max_chars=1000  # ✅ 1000 character limit
+                )
+                st.caption(f"📝 {len(sales_script)}/1000 characters")
+                
+                # Progress bar for character count
+                char_percent = min(100, (len(sales_script) / 1000) * 100)
+                if char_percent > 0:
+                    color = "#10b981" if char_percent < 80 else "#f59e0b" if char_percent < 95 else "#ef4444"
+                    st.progress(char_percent / 100, text=f"Character usage: {char_percent:.0f}%")
+            
+            st.markdown("---")
+            
+            # Product Details
             st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">📷 Product Image</p>', unsafe_allow_html=True)
             product_image = st.file_uploader("Upload Product Image", type=['jpg', 'jpeg', 'png', 'webp'], key="sales_product_img", label_visibility="collapsed")
             if product_image:
@@ -8061,45 +7725,187 @@ def render_ai_sales_ui():
 
             st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">🏷️ Product Name</p>', unsafe_allow_html=True)
             product_name = st.text_input("Product Name", placeholder="e.g. Premium Wireless Earbuds", key="sales_product_name", label_visibility="collapsed")
+            
             st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">💰 Price</p>', unsafe_allow_html=True)
             product_price = st.text_input("Price", placeholder="e.g. Rs. 999", key="sales_product_price", label_visibility="collapsed")
+            
+            # Product Category
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">📂 Product Category</p>', unsafe_allow_html=True)
+            product_category = st.selectbox(
+                "Category",
+                ["Electronics", "Fashion", "Food & Beverage", "Beauty", "Home & Living", "Sports", "Other"],
+                key="sales_category",
+                label_visibility="collapsed"
+            )
+            
             st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">🌐 Language</p>', unsafe_allow_html=True)
-            sales_language = st.selectbox("Language", ["Hindi", "English", "Hinglish", "Bhojpuri", "French", "Japanese"], key="sales_language", label_visibility="collapsed")
+            sales_language = st.selectbox(
+                "Language",
+                ["Hindi", "English", "Hinglish", "Bhojpuri", "French", "Japanese", "Spanish", "German"],
+                key="sales_language",
+                label_visibility="collapsed"
+            )
+            
             st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">🎤 Voice Profile</p>', unsafe_allow_html=True)
             voice_options = list(ELEVENLABS_VOICES.keys())
             sales_voice = st.selectbox("Voice", voice_options, key="sales_voice", label_visibility="collapsed")
+            
             st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">📊 Quality</p>', unsafe_allow_html=True)
-            sales_quality = st.selectbox("Quality", ["Standard", "HD", "4K"], key="sales_quality", label_visibility="collapsed")
+            sales_quality = st.selectbox(
+                "Quality",
+                ["Standard", "HD", "4K"],
+                key="sales_quality",
+                label_visibility="collapsed"
+            )
+            
+            # ✅ NEW: Tone selection
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">🎭 Sales Tone</p>', unsafe_allow_html=True)
+            sales_tone = st.selectbox(
+                "Tone",
+                ["Professional", "Friendly", "Urgent", "Luxury", "Youthful", "Humorous", "Inspirational"],
+                key="sales_tone",
+                label_visibility="collapsed"
+            )
 
+            st.markdown("<br>", unsafe_allow_html=True)
+
+            # Generate Button
             if st.button("🎙️ Generate Sales Video", key="sales_generate_btn", use_container_width=True):
+                # Validation
                 if not product_name.strip():
                     st.error("Please enter a product name.")
                 elif not st.session_state.get("sales_product_image"):
                     st.error("Please upload a product image.")
                 else:
+                    # Check character limit for custom script
+                    if script_mode == "✍️ Write Custom Script" and len(sales_script) > 1000:
+                        st.error("❌ Script exceeds 1000 character limit! Please shorten your script.")
+                        return
+                    
+                    # Token validation
                     quality_map = {"Standard": 3, "HD": 4, "4K": 6}
                     required_tokens = quality_map.get(sales_quality, 3)
+                    
                     if st.session_state.get('user_credits', 0) < required_tokens:
                         st.error(f"Insufficient credits! Required: {required_tokens}, Available: {st.session_state.get('user_credits', 0)}")
                     else:
                         deduct_credits_db(st.session_state["logged_user"], required_tokens)
                         st.session_state['user_credits'] = get_user_credits_db(st.session_state["logged_user"])
+                        
                         with st.spinner(f"Generating {sales_language} sales video..."):
                             try:
-                                script = f"Introducing {product_name} at just {product_price}! Amazing quality, best in class. Buy now!"
+                                # ✅ FIX: Generate script based on mode
+                                if script_mode == "🤖 Auto-Generate Script":
+                                    # Build script from product details
+                                    script_parts = []
+                                    
+                                    # Opening based on tone
+                                    tone_openings = {
+                                        "Professional": "Presenting",
+                                        "Friendly": "Hey there! Check out",
+                                        "Urgent": "Don't miss out on",
+                                        "Luxury": "Experience the premium",
+                                        "Youthful": "Yo! Get ready for",
+                                        "Humorous": "You're gonna love",
+                                        "Inspirational": "Discover your best with"
+                                    }
+                                    opening = tone_openings.get(sales_tone, "Introducing")
+                                    
+                                    script_parts.append(f"{opening} {product_name}!")
+                                    
+                                    # Features (auto-generated based on category)
+                                    features = {
+                                        "Electronics": "cutting-edge technology, premium build quality, and exceptional performance",
+                                        "Fashion": "stylish designs, premium materials, and perfect fit for every occasion",
+                                        "Food & Beverage": "authentic flavors, fresh ingredients, and irresistible taste",
+                                        "Beauty": "natural ingredients, proven results, and luxurious feel",
+                                        "Home & Living": "elegant design, durable materials, and functional beauty",
+                                        "Sports": "superior performance, maximum comfort, and unbeatable durability",
+                                        "Other": "exceptional quality, incredible value, and customer satisfaction"
+                                    }
+                                    features_text = features.get(product_category, "exceptional quality and incredible value")
+                                    script_parts.append(f"Featuring {features_text}.")
+                                    
+                                    # Price
+                                    if product_price.strip():
+                                        script_parts.append(f"Get yours today at just {product_price}!")
+                                    else:
+                                        script_parts.append("Get the best value for your money!")
+                                    
+                                    # Call to action based on tone
+                                    cta_actions = {
+                                        "Professional": "Order now and experience the difference.",
+                                        "Friendly": "Grab yours today! You won't regret it.",
+                                        "Urgent": "Limited stock available. Order now!",
+                                        "Luxury": "Elevate your lifestyle. Shop now.",
+                                        "Youthful": "Don't sleep on this deal. Get it now!",
+                                        "Humorous": "What are you waiting for? Go get it!",
+                                        "Inspirational": "Take the first step. Get yours today!"
+                                    }
+                                    cta = cta_actions.get(sales_tone, "Order now!")
+                                    script_parts.append(cta)
+                                    
+                                    # Additional instructions
+                                    if sales_prompt.strip():
+                                        script_parts.append(f"\n{sales_prompt}")
+                                    
+                                    script = " ".join(script_parts)
+                                    
+                                    # ✅ Language-specific variations
+                                    if sales_language in ["Hindi", "Hinglish"]:
+                                        script = f"{product_name} ka jadoo dekho! {features_text} Ye hai aapka mauka! {product_price if product_price.strip() else 'Best price'} mein paayein. {cta}"
+                                    
+                                    st.session_state["sales_script"] = script
+                                    
+                                else:
+                                    # Custom script mode
+                                    script = sales_script
+                                    st.session_state["sales_script"] = script
+                                
+                                # ✅ Validate script length
+                                if len(script) < 10:
+                                    st.error("Script is too short! Please provide more details.")
+                                    return
+                                
+                                # Generate audio
                                 audio_path = f"face_videos/sales_audio_{uuid.uuid4().hex[:8]}.mp3"
                                 voice_meta = ELEVENLABS_VOICES.get(sales_voice, {})
                                 voice_id = voice_meta.get("id", "21m00Tcm4TlvDq8ikWAM")
+                                
                                 audio_ok = generate_elevenlabs_audio_for_face(script, audio_path, voice_id)
                                 if not audio_ok:
-                                    audio_ok = AudioEngine.run_fallback_tts(text=script, output_filename=audio_path, language_choice=f"🇮🇳 Hinglish (Fluent Hindi Mix)" if sales_language in ["Hindi", "Hinglish"] else "🇬🇧 English (US Standard)", voice_profile=sales_voice)
+                                    audio_ok = AudioEngine.run_fallback_tts(
+                                        text=script,
+                                        output_filename=audio_path,
+                                        language_choice=f"🇮🇳 Hinglish (Fluent Hindi Mix)" if sales_language in ["Hindi", "Hinglish"] else "🇬🇧 English (US Standard)",
+                                        voice_profile=sales_voice
+                                    )
+                                
                                 if audio_ok and os.path.exists(audio_path):
                                     output_path = f"face_videos/sales_video_{uuid.uuid4().hex[:8]}.mp4"
                                     img_path = st.session_state["sales_product_image"]
+                                    
                                     quality_sizes = {"Standard": (512, 512), "HD": (768, 768), "4K": (1024, 1024)}
                                     w, h = quality_sizes.get(sales_quality, (512, 512))
+                                    
+                                    # Safe filename
                                     safe_name = str(product_name).replace("'", "").replace('"', '')[:40]
-                                    subprocess.run(['ffmpeg', '-y', '-loop', '1', '-i', img_path, '-i', audio_path, '-t', str(max(1.0, float(get_audio_duration(audio_path) or 5))), '-vf', f"scale={w}:{h}:force_original_aspect_ratio=decrease,pad={w}:{h}:(ow-iw)/2:(oh-ih)/2,setsar=1,drawtext=text='{safe_name}':fontcolor=white:fontsize=24:box=1:boxcolor=black@0.5:boxborderw=8:x=(w-text_w)/2:y=h-th-20", '-c:v', 'libx264', '-preset', 'fast', '-crf', '20', '-c:a', 'aac', '-shortest', output_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+                                    
+                                    # Get audio duration
+                                    audio_duration = max(1.0, float(get_audio_duration(audio_path) or 5))
+                                    
+                                    # Build ffmpeg command with text overlay
+                                    subprocess.run([
+                                        'ffmpeg', '-y',
+                                        '-loop', '1', '-i', img_path,
+                                        '-i', audio_path,
+                                        '-t', str(audio_duration),
+                                        '-vf', f"scale={w}:{h}:force_original_aspect_ratio=decrease,pad={w}:{h}:(ow-iw)/2:(oh-ih)/2,setsar=1,drawtext=text='{safe_name}':fontcolor=white:fontsize=24:box=1:boxcolor=black@0.5:boxborderw=8:x=(w-text_w)/2:y=h-th-50",
+                                        '-c:v', 'libx264', '-preset', 'fast', '-crf', '20',
+                                        '-c:a', 'aac', '-shortest',
+                                        output_path
+                                    ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+                                    
                                     if os.path.exists(output_path) and os.path.getsize(output_path) > 1000:
                                         st.session_state["sales_video_output"] = output_path
                                         st.toast("✅ Sales video generated!")
@@ -8108,26 +7914,41 @@ def render_ai_sales_ui():
                                         st.error("Video generation failed.")
                                 else:
                                     st.error("Audio generation failed.")
+                                    
                             except Exception as e:
                                 st.error(f"Error: {str(e)}")
 
     with col2:
         with st.container(border=True):
             st.markdown('<h3 style="font-family: Orbitron; font-size: 14px; color: #EC4899; margin-bottom: 12px;">🎬 SALES VIDEO OUTPUT</h3>', unsafe_allow_html=True)
+            
+            # ✅ Show generated script
+            if st.session_state.get("sales_script"):
+                with st.expander("📝 View Sales Script", expanded=False):
+                    st.text(st.session_state["sales_script"])
+            
             sales_output = st.session_state.get("sales_video_output")
             if sales_output and os.path.exists(sales_output):
                 st.video(sales_output)
+                
                 col_dl, col_clr = st.columns(2)
                 with col_dl:
                     with open(sales_output, "rb") as f:
-                        st.download_button("📥 Download", data=f.read(), file_name=f"sales_video_{uuid.uuid4().hex[:8]}.mp4", mime="video/mp4", use_container_width=True)
+                        st.download_button(
+                            "📥 Download",
+                            data=f.read(),
+                            file_name=f"sales_video_{uuid.uuid4().hex[:8]}.mp4",
+                            mime="video/mp4",
+                            use_container_width=True
+                        )
                 with col_clr:
                     if st.button("Clear", key="sales_clear", use_container_width=True):
                         safe_remove_file(sales_output)
                         st.session_state["sales_video_output"] = None
+                        st.session_state["sales_script"] = None
                         st.rerun()
             else:
-                st.info("No sales video generated yet. Upload product image and fill details.")
+                st.info("No sales video generated yet. Upload product image, fill details, and click Generate.")
 
 def generate_dynamic_ui():
     """Dynamic UI Mode - AI-Powered Interface Customization"""

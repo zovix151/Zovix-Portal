@@ -14613,3 +14613,27 @@ detail: - input.audio: Invalid type. Expected: string, given: null
 2026-08-18 13:05:09,158 - Zovix - INFO - Load balancer initialized with 4 workers
 2026-08-18 13:05:11,187 - Zovix - INFO - Redis cache connected
 2026-08-18 13:05:11,190 - Zovix - INFO - Database initialized successfully
+2026-08-18 14:56:46,562 - Zovix - INFO - Redis connected for rate limiting
+2026-08-18 14:56:46,595 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-18 14:56:48,624 - Zovix - INFO - Redis cache connected
+2026-08-18 14:56:48,662 - Zovix - INFO - Database initialized successfully
+2026-08-18 14:57:10,331 - Zovix - INFO - Redis connected for rate limiting
+2026-08-18 14:57:10,336 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-18 14:57:12,386 - Zovix - INFO - Redis cache connected
+2026-08-18 14:57:12,391 - Zovix - INFO - Database initialized successfully
+2026-08-18 14:57:30,271 - Zovix - INFO - Redis connected for rate limiting
+2026-08-18 14:57:30,273 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-18 14:57:32,294 - Zovix - INFO - Redis cache connected
+2026-08-18 14:57:32,301 - Zovix - INFO - Database initialized successfully
+2026-08-18 14:57:41,179 - Zovix - INFO - Redis connected for rate limiting
+2026-08-18 14:57:41,180 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-18 14:57:43,214 - Zovix - INFO - Redis cache connected
+2026-08-18 14:57:43,219 - Zovix - INFO - Database initialized successfully
+2026-08-18 14:57:47,498 - Zovix - INFO - Redis connected for rate limiting
+2026-08-18 14:57:47,504 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-18 14:57:49,544 - Zovix - INFO - Redis cache connected
+2026-08-18 14:57:49,548 - Zovix - INFO - Database initialized successfully
+2026-08-18 14:58:32,292 - Zovix - INFO - Redis connected for rate limiting
+2026-08-18 14:58:32,296 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-18 14:58:34,318 - Zovix - INFO - Redis cache connected
+2026-08-18 14:58:34,324 - Zovix - INFO - Database initialized successfully
