@@ -6888,6 +6888,11 @@ def generate_face_video(prompt, face_image_path, duration=30, emotion="neutral",
         engine = DeepInfraFaceEngine()
 
         if not engine.is_available():
+            msg = "DeepInfra API key not configured. Face Studio ko DeepInfra Cloud pe generate karne ke liye .streamlit/secrets.toml me DEEPINFRA_API_KEY set karein."
+            try:
+                st.session_state["replicate_last_error"] = msg
+            except Exception:
+                pass
             logger.warning("[DeepInfra] Engine/API key not available - falling back to local Wav2Lip")
             return _run_local_wav2lip_fallback(prompt, face_image_path, duration, quality)
 

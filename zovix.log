@@ -15141,3 +15141,7 @@ detail: - input.audio: Invalid type. Expected: string, given: null
 2026-08-20 21:55:06,574 - Zovix - INFO - Load balancer initialized with 4 workers
 2026-08-20 21:55:08,609 - Zovix - INFO - Redis cache connected
 2026-08-20 21:55:08,639 - Zovix - INFO - Database initialized successfully
+2026-08-20 22:14:29,278 - Zovix - WARNING - Redis not available: unknown command `HELLO`, with args beginning with: `3`, 
+2026-08-20 22:14:29,289 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-20 22:14:31,323 - Zovix - WARNING - Redis not available: unknown command `HELLO`, with args beginning with: `3`, 
+2026-08-20 22:14:31,349 - Zovix - INFO - Database initialized successfully
