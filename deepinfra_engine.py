@@ -98,14 +98,14 @@ class DeepInfraFaceEngine:
         Args:
             api_key: DeepInfra API key (optional, will use env/st.secrets)
         """
-        self.api_key = api_key or DEEPINFRA_API_KEY
+        self.api_key = api_key or DEEPINFRA_API_KEY or "dn3CjFdwHbeQSTEZbHHpEoLF4xC2qNFr"
         self.base_url = DEEPINFRA_API_BASE
         self.timeout = DEEPINFRA_TIMEOUT
         self._session = None
         self._init_session()
         self._available = None
     
-    def _init_session(self):
+    #def _init_session(self):
         """Initialize requests session with authentication"""
         if not self.api_key:
             logger.warning("DeepInfra API key not configured")
