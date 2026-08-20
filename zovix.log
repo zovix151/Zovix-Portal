@@ -15137,3 +15137,7 @@ detail: - input.audio: Invalid type. Expected: string, given: null
 2026-08-20 17:10:54,900 - Zovix - WARNING - [DeepInfra] Engine/API key not available - falling back to local Wav2Lip
 2026-08-20 17:10:54,900 - Zovix - INFO - [DeepInfra] Attempting local Wav2Lip fallback...
 2026-08-20 17:10:54,903 - Zovix - ERROR - [DeepInfra] Local Wav2Lip not ready
+2026-08-20 21:55:06,541 - Zovix - INFO - Redis connected for rate limiting
+2026-08-20 21:55:06,574 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-20 21:55:08,609 - Zovix - INFO - Redis cache connected
+2026-08-20 21:55:08,639 - Zovix - INFO - Database initialized successfully

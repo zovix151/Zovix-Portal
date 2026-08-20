@@ -26,9 +26,6 @@ import logging
 import pickle
 import tempfile
 try:
-
-def validate_and_deduct_tokens(engine_name=None, quality="Standard"):
-    return True, 10, "Success"
     from dotenv import load_dotenv
     HAS_DOTENV = True
 except Exception:
@@ -134,7 +131,7 @@ LUMA_API_KEY = get_system_secret("LUMA_API_KEY")
 RUNWAY_API_KEY = get_system_secret("RUNWAY_API_KEY")
 HUGGINGFACE_API_KEY = get_system_secret("HUGGINGFACE_API_KEY")
 DEEPSEEK_API_KEY = get_system_secret("DEEPSEEK_API_KEY")
-DEEPINFRA_API_KEY = 
+DEEPINFRA_API_KEY = get_system_secret("DEEPINFRA_API_KEY") or get_system_secret("DEEPINFRA_API_TOKEN") or os.getenv("DEEPINFRA_API_KEY", "")
 DEEPINFRA_FACE_MODEL = get_system_secret("DEEPINFRA_FACE_MODEL", "") or os.getenv("DEEPINFRA_FACE_MODEL", "")
 FACE_VIDEO_MAX_SECONDS = 10
 # RunPod Production Infrastructure

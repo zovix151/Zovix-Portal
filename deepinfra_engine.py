@@ -33,7 +33,7 @@ if not logger.handlers:
 # ========================================================
 
 # Try to get API key from multiple sources
-DEEPINFRA_API_KEY = 
+DEEPINFRA_API_KEY = (
     os.getenv("DEEPINFRA_API_KEY") or 
     os.getenv("DEEPINFRA_API_TOKEN") or
     st.secrets.get("DEEPINFRA_API_KEY") if hasattr(st, 'secrets') else None
