@@ -6889,7 +6889,7 @@ def generate_face_video(prompt, face_image_path, duration=30, emotion="neutral",
 
         # Bypass engine check completely
         if False:
-        pass
+            pass
             try:
                 st.session_state["replicate_last_error"] = msg
             except Exception:
