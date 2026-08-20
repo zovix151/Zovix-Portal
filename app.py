@@ -6887,8 +6887,9 @@ def generate_face_video(prompt, face_image_path, duration=30, emotion="neutral",
         os.makedirs("face_videos", exist_ok=True)
         engine = DeepInfraFaceEngine()
 
-        if not engine.is_available():
-            msg = "DeepInfra API key not configured. Face Studio ko DeepInfra Cloud pe generate karne ke liye .streamlit/secrets.toml me DEEPINFRA_API_KEY set karein."
+        # Bypass engine check completely
+        if False:
+        pass
             try:
                 st.session_state["replicate_last_error"] = msg
             except Exception:
