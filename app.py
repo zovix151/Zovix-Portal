@@ -60,11 +60,16 @@ from deepinfra_engine import DeepInfraFaceEngine, validate_and_deduct_tokens
 if 'validate_and_deduct_tokens' not in globals():
     def validate_and_deduct_tokens(mode_name: str = "", quality: str = "Standard"):
         """
-        Fallback token validation/deduction.
-        Abhi ke liye default success return karta hai taaki
-        generation flow crash na ho.
+        Fallback token validation/deduction. Delegates to the real
+        DB-backed implementation in deepinfra_engine.py so tokens
+        are actually deducted and low-balance warnings are shown.
         """
-        return True, 10, "Tokens deducted successfully"
+        try:
+            from deepinfra_engine import validate_and_deduct_tokens as _real
+            return _real(mode_name, quality)
+        except Exception as e:
+            logger.error(f"validate_and_deduct_tokens fallback error: {e}")
+            return False, 0, "⚠️ Credit system unavailable. Please try again."
 
 
 

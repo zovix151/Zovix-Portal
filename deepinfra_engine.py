@@ -10,6 +10,8 @@ import requests
 import base64
 import tempfile
 import subprocess
+import sqlite3
+from datetime import datetime, timedelta
 from typing import Optional, Dict, Any, Tuple, List
 from PIL import Image
 import streamlit as st
@@ -20,8 +22,118 @@ import logging
 # ========================================================
 
 def validate_and_deduct_tokens(engine_name, quality="Standard"):
-    """Placeholder token validation - always returns success"""
-    return True, 10, "Tokens deducted successfully"
+    """Validate & deduct credits for the logged-in user using the real DB.
+
+    Returns:
+        (success: bool, required_tokens: int, message: str)
+    """
+        # Cost per generation based on quality (same pricing as the rest of the app:
+    # Standard=3, HD=4, 4K=6 tokens/credits).
+    quality_cost_map = {"Standard": 25, "HD": 60, "4K": 110}
+    required = quality_cost_map.get(quality, 3)
+
+    LOW_BALANCE_THRESHOLD = 25
+
+    username = ""
+    try:
+        username = (st.session_state.get("logged_user") or "").strip()
+    except Exception:
+        username = ""
+
+    if not username:
+        return False, required, (
+            f"⚠️ Please login and add credits to generate. Required: {required} credits."
+        )
+
+    db_path = "zovix_v4.db"
+
+    # --- Expire vouchers if past validity ---
+    try:
+        conn = sqlite3.connect(db_path, check_same_thread=False)
+        cur = conn.cursor()
+        row = cur.execute(
+            "SELECT voucher_credits, voucher_expires_at FROM users WHERE username=?",
+            (username,),
+        ).fetchone()
+        if row and row[0] and row[1]:
+            try:
+                exp_dt = datetime.fromisoformat(row[1])
+                if datetime.now() > exp_dt:
+                    cur.execute(
+                        "UPDATE users SET voucher_credits=0, voucher_expires_at='' WHERE username=?",
+                        (username,),
+                    )
+                    conn.commit()
+            except Exception:
+                pass
+        conn.close()
+    except Exception:
+        pass
+
+    # --- Read current balance ---
+    total = 0
+    std_credits = 0
+    v_credits = 0
+    try:
+        conn = sqlite3.connect(db_path, check_same_thread=False)
+        row = conn.execute(
+            "SELECT credits, voucher_credits FROM users WHERE username=?",
+            (username,),
+        ).fetchone()
+        if row:
+            std_credits, v_credits = row[0] or 0, row[1] or 0
+        conn.close()
+    except Exception as e:
+        logger.error(f"validate_and_deduct_tokens read error: {e}")
+        return False, required, "⚠️ Could not read your credit balance. Please try again."
+
+    total = std_credits + v_credits
+
+    # --- Insufficient balance ---
+    if total < required:
+        return False, required, (
+            f"⚠️ Insufficient credits! Required: {required} credits, "
+            f"Available: {total} credits. Please top up your wallet to continue."
+        )
+
+    # --- Deduct credits ---
+    try:
+        conn = sqlite3.connect(db_path, check_same_thread=False)
+        cur = conn.cursor()
+        if v_credits >= required:
+            cur.execute(
+                "UPDATE users SET voucher_credits=? WHERE username=?",
+                (v_credits - required, username),
+            )
+        else:
+            remaining = required - v_credits
+            cur.execute(
+                "UPDATE users SET voucher_credits=0, credits=credits-? WHERE username=?",
+                (remaining, username),
+            )
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        logger.error(f"validate_and_deduct_tokens deduction error: {e}")
+        return False, required, "⚠️ Failed to deduct credits. Please try again."
+
+    # --- Re-read balance & update session for UI ---
+    new_total = total - required
+    try:
+        st.session_state["user_credits"] = new_total
+    except Exception:
+        pass
+
+    if new_total < LOW_BALANCE_THRESHOLD:
+        msg = (
+            f"✅ {required} credits deducted for {engine_name}. "
+            f"Balance: {new_total} credits. ⚠️ Low balance — please top up soon "
+            f"to avoid interruptions."
+        )
+    else:
+        msg = f"✅ {required} credits deducted for {engine_name}. Balance: {new_total} credits."
+
+    return True, required, msg
 
 # ========================================================
 # LOGGING SETUP
