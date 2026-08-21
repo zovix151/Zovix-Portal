@@ -1157,7 +1157,7 @@ LANGUAGE_VOICE_MAP = {
 # ========================================================
 
 BASE_BURN_RATE = {
-    "Face Video Generator": 20,
+    "Face Video Generator": 25,
     "Face Video Studio": 25,
     "Expressive Face Video": 25,
     "Cinematic Engine": 25,
@@ -1347,7 +1347,7 @@ GLOBAL_PLANS = {
         "free": {
             "name": "Free",
             "price": 0,
-            "tokens": 10,
+            "tokens": 0,
             "amount_paise": 0,
             "emoji": "🆓",
             "features": ["10 Free Tokens Monthly", "Watermark", "Basic AI Features"],
@@ -1419,17 +1419,6 @@ GLOBAL_PLANS = {
         }
     },
     "one_time": {
-        "topup_49": {
-            "name": "Token Top-up",
-            "price": 49,
-            "tokens": 50,
-            "amount_paise": 4900,
-            "emoji": "🎯",
-            "type": "prepaid",
-            "badge": "💫 ONE-TIME",
-            "color": "#45f3ff",
-            "description": "One-time token purchase"
-        },
         "topup_99": {
             "name": "Token Top-up",
             "price": 99,

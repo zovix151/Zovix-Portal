@@ -15592,3 +15592,59 @@ detail: - input.audio: Invalid type. Expected: string, given: null
 2026-08-21 13:48:19,766 - Zovix - INFO - Load balancer initialized with 4 workers
 2026-08-21 13:48:21,801 - Zovix - INFO - Redis cache connected
 2026-08-21 13:48:21,803 - Zovix - INFO - Database initialized successfully
+2026-08-21 19:07:52,222 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 19:07:52,370 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 19:07:54,422 - Zovix - INFO - Redis cache connected
+2026-08-21 19:07:54,442 - Zovix - INFO - Database initialized successfully
+2026-08-21 19:08:00,863 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 19:08:00,864 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 19:08:02,894 - Zovix - INFO - Redis cache connected
+2026-08-21 19:08:02,901 - Zovix - INFO - Database initialized successfully
+2026-08-21 19:08:09,755 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 19:08:09,756 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 19:08:11,796 - Zovix - INFO - Redis cache connected
+2026-08-21 19:08:11,801 - Zovix - INFO - Database initialized successfully
+2026-08-21 19:08:20,522 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 19:08:20,523 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 19:08:22,561 - Zovix - INFO - Redis cache connected
+2026-08-21 19:08:22,567 - Zovix - INFO - Database initialized successfully
+2026-08-21 19:08:26,878 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 19:08:26,878 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 19:08:28,905 - Zovix - INFO - Redis cache connected
+2026-08-21 19:08:28,911 - Zovix - INFO - Database initialized successfully
+2026-08-21 19:08:35,279 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 19:08:35,280 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 19:08:37,300 - Zovix - INFO - Redis cache connected
+2026-08-21 19:08:37,305 - Zovix - INFO - Database initialized successfully
+2026-08-21 19:08:41,624 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 19:08:41,625 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 19:08:43,650 - Zovix - INFO - Redis cache connected
+2026-08-21 19:08:43,656 - Zovix - INFO - Database initialized successfully
+2026-08-21 19:08:54,932 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 19:08:54,933 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 19:08:56,983 - Zovix - INFO - Redis cache connected
+2026-08-21 19:08:56,987 - Zovix - INFO - Database initialized successfully
+2026-08-21 19:10:28,411 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 19:10:28,412 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 19:10:30,446 - Zovix - INFO - Redis cache connected
+2026-08-21 19:10:30,452 - Zovix - INFO - Database initialized successfully
+2026-08-21 19:10:34,774 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 19:10:34,776 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 19:10:36,812 - Zovix - INFO - Redis cache connected
+2026-08-21 19:10:36,819 - Zovix - INFO - Database initialized successfully
+2026-08-21 19:11:04,820 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 19:11:04,821 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 19:11:06,848 - Zovix - INFO - Redis cache connected
+2026-08-21 19:11:06,854 - Zovix - INFO - Database initialized successfully
+2026-08-21 19:11:17,194 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 19:11:17,196 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 19:11:19,225 - Zovix - INFO - Redis cache connected
+2026-08-21 19:11:19,232 - Zovix - INFO - Database initialized successfully
+2026-08-21 19:11:23,577 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 19:11:23,579 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 19:11:25,621 - Zovix - INFO - Redis cache connected
+2026-08-21 19:11:25,627 - Zovix - INFO - Database initialized successfully
+2026-08-21 19:11:41,238 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 19:11:41,240 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 19:11:43,275 - Zovix - INFO - Redis cache connected
+2026-08-21 19:11:43,283 - Zovix - INFO - Database initialized successfully
