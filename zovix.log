@@ -15145,3 +15145,450 @@ detail: - input.audio: Invalid type. Expected: string, given: null
 2026-08-20 22:14:29,289 - Zovix - INFO - Load balancer initialized with 4 workers
 2026-08-20 22:14:31,323 - Zovix - WARNING - Redis not available: unknown command `HELLO`, with args beginning with: `3`, 
 2026-08-20 22:14:31,349 - Zovix - INFO - Database initialized successfully
+2026-08-21 11:52:38,347 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 11:52:38,403 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 11:52:40,442 - Zovix - INFO - Redis cache connected
+2026-08-21 11:52:40,497 - Zovix - INFO - Database initialized successfully
+2026-08-21 11:52:47,095 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 11:52:47,098 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 11:52:49,135 - Zovix - INFO - Redis cache connected
+2026-08-21 11:52:49,142 - Zovix - INFO - Database initialized successfully
+2026-08-21 11:52:58,721 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 11:52:58,722 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 11:53:00,769 - Zovix - INFO - Redis cache connected
+2026-08-21 11:53:00,777 - Zovix - INFO - Database initialized successfully
+2026-08-21 11:53:21,113 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 11:53:21,114 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 11:53:23,140 - Zovix - INFO - Redis cache connected
+2026-08-21 11:53:23,147 - Zovix - INFO - Database initialized successfully
+2026-08-21 11:53:27,561 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 11:53:27,563 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 11:53:29,589 - Zovix - INFO - Redis cache connected
+2026-08-21 11:53:29,595 - Zovix - INFO - Database initialized successfully
+2026-08-21 11:53:58,351 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 11:53:58,353 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 11:54:00,381 - Zovix - INFO - Redis cache connected
+2026-08-21 11:54:00,400 - Zovix - INFO - Database initialized successfully
+2026-08-21 11:54:27,545 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 11:54:27,547 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 11:54:29,587 - Zovix - INFO - Redis cache connected
+2026-08-21 11:54:30,694 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 11:54:30,695 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 11:54:32,727 - Zovix - INFO - Redis cache connected
+2026-08-21 11:54:32,736 - Zovix - INFO - Database initialized successfully
+2026-08-21 11:54:51,914 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 11:54:51,915 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 11:54:53,955 - Zovix - INFO - Redis cache connected
+2026-08-21 11:54:53,963 - Zovix - INFO - Database initialized successfully
+2026-08-21 11:54:58,427 - Zovix - WARNING - Fallback TTS voice failed (en-US-GuyNeural): No audio was received. Please verify that your parameters are correct.
+2026-08-21 11:54:59,657 - Zovix - WARNING - Fallback TTS voice failed (en-US-AriaNeural): No audio was received. Please verify that your parameters are correct.
+2026-08-21 11:55:00,787 - Zovix - WARNING - Fallback TTS voice failed (en-GB-RyanNeural): No audio was received. Please verify that your parameters are correct.
+2026-08-21 11:55:00,791 - Zovix - INFO - Devanagari script detected - auto-enabling Hindi voice model
+2026-08-21 11:55:00,794 - Zovix - INFO - TTS tiers available: ['Edge-TTS', 'GenerativeFallback']
+2026-08-21 11:55:04,504 - Zovix - INFO - [DeepInfra] Trying wav2lip via DeepInfra...
+2026-08-21 11:55:05,488 - Zovix.DeepInfra - ERROR - DeepInfra engine not available
+2026-08-21 11:55:05,489 - Zovix - WARNING - [DeepInfra] wav2lip failed: wav2lip returned None
+2026-08-21 11:55:05,490 - Zovix - INFO - [DeepInfra] Trying sadtalker via DeepInfra...
+2026-08-21 11:55:05,492 - Zovix.DeepInfra - ERROR - DeepInfra engine not available
+2026-08-21 11:55:05,493 - Zovix - WARNING - [DeepInfra] sadtalker failed: sadtalker returned None
+2026-08-21 11:55:05,495 - Zovix - INFO - [DeepInfra] Trying liveportrait via DeepInfra...
+2026-08-21 11:55:05,496 - Zovix.DeepInfra - ERROR - DeepInfra engine not available
+2026-08-21 11:55:05,500 - Zovix - WARNING - [DeepInfra] liveportrait failed: liveportrait returned None
+2026-08-21 11:55:05,501 - Zovix - WARNING - [DeepInfra] All DeepInfra models failed (liveportrait returned None) - falling back to local Wav2Lip
+2026-08-21 11:55:05,503 - Zovix - INFO - [DeepInfra] Attempting local Wav2Lip fallback...
+2026-08-21 11:55:05,509 - Zovix - ERROR - [DeepInfra] Local Wav2Lip not ready
+2026-08-21 11:59:54,950 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 11:59:54,951 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 11:59:56,982 - Zovix - INFO - Redis cache connected
+2026-08-21 11:59:57,003 - Zovix - INFO - Database initialized successfully
+2026-08-21 12:00:04,532 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 12:00:04,533 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 12:00:06,562 - Zovix - INFO - Redis cache connected
+2026-08-21 12:00:54,121 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 12:00:54,161 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 12:00:56,198 - Zovix - INFO - Redis cache connected
+2026-08-21 12:00:56,223 - Zovix - INFO - Database initialized successfully
+2026-08-21 12:01:05,852 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 12:01:05,855 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 12:01:07,889 - Zovix - INFO - Redis cache connected
+2026-08-21 12:01:07,901 - Zovix - INFO - Database initialized successfully
+2026-08-21 12:01:23,898 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 12:01:23,900 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 12:01:25,922 - Zovix - INFO - Redis cache connected
+2026-08-21 12:01:25,931 - Zovix - INFO - Database initialized successfully
+2026-08-21 12:01:35,980 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 12:01:35,983 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 12:01:38,036 - Zovix - INFO - Redis cache connected
+2026-08-21 12:01:38,045 - Zovix - INFO - Database initialized successfully
+2026-08-21 12:01:42,434 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 12:01:42,436 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 12:01:44,462 - Zovix - INFO - Redis cache connected
+2026-08-21 12:01:44,470 - Zovix - INFO - Database initialized successfully
+2026-08-21 12:01:58,757 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 12:01:58,760 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 12:02:00,787 - Zovix - INFO - Redis cache connected
+2026-08-21 12:02:00,803 - Zovix - INFO - Database initialized successfully
+2026-08-21 12:02:15,239 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 12:02:15,241 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 12:02:17,276 - Zovix - INFO - Redis cache connected
+2026-08-21 12:02:18,066 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 12:02:18,068 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 12:02:20,110 - Zovix - INFO - Redis cache connected
+2026-08-21 12:02:20,117 - Zovix - INFO - Database initialized successfully
+2026-08-21 12:02:33,834 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 12:02:33,835 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 12:02:35,856 - Zovix - INFO - Redis cache connected
+2026-08-21 12:02:35,865 - Zovix - INFO - Database initialized successfully
+2026-08-21 12:02:40,251 - Zovix - WARNING - Fallback TTS voice failed (en-US-GuyNeural): No audio was received. Please verify that your parameters are correct.
+2026-08-21 12:02:41,202 - Zovix - WARNING - Fallback TTS voice failed (en-US-AriaNeural): No audio was received. Please verify that your parameters are correct.
+2026-08-21 12:02:42,308 - Zovix - WARNING - Fallback TTS voice failed (en-GB-RyanNeural): No audio was received. Please verify that your parameters are correct.
+2026-08-21 12:02:42,317 - Zovix - INFO - Devanagari script detected - auto-enabling Hindi voice model
+2026-08-21 12:02:42,320 - Zovix - INFO - TTS tiers available: ['Edge-TTS', 'GenerativeFallback']
+2026-08-21 12:02:43,654 - Zovix - INFO - [DeepInfra] Trying wav2lip via DeepInfra...
+2026-08-21 12:02:44,758 - Zovix - WARNING - [DeepInfra] wav2lip failed: wav2lip returned None
+2026-08-21 12:02:44,759 - Zovix - INFO - [DeepInfra] Trying sadtalker via DeepInfra...
+2026-08-21 12:02:44,762 - Zovix - WARNING - [DeepInfra] sadtalker failed: sadtalker returned None
+2026-08-21 12:02:44,763 - Zovix - INFO - [DeepInfra] Trying liveportrait via DeepInfra...
+2026-08-21 12:02:44,766 - Zovix - WARNING - [DeepInfra] liveportrait failed: liveportrait returned None
+2026-08-21 12:02:44,767 - Zovix - WARNING - [DeepInfra] All DeepInfra models failed (liveportrait returned None) - falling back to local Wav2Lip
+2026-08-21 12:02:44,768 - Zovix - INFO - [DeepInfra] Attempting local Wav2Lip fallback...
+2026-08-21 12:02:44,773 - Zovix - ERROR - [DeepInfra] Local Wav2Lip not ready
+2026-08-21 12:14:51,492 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 12:14:51,502 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 12:14:53,540 - Zovix - INFO - Redis cache connected
+2026-08-21 12:14:53,548 - Zovix - INFO - Database initialized successfully
+2026-08-21 12:15:04,342 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 12:15:04,345 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 12:15:06,384 - Zovix - INFO - Redis cache connected
+2026-08-21 12:15:06,424 - Zovix - INFO - Database initialized successfully
+2026-08-21 12:15:18,130 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 12:15:18,132 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 12:15:20,173 - Zovix - INFO - Redis cache connected
+2026-08-21 12:15:20,183 - Zovix - INFO - Database initialized successfully
+2026-08-21 12:15:31,230 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 12:15:31,232 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 12:15:33,256 - Zovix - INFO - Redis cache connected
+2026-08-21 12:15:33,264 - Zovix - INFO - Database initialized successfully
+2026-08-21 12:15:37,759 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 12:15:37,762 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 12:15:39,802 - Zovix - INFO - Redis cache connected
+2026-08-21 12:15:39,810 - Zovix - INFO - Database initialized successfully
+2026-08-21 12:16:07,781 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 12:16:07,783 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 12:16:09,800 - Zovix - INFO - Redis cache connected
+2026-08-21 12:16:09,807 - Zovix - INFO - Database initialized successfully
+2026-08-21 12:16:25,587 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 12:16:25,589 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 12:16:27,621 - Zovix - INFO - Redis cache connected
+2026-08-21 12:16:27,629 - Zovix - INFO - Database initialized successfully
+2026-08-21 12:16:29,987 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 12:16:29,990 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 12:16:32,022 - Zovix - INFO - Redis cache connected
+2026-08-21 12:16:32,032 - Zovix - INFO - Database initialized successfully
+2026-08-21 12:16:45,061 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 12:16:45,062 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 12:16:47,095 - Zovix - INFO - Redis cache connected
+2026-08-21 12:16:47,103 - Zovix - INFO - Database initialized successfully
+2026-08-21 12:16:51,522 - Zovix - WARNING - Fallback TTS voice failed (en-US-GuyNeural): No audio was received. Please verify that your parameters are correct.
+2026-08-21 12:16:52,537 - Zovix - WARNING - Fallback TTS voice failed (en-US-AriaNeural): No audio was received. Please verify that your parameters are correct.
+2026-08-21 12:16:53,564 - Zovix - WARNING - Fallback TTS voice failed (en-GB-RyanNeural): No audio was received. Please verify that your parameters are correct.
+2026-08-21 12:16:53,568 - Zovix - INFO - Devanagari script detected - auto-enabling Hindi voice model
+2026-08-21 12:16:53,571 - Zovix - INFO - TTS tiers available: ['Edge-TTS', 'GenerativeFallback']
+2026-08-21 12:16:55,126 - Zovix - INFO - [DeepInfra] Trying wav2lip via DeepInfra...
+2026-08-21 12:16:56,224 - Zovix - WARNING - [DeepInfra] wav2lip failed: wav2lip returned None
+2026-08-21 12:16:56,226 - Zovix - INFO - [DeepInfra] Trying sadtalker via DeepInfra...
+2026-08-21 12:16:56,231 - Zovix - WARNING - [DeepInfra] sadtalker failed: sadtalker returned None
+2026-08-21 12:16:56,232 - Zovix - INFO - [DeepInfra] Trying liveportrait via DeepInfra...
+2026-08-21 12:16:56,235 - Zovix - WARNING - [DeepInfra] liveportrait failed: liveportrait returned None
+2026-08-21 12:16:56,237 - Zovix - WARNING - [DeepInfra] All DeepInfra models failed (liveportrait returned None) - falling back to local Wav2Lip
+2026-08-21 12:16:56,238 - Zovix - INFO - [DeepInfra] Attempting local Wav2Lip fallback...
+2026-08-21 12:16:56,243 - Zovix - ERROR - [DeepInfra] Local Wav2Lip not ready
+2026-08-21 12:23:05,772 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 12:23:05,816 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 12:23:07,844 - Zovix - INFO - Redis cache connected
+2026-08-21 12:23:07,864 - Zovix - INFO - Database initialized successfully
+2026-08-21 12:23:26,501 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 12:23:26,502 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 12:23:28,541 - Zovix - INFO - Redis cache connected
+2026-08-21 12:23:28,550 - Zovix - INFO - Database initialized successfully
+2026-08-21 12:23:39,007 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 12:23:39,009 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 12:23:41,031 - Zovix - INFO - Redis cache connected
+2026-08-21 12:23:41,036 - Zovix - INFO - Database initialized successfully
+2026-08-21 12:23:49,626 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 12:23:49,628 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 12:23:51,675 - Zovix - INFO - Redis cache connected
+2026-08-21 12:23:51,681 - Zovix - INFO - Database initialized successfully
+2026-08-21 12:23:55,988 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 12:23:55,990 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 12:23:58,039 - Zovix - INFO - Redis cache connected
+2026-08-21 12:23:58,045 - Zovix - INFO - Database initialized successfully
+2026-08-21 12:24:15,911 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 12:24:15,913 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 12:24:17,933 - Zovix - INFO - Redis cache connected
+2026-08-21 12:24:17,939 - Zovix - INFO - Database initialized successfully
+2026-08-21 12:24:30,991 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 12:24:30,992 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 12:24:32,097 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 12:24:32,099 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 12:24:33,031 - Zovix - INFO - Redis cache connected
+2026-08-21 12:24:34,126 - Zovix - INFO - Redis cache connected
+2026-08-21 12:24:34,132 - Zovix - INFO - Database initialized successfully
+2026-08-21 12:24:42,271 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 12:24:42,272 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 12:24:44,320 - Zovix - INFO - Redis cache connected
+2026-08-21 12:24:44,326 - Zovix - INFO - Database initialized successfully
+2026-08-21 12:24:48,513 - Zovix - WARNING - Fallback TTS voice failed (en-US-GuyNeural): No audio was received. Please verify that your parameters are correct.
+2026-08-21 12:24:49,640 - Zovix - WARNING - Fallback TTS voice failed (en-US-AriaNeural): No audio was received. Please verify that your parameters are correct.
+2026-08-21 12:24:50,665 - Zovix - WARNING - Fallback TTS voice failed (en-GB-RyanNeural): No audio was received. Please verify that your parameters are correct.
+2026-08-21 12:24:50,666 - Zovix - INFO - Devanagari script detected - auto-enabling Hindi voice model
+2026-08-21 12:24:50,668 - Zovix - INFO - TTS tiers available: ['Edge-TTS', 'GenerativeFallback']
+2026-08-21 12:24:51,908 - Zovix - INFO - [DeepInfra] Trying wav2lip via DeepInfra...
+2026-08-21 12:24:54,439 - Zovix - WARNING - [DeepInfra] wav2lip failed: wav2lip returned None
+2026-08-21 12:24:54,440 - Zovix - INFO - [DeepInfra] Trying sadtalker via DeepInfra...
+2026-08-21 12:24:56,953 - Zovix - WARNING - [DeepInfra] sadtalker failed: sadtalker returned None
+2026-08-21 12:24:56,954 - Zovix - INFO - [DeepInfra] Trying liveportrait via DeepInfra...
+2026-08-21 12:24:59,125 - Zovix - WARNING - [DeepInfra] liveportrait failed: liveportrait returned None
+2026-08-21 12:24:59,126 - Zovix - WARNING - [DeepInfra] All DeepInfra models failed (liveportrait returned None) - falling back to local Wav2Lip
+2026-08-21 12:24:59,127 - Zovix - INFO - [DeepInfra] Attempting local Wav2Lip fallback...
+2026-08-21 12:24:59,130 - Zovix - ERROR - [DeepInfra] Local Wav2Lip not ready
+2026-08-21 12:35:24,877 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 12:35:24,908 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 12:35:26,952 - Zovix - INFO - Redis cache connected
+2026-08-21 12:35:26,966 - Zovix - INFO - Database initialized successfully
+2026-08-21 12:35:33,599 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 12:35:33,601 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 12:35:35,641 - Zovix - INFO - Redis cache connected
+2026-08-21 12:35:35,648 - Zovix - INFO - Database initialized successfully
+2026-08-21 12:35:47,532 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 12:35:47,534 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 12:35:49,560 - Zovix - INFO - Redis cache connected
+2026-08-21 12:35:49,567 - Zovix - INFO - Database initialized successfully
+2026-08-21 12:35:59,699 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 12:35:59,701 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 12:36:01,752 - Zovix - INFO - Redis cache connected
+2026-08-21 12:36:01,759 - Zovix - INFO - Database initialized successfully
+2026-08-21 12:36:06,104 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 12:36:06,106 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 12:36:08,134 - Zovix - INFO - Redis cache connected
+2026-08-21 12:36:08,139 - Zovix - INFO - Database initialized successfully
+2026-08-21 12:36:23,156 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 12:36:23,159 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 12:36:25,186 - Zovix - INFO - Redis cache connected
+2026-08-21 12:36:25,192 - Zovix - INFO - Database initialized successfully
+2026-08-21 12:36:40,005 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 12:36:40,006 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 12:36:41,257 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 12:36:41,258 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 12:36:42,034 - Zovix - INFO - Redis cache connected
+2026-08-21 12:36:43,291 - Zovix - INFO - Redis cache connected
+2026-08-21 12:36:43,297 - Zovix - INFO - Database initialized successfully
+2026-08-21 12:36:51,974 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 12:36:51,975 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 12:36:54,002 - Zovix - INFO - Redis cache connected
+2026-08-21 12:36:54,008 - Zovix - INFO - Database initialized successfully
+2026-08-21 12:36:57,991 - Zovix - WARNING - Fallback TTS voice failed (en-US-GuyNeural): No audio was received. Please verify that your parameters are correct.
+2026-08-21 12:36:59,030 - Zovix - WARNING - Fallback TTS voice failed (en-US-AriaNeural): No audio was received. Please verify that your parameters are correct.
+2026-08-21 12:37:00,007 - Zovix - WARNING - Fallback TTS voice failed (en-GB-RyanNeural): No audio was received. Please verify that your parameters are correct.
+2026-08-21 12:37:00,012 - Zovix - INFO - Devanagari script detected - auto-enabling Hindi voice model
+2026-08-21 12:37:00,014 - Zovix - INFO - TTS tiers available: ['Edge-TTS', 'GenerativeFallback']
+2026-08-21 12:37:01,097 - Zovix - INFO - [DeepInfra] Trying wav2lip via DeepInfra...
+2026-08-21 12:37:01,097 - Zovix - WARNING - [DeepInfra] wav2lip raised: 'DeepInfraFaceEngine' object has no attribute 'generate_wav2lip'
+2026-08-21 12:37:01,098 - Zovix - INFO - [DeepInfra] Trying sadtalker via DeepInfra...
+2026-08-21 12:37:01,098 - Zovix - WARNING - [DeepInfra] sadtalker raised: 'DeepInfraFaceEngine' object has no attribute 'generate_sadtalker'
+2026-08-21 12:37:01,099 - Zovix - INFO - [DeepInfra] Trying liveportrait via DeepInfra...
+2026-08-21 12:37:01,099 - Zovix - WARNING - [DeepInfra] liveportrait raised: 'DeepInfraFaceEngine' object has no attribute 'generate_liveportrait'
+2026-08-21 12:37:01,100 - Zovix - WARNING - [DeepInfra] All DeepInfra models failed ('DeepInfraFaceEngine' object has no attribute 'generate_liveportrait') - falling back to local Wav2Lip
+2026-08-21 12:37:01,101 - Zovix - INFO - [DeepInfra] Attempting local Wav2Lip fallback...
+2026-08-21 12:37:01,103 - Zovix - ERROR - [DeepInfra] Local Wav2Lip not ready
+2026-08-21 12:49:48,732 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 12:49:48,756 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 12:49:50,797 - Zovix - INFO - Redis cache connected
+2026-08-21 12:49:50,814 - Zovix - INFO - Database initialized successfully
+2026-08-21 12:49:56,042 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 12:49:56,043 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 12:49:58,070 - Zovix - INFO - Redis cache connected
+2026-08-21 12:49:58,078 - Zovix - INFO - Database initialized successfully
+2026-08-21 12:50:09,265 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 12:50:09,267 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 12:50:11,292 - Zovix - INFO - Redis cache connected
+2026-08-21 12:50:11,297 - Zovix - INFO - Database initialized successfully
+2026-08-21 12:50:25,684 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 12:50:25,685 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 12:50:27,706 - Zovix - INFO - Redis cache connected
+2026-08-21 12:50:27,711 - Zovix - INFO - Database initialized successfully
+2026-08-21 12:50:31,987 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 12:50:31,987 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 12:50:34,017 - Zovix - INFO - Redis cache connected
+2026-08-21 12:50:34,022 - Zovix - INFO - Database initialized successfully
+2026-08-21 12:50:44,378 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 12:50:44,379 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 12:50:46,422 - Zovix - INFO - Redis cache connected
+2026-08-21 12:50:46,429 - Zovix - INFO - Database initialized successfully
+2026-08-21 12:50:58,985 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 12:50:58,986 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 12:51:00,904 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 12:51:00,905 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 12:51:01,012 - Zovix - INFO - Redis cache connected
+2026-08-21 12:51:02,930 - Zovix - INFO - Redis cache connected
+2026-08-21 12:51:02,936 - Zovix - INFO - Database initialized successfully
+2026-08-21 12:53:21,977 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 12:53:21,978 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 12:53:24,019 - Zovix - INFO - Redis cache connected
+2026-08-21 12:53:24,023 - Zovix - INFO - Database initialized successfully
+2026-08-21 12:53:27,717 - Zovix - WARNING - Fallback TTS voice failed (en-US-GuyNeural): No audio was received. Please verify that your parameters are correct.
+2026-08-21 12:53:29,179 - Zovix - WARNING - Fallback TTS voice failed (en-US-AriaNeural): No audio was received. Please verify that your parameters are correct.
+2026-08-21 12:53:30,151 - Zovix - WARNING - Fallback TTS voice failed (en-GB-RyanNeural): No audio was received. Please verify that your parameters are correct.
+2026-08-21 12:53:30,154 - Zovix - INFO - Devanagari script detected - auto-enabling Hindi voice model
+2026-08-21 12:53:30,155 - Zovix - INFO - TTS tiers available: ['Edge-TTS', 'GenerativeFallback']
+2026-08-21 12:54:09,241 - Zovix - ERROR - Unified face video error: local variable 'output_path' referenced before assignment
+2026-08-21 13:05:03,406 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 13:05:03,439 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 13:05:05,479 - Zovix - INFO - Redis cache connected
+2026-08-21 13:05:05,493 - Zovix - INFO - Database initialized successfully
+2026-08-21 13:05:11,814 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 13:05:11,816 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 13:05:13,850 - Zovix - INFO - Redis cache connected
+2026-08-21 13:05:13,856 - Zovix - INFO - Database initialized successfully
+2026-08-21 13:05:23,490 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 13:05:23,492 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 13:05:25,531 - Zovix - INFO - Redis cache connected
+2026-08-21 13:05:25,537 - Zovix - INFO - Database initialized successfully
+2026-08-21 13:05:33,627 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 13:05:33,629 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 13:05:35,676 - Zovix - INFO - Redis cache connected
+2026-08-21 13:05:35,681 - Zovix - INFO - Database initialized successfully
+2026-08-21 13:05:39,970 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 13:05:39,970 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 13:05:42,002 - Zovix - INFO - Redis cache connected
+2026-08-21 13:05:42,010 - Zovix - INFO - Database initialized successfully
+2026-08-21 13:05:52,502 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 13:05:52,503 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 13:05:54,528 - Zovix - INFO - Redis cache connected
+2026-08-21 13:05:54,534 - Zovix - INFO - Database initialized successfully
+2026-08-21 13:06:22,005 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 13:06:22,006 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 13:06:24,030 - Zovix - INFO - Redis cache connected
+2026-08-21 13:06:24,227 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 13:06:24,227 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 13:06:26,266 - Zovix - INFO - Redis cache connected
+2026-08-21 13:06:26,270 - Zovix - INFO - Database initialized successfully
+2026-08-21 13:06:34,641 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 13:06:34,642 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 13:06:36,669 - Zovix - INFO - Redis cache connected
+2026-08-21 13:06:36,673 - Zovix - INFO - Database initialized successfully
+2026-08-21 13:06:40,598 - Zovix - WARNING - Fallback TTS voice failed (en-US-GuyNeural): No audio was received. Please verify that your parameters are correct.
+2026-08-21 13:06:41,620 - Zovix - WARNING - Fallback TTS voice failed (en-US-AriaNeural): No audio was received. Please verify that your parameters are correct.
+2026-08-21 13:06:42,421 - Zovix - WARNING - Fallback TTS voice failed (en-GB-RyanNeural): No audio was received. Please verify that your parameters are correct.
+2026-08-21 13:06:42,423 - Zovix - INFO - Devanagari script detected - auto-enabling Hindi voice model
+2026-08-21 13:06:42,424 - Zovix - INFO - TTS tiers available: ['Edge-TTS', 'GenerativeFallback']
+2026-08-21 13:07:16,631 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 13:07:16,632 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 13:07:18,672 - Zovix - INFO - Redis cache connected
+2026-08-21 13:07:18,674 - Zovix - INFO - Database initialized successfully
+2026-08-21 13:41:58,188 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 13:41:58,228 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 13:42:00,278 - Zovix - INFO - Redis cache connected
+2026-08-21 13:42:00,311 - Zovix - INFO - Database initialized successfully
+2026-08-21 13:42:08,904 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 13:42:08,905 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 13:42:08,906 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 13:42:08,908 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 13:42:10,949 - Zovix - INFO - Redis cache connected
+2026-08-21 13:42:10,950 - Zovix - INFO - Redis cache connected
+2026-08-21 13:42:11,281 - Zovix - INFO - Database initialized successfully
+2026-08-21 13:42:19,941 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 13:42:19,942 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 13:42:21,983 - Zovix - INFO - Redis cache connected
+2026-08-21 13:42:21,991 - Zovix - INFO - Database initialized successfully
+2026-08-21 13:42:30,364 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 13:42:30,367 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 13:42:32,397 - Zovix - INFO - Redis cache connected
+2026-08-21 13:42:32,404 - Zovix - INFO - Database initialized successfully
+2026-08-21 13:42:36,838 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 13:42:36,840 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 13:42:38,894 - Zovix - INFO - Redis cache connected
+2026-08-21 13:42:38,901 - Zovix - INFO - Database initialized successfully
+2026-08-21 13:42:51,868 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 13:42:51,869 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 13:42:53,900 - Zovix - INFO - Redis cache connected
+2026-08-21 13:42:53,908 - Zovix - INFO - Database initialized successfully
+2026-08-21 13:43:08,899 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 13:43:08,901 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 13:43:10,656 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 13:43:10,658 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 13:43:10,942 - Zovix - INFO - Redis cache connected
+2026-08-21 13:43:12,694 - Zovix - INFO - Redis cache connected
+2026-08-21 13:43:12,704 - Zovix - INFO - Database initialized successfully
+2026-08-21 13:43:21,971 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 13:43:21,972 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 13:43:23,998 - Zovix - INFO - Redis cache connected
+2026-08-21 13:43:24,006 - Zovix - INFO - Database initialized successfully
+2026-08-21 13:43:46,488 - Zovix - WARNING - DeepFace scan failed (using default voice): name 'DeepFace' is not defined
+2026-08-21 13:43:46,512 - Zovix - INFO - Image validated: (1920, 1080), mode=RGBA
+2026-08-21 13:43:46,513 - Zovix - INFO - DeepFace Auto-Voice: Adult Male (Age:25) -> Arjun (Hindi Male)
+2026-08-21 13:43:46,514 - Zovix - WARNING - Replicate API token is missing from Streamlit secrets or environment.
+2026-08-21 13:43:46,514 - Zovix - ERROR - All Replicate cloud models failed. No local fallback available.
+2026-08-21 13:46:08,174 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 13:46:08,176 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 13:46:10,207 - Zovix - INFO - Redis cache connected
+2026-08-21 13:46:10,225 - Zovix - INFO - Database initialized successfully
+2026-08-21 13:46:23,798 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 13:46:23,799 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 13:46:25,843 - Zovix - INFO - Redis cache connected
+2026-08-21 13:46:25,853 - Zovix - INFO - Database initialized successfully
+2026-08-21 13:46:37,870 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 13:46:37,872 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 13:46:39,913 - Zovix - INFO - Redis cache connected
+2026-08-21 13:46:39,923 - Zovix - INFO - Database initialized successfully
+2026-08-21 13:46:47,362 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 13:46:47,363 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 13:46:49,413 - Zovix - INFO - Redis cache connected
+2026-08-21 13:46:49,421 - Zovix - INFO - Database initialized successfully
+2026-08-21 13:46:54,854 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 13:46:54,857 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 13:46:56,895 - Zovix - INFO - Redis cache connected
+2026-08-21 13:46:56,901 - Zovix - INFO - Database initialized successfully
+2026-08-21 13:47:12,745 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 13:47:12,746 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 13:47:14,781 - Zovix - INFO - Redis cache connected
+2026-08-21 13:47:14,789 - Zovix - INFO - Database initialized successfully
+2026-08-21 13:47:32,683 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 13:47:32,684 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 13:47:34,709 - Zovix - INFO - Redis cache connected
+2026-08-21 13:47:35,965 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 13:47:35,967 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 13:47:37,992 - Zovix - INFO - Redis cache connected
+2026-08-21 13:47:38,001 - Zovix - INFO - Database initialized successfully
+2026-08-21 13:47:44,726 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 13:47:44,728 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 13:47:46,752 - Zovix - INFO - Redis cache connected
+2026-08-21 13:47:46,759 - Zovix - INFO - Database initialized successfully
+2026-08-21 13:47:49,729 - Zovix - WARNING - DeepFace scan failed (using default voice): name 'DeepFace' is not defined
+2026-08-21 13:47:49,766 - Zovix - INFO - Image validated: (1920, 1080), mode=RGBA
+2026-08-21 13:47:49,770 - Zovix - INFO - DeepFace Auto-Voice: Adult Male (Age:25) -> Arjun (Hindi Male)
+2026-08-21 13:47:50,488 - Zovix - WARNING - ElevenLabs voice ID 21m00Tcm4TlvDq8ikWAM rejected (401); retrying with default voice.
+2026-08-21 13:47:51,306 - Zovix - WARNING - ElevenLabs voice ID 21m00Tcm4TlvDq8ikWAM rejected (401); retrying with default voice.
+2026-08-21 13:47:52,550 - Zovix - WARNING - Fallback TTS voice failed (en-US-GuyNeural): No audio was received. Please verify that your parameters are correct.
+2026-08-21 13:47:53,565 - Zovix - WARNING - Fallback TTS voice failed (en-US-AriaNeural): No audio was received. Please verify that your parameters are correct.
+2026-08-21 13:47:54,601 - Zovix - WARNING - Fallback TTS voice failed (en-GB-RyanNeural): No audio was received. Please verify that your parameters are correct.
+2026-08-21 13:47:54,604 - Zovix - INFO - Devanagari script detected - auto-enabling Hindi voice model
+2026-08-21 13:47:54,606 - Zovix - INFO - TTS tiers available: ['ElevenLabs', 'Edge-TTS', 'GenerativeFallback']
+2026-08-21 13:47:55,327 - Zovix - WARNING - ElevenLabs voice ID 21m00Tcm4TlvDq8ikWAM rejected (401); retrying with default voice.
+2026-08-21 13:48:04,517 - httpx - INFO - HTTP Request: POST https://api.replicate.com/v1/models/prunaai/p-video-avatar/predictions "HTTP/1.1 201 Created"
+2026-08-21 13:48:06,665 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/92nx9c8brhrmw0d04dk93kvk04 "HTTP/1.1 200 OK"
+2026-08-21 13:48:07,586 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/92nx9c8brhrmw0d04dk93kvk04 "HTTP/1.1 200 OK"
+2026-08-21 13:48:08,518 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/92nx9c8brhrmw0d04dk93kvk04 "HTTP/1.1 200 OK"
+2026-08-21 13:48:09,533 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/92nx9c8brhrmw0d04dk93kvk04 "HTTP/1.1 200 OK"
+2026-08-21 13:48:10,453 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/92nx9c8brhrmw0d04dk93kvk04 "HTTP/1.1 200 OK"
+2026-08-21 13:48:11,375 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/92nx9c8brhrmw0d04dk93kvk04 "HTTP/1.1 200 OK"
+2026-08-21 13:48:12,298 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/92nx9c8brhrmw0d04dk93kvk04 "HTTP/1.1 200 OK"
+2026-08-21 13:48:13,218 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/92nx9c8brhrmw0d04dk93kvk04 "HTTP/1.1 200 OK"
+2026-08-21 13:48:14,140 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/92nx9c8brhrmw0d04dk93kvk04 "HTTP/1.1 200 OK"
+2026-08-21 13:48:15,035 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/92nx9c8brhrmw0d04dk93kvk04 "HTTP/1.1 200 OK"
+2026-08-21 13:48:15,943 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/92nx9c8brhrmw0d04dk93kvk04 "HTTP/1.1 200 OK"
+2026-08-21 13:48:17,416 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/92nx9c8brhrmw0d04dk93kvk04 "HTTP/1.1 200 OK"
+2026-08-21 13:48:19,765 - Zovix - INFO - Redis connected for rate limiting
+2026-08-21 13:48:19,766 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-21 13:48:21,801 - Zovix - INFO - Redis cache connected
+2026-08-21 13:48:21,803 - Zovix - INFO - Database initialized successfully

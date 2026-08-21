@@ -6873,115 +6873,214 @@ def _clamp_face_video_duration(duration):
     return clamped
 
 
-def generate_face_video(prompt, face_image_path, duration=30, emotion="neutral", camera_angle="front", quality="Standard", voice_language=None, voice_label=None):
-    """Face Video Generation via DeepInfra (Wav2Lip -> SadTalker -> LivePortrait -> Local Fallback).
+def generate_face_video(prompt, face_image_path, duration=30, emotion="neutral", 
+                        camera_angle="front", quality="Standard", 
+                        voice_language=None, voice_label=None):
+    """Pure Cloud Face Video Generation via Replicate API."""
+    print("=" * 60)
+    print("🎬 generate_face_video() called - Replicate Cloud Mode")
+    print("=" * 60)
 
-    Tries DeepInfra cloud models in sequence, then falls back to local Wav2Lip
-    if all cloud models fail. Returns path to generated video or None.
-    """
     if not face_image_path or not os.path.exists(face_image_path):
-        logger.error(f"[DeepInfra] Face image not found: {face_image_path}")
         return None
 
+    # --- DeepFace Auto-Scan: Detect age & gender, auto-select voice --- #
     try:
-        os.makedirs("face_videos", exist_ok=True)
-        engine = DeepInfraFaceEngine()
+        scan_result = deepface_scan_face_and_select_voice(face_image_path)
+        detected_category = scan_result.get("category", "Adult Male")
+        detected_age = scan_result.get("age", 25)
+        detected_gender = scan_result.get("gender", "Male")
+        
+        if voice_label is None or voice_label == "":
+            auto_voice = st.session_state.get("fv_auto_selected_voice")
+            if auto_voice:
+                voice_label = auto_voice
+            else:
+                voice_label = scan_result.get("voice_label", "Adam (Premium Male)")
+                st.session_state["fv_auto_selected_voice"] = voice_label
+            st.session_state["fv_auto_selected_category"] = detected_category
+        
+        st.session_state["fv_detected_gender"] = detected_gender
+        st.session_state["fv_detected_age"] = detected_age
+        st.session_state["fv_detected_category"] = detected_category
+        logger.info(f"DeepFace Auto-Voice: {detected_category} (Age:{detected_age}) -> {voice_label}")
+    except Exception as scan_e:
+        logger.warning(f"DeepFace auto-scan error (proceeding with default voice): {scan_e}")
+    # --- End DeepFace Auto-Scan --- #
 
-        # Bypass engine check completely
-        if False:
-            pass
-            try:
-                st.session_state["replicate_last_error"] = msg
-            except Exception:
-                pass
-            logger.warning("[DeepInfra] Engine/API key not available - falling back to local Wav2Lip")
-            return _run_local_wav2lip_fallback(prompt, face_image_path, duration, quality)
+    # Resolve voice config
+    voice_cfg = _resolve_face_voice_config(
+        voice_language=voice_language, 
+        voice_label=voice_label, 
+        preferred_gender=st.session_state.get('fv_detected_gender') if st.session_state.get('fv_gender_auto', False) else None
+    )
 
-        # ---- Resolve voice config ----
-        voice_cfg = _resolve_face_voice_config(
-            voice_language=voice_language,
-            voice_label=voice_label,
-            preferred_gender=st.session_state.get('fv_detected_gender') if st.session_state.get('fv_gender_auto', False) else None
-        )
+    # --- Cloud-Only: Directly call Replicate API --- #
+    video_result = generate_world_face_video(
+        prompt=prompt,
+        face_image_path=face_image_path,
+        duration=duration,
+        quality=quality,
+        voice_language=voice_cfg.get("language", "English"),
+        voice_label=voice_cfg.get("voice_label", "Adam (Premium Male)"),
+    )
+    
+    if video_result:
+        return video_result
+    
+    logger.error("All Replicate cloud models failed. No local fallback available.")
+    return None
 
-        # ---- Synthesize audio ----
-        audio_path = None
+
+def _extract_video_url_from_replicate_output(output_obj):
+    if isinstance(output_obj, str) and output_obj.startswith("http"):
+        return output_obj
+    if isinstance(output_obj, dict):
+        for key in ["video", "output", "url", "mp4", "result"]:
+            val = output_obj.get(key)
+            found = _extract_video_url_from_replicate_output(val)
+            if found:
+                return found
+    if isinstance(output_obj, (list, tuple)):
+        for item in output_obj:
+            found = _extract_video_url_from_replicate_output(item)
+            if found:
+                return found
+    return None
+
+
+def _get_replicate_api_token():
+    secret_keys = ["REPLICATE_API_TOKEN", "REPLICATE_API_KEY"]
+    for key in secret_keys:
         try:
-            audio_path = f"face_videos/_face_audio_{uuid.uuid4().hex[:8]}.mp3"
-            audio_ok = _synthesize_face_audio_strict(
-                prompt or "Hello, this is my AI video.",
-                audio_path,
-                voice_cfg,
-                duration_hint=_clamp_face_video_duration(duration)
-            )
-            if not audio_ok or not os.path.exists(audio_path):
-                audio_path = None
+            value = st.secrets.get(key)
+        except Exception:
+            value = None
+        if value:
+            return str(value).strip()
+
+    for key in secret_keys:
+        value = os.getenv(key)
+        if value:
+            return str(value).strip()
+
+    return None
+
+
+def _run_replicate_face_model(client, model_ref, image_path, audio_path, script_text):
+    image_path = str(image_path)
+    if not os.path.isfile(image_path) or os.path.getsize(image_path) <= 0:
+        raise ValueError("Replicate face generation requires a valid image file path.")
+
+    model_lc = str(model_ref).lower()
+    has_audio = bool(audio_path and os.path.isfile(audio_path) and os.path.getsize(audio_path) > 1024)
+
+    if "p-video-avatar" in model_lc:
+        input_builders = [
+            lambda i, a, t: {"image": i, "voice_script": t, "voice_prompt": "speak naturally", "video_prompt": "real human talking head with natural lip movement and subtle eye blinks", "resolution": "720p"},
+            lambda i, a, t: {"image": i, "voice_script": t, "resolution": "720p"},
+        ]
+    elif "sadtalker" in model_lc:
+        input_builders = [
+            lambda i, a, t: {"source_image": i, "driven_audio": a, "preprocess": "full"},
+            lambda i, a, t: {"source_image": i, "driven_audio": a},
+            lambda i, a, t: {"image": i, "audio": a},
+        ]
+    elif "liveportrait" in model_lc:
+        input_builders = [
+            lambda i, a, t: {"source_image": i, "driving_audio": a},
+            lambda i, a, t: {"image": i, "audio": a},
+            lambda i, a, t: {"source": i, "driving": a},
+        ]
+    else:
+        input_builders = [
+            lambda i, a, t: {"image": i, "voice_script": t},
+            lambda i, a, t: {"image": i, "text": t},
+        ]
+
+    for build_payload in input_builders:
+        try:
+            with open(image_path, "rb") as img_file:
+                aud_file = open(audio_path, "rb") if has_audio else None
+                try:
+                    payload = build_payload(img_file, aud_file, script_text)
+                    output = client.run(model_ref, input=payload)
+                finally:
+                    if aud_file:
+                        aud_file.close()
+
+            video_url = _extract_video_url_from_replicate_output(output)
+            if video_url:
+                return video_url
         except Exception as e:
-            logger.warning(f"[DeepInfra] Audio synthesis failed: {e}")
-            audio_path = None
+            logger.warning(f"Replicate payload failed for {model_ref}: {e}")
+            continue
 
-        if not audio_path or not os.path.exists(audio_path):
-            logger.warning("[DeepInfra] No valid audio - using tone fallback")
-            audio_path = _create_tone_audio(_clamp_face_video_duration(duration))
+    return None
 
-        if not audio_path or not os.path.exists(audio_path):
-            logger.error("[DeepInfra] No audio available for generation")
-            return None
 
-        # ---- Try DeepInfra models in sequence: Wav2Lip -> SadTalker -> LivePortrait ----
-        last_error = None
-        for model_name in ["wav2lip", "sadtalker", "liveportrait"]:
+def generate_world_face_video(prompt, face_image_path, duration=10, quality="HD", animation_style="Expressive Real Human (No Lip-Only Fallback)", backend_choice="Auto (LivePortrait → SadTalker → Wav2Lip)", motion_level="high", voice_language=None, voice_label=None):
+    """Cloud-only face generation using Replicate models; no local face animation pipeline."""
+    if not face_image_path or not os.path.exists(face_image_path):
+        return None
+
+    if not HAS_REPLICATE:
+        logger.warning("Replicate library is not installed.")
+        return None
+
+    replicate_token = _get_replicate_api_token()
+    if not replicate_token:
+        st.session_state["replicate_last_error"] = "Replicate API token is missing from Streamlit secrets or environment."
+        logger.warning("Replicate API token is missing from Streamlit secrets or environment.")
+        return None
+
+    temp_audio = None
+    try:
+        voice_cfg = _resolve_face_voice_config(voice_language=voice_language, voice_label=voice_label, preferred_gender=st.session_state.get('fv_detected_gender') if st.session_state.get('fv_gender_auto', False) else None)
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp_aud:
+            temp_audio = tmp_aud.name
+        _synthesize_face_audio_strict(prompt, temp_audio, voice_cfg, duration_hint=duration)
+
+        client = replicate.Client(api_token=replicate_token)
+
+        model_candidates = [
+            str(os.getenv("REPLICATE_FACE_MODEL", "prunaai/p-video-avatar")).strip() or "prunaai/p-video-avatar",
+            "prunaai/p-video-avatar",
+            "lucataco/sadtalker",
+            "cjwbw/sadtalker",
+            "gandhana/liveportrait",
+            "gandhary/liveportrait",
+        ]
+
+        deduped = []
+        seen = set()
+        for model in model_candidates:
+            key = model.strip().lower()
+            if not key or key in seen:
+                continue
+            seen.add(key)
+            deduped.append(model.strip())
+
+        for model_ref in deduped:
             try:
-                logger.info(f"[DeepInfra] Trying {model_name} via DeepInfra...")
-                if model_name == "wav2lip":
-                    out = engine.generate_wav2lip(
-                        face_image_path,
-                        audio_path,
-                        quality=quality,
-                        progress_callback=lambda msg, pct: None
-                    )
-                elif model_name == "sadtalker":
-                    out = engine.generate_sadtalker(
-                        face_image_path,
-                        audio_path,
-                        quality=quality,
-                        pose_style="frontal",
-                        expression_scale=1.2,
-                        progress_callback=lambda msg, pct: None
-                    )
-                else:
-                    out = engine.generate_liveportrait(
-                        face_image_path,
-                        audio_path,
-                        quality=quality,
-                        motion_level="high",
-                        progress_callback=lambda msg, pct: None
-                    )
-
-                if out and os.path.exists(out):
-                    logger.info(f"[DeepInfra] {model_name} succeeded: {out}")
-                    st.session_state["face_video_engine_used"] = f"DeepInfra ({model_name})"
+                video_url = _run_replicate_face_model(client, model_ref, face_image_path, temp_audio, prompt)
+                if video_url:
+                    st.session_state["face_video_engine_used"] = f"Replicate ({model_ref})"
                     st.session_state["face_video_runtime_mode"] = "Cloud"
-                    safe_remove_file(audio_path) if audio_path else None
-                    return out
-                else:
-                    last_error = f"{model_name} returned None"
-                    logger.warning(f"[DeepInfra] {model_name} failed: {last_error}")
+                    st.session_state["replicate_last_error"] = None
+                    return video_url
             except Exception as e:
-                last_error = str(e)
-                logger.warning(f"[DeepInfra] {model_name} raised: {last_error}")
+                logger.warning(f"Replicate fallback failed for {model_ref}: {e}")
 
-        # ---- Fallback: Local Wav2Lip ----
-        logger.warning(f"[DeepInfra] All DeepInfra models failed ({last_error}) - falling back to local Wav2Lip")
-        return _run_local_wav2lip_fallback(prompt, face_image_path, duration, quality)
-
+        st.session_state["replicate_last_error"] = "All Replicate cloud models failed to produce a video URL."
+        return None
     except Exception as e:
-        logger.error(f"[DeepInfra] generate_face_video error: {e}")
-        try:
-            return _run_local_wav2lip_fallback(prompt, face_image_path, duration, quality)
-        except Exception as e2:
-            logger.error(f"[DeepInfra] Local fallback also failed: {e2}")
-            return None
+        st.session_state["replicate_last_error"] = str(e)
+        logger.warning(f"Replicate face generation failed: {e}")
+        return None
+    finally:
+        if temp_audio:
+            safe_remove_file(temp_audio)
 
 
 def _detect_face_gender(face_image_path):
