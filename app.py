@@ -40,13 +40,16 @@ from pydantic import BaseModel, Field
 import textwrap
 
 st.set_page_config(layout="wide", initial_sidebar_state="collapsed")
-
-# --- Hide Streamlit Branding & Footer ---
 hide_streamlit_style = """
 <style>
 #MainMenu {visibility: hidden;}
 footer {visibility: hidden;}
 header {visibility: hidden;}
+div[data-testid="stToolbar"] {visibility: hidden; display: none;}
+div[data-testid="stDecoration"] {visibility: hidden; display: none;}
+.viewerBadge_container__1QSob {visibility: hidden; display: none;}
+#GithubIcon {visibility: hidden; display: none;}
+.css-1jc7ptx {display: none;}
 </style>
 """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
