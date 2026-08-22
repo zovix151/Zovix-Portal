@@ -40,29 +40,102 @@ from pydantic import BaseModel, Field
 import textwrap
 
 st.set_page_config(layout="wide", initial_sidebar_state="collapsed")
+# ========================================================
+# COMPLETE CSS - HIDE STREAMLIT BADGE & FOOTER
+# ========================================================
+
 hide_streamlit_style = """
 <style>
-/* 1. Upper Toolbar / Fork button hatane ke liye */
-header[data-testid="stHeader"] {
-    display: none !important;
-    visibility: hidden !important;
-}
-div[data-testid="stToolbar"] {
-    display: none !important;
-    visibility: hidden !important;
-}
-
-/* 2. Bottom-right 'Hosted with Streamlit' badge hatane ke liye */
-.viewerBadge_container__1QSob, 
-div[class*="viewerBadge"], 
-[data-testid="stStatusWidget"],
-[data-testid="stAppDeployButton"],
-footer {
-    display: none !important;
-    visibility: hidden !important;
-}
+    /* ============================================
+       UPPER TOOLBAR HIDE
+       ============================================ */
+    
+    /* Header (top bar) */
+    header[data-testid="stHeader"] {
+        display: none !important;
+        visibility: hidden !important;
+        height: 0px !important;
+        min-height: 0px !important;
+        padding: 0px !important;
+        margin: 0px !important;
+    }
+    
+    /* Toolbar */
+    div[data-testid="stToolbar"] {
+        display: none !important;
+        visibility: hidden !important;
+    }
+    
+    /* Hamburger menu */
+    #MainMenu {
+        display: none !important;
+        visibility: hidden !important;
+    }
+    
+    /* ============================================
+       BOTTOM-RIGHT BADGE HIDE - FIXED ✅
+       ============================================ */
+    
+    /* Streamlit badge - main container */
+    .stAppDeployButton {
+        display: none !important;
+        visibility: hidden !important;
+    }
+    
+    /* Streamlit badge - any viewer badge */
+    [data-testid="stAppDeployButton"] {
+        display: none !important;
+        visibility: hidden !important;
+    }
+    
+    /* All footer elements */
+    footer {
+        display: none !important;
+        visibility: hidden !important;
+    }
+    
+    /* Bottom-right container */
+    .st-emotion-cache-1rs6os {
+        display: none !important;
+        visibility: hidden !important;
+    }
+    
+    /* Any element with viewer badge class */
+    div[class*="viewerBadge"] {
+        display: none !important;
+        visibility: hidden !important;
+    }
+    
+    /* Any element with deploy button class */
+    div[class*="DeployButton"] {
+        display: none !important;
+        visibility: hidden !important;
+    }
+    
+    /* ============================================
+       STATUS WIDGET HIDE
+       ============================================ */
+    
+    [data-testid="stStatusWidget"] {
+        display: none !important;
+        visibility: hidden !important;
+    }
+    
+    /* ============================================
+       REMOVE BLANK SPACE
+       ============================================ */
+    
+    .block-container {
+        padding-top: 0rem !important;
+        padding-bottom: 0rem !important;
+    }
+    
+    .main > div {
+        padding-top: 0rem !important;
+    }
 </style>
 """
+
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 from typing import List, Dict, Any, Tuple, Optional, Union
 from datetime import datetime, timedelta
