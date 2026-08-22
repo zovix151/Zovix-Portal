@@ -14796,7 +14796,7 @@ elif st.session_state["current_page"] == "studio":
     # VOUCHER CHECK
     # ========================================================
     if check_49_voucher_valid():
-        st.info(f"🎫 ₹49 Voucher Active! 30 Credits added. Valid for: {st.session_state.get('voucher_49_expiry', datetime.now() + timedelta(hours=24)).strftime('%H:%M:%S')} remaining")
+        st.info(f"🎫 ₹49 Voucher Active! 50 Credits added. Valid for: {st.session_state.get('voucher_49_expiry', datetime.now() + timedelta(hours=24)).strftime('%H:%M:%S')} remaining")
     
     # ========================================================
     # QUICK ACCESS
