@@ -12519,11 +12519,11 @@ def run_unified_face_video_mode():
                                                 )
                                                 st.session_state["face_video_history"] = load_face_video_history_db(st.session_state.get("logged_user", "guest"))
                                                 st.balloons()
-                                                st.toast("✅ Face video generated successfully on DeepInfra Cloud!")
+                                                st.toast("✅ Face video generated successfully!")
                                                 st.rerun()
                                             else:
                                                 failure_reason = st.session_state.get("replicate_last_error", "Unknown generation error")
-                                                st.error(f"❌ DeepInfra Cloud generation failed. {failure_reason}")
+                                                st.error(f"❌ Cloud generation failed. {failure_reason}")
                                                 st.info("Troubleshoot: verify DEEPINFRA_API_KEY is valid and accessible from .env / .streamlit/secrets.toml.")
                                         except Exception as e:
                                             st.error(f"❌ Cloud Generation Error: {str(e)}")
@@ -13503,7 +13503,7 @@ def run_cinematic_engine():
             
             # Model Core
             st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">🤖 Model Core</p>', unsafe_allow_html=True)
-            render_premium_selection_cards("", ["🤖 gemini-2.5-flash (Fast Stream Processing)", "🤖 gemini-2.5-pro (Deep Creative Narrative)"], "model_choice")
+            render_premium_selection_cards("", ["🤖Fast Stream Processing", "🤖Deep Creative Narrative"], "model_choice")
             selected_model = "gemini-2.5-pro" if "gemini-2.5-pro" in st.session_state["model_choice"] else "gemini-2.5-flash"
             
             # Aspect Ratio

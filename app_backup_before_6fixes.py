@@ -770,7 +770,7 @@ if "sidebar_tab" not in st.session_state:
 if "quick_template_mode" not in st.session_state:
     st.session_state["quick_template_mode"] = True
 if "model_choice" not in st.session_state:
-    st.session_state["model_choice"] = "🤖 gemini-2.5-flash (Fast Stream Processing)"
+    st.session_state["model_choice"] = "🤖  Fast Stream Processing"
 if "aspect_ratio" not in st.session_state:
     st.session_state["aspect_ratio"] = "📐 9:16 Vertical (Shorts/Reels)"
 if "duration_choice" not in st.session_state:
@@ -14439,7 +14439,7 @@ elif st.session_state["current_page"] == "studio":
     # VOUCHER CHECK
     # ========================================================
     if check_49_voucher_valid():
-        st.info(f"🎫 ₹49 Voucher Active! 30 Credits added. Valid for: {st.session_state.get('voucher_49_expiry', datetime.now() + timedelta(hours=24)).strftime('%H:%M:%S')} remaining")
+        st.info(f"🎫 ₹49 Voucher Active! 50 Credits added. Valid for: {st.session_state.get('voucher_49_expiry', datetime.now() + timedelta(hours=24)).strftime('%H:%M:%S')} remaining")
     
     # ========================================================
     # QUICK ACCESS
