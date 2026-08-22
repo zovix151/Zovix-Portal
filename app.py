@@ -42,13 +42,26 @@ import textwrap
 st.set_page_config(layout="wide", initial_sidebar_state="collapsed")
 hide_streamlit_style = """
 <style>
-/* Bottom-right Hosted with Streamlit badge ko hide karne ke liye */
-.viewerBadge_container__1QSob, 
-div[class*="viewerBadge"], 
-#viewerBadge {
+/* 1. Top-right Toolbar (Fork, GitHub icon, 3-dots menu) ko hide karne ke liye */
+header[data-testid="stHeader"] {
     display: none !important;
     visibility: hidden !important;
 }
+div[data-testid="stToolbar"] {
+    display: none !important;
+    visibility: hidden !important;
+}
+
+/* 2. Bottom-right 'Hosted with Streamlit' badge ko hide karne ke liye */
+.viewerBadge_container__1QSob, 
+div[class*="viewerBadge"] {
+    display: none !important;
+    visibility: hidden !important;
+}
+
+/* 3. General Menu and Footer */
+#MainMenu {visibility: hidden !important; display: none !important;}
+footer {visibility: hidden !important; display: none !important;}
 </style>
 """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
