@@ -1,0 +1,5 @@
+{
+  "rewrites": [
+    { "source": "/(.*)", "destination": "https://zovix-app-fg9reepkk5rarzcgktjrkm.streamlit.app/$1" }
+  ]
+}
