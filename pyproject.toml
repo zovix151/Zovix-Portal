@@ -1,2 +1,2 @@
 [tool.vercel]
-entrypoint = "backend/main.py:app"
+entrypoint = "backend/main.py"
