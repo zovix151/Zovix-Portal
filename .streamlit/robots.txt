@@ -1,2 +1,13 @@
+# robots.txt for zovix.pro
 User-agent: *
 Allow: /
+
+# Allow Google to crawl everything
+User-agent: Googlebot
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /internal/
+
+# Sitemap location
+Sitemap: https://zovix.pro/sitemap.xml

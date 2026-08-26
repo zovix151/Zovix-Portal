@@ -216,9 +216,9 @@ class WorldClassLandingPage:
     def _render_pricing(self):
         plans = [
             {"name": "Free", "price": "₹0", "period": "/month", "features": ["10 Free Tokens", "Watermarked", "Basic AI Features", "Community Support"], "popular": False, "free": True},
-            {"name": "Starter", "price": "₹49", "period": "/month", "features": ["30 Tokens", "No Watermark", "All AI Features", "Email Support", "🎫 Voucher Included"], "popular": False, "free": False},
-            {"name": "Standard", "price": "₹99", "period": "/month", "features": ["70 Tokens", "No Watermark", "All AI Features", "Priority Support", "HD Quality"], "popular": True, "free": False},
-            {"name": "Cinematic", "price": "₹299", "period": "/month", "features": ["230 Tokens", "No Watermark", "All AI Features", "24/7 Support", "4K Quality"], "popular": False, "free": False}
+            {"name": "Starter", "price": "₹49", "period": "/month", "features": ["50 Tokens", "No Watermark", "All AI Features", "Email Support", "🎫 Voucher Included"], "popular": False, "free": False},
+            {"name": "Standard", "price": "₹99", "period": "/month", "features": ["100 Tokens", "No Watermark", "All AI Features", "Priority Support", "HD Quality"], "popular": True, "free": False},
+            {"name": "Cinematic", "price": "₹299", "period": "/month", "features": ["300 Tokens", "No Watermark", "All AI Features", "24/7 Support", "4K Quality"], "popular": False, "free": False}
         ]
         st.markdown("<section class='pricing-section' id='pricing'><div class='section-header'><div class='tag'>💰 Pricing</div><h2>Choose Your <span class='glow-text'>Plan</span></h2><p>Start free, upgrade anytime. No hidden charges.</p></div><div class='pricing-grid'>", unsafe_allow_html=True)
         for plan in plans:
