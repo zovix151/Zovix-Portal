@@ -2,4 +2,3 @@
 User-agent: *
 Allow: /
 Sitemap: https://zovix.pro/sitemap.xml
-"@ | Out-File -FilePath static/robots.txt -Encoding utf8
