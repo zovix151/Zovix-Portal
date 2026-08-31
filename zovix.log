@@ -15796,3 +15796,35 @@ detail: - input.audio: Invalid type. Expected: string, given: null
 2026-08-29 11:41:05,292 - Zovix - INFO - Load balancer initialized with 4 workers
 2026-08-29 11:41:07,326 - Zovix - INFO - Redis cache connected
 2026-08-29 11:41:07,329 - Zovix - INFO - Database initialized successfully
+2026-08-31 11:53:45,050 - Zovix - INFO - Redis connected for rate limiting
+2026-08-31 11:53:45,088 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-31 11:53:47,129 - Zovix - INFO - Redis cache connected
+2026-08-31 11:53:47,161 - Zovix - INFO - Database initialized successfully
+2026-08-31 11:56:04,019 - Zovix - INFO - Redis connected for rate limiting
+2026-08-31 11:56:04,020 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-31 11:56:06,057 - Zovix - INFO - Redis cache connected
+2026-08-31 11:56:06,071 - Zovix - INFO - Database initialized successfully
+2026-08-31 11:56:40,839 - Zovix - INFO - Redis connected for rate limiting
+2026-08-31 11:56:40,839 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-31 11:56:42,872 - Zovix - INFO - Redis cache connected
+2026-08-31 11:56:42,885 - Zovix - INFO - Database initialized successfully
+2026-08-31 11:57:43,909 - Zovix - INFO - Redis connected for rate limiting
+2026-08-31 11:57:43,910 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-31 11:57:45,941 - Zovix - INFO - Redis cache connected
+2026-08-31 11:57:45,993 - Zovix - INFO - Database initialized successfully
+2026-08-31 11:59:13,728 - asyncio - ERROR - Exception in callback _ProactorBasePipeTransport._call_connection_lost(None)
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost(None)>
+Traceback (most recent call last):
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\asyncio\events.py", line 80, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\asyncio\proactor_events.py", line 162, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-08-31 11:59:19,189 - Zovix - INFO - Redis connected for rate limiting
+2026-08-31 11:59:19,190 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-31 11:59:21,218 - Zovix - INFO - Redis cache connected
+2026-08-31 11:59:21,231 - Zovix - INFO - Database initialized successfully
+2026-08-31 12:01:12,136 - Zovix - WARNING - Redis not available: unknown command `HELLO`, with args beginning with: `3`, 
+2026-08-31 12:01:12,170 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-08-31 12:01:14,226 - Zovix - WARNING - Redis not available: unknown command `HELLO`, with args beginning with: `3`, 
+2026-08-31 12:01:14,246 - Zovix - INFO - Database initialized successfully
