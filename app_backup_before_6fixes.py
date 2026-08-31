@@ -7135,7 +7135,27 @@ def validate_and_deduct_tokens(mode_name: str, quality: str):
     return True, required_tokens, f"✅ Deducted {required_tokens} credits for {mode_name}"
 
 def render_ai_agent_ui():
-    """AI Agent - Fully Fixed"""
+    """AI Agent Mode UI"""
+    st.markdown("""
+    <div style="background: linear-gradient(135deg, rgba(236,72,153,0.06), rgba(69,243,255,0.06));
+                border-radius: 16px; border: 1px solid rgba(69,243,255,0.08);
+                padding: 16px 20px; margin-bottom: 18px; text-align: center;">
+        <span style="display: inline-block; background: rgba(236,72,153,0.12); color: #EC4899;
+                    padding: 4px 14px; border-radius: 16px; font-size: 9px;
+                    font-family: 'Orbitron', sans-serif; letter-spacing: 1px;
+                    border: 1px solid rgba(236,72,153,0.15); margin-bottom: 6px;">🤖 AI AGENT</span>
+        <h2 style="font-family: 'Orbitron', sans-serif; font-size: 20px; color: #FFFFFF; margin: 0;">
+            AI <span style="background: linear-gradient(135deg, #45f3ff, #EC4899);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;">Agent</span> Mode
+        </h2>
+        <p style="font-family: 'Inter', sans-serif; color: #94a3b8; font-size: 12px; margin: 4px 0 0 0;">
+            AI-powered automation agent for content creation
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.info("🤖 AI Agent Mode is currently under development. Check back soon!")
     
     st.markdown("""
     <div style="

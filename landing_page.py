@@ -4,6 +4,18 @@ import streamlit as st
 class WorldClassLandingPage:
     """Apple-level landing page for ZOVIX"""
 
+    st.set_page_config(
+    page_title="Zovix - AI Video Creation Studio",
+    page_icon="🎬",
+    layout="wide",
+    initial_sidebar_state="collapsed",
+    menu_items={
+        'Get Help': None,
+        'Report a bug': None,
+        'About': None
+    }
+)
+
     def __init__(self):
         self.init_session_state()
 
@@ -182,6 +194,24 @@ class WorldClassLandingPage:
         for feature in features:
             st.markdown(f"<div class='feature-card'><span class='icon'>{feature['icon']}</span><h3>{feature['title']}</h3><p>{feature['desc']}</p><span class='feature-tag'>{feature['tag']}</span></div>", unsafe_allow_html=True)
         st.markdown("</div></section>", unsafe_allow_html=True)
+
+    def render(self):
+        st.markdown("""
+        <head>
+            <meta name="description" content="Create cinematic AI videos in minutes with Zovix. No technical skills needed. Start creating free!">
+            <meta name="keywords" content="AI video generator, cinematic AI, video creation, Zovix, AI studio">
+            <meta property="og:title" content="Zovix - AI Video Creation Studio">
+            <meta property="og:description" content="Create cinematic AI videos in minutes with Zovix. No technical skills needed.">
+            <meta property="og:type" content="website">
+            <meta property="og:url" content="https://zovix.pro">
+        </head>
+        """, unsafe_allow_html=True)
+    
+        # Rest of your render code...
+        if st.button("Login", key="landing_auth_button"):
+            st.session_state["landing_auth_requested"] = True
+        self._render_css()
+        # ... baaki saara code    
 
     def _render_how_it_works(self):
         steps = [

@@ -4309,5 +4309,5 @@ def validate_and_deduct_tokens(mode_name: str, quality: str):
     return True, required_tokens, f"✅ Deducted {required_tokens} credits for {mode_name}"
 
 def render_ai_agent_ui():
-    """AI Agent - Matching Studio Style"""
+    st.write("AI Agent UI is loading...") 
     
