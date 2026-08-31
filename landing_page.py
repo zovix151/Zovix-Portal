@@ -1,4 +1,11 @@
 import streamlit as st
+import streamlit as st
+
+st.set_page_config(
+    page_title="Zovix - Create Cinematic AI Videos in Minutes",
+    page_icon="🎬",
+    layout="wide",
+)
 
 
 class WorldClassLandingPage:
@@ -16,23 +23,8 @@ class WorldClassLandingPage:
             st.session_state["current_testimonial"] = 0
 
     def render(self):
-        # ✅ META TAGS FOR SEO (Google search mein professional snippet dikhega)
-        st.markdown("""
-        <head>
-            <meta name="description" content="Create cinematic AI videos in minutes with Zovix. No technical skills needed. Start creating free!">
-            <meta name="keywords" content="AI video generator, cinematic AI, video creation, Zovix, AI studio">
-            <meta property="og:title" content="Zovix - AI Video Creation Studio">
-            <meta property="og:description" content="Create cinematic AI videos in minutes with Zovix. No technical skills needed.">
-            <meta property="og:type" content="website">
-            <meta property="og:url" content="https://zovix.pro">
-        </head>
-        """, unsafe_allow_html=True)
-        
-        # ✅ LOGIN BUTTON
         if st.button("🔑 Login", key="landing_auth_button"):
             st.session_state["landing_auth_requested"] = True
-        
-        # ✅ CSS INJECT (pehle `_render_css` tha, ab `_inject_css` call karo)
         self._inject_css()
         self._render_navbar()
         self._render_hero()
