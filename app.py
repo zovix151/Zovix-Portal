@@ -7517,6 +7517,390 @@ def generate_video_blueprint_with_deepseek(user_prompt, aspect_ratio="16:9"):
 # 36. MODE FUNCTIONS - AI Agent, AI Sales, Dynamic UI, Live Emotion
 # ========================================================
 
+def render_ai_agent_ui():
+    """AI Agent Mode UI"""
+    st.markdown("""
+    <div style="background: linear-gradient(135deg, rgba(236,72,153,0.06), rgba(69,243,255,0.06));
+                border-radius: 16px; border: 1px solid rgba(69,243,255,0.08);
+                padding: 16px 20px; margin-bottom: 18px; text-align: center;">
+        <span style="display: inline-block; background: rgba(236,72,153,0.12); color: #EC4899;
+                    padding: 4px 14px; border-radius: 16px; font-size: 9px;
+                    font-family: 'Orbitron', sans-serif; letter-spacing: 1px;
+                    border: 1px solid rgba(236,72,153,0.15); margin-bottom: 6px;">🤖 AI AGENT</span>
+        <h2 style="font-family: 'Orbitron', sans-serif; font-size: 20px; color: #FFFFFF; margin: 0;">
+            AI <span style="background: linear-gradient(135deg, #45f3ff, #EC4899);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;">Agent</span> Mode
+        </h2>
+        <p style="font-family: 'Inter', sans-serif; color: #94a3b8; font-size: 12px; margin: 4px 0 0 0;">
+            AI-powered automation agent for content creation
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.info("🤖 AI Agent Mode is currently under development. Check back soon!")
+    
+    st.markdown("""
+    <div style="
+        background: linear-gradient(135deg, rgba(236,72,153,0.06), rgba(69,243,255,0.06));
+        border-radius: 16px;
+        border: 1px solid rgba(69,243,255,0.08);
+        padding: 16px 20px;
+        margin-bottom: 18px;
+        text-align: center;
+    ">
+        <span style="
+            display: inline-block;
+            background: rgba(236,72,153,0.12);
+            color: #EC4899;
+            padding: 4px 14px;
+            border-radius: 16px;
+            font-size: 9px;
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 1px;
+            border: 1px solid rgba(236,72,153,0.15);
+            margin-bottom: 6px;
+        ">🤖 BUSINESS AI</span>
+        <h2 style="
+            font-family: 'Orbitron', sans-serif;
+            font-size: 20px;
+            color: #FFFFFF;
+            margin: 0;
+        ">
+            AI <span style="
+                background: linear-gradient(135deg, #45f3ff, #EC4899);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            ">Cyber-Agent</span>
+        </h2>
+        <p style="
+            font-family: 'Inter', sans-serif;
+            color: #94a3b8;
+            font-size: 12px;
+            margin: 4px 0 0 0;
+        ">
+            Auto-pilot your business • Generate content • Manage orders • Collect payments
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    agent_col1, agent_col2 = st.columns([1.1, 1.4], gap="medium")
+    
+    with agent_col1:
+        with st.container(border=True):
+            st.markdown("""
+            <h4 style="
+                font-family: 'Orbitron', sans-serif;
+                font-size: 12px;
+                color: #EC4899;
+                margin-bottom: 12px;
+                letter-spacing: 0.5px;
+            ">
+                ⚙️ AGENT CONFIGURATION
+            </h4>
+            """, unsafe_allow_html=True)
+            
+            # Business Details
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">🏪 Business Details</p>', unsafe_allow_html=True)
+            business_name = st.text_input(
+                "Business Name",
+                placeholder="Your Shop/Brand Name",
+                key="agent_business_name_input",
+                label_visibility="collapsed"
+            )
+            
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">📂 Business Category</p>', unsafe_allow_html=True)
+            business_category = st.selectbox(
+                "Category",
+                ["Retail Store", "Restaurant/Cafe", "Clothing Brand", "Tech Services", "Beauty/Salon", "Other"],
+                key="agent_category",
+                label_visibility="collapsed"
+            )
+            
+            # Products
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">📦 Products/Services (one per line)</p>', unsafe_allow_html=True)
+            products_text = st.text_area(
+                "Products",
+                placeholder="e.g.\n₹499 - T-Shirt\n₹999 - Jeans\n₹1499 - Jacket",
+                height=100,
+                key="agent_products_input",
+                label_visibility="collapsed"
+            )
+            
+            # Business Hours
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">🕐 Business Hours</p>', unsafe_allow_html=True)
+            col_time1, col_time2 = st.columns(2)
+            with col_time1:
+                opening_time = st.time_input(
+                    "Opening Time",
+                    value=datetime.strptime("09:00", "%H:%M").time(),
+                    key="agent_open_time",
+                    label_visibility="collapsed"
+                )
+            with col_time2:
+                closing_time = st.time_input(
+                    "Closing Time",
+                    value=datetime.strptime("21:00", "%H:%M").time(),
+                    key="agent_close_time",
+                    label_visibility="collapsed"
+                )
+            
+            # Social Media
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">📱 Social Media Accounts</p>', unsafe_allow_html=True)
+            instagram_handle = st.text_input(
+                "Instagram Handle",
+                placeholder="@your_business",
+                key="agent_instagram",
+                label_visibility="collapsed"
+            )
+            whatsapp_number = st.text_input(
+                "WhatsApp Number",
+                placeholder="+91XXXXXXXXXX",
+                key="agent_whatsapp",
+                label_visibility="collapsed"
+            )
+            
+            st.markdown("<br>", unsafe_allow_html=True)
+            
+            # Quality
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">📊 Agent Quality</p>', unsafe_allow_html=True)
+            agent_quality = st.selectbox(
+                "Quality",
+                ["Standard", "Pro"],
+                key="agent_quality",
+                label_visibility="collapsed"
+            )
+            
+            # ✅ FIXED: Activate Button with proper logic
+            if st.button("🚀 Activate AI Agent", key="agent_activate_btn", use_container_width=True):
+                if not business_name.strip():
+                    st.error("❌ Please enter a business name.")
+                elif not products_text.strip():
+                    st.error("❌ Please list at least one product or service.")
+                else:
+                    required_tokens = 2 if agent_quality == "Standard" else 4
+                    
+                    if st.session_state.get('user_credits', 0) < required_tokens:
+                        st.error(f"❌ Insufficient credits! Required: {required_tokens}, Available: {st.session_state.get('user_credits', 0)}")
+                    else:
+                        try:
+                            # Deduct credits
+                            deduct_credits_db(st.session_state["logged_user"], required_tokens)
+                            st.session_state['user_credits'] = get_user_credits_db(st.session_state["logged_user"])
+                            
+                            with st.spinner("🔄 Configuring AI Agent for your business..."):
+                                st.session_state["agent_business_name"] = business_name
+                                st.session_state["agent_products"] = [p.strip() for p in products_text.split("\n") if p.strip()]
+                                st.session_state["agent_schedule"] = {
+                                    "open": str(opening_time),
+                                    "close": str(closing_time),
+                                    "instagram": instagram_handle,
+                                    "whatsapp": whatsapp_number,
+                                    "category": business_category
+                                }
+                                
+                                # Save to database
+                                conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+                                cursor = conn.cursor()
+                                try:
+                                    cursor.execute(
+                                        "INSERT OR REPLACE INTO ai_agent_config (username, business_name, products, schedule) VALUES (?, ?, ?, ?)",
+                                        (st.session_state["logged_user"], business_name, json.dumps(st.session_state["agent_products"]), json.dumps(st.session_state["agent_schedule"]))
+                                    )
+                                    conn.commit()
+                                except Exception as db_e:
+                                    logger.warning(f"DB save error: {db_e}")
+                                finally:
+                                    conn.close()
+                                
+                                st.session_state["ai_agent_mode"] = True
+                                st.toast("✅ AI Agent activated successfully!")
+                                st.rerun()
+                        except Exception as e:
+                            st.error(f"❌ Error: {str(e)}")
+    
+    with agent_col2:
+        with st.container(border=True):
+            st.markdown("""
+            <h3 style="
+                font-family: 'Orbitron', sans-serif;
+                font-size: 13px;
+                color: #EC4899;
+                margin-bottom: 12px;
+                letter-spacing: 0.5px;
+            ">
+                📊 AGENT DASHBOARD
+            </h3>
+            """, unsafe_allow_html=True)
+            
+            if st.session_state.get("ai_agent_mode") and st.session_state.get("agent_business_name"):
+                st.markdown(f"""
+                <div style="
+                    background: rgba(69,243,255,0.04);
+                    border: 1px solid rgba(69,243,255,0.1);
+                    border-radius: 12px;
+                    padding: 14px;
+                    margin-bottom: 12px;
+                ">
+                    <h4 style="
+                        font-family: 'Orbitron', sans-serif;
+                        font-size: 11px;
+                        color: #45f3ff;
+                        margin: 0 0 4px 0;
+                    ">
+                        🟢 ACTIVE
+                    </h4>
+                    <p style="
+                        font-family: 'Inter', sans-serif;
+                        font-size: 16px;
+                        font-weight: bold;
+                        color: #FFFFFF;
+                        margin: 0;
+                    ">
+                        {st.session_state['agent_business_name']}
+                    </p>
+                    <p style="
+                        font-family: 'Inter', sans-serif;
+                        font-size: 11px;
+                        color: #94a3b8;
+                        margin: 0;
+                    ">
+                        Category: {st.session_state.get('agent_schedule', {}).get('category', 'N/A')}
+                    </p>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                products = st.session_state.get("agent_products", [])
+                if products:
+                    st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">📦 Your Products/Services:</p>', unsafe_allow_html=True)
+                    for p in products[:5]:
+                        st.markdown(f'<p style="font-family: Inter; font-size: 12px; color: #e0e0e0; margin: 2px 0;">- {p}</p>', unsafe_allow_html=True)
+                    if len(products) > 5:
+                        st.caption(f"... and {len(products) - 5} more")
+                
+                schedule = st.session_state.get("agent_schedule", {})
+                st.markdown(f"""
+                <div style="
+                    background: rgba(255,255,255,0.02);
+                    border-radius: 8px;
+                    padding: 10px;
+                    margin-top: 10px;
+                ">
+                    <p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 2px 0;">
+                        🕐 Hours: {schedule.get('open', 'N/A')} - {schedule.get('close', 'N/A')}
+                    </p>
+                    <p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 2px 0;">
+                        📱 WhatsApp: {schedule.get('whatsapp', 'N/A')}
+                    </p>
+                    <p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 2px 0;">
+                        📸 Instagram: {schedule.get('instagram', 'N/A')}
+                    </p>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                st.markdown("<br>", unsafe_allow_html=True)
+                st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 8px;">⚡ Quick Actions:</p>', unsafe_allow_html=True)
+                
+                col_qa1, col_qa2 = st.columns(2)
+                with col_qa1:
+                    if st.button("📱 Generate WhatsApp Ad", key="agent_whatsapp_ad", use_container_width=True):
+                        with st.spinner("Generating WhatsApp ad..."):
+                            ad_text = f"🏪 {st.session_state['agent_business_name']} - Now Open!\n\n"
+                            ad_text += "📍 Our Products:\n"
+                            for p in products[:3]:
+                                ad_text += f"• {p}\n"
+                            ad_text += f"\n🕐 Hours: {schedule.get('open', 'N/A')} - {schedule.get('close', 'N/A')}\n"
+                            ad_text += f"📱 Contact: {schedule.get('whatsapp', 'N/A')}\n\n"
+                            ad_text += "Visit us today! 🚀"
+                            st.session_state["agent_generated_ad"] = ad_text
+                            st.toast("WhatsApp ad generated!")
+                            st.rerun()
+                
+                with col_qa2:
+                    if st.button("📸 Generate Instagram Post", key="agent_instagram_post", use_container_width=True):
+                        with st.spinner("Generating Instagram post..."):
+                            post_prompt = f"Beautiful product photography showcasing {st.session_state['agent_business_name']} products, professional, clean background, studio lighting"
+                            img_path = generate_pro_image(post_prompt, "1:1")
+                            if img_path and os.path.exists(img_path):
+                                st.session_state["agent_instagram_image"] = img_path
+                                caption = f"🌟 Introducing {st.session_state['agent_business_name']}!\n\n"
+                                caption += "Check out our amazing collection:\n"
+                                for p in products[:3]:
+                                    caption += f"• {p}\n"
+                                caption += f"\n🕐 Open: {schedule.get('open', 'N/A')} - {schedule.get('close', 'N/A')}\n"
+                                caption += f"📱 WhatsApp: {schedule.get('whatsapp', 'N/A')}\n"
+                                caption += "\n#SmallBusiness #LocalShop #MadeWithZovix"
+                                st.session_state["agent_instagram_caption"] = caption
+                                st.toast("Instagram post generated!")
+                                st.rerun()
+                            else:
+                                st.error("❌ Image generation failed. Try again.")
+                
+                if st.session_state.get("agent_generated_ad"):
+                    with st.expander("📱 WhatsApp Ad Preview", expanded=False):
+                        st.text(st.session_state["agent_generated_ad"])
+                        st.download_button(
+                            label="📥 Copy Ad",
+                            data=st.session_state["agent_generated_ad"],
+                            file_name="whatsapp_ad.txt",
+                            mime="text/plain",
+                            key="agent_download_ad"
+                        )
+                
+                if st.session_state.get("agent_instagram_image") and os.path.exists(st.session_state["agent_instagram_image"]):
+                    with st.expander("📸 Instagram Post Preview", expanded=False):
+                        st.image(st.session_state["agent_instagram_image"], caption="Generated Post Image", use_container_width=True)
+                        st.text(st.session_state.get("agent_instagram_caption", ""))
+                        st.download_button(
+                            label="📥 Download Image",
+                            data=open(st.session_state["agent_instagram_image"], "rb").read(),
+                            file_name="instagram_post.png",
+                            mime="image/png",
+                            key="agent_download_ig"
+                        )
+            else:
+                st.markdown("""
+                    <div style="
+                        height: 380px;
+                        min-height: 380px;
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: center;
+                        align-items: center;
+                        color: #64748b;
+                        text-align: center;
+                        padding: 12px;
+                        overflow: hidden;
+                        background: rgba(10,10,12,0.4);
+                        border-radius: 12px;
+                        border: 1px dashed rgba(69,243,255,0.12);
+                    ">
+                        <span style="font-size: 48px; margin-bottom: 10px;">🤖</span>
+                        <p style="
+                            font-family: 'Inter', sans-serif;
+                            font-size: 13px;
+                            font-weight: 500;
+                            color: #EC4899;
+                            margin: 0;
+                        ">
+                            AI Agent Inactive
+                        </p>
+                        <p style="
+                            font-family: 'Inter', sans-serif;
+                            font-size: 11px;
+                            color: #94a3b8;
+                            max-width: 400px;
+                            text-align: center;
+                            margin-top: 4px;
+                            line-height: 1.4;
+                        ">
+                            Configure your business details and activate the agent.
+                        </p>
+                    </div>
+                """, unsafe_allow_html=True)
+
+
 def render_ai_sales_ui():
     """AI Sales Video Generator - Product videos with AI voice & image"""
     st.markdown("""
