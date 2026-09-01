@@ -119,8 +119,8 @@ SYSTEM_CONFIG = {
 }
 
 # API Keys - ALL REAL
-RAZORPAY_KEY_ID = st.secrets.get("RAZORPAY_KEY_ID")
-RAZORPAY_KEY_SECRET = st.secrets.get("RAZORPAY_KEY_SECRET")
+RAZORPAY_KEY_ID = get_system_secret("RAZORPAY_KEY_ID")
+RAZORPAY_KEY_SECRET = get_system_secret("RAZORPAY_KEY_SECRET")
 PIXABAY_API_KEY = get_system_secret("PIXABAY_API_KEY")
 PEXELS_API_KEY = get_system_secret("PEXELS_API_KEY")
 STABILITY_API_KEY = get_system_secret("STABILITY_API_KEY")
