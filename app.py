@@ -138,6 +138,7 @@ HUGGINGFACE_API_KEY = get_system_secret("HUGGINGFACE_API_KEY")
 DEEPSEEK_API_KEY = get_system_secret("DEEPSEEK_API_KEY")
 DEEPINFRA_API_KEY = get_system_secret("DEEPINFRA_API_KEY") or get_system_secret("DEEPINFRA_API_TOKEN") or os.getenv("DEEPINFRA_API_KEY", "")
 DEEPINFRA_FACE_MODEL = get_system_secret("DEEPINFRA_FACE_MODEL", "") or os.getenv("DEEPINFRA_FACE_MODEL", "")
+DEEPINFRA_TEXT_MODEL = os.getenv("DEEPINFRA_TEXT_MODEL", "deepseek-ai/DeepSeek-V3")
 FACE_VIDEO_MAX_SECONDS = 10
 # RunPod Production Infrastructure
 RUNPOD_API_KEY = os.getenv("RUNPOD_API_KEY", "") or get_system_secret("RUNPOD_API_KEY")
@@ -8167,36 +8168,22 @@ def render_ai_sales_ui():
                                     )
                                 
                                 if audio_ok and os.path.exists(audio_path):
-                                    output_path = f"face_videos/sales_video_{uuid.uuid4().hex[:8]}.mp4"
                                     img_path = st.session_state["sales_product_image"]
-                                    
-                                    quality_sizes = {"Standard": (512, 512), "HD": (768, 768), "4K": (1024, 1024)}
-                                    w, h = quality_sizes.get(sales_quality, (512, 512))
-                                    
-                                    # Safe filename
-                                    safe_name = str(product_name).replace("'", "").replace('"', '')[:40]
-                                    
-                                    # Get audio duration
-                                    audio_duration = max(1.0, float(get_audio_duration(audio_path) or 5))
-                                    
-                                    # Build ffmpeg command with text overlay
-                                    subprocess.run([
-                                        'ffmpeg', '-y',
-                                        '-loop', '1', '-i', img_path,
-                                        '-i', audio_path,
-                                        '-t', str(audio_duration),
-                                        '-vf', f"scale={w}:{h}:force_original_aspect_ratio=decrease,pad={w}:{h}:(ow-iw)/2:(oh-ih)/2,setsar=1,drawtext=text='{safe_name}':fontcolor=white:fontsize=24:box=1:boxcolor=black@0.5:boxborderw=8:x=(w-text_w)/2:y=h-th-50",
-                                        '-c:v', 'libx264', '-preset', 'fast', '-crf', '20',
-                                        '-c:a', 'aac', '-shortest',
-                                        output_path
-                                    ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
-                                    
-                                    if os.path.exists(output_path) and os.path.getsize(output_path) > 1000:
+                                    avatar_engine = DeepInfraFaceEngine()
+                                    output_path = avatar_engine.generate_face_video(
+                                        face_image=img_path,
+                                        audio_path=audio_path,
+                                        quality=sales_quality,
+                                        allow_static_fallback=False,
+                                    )
+
+                                    if output_path and (output_path.startswith("http") or (os.path.exists(output_path) and os.path.getsize(output_path) > 1000)):
                                         st.session_state["sales_video_output"] = output_path
-                                        st.toast("✅ Sales video generated!")
+                                        st.toast("✅ Talking sales avatar generated!")
                                         st.rerun()
                                     else:
-                                        st.error("Video generation failed.")
+                                        st.session_state["sales_video_output"] = None
+                                        st.error("Talking avatar generation failed. Your credits were not converted into an audio-only video.")
                                 else:
                                     st.error("Audio generation failed.")
                                     
@@ -8213,22 +8200,28 @@ def render_ai_sales_ui():
                     st.text(st.session_state["sales_script"])
             
             sales_output = st.session_state.get("sales_video_output")
-            if sales_output and os.path.exists(sales_output):
+            is_remote_sales_video = isinstance(sales_output, str) and sales_output.startswith("http")
+            is_local_sales_video = isinstance(sales_output, str) and os.path.exists(sales_output)
+            if is_remote_sales_video or is_local_sales_video:
                 st.video(sales_output)
                 
                 col_dl, col_clr = st.columns(2)
                 with col_dl:
-                    with open(sales_output, "rb") as f:
-                        st.download_button(
-                            "📥 Download",
-                            data=f.read(),
-                            file_name=f"sales_video_{uuid.uuid4().hex[:8]}.mp4",
-                            mime="video/mp4",
-                            use_container_width=True
-                        )
+                    if is_local_sales_video:
+                        with open(sales_output, "rb") as f:
+                            st.download_button(
+                                "📥 Download",
+                                data=f.read(),
+                                file_name=f"sales_video_{uuid.uuid4().hex[:8]}.mp4",
+                                mime="video/mp4",
+                                use_container_width=True,
+                            )
+                    else:
+                        st.link_button("Open Video", sales_output, use_container_width=True)
                 with col_clr:
                     if st.button("Clear", key="sales_clear", use_container_width=True):
-                        safe_remove_file(sales_output)
+                        if is_local_sales_video:
+                            safe_remove_file(sales_output)
                         st.session_state["sales_video_output"] = None
                         st.session_state["sales_script"] = None
                         st.rerun()
@@ -8290,6 +8283,13 @@ def generate_dynamic_ui():
                 <p style="font-size: 12px; color: #94a3b8;">🧑 Behavior: <b style="color: #45f3ff;">{st.session_state.get('user_behavior_profile', 'beginner').title()}</b></p>
             </div>
             """, unsafe_allow_html=True)
+            dynamic_image = st.file_uploader(
+                "Upload Image",
+                type=["jpg", "jpeg", "png", "webp"],
+                key="dynamic_ui_image_upload",
+            )
+            if dynamic_image is not None:
+                st.session_state["dynamic_ui_image_name"] = dynamic_image.name
 
 
 def generate_emotion_voice(text, emotion="neutral", voice_type="male", output_path=None, elevenlabs_voice_id=None):
