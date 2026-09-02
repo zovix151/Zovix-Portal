@@ -1605,9 +1605,18 @@ def init_database():
                 prompt TEXT,
                 path TEXT,
                 face_path TEXT,
-                quality TEXT DEFAULT 'Standard'
+                quality TEXT DEFAULT 'Standard',
+                credits_charged INTEGER DEFAULT 0,
+                cost_inr REAL DEFAULT 0
             )
         """)
+
+        cursor.execute("PRAGMA table_info(face_video_history)")
+        face_history_columns = {column[1] for column in cursor.fetchall()}
+        if "credits_charged" not in face_history_columns:
+            cursor.execute("ALTER TABLE face_video_history ADD COLUMN credits_charged INTEGER DEFAULT 0")
+        if "cost_inr" not in face_history_columns:
+            cursor.execute("ALTER TABLE face_video_history ADD COLUMN cost_inr REAL DEFAULT 0")
         
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS editor_uploads (
@@ -3642,13 +3651,20 @@ def save_render_to_db(username, file_name, prompt, path, generation_type="Genera
     finally:
         conn.close()
 
-def save_face_video_to_db(username, file_name, prompt, path, face_path, quality="Standard"):
+def save_face_video_to_db(username, file_name, prompt, path, face_path, quality="Standard", credits_charged=None):
     conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
     cursor = conn.cursor()
     try:
         timestamp = time.strftime("%b %d, %Y - %I:%M %p")
-        cursor.execute("INSERT OR IGNORE INTO face_video_history (username, file_name, timestamp, prompt, path, face_path, quality) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                       (username, file_name, timestamp, prompt, path, face_path, quality))
+        quality_credit_costs = {"Standard": 25, "HD": 60, "4K": 110}
+        credits_charged = quality_credit_costs.get(quality, 25) if credits_charged is None else credits_charged
+        cost_inr = calculate_render_cost("Face Video", quality=quality)
+        cursor.execute(
+            "INSERT OR IGNORE INTO face_video_history "
+            "(username, file_name, timestamp, prompt, path, face_path, quality, credits_charged, cost_inr) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (username, file_name, timestamp, prompt, path, face_path, quality, credits_charged, cost_inr),
+        )
         conn.commit()
     except Exception as e:
         logger.error(f"Save face video error: {e}")
@@ -3852,7 +3868,15 @@ def load_face_video_history_db(username):
     cursor = conn.cursor()
     history = []
     try:
-        cursor.execute("SELECT file_name, timestamp, prompt, path, face_path, quality FROM face_video_history WHERE username = ? ORDER BY id DESC", (username,))
+        cursor.execute("PRAGMA table_info(face_video_history)")
+        columns = {column[1] for column in cursor.fetchall()}
+        has_billing = {"credits_charged", "cost_inr"}.issubset(columns)
+        billing_columns = ", credits_charged, cost_inr" if has_billing else ""
+        cursor.execute(
+            "SELECT file_name, timestamp, prompt, path, face_path, quality"
+            f"{billing_columns} FROM face_video_history WHERE username = ? ORDER BY id DESC",
+            (username,),
+        )
         rows = cursor.fetchall()
         for row in rows:
             history.append({
@@ -3861,7 +3885,9 @@ def load_face_video_history_db(username):
                 "prompt": row[2],
                 "path": row[3],
                 "face_path": row[4],
-                "quality": row[5] if len(row) > 5 else "Standard"
+                "quality": row[5] if len(row) > 5 else "Standard",
+                "credits_charged": row[6] if has_billing else 0,
+                "cost_inr": row[7] if has_billing else 0.0,
             })
     except Exception as e:
         logger.error(f"Load face videos error: {e}")
@@ -12220,7 +12246,7 @@ def run_face_video_mode():
                                 st.session_state["active_face_video"] = video_path
                                 timestamp = time.strftime("%Y%m%d_%H%M%S")
                                 file_name = f"zovix_face_video_{quality.lower()}_{timestamp}.mp4"
-                                save_face_video_to_db(st.session_state["logged_user"], file_name, face_prompt, video_path, st.session_state["face_image_upload"], quality)
+                                save_face_video_to_db(st.session_state["logged_user"], file_name, face_prompt, video_path, st.session_state["face_image_upload"], quality, required_tokens)
                                 st.session_state["face_video_history"] = load_face_video_history_db(st.session_state["logged_user"])
                                 st.toast(f"Face video generated successfully in {quality} quality!")
                                 st.rerun()
@@ -12395,6 +12421,7 @@ pip install gfpgan realesrgan""",
                                     video_path,
                                     st.session_state["face_image_upload"],
                                     efv_quality,
+                                    required_tokens,
                                 )
                                 st.session_state["face_video_history"] = load_face_video_history_db(st.session_state["logged_user"])
                                 st.toast(f"Expressive face video generated in {efv_quality} quality!")
@@ -12899,7 +12926,7 @@ def run_unified_face_video_mode():
                                                 save_face_video_to_db(
                                                     st.session_state.get("logged_user", "guest"),
                                                     file_name, face_prompt, video_url,
-                                                    temp_face_path or "", quality
+                                                    temp_face_path or "", quality, required_tokens
                                                 )
                                                 st.session_state["face_video_history"] = load_face_video_history_db(st.session_state.get("logged_user", "guest"))
                                                 st.balloons()
@@ -15166,6 +15193,7 @@ elif st.session_state["current_page"] == "studio":
     face_history = st.session_state.get("face_video_history", [])
     xp = st.session_state.get('xp_points', 0)
     total_videos = len(history) + len(face_history)
+    total_credits_spent = sum(item.get("credits_charged", 0) or 0 for item in face_history)
     
     st.markdown(f"""
     <div class="stats-grid">
@@ -15175,6 +15203,7 @@ elif st.session_state["current_page"] == "studio":
         <div class="stat"><div class="num">{xp}</div><div class="label">XP Points</div></div>
     </div>
     """, unsafe_allow_html=True)
+    st.caption(f"Face Video credits spent: {total_credits_spent}")
     
     # ========================================================
     # VOUCHER CHECK
