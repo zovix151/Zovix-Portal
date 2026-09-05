@@ -280,7 +280,8 @@ class DeepInfraFaceEngine:
         audio_path: str,
         output_path: Optional[str] = None,
         quality: str = "HD",
-        progress_callback: Optional[callable] = None
+        progress_callback: Optional[callable] = None,
+        allow_static_fallback: bool = True,
     ) -> Optional[str]:
         """Generate face video with multiple fallbacks"""
         
@@ -339,6 +340,10 @@ class DeepInfraFaceEngine:
             print("✅ [6/7] Local Wav2Lip SUCCESS!")
             return result
       
+        if not allow_static_fallback:
+            print("❌ All animated face generation methods failed; static fallback is disabled.")
+            return None
+
         # Try 7: Static Face + Audio (Always works)
         print("📤 [7/7] Creating static face video...")
         result = self._create_static_face_video(face_image, audio_path, quality, progress_callback)
@@ -409,7 +414,7 @@ class DeepInfraFaceEngine:
                         aud_file = open(temp_audio, "rb") if os.path.isfile(temp_audio) else None
                         try:
                             if "p-video-avatar" in model_lc:
-                                payload = {"image": img_file, "voice_script": "Hello! This is my AI video.", "voice_prompt": "speak naturally", "video_prompt": "real human talking head with natural lip movement and subtle eye blinks", "resolution": "720p"}
+                                payload = {"image": img_file, "audio": aud_file, "voice_prompt": "speak naturally", "video_prompt": "real human talking head with natural lip movement and subtle eye blinks", "resolution": "720p"}
                             elif "sadtalker" in model_lc:
                                 payload = {"source_image": img_file, "driven_audio": aud_file, "preprocess": "full"}
                             elif "liveportrait" in model_lc:

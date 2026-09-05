@@ -4981,66 +4981,28 @@ def get_scene_asset(description, output_filename, scene_text=None, idx=None, sta
         logger.error(f"Get scene asset error: {e}")
     return False
 
-def generate_pro_image(prompt, aspect_ratio="16:9", negative_prompt="", strict_stability=False):
-    api_key = os.getenv("STABILITY_API_KEY") or get_system_secret("STABILITY_API_KEY")
-    width, height = 1024, 1024
-    if aspect_ratio == "16:9":
-        width, height = 1344, 768
-    elif aspect_ratio == "9:16":
-        width, height = 768, 1344
-    elif aspect_ratio == "21:9":
-        width, height = 1536, 640
-    elif aspect_ratio == "4:5":
-        width, height = 896, 1120
-    elif aspect_ratio == "3:2":
-        width, height = 1152, 768
-    if api_key and api_key != "mock" and len(api_key.strip()) > 5:
-        url = "https://api.stability.ai/v2beta/stable-image/generate/core"
-        headers = {"authorization": f"Bearer {api_key}", "accept": "image/*"}
-        files = {
-            "prompt": (None, f"{prompt}, cinematic lighting, 8k, photorealistic"),
-            "aspect_ratio": (None, aspect_ratio),
-            "output_format": (None, "png"),
-        }
-        if negative_prompt.strip():
-            files["negative_prompt"] = (None, negative_prompt.strip())
-        try:
-            response = requests.post(url, headers=headers, files=files, timeout=30)
-            if response.status_code == 200 and len(response.content) > 10000:
-                output_path = f"workshop_output_{uuid.uuid4().hex[:6]}.png"
-                with open(output_path, "wb") as f:
-                    f.write(response.content)
-                return output_path
-            logger.warning(f"Creative Workshop Stability request failed: status={response.status_code}, body={response.text[:200]}")
-        except Exception as e:
-            logger.error(f"Generate pro image error: {e}")
-        if strict_stability:
-            logger.warning("Strict Stability mode enabled: skipping fallback generators.")
-            return None
-    elif strict_stability:
-        logger.warning("Strict Stability mode enabled but STABILITY_API_KEY is unavailable.")
-        return None
-
-    if strict_stability:
-        return None
+def generate_pro_image(prompt, aspect_ratio="16:9", negative_prompt="", quality="Standard", runpod_api_key=None):
+    """Generate a Creative Workshop image via the ComfyUI API on RunPod (replaces Stability/Pollinations)."""
+    from comfyui_engine import generate_workshop_image
 
     try:
-        clean_prompt = prompt.replace('"', '').replace("'", "").strip()
-        encoded_prompt = urllib.parse.quote(f"{clean_prompt}, cinematic, 8k resolution, highly detailed")
-        poll_url = f"https://image.pollinations.ai/p/{encoded_prompt}?width={width}&height={height}&seed={random.randint(1, 999999)}&nologo=true"
-        if negative_prompt.strip():
-            encoded_neg = urllib.parse.quote(negative_prompt.strip())
-            poll_url += f"&negative={encoded_neg}"
-        headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36", "Accept": "image/webp,image/apng,image/*,*/*;q=0.8"}
-        response = requests.get(poll_url, headers=headers, timeout=25)
-        if response.status_code == 200 and len(response.content) > 10000:
-            output_path = f"workshop_output_{uuid.uuid4().hex[:6]}.png"
-            with open(output_path, "wb") as f:
-                f.write(response.content)
+        output_path = generate_workshop_image(
+            prompt,
+            aspect_ratio=aspect_ratio,
+            negative_prompt=negative_prompt,
+            quality=quality,
+            api_key=runpod_api_key or os.getenv("RUNPOD_API_KEY") or get_system_secret("RUNPOD_API_KEY"),
+        )
+        if output_path and os.path.exists(output_path):
             return output_path
+        logger.warning("ComfyUI workshop generation returned no image.")
     except Exception as e:
-        logger.error(f"Pollinations pro error: {e}")
+        logger.error(f"ComfyUI generate_pro_image error: {e}")
+
+    # Last-resort local placeholder so the UI never hard-crashes on outage.
     try:
+        width, height = {"16:9": (1344, 768), "9:16": (768, 1344), "21:9": (1536, 640),
+                          "4:5": (896, 1120), "3:2": (1152, 768)}.get(aspect_ratio, (1024, 1024))
         img = Image.new("RGB", (width, height), color=(18, 19, 26))
         d = ImageDraw.Draw(img)
         d.rectangle([(10, 10), (width - 10, height - 10)], outline=(236, 72, 153), width=4)
@@ -10513,15 +10475,21 @@ def run_creative_workshop():
                 label_visibility="collapsed"
             )
 
+            with st.expander("🔑 RunPod API Key (optional test override)"):
+                workshop_runpod_api_key = st.text_input(
+                    "RunPod API Key",
+                    type="password",
+                    placeholder="Leave blank to use RUNPOD_API_KEY from server config",
+                    key="workshop_runpod_api_key_input",
+                    label_visibility="collapsed"
+                )
+
             st.markdown("<br>", unsafe_allow_html=True)
 
             if st.button("🚀 Generate Workshop Image", key="workshop_generation_action_btn", use_container_width=True):
                 if not workshop_prompt_str.strip():
                     st.error("❌ Please enter an image description.")
                 else:
-                    stability_key = os.getenv("STABILITY_API_KEY") or get_system_secret("STABILITY_API_KEY")
-                    stability_ready = bool(stability_key and stability_key != "mock" and len(stability_key.strip()) > 5)
-
                     quality_map = {"Standard": 2, "HD": 3, "Pro": 4}
                     required_tokens = quality_map.get(workshop_quality, 2)
 
@@ -10532,14 +10500,13 @@ def run_creative_workshop():
                             deduct_credits_db(st.session_state["logged_user"], required_tokens)
                             st.session_state['user_credits'] = get_user_credits_db(st.session_state["logged_user"])
 
-                            if not stability_ready:
-                                st.warning("⚠️ STABILITY_API_KEY missing hai. Workshop fallback image engine use karega.")
-
-                            with st.spinner(f"🎨 Generating {workshop_quality} image..."):
+                            with st.spinner(f"🎨 Generating {workshop_quality} image via ComfyUI..."):
                                 img_path = generate_pro_image(
                                     workshop_prompt_str,
                                     workshop_ar,
-                                    workshop_neg_prompt_str
+                                    workshop_neg_prompt_str,
+                                    workshop_quality,
+                                    workshop_runpod_api_key.strip() or None
                                 )
 
                                 if img_path and os.path.exists(img_path):
@@ -10560,7 +10527,7 @@ def run_creative_workshop():
                                     st.toast("✅ Image generated successfully!")
                                     st.rerun()
                                 else:
-                                    st.error("❌ Image generation failed. Stability aur fallback dono unsuccessful rahe. Please try again.")
+                                    st.error("❌ Image generation failed. ComfyUI (RunPod) request aur fallback dono unsuccessful rahe. Please try again.")
                         except Exception as e:
                             st.error(f"❌ Error: {str(e)}")
 
