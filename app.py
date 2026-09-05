@@ -104,6 +104,18 @@ def get_system_secret(key: str, default_val: Optional[str] = None) -> Optional[s
         pass
     return os.getenv(key, default_val)
 
+# ========================================================
+# DATABASE PATH - configurable so it can point to a persistent disk
+# (e.g. a Render Disk mounted at /var/data) instead of the ephemeral
+# container filesystem, which is wiped on every redeploy/restart.
+# ========================================================
+DB_PATH = os.getenv("ZOVIX_DB_PATH") or get_system_secret("ZOVIX_DB_PATH") or "zovix_v4.db"
+if DB_PATH != "zovix_v4.db":
+    _db_dir = os.path.dirname(DB_PATH)
+    if _db_dir:
+        os.makedirs(_db_dir, exist_ok=True)
+logger.info(f"Using database file: {DB_PATH}")
+
 # System Configuration
 SYSTEM_CONFIG = {
     "MAX_WORKERS": int(os.getenv("MAX_WORKERS", "4")),
@@ -343,7 +355,7 @@ class GDPRManager:
     
     def get_consent(self, username: str = None) -> bool:
         if username:
-            conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+            conn = sqlite3.connect(DB_PATH, check_same_thread=False)
             cursor = conn.cursor()
             try:
                 cursor.execute(
@@ -364,7 +376,7 @@ class GDPRManager:
         st.session_state[self.consent_key] = True
         
         if username:
-            conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+            conn = sqlite3.connect(DB_PATH, check_same_thread=False)
             cursor = conn.cursor()
             try:
                 cursor.execute(
@@ -415,7 +427,7 @@ class GDPRManager:
         if not username:
             return False
         
-        conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+        conn = sqlite3.connect(DB_PATH, check_same_thread=False)
         cursor = conn.cursor()
         try:
             tables = [
@@ -471,7 +483,7 @@ if HAS_CELERY:
         def on_failure(self, exc, task_id, args, kwargs, einfo):
             logger.error(f"Task {task_id} failed: {exc}")
             try:
-                conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+                conn = sqlite3.connect(DB_PATH, check_same_thread=False)
                 cursor = conn.cursor()
                 cursor.execute(
                     "INSERT INTO task_failures (task_id, error, timestamp) VALUES (?, ?, ?)",
@@ -1501,7 +1513,7 @@ def check_49_voucher_valid():
 # ========================================================
 
 def init_database():
-    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     cursor = conn.cursor()
     
     try:
@@ -1754,7 +1766,7 @@ def authenticate_user_db(username, password):
     if not username or not password:
         return False, False
     
-    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     cursor = conn.cursor()
     try:
         cursor.execute("SELECT password, twofa_secret FROM users WHERE username = ?", (username,))
@@ -1792,7 +1804,7 @@ def authenticate_user_db(username, password):
 
 def register_user_db(username, password):
     """Register a new user with real password storage"""
-    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     cursor = conn.cursor()
     try:
         cursor.execute(
@@ -1812,7 +1824,7 @@ def register_user_db(username, password):
 
 def login_or_register_social(email, platform):
     """Social login with email"""
-    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     cursor = conn.cursor()
     try:
         cursor.execute("SELECT username FROM users WHERE username = ?", (email,))
@@ -1836,7 +1848,7 @@ def login_or_register_social(email, platform):
 def get_user_credits_db(username):
     """Get real user credits from database"""
     check_and_expire_vouchers(username)
-    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     cursor = conn.cursor()
     row = None
     try:
@@ -1851,11 +1863,12 @@ def get_user_credits_db(username):
     return 0
 
 def add_credits(username, amount, credit_type="standard"):
-    """Real credit addition to database"""
+    """Real credit addition to database. Verifies the row actually existed/updated before committing."""
     if not username or amount <= 0:
+        logger.warning(f"[TOKEN TXN] add_credits skipped: invalid args username={username!r} amount={amount!r}")
         return False
     
-    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     cursor = conn.cursor()
     try:
         if credit_type == "voucher":
@@ -1866,11 +1879,21 @@ def add_credits(username, amount, credit_type="standard"):
             )
         else:
             cursor.execute("UPDATE users SET credits = credits + ? WHERE username = ?", (amount, username))
+
+        if cursor.rowcount == 0:
+            conn.rollback()
+            logger.error(f"[TOKEN TXN] add_credits FAILED: no user row for username={username!r} (amount={amount}, type={credit_type}). Credits NOT persisted.")
+            return False
+
         conn.commit()
-        logger.info(f"Added {amount} credits to {username} ({credit_type})")
+        cursor.execute("SELECT credits, voucher_credits FROM users WHERE username = ?", (username,))
+        row = cursor.fetchone()
+        new_balance = (row[0] + row[1]) if row else None
+        logger.info(f"[TOKEN TXN] add_credits OK: +{amount} ({credit_type}) to {username!r} -> new_total_balance={new_balance}")
         return True
     except Exception as e:
-        logger.error(f"Add credits error: {e}")
+        conn.rollback()
+        logger.error(f"[TOKEN TXN] add_credits ERROR for {username!r} amount={amount}: {e}")
         return False
     finally:
         conn.close()
@@ -1881,7 +1904,7 @@ def deduct_credits_db(username, amount):
         return False
     
     check_and_expire_vouchers(username)
-    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     cursor = conn.cursor()
     try:
         cursor.execute("SELECT credits, voucher_credits FROM users WHERE username = ?", (username,))
@@ -1903,18 +1926,26 @@ def deduct_credits_db(username, amount):
                     "UPDATE users SET voucher_credits = 0, credits = credits - ? WHERE username = ?",
                     (remaining, username)
                 )
+
+            if cursor.rowcount == 0:
+                conn.rollback()
+                logger.error(f"[TOKEN TXN] deduct_credits_db FAILED: update affected 0 rows for username={username!r} (amount={amount}). Balance NOT changed.")
+                return False
+
             conn.commit()
-            logger.info(f"Deducted {amount} credits from {username}")
+            logger.info(f"[TOKEN TXN] deduct_credits_db OK: -{amount} from {username!r} -> new_total_balance={total_credits - amount}")
             return True
+        logger.warning(f"[TOKEN TXN] deduct_credits_db FAILED: no user row for username={username!r} (amount={amount})")
         return False
     except Exception as e:
-        logger.error(f"Deduct credits error: {e}")
+        conn.rollback()
+        logger.error(f"[TOKEN TXN] deduct_credits_db ERROR for {username!r} amount={amount}: {e}")
         return False
     finally:
         conn.close()
 
 def get_user_xp_db(username):
-    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     cursor = conn.cursor()
     row = None
     try:
@@ -1927,7 +1958,7 @@ def get_user_xp_db(username):
     return row[0] if row and row[0] is not None else 0
 
 def update_user_xp_db(username, xp_amount):
-    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     cursor = conn.cursor()
     try:
         cursor.execute("UPDATE users SET xp_points = xp_points + ? WHERE username = ?", (xp_amount, username))
@@ -1943,7 +1974,7 @@ def credit_check(username, required_credits):
 def check_and_expire_vouchers(username):
     if not username:
         return
-    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     cursor = conn.cursor()
     try:
         cursor.execute("SELECT voucher_credits, voucher_expires_at FROM users WHERE username = ?", (username,))
@@ -1965,7 +1996,7 @@ def check_and_expire_vouchers(username):
         conn.close()
 
 def has_active_subscription(username):
-    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     cursor = conn.cursor()
     try:
         cursor.execute(
@@ -1987,7 +2018,7 @@ def has_active_subscription(username):
         conn.close()
 
 def refresh_subscription_tokens(username):
-    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     cursor = conn.cursor()
     try:
         cursor.execute(
@@ -2034,7 +2065,7 @@ def check_and_refresh_subscription(username):
 # ========================================================
 
 def enhanced_daily_reward(username):
-    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     cursor = conn.cursor()
     today_str = datetime.now().date().isoformat()
     try:
@@ -2074,7 +2105,7 @@ def enhanced_daily_reward(username):
 # ========================================================
 
 def track_referral(referrer_username, new_user_username):
-    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     cursor = conn.cursor()
     try:
         cursor.execute(
@@ -2090,7 +2121,7 @@ def track_referral(referrer_username, new_user_username):
         conn.close()
 
 def reward_referral(referrer_username):
-    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     cursor = conn.cursor()
     try:
         cursor.execute(
@@ -2118,7 +2149,7 @@ def reward_referral(referrer_username):
 # ========================================================
 
 def check_achievements(username):
-    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     cursor = conn.cursor()
     achievements = []
     try:
@@ -2161,7 +2192,7 @@ def check_achievements(username):
 # ========================================================
 
 def get_leaderboard(limit=10):
-    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     cursor = conn.cursor()
     try:
         cursor.execute(
@@ -2184,7 +2215,7 @@ def get_leaderboard(limit=10):
 # ========================================================
 
 def track_social_share(username, platform):
-    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     cursor = conn.cursor()
     try:
         cursor.execute(
@@ -2205,7 +2236,7 @@ def track_social_share(username, platform):
 # ========================================================
 
 def get_support_tier(username):
-    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     cursor = conn.cursor()
     try:
         cursor.execute("SELECT credits FROM users WHERE username = ?", (username,))
@@ -2283,7 +2314,7 @@ def verify_payment_signature(order_id, payment_id, signature):
 
 def save_payment_history(username, order_id, payment_id, amount, credits_added, pack_name, status, plan_type="one_time", gateway="razorpay"):
     """Save payment history to database"""
-    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     cursor = conn.cursor()
     try:
         cursor.execute(
@@ -2308,7 +2339,7 @@ def register_pending_payment(username, order_id, amount, credits_added, pack_nam
         return False
 
     plan_type = "monthly" if "Subscription" in str(pack_name) else "one_time"
-    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     cursor = conn.cursor()
     try:
         cursor.execute(
@@ -2370,7 +2401,7 @@ def process_payment_success(username, order_id, payment_id, signature, amount, c
     
     try:
         # Check if already processed
-        conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+        conn = sqlite3.connect(DB_PATH, check_same_thread=False)
         cursor = conn.cursor()
         cursor.execute(
             "SELECT status FROM payment_history WHERE order_id = ? AND username = ? LIMIT 1",
@@ -2382,37 +2413,30 @@ def process_payment_success(username, order_id, payment_id, signature, amount, c
         if existing and existing[0] == "success":
             return True, f"✅ Payment already processed. Credits already added."
         
-        # CREDIT ADDITION - REAL
-        if st.session_state.get("is_logged_in", False):
-            add_credits(username, credits_to_add)
-            
+        # CREDIT ADDITION - always persisted immediately against the real
+        # username (never gated on session login state, which is lost on
+        # redeploy/relogin and was the root cause of credits not sticking).
+        if not add_credits(username, credits_to_add):
+            logger.error(f"[TOKEN TXN] process_payment_success FAILED to persist {credits_to_add} credits for {username!r} (order={order_id})")
+            return False, "Payment succeeded but credits could not be saved to your account. Please contact support with your payment ID."
+
+        if st.session_state.get("logged_user") == username:
             st.session_state['user_credits'] = get_user_credits_db(username)
             st.session_state['credit_balance'] = st.session_state['user_credits']
-            st.session_state['payment_verified'] = True
-            st.session_state['pending_credits'] = 0
-            st.session_state['pending_pack_name'] = ""
-            st.session_state['pending_amount'] = 0
-            
-            save_payment_history(
-                username, order_id, payment_id, amount, 
-                credits_to_add, pack_name, "success", plan_type, gateway
-            )
-            
-            logger.info(f"✅ CREDITS ADDED: {credits_to_add} to {username}")
-            
-            return True, f"✅ Payment successful! Added {credits_to_add} credits to your account."
-        else:
-            st.session_state['pending_credits'] = credits_to_add
-            st.session_state['pending_pack_name'] = pack_name
-            st.session_state['payment_verified'] = True
-            
-            save_payment_history(
-                "pending_user", order_id, payment_id, amount, 
-                credits_to_add, pack_name, "pending", plan_type, gateway
-            )
-            
-            return True, f"✅ Payment successful! {credits_to_add} credits will be added when you log in."
-            
+        st.session_state['payment_verified'] = True
+        st.session_state['pending_credits'] = 0
+        st.session_state['pending_pack_name'] = ""
+        st.session_state['pending_amount'] = 0
+
+        save_payment_history(
+            username, order_id, payment_id, amount,
+            credits_to_add, pack_name, "success", plan_type, gateway
+        )
+
+        logger.info(f"[TOKEN TXN] process_payment_success OK: +{credits_to_add} credits for {username!r} (order={order_id})")
+
+        return True, f"✅ Payment successful! Added {credits_to_add} credits to your account."
+
     except Exception as e:
         logger.error(f"Process payment error: {e}")
         return False, f"Error processing payment: {str(e)}"
@@ -3004,7 +3028,7 @@ def handle_payment_response():
     amount_for_finalize = st.session_state.get("pending_amount", 0)
 
     if not credits_to_add or not pack_name or not amount_for_finalize:
-        conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+        conn = sqlite3.connect(DB_PATH, check_same_thread=False)
         cursor = conn.cursor()
         try:
             cursor.execute(
@@ -3077,7 +3101,7 @@ def finalize_razorpay_payment(username, order_id, payment_id, signature, amount,
     amount_value = int(round(float(amount or 0)))
 
     try:
-        conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+        conn = sqlite3.connect(DB_PATH, check_same_thread=False)
         cursor = conn.cursor()
         cursor.execute(
             "SELECT id, status, credits_added, pack_name, amount FROM payment_history WHERE username = ? AND order_id = ? ORDER BY id DESC LIMIT 1",
@@ -3252,7 +3276,7 @@ def reconcile_pending_razorpay_payments(username):
     if razorpay is None:
         return
 
-    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     cursor = conn.cursor()
     try:
         cursor.execute(
@@ -3514,7 +3538,7 @@ def render_crypto_checkout(crypto_data: dict, credits: int, plan_name: str):
 # ========================================================
 
 def get_sub_users(parent):
-    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     cursor = conn.cursor()
     users_list = []
     try:
@@ -3529,7 +3553,7 @@ def get_sub_users(parent):
     return users_list
 
 def add_sub_user_db(parent, sub):
-    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     cursor = conn.cursor()
     try:
         cursor.execute("SELECT COUNT(*) FROM sub_users WHERE parent_username = ?", (parent,))
@@ -3549,7 +3573,7 @@ def add_sub_user_db(parent, sub):
         conn.close()
 
 def remove_sub_user_db(parent, sub):
-    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     cursor = conn.cursor()
     try:
         cursor.execute("DELETE FROM sub_users WHERE parent_username = ? AND sub_username = ?", (parent, sub))
@@ -3562,7 +3586,7 @@ def remove_sub_user_db(parent, sub):
         conn.close()
 
 def get_showcase_items():
-    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     cursor = conn.cursor()
     items = []
     try:
@@ -3577,7 +3601,7 @@ def get_showcase_items():
     return items
 
 def add_showcase_item(username, prompt, thumbnail_path):
-    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     cursor = conn.cursor()
     try:
         cursor.execute("INSERT INTO public_showcase (username, prompt, thumbnail_path) VALUES (?, ?, ?)", (username, prompt, thumbnail_path))
@@ -3590,7 +3614,7 @@ def add_showcase_item(username, prompt, thumbnail_path):
         conn.close()
 
 def process_video_billing(username, duration_minutes, total_scenes, stock_scenes_count):
-    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     cursor = conn.cursor()
     try:
         cursor.execute("SELECT credits FROM users WHERE username = ?", (username,))
@@ -3619,7 +3643,7 @@ def process_video_billing(username, duration_minutes, total_scenes, stock_scenes
         conn.close()
 
 def save_render_to_db(username, file_name, prompt, path, generation_type="General", cost_inr=None):
-    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     cursor = conn.cursor()
     try:
         timestamp = time.strftime("%b %d, %Y - %I:%M %p")
@@ -3645,7 +3669,7 @@ def save_render_to_db(username, file_name, prompt, path, generation_type="Genera
         conn.close()
 
 def save_face_video_to_db(username, file_name, prompt, path, face_path, quality="Standard", credits_charged=None):
-    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     cursor = conn.cursor()
     try:
         timestamp = time.strftime("%b %d, %Y - %I:%M %p")
@@ -3665,7 +3689,7 @@ def save_face_video_to_db(username, file_name, prompt, path, face_path, quality=
         conn.close()
 
 def load_renders_history_db(username):
-    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     cursor = conn.cursor()
     history = []
     try:
@@ -3724,7 +3748,7 @@ def show_admin_dashboard():
     st.markdown("<h2 style='font-family: Orbitron; color: #FFD700; text-align: center;'>🔐 ADMIN DASHBOARD</h2>", unsafe_allow_html=True)
     st.markdown("<p style='text-align: center; color: #FFC0CB;'>Platform-wide generation cost analytics & monitoring</p>", unsafe_allow_html=True)
     
-    conn = sqlite3.connect('zovix_v4.db', check_same_thread=False)
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     cursor = conn.cursor()
     
     try:
@@ -3857,7 +3881,7 @@ def show_admin_dashboard():
         conn.close()
 
 def load_face_video_history_db(username):
-    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     cursor = conn.cursor()
     history = []
     try:
@@ -3889,7 +3913,7 @@ def load_face_video_history_db(username):
     return history
 
 def get_cached_clip(prompt):
-    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     cursor = conn.cursor()
     row = None
     try:
@@ -3904,7 +3928,7 @@ def get_cached_clip(prompt):
     return None
 
 def cache_clip(prompt, path):
-    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     cursor = conn.cursor()
     try:
         timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
@@ -7572,7 +7596,7 @@ def render_ai_agent_ui():
                                 }
                                 
                                 # Save to database
-                                conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+                                conn = sqlite3.connect(DB_PATH, check_same_thread=False)
                                 cursor = conn.cursor()
                                 try:
                                     cursor.execute(
@@ -12916,8 +12940,14 @@ def show_auth_modal(mode="login"):
                             check_and_refresh_subscription(username_val)
                             
                             if st.session_state.get("pending_credits", 0) > 0:
-                                add_credits(username_val, st.session_state["pending_credits"])
-                                st.success(f"✅ Added {st.session_state['pending_credits']} credits from pending payment!")
+                                pending_amt = st.session_state["pending_credits"]
+                                if add_credits(username_val, pending_amt):
+                                    st.session_state['user_credits'] = get_user_credits_db(username_val)
+                                    st.session_state['credit_balance'] = st.session_state['user_credits']
+                                    st.success(f"✅ Added {pending_amt} credits from pending payment!")
+                                else:
+                                    logger.error(f"[TOKEN TXN] Failed to reconcile pending_credits={pending_amt} for {username_val!r} on login")
+                                    st.warning("⚠️ Pending payment credits could not be saved. Please contact support.")
                                 st.session_state["pending_credits"] = 0
                                 st.session_state["pending_pack_name"] = ""
                                 st.session_state["payment_verified"] = False
@@ -13002,8 +13032,14 @@ def social_login_dialog_box(platform):
                 check_and_refresh_subscription(social_email)
                 
                 if st.session_state.get("pending_credits", 0) > 0:
-                    add_credits(social_email, st.session_state["pending_credits"])
-                    st.success(f"✅ Added {st.session_state['pending_credits']} credits from pending payment!")
+                    pending_amt = st.session_state["pending_credits"]
+                    if add_credits(social_email, pending_amt):
+                        st.session_state['user_credits'] = get_user_credits_db(social_email)
+                        st.session_state['credit_balance'] = st.session_state['user_credits']
+                        st.success(f"✅ Added {pending_amt} credits from pending payment!")
+                    else:
+                        logger.error(f"[TOKEN TXN] Failed to reconcile pending_credits={pending_amt} for {social_email!r} on social login")
+                        st.warning("⚠️ Pending payment credits could not be saved. Please contact support.")
                     st.session_state["pending_credits"] = 0
                     st.session_state["pending_pack_name"] = ""
                     st.session_state["payment_verified"] = False
@@ -13035,7 +13071,7 @@ def show_2fa_modal():
             secret = pyotp.random_base32()
             st.session_state["pending_2fa_secret"] = secret
             user = st.session_state.get("logged_user", "")
-            conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+            conn = sqlite3.connect(DB_PATH, check_same_thread=False)
             cursor = conn.cursor()
             cursor.execute("UPDATE users SET twofa_secret = ? WHERE username = ?", (secret, user))
             conn.commit()
@@ -13084,7 +13120,7 @@ def show_2fa_modal():
                 username = st.session_state.get("2fa_temp_user", "")
                 if HAS_2FA and pyotp:
                     try:
-                        conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+                        conn = sqlite3.connect(DB_PATH, check_same_thread=False)
                         cursor = conn.cursor()
                         cursor.execute("SELECT twofa_secret FROM users WHERE username = ?", (username,))
                         row = cursor.fetchone()
@@ -13111,8 +13147,14 @@ def show_2fa_modal():
                                 check_and_refresh_subscription(username)
                                 
                                 if st.session_state.get("pending_credits", 0) > 0:
-                                    add_credits(username, st.session_state["pending_credits"])
-                                    st.success(f"✅ Added {st.session_state['pending_credits']} credits from pending payment!")
+                                    pending_amt = st.session_state["pending_credits"]
+                                    if add_credits(username, pending_amt):
+                                        st.session_state['user_credits'] = get_user_credits_db(username)
+                                        st.session_state['credit_balance'] = st.session_state['user_credits']
+                                        st.success(f"✅ Added {pending_amt} credits from pending payment!")
+                                    else:
+                                        logger.error(f"[TOKEN TXN] Failed to reconcile pending_credits={pending_amt} for {username!r} on 2FA login")
+                                        st.warning("⚠️ Pending payment credits could not be saved. Please contact support.")
                                     st.session_state["pending_credits"] = 0
                                     st.session_state["pending_pack_name"] = ""
                                     st.session_state["payment_verified"] = False
@@ -14635,7 +14677,7 @@ def system_health_check():
     }
     
     try:
-        conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+        conn = sqlite3.connect(DB_PATH, check_same_thread=False)
         cursor = conn.cursor()
         cursor.execute("SELECT 1")
         conn.close()
@@ -15247,7 +15289,7 @@ for i in range(0, len(modes), 11):
             if st.session_state.get("2fa_enabled", False):
                 st.success("✅ 2FA is enabled for your account")
                 if st.button("Disable 2FA", use_container_width=True):
-                    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+                    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
                     cursor = conn.cursor()
                     try:
                         cursor.execute(
@@ -15313,7 +15355,7 @@ for i in range(0, len(modes), 11):
                     if not sch_topic.strip():
                         st.error("Please provide prompt or topic details.")
                     else:
-                        conn_sch = sqlite3.connect("zovix_v4.db")
+                        conn_sch = sqlite3.connect(DB_PATH)
                         cur_sch = conn_sch.cursor()
                         cur_sch.execute("INSERT INTO social_schedule (username, category, topic, scheduled_time, platform, status) VALUES (?, ?, ?, ?, ?, ?)", (st.session_state["logged_user"], sch_category, sch_topic, sch_time, sch_platform, 'Scheduled'))
                         conn_sch.commit()
@@ -15323,7 +15365,7 @@ for i in range(0, len(modes), 11):
         with sch_col2:
             with st.container(border=True):
                 st.markdown("<h3 style='font-family: Orbitron; font-size: 14px; color: #EC4899; margin-bottom: 15px;'>📊 ACTIVE SCHEDULED JOBS CALENDAR</h3>", unsafe_allow_html=True)
-                conn_list = sqlite3.connect("zovix_v4.db")
+                conn_list = sqlite3.connect(DB_PATH)
                 cur_list = conn_list.cursor()
                 cur_list.execute("SELECT category, topic, scheduled_time, platform, status FROM social_schedule WHERE username = ? ORDER BY id DESC LIMIT 5", (st.session_state["logged_user"],))
                 sch_rows = cur_list.fetchall()
