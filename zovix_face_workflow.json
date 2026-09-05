@@ -1,0 +1,47 @@
+{
+  "1": {
+    "inputs": {
+      "image": "face.png",
+      "upload": "image"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Load Face Image"
+    }
+  },
+  "2": {
+    "inputs": {
+      "audio": "speech.mp3"
+    },
+    "class_type": "VHS_LoadAudio",
+    "_meta": {
+      "title": "Load Driving Audio"
+    }
+  },
+  "3": {
+    "inputs": {
+      "source_image": ["1", 0],
+      "driving_audio": ["2", 0],
+      "resolution": 768,
+      "duration": 10,
+      "script_text": ""
+    },
+    "class_type": "LivePortraitProcess",
+    "_meta": {
+      "title": "Talking Head Animation (replace with your real face-animation graph)"
+    }
+  },
+  "4": {
+    "inputs": {
+      "images": ["3", 0],
+      "audio": ["2", 0],
+      "frame_rate": 25,
+      "filename_prefix": "ZovixFaceVideo",
+      "format": "video/h264-mp4"
+    },
+    "class_type": "VHS_VideoCombine",
+    "_meta": {
+      "title": "Save Face Video"
+    }
+  }
+}

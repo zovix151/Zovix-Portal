@@ -170,14 +170,6 @@ except ImportError:
     InferenceClient = None
 
 try:
-    import replicate
-    HAS_REPLICATE = True
-except ImportError:
-    replicate = None
-    HAS_REPLICATE = False
-    logger.warning("replicate not installed. Face Studio cloud mode will be unavailable.")
-
-try:
     import razorpay
 except ImportError:
     razorpay = None
@@ -6858,10 +6850,10 @@ def _clamp_face_video_duration(duration):
 
 def generate_face_video(prompt, face_image_path, duration=30, emotion="neutral", 
                         camera_angle="front", quality="Standard", 
-                        voice_language=None, voice_label=None):
-    """Pure Cloud Face Video Generation via Replicate API."""
+                        voice_language=None, voice_label=None, runpod_api_key=None):
+    """Pure Cloud Face Video Generation via ComfyUI on RunPod."""
     print("=" * 60)
-    print("🎬 generate_face_video() called - Replicate Cloud Mode")
+    print("🎬 generate_face_video() called - ComfyUI RunPod Cloud Mode")
     print("=" * 60)
 
     if not face_image_path or not os.path.exists(face_image_path):
@@ -6898,7 +6890,7 @@ def generate_face_video(prompt, face_image_path, duration=30, emotion="neutral",
         preferred_gender=st.session_state.get('fv_detected_gender') if st.session_state.get('fv_gender_auto', False) else None
     )
 
-    # --- Cloud-Only: Directly call Replicate API --- #
+    # --- Cloud-Only: Directly call the ComfyUI-on-RunPod endpoint --- #
     video_result = generate_world_face_video(
         prompt=prompt,
         face_image_path=face_image_path,
@@ -6906,116 +6898,22 @@ def generate_face_video(prompt, face_image_path, duration=30, emotion="neutral",
         quality=quality,
         voice_language=voice_cfg.get("language", "English"),
         voice_label=voice_cfg.get("voice_label", "Adam (Premium Male)"),
+        runpod_api_key=runpod_api_key,
     )
     
     if video_result:
         return video_result
     
-    logger.error("All Replicate cloud models failed. No local fallback available.")
+    logger.error("RunPod ComfyUI face video generation failed. No local fallback available.")
     return None
 
 
-def _extract_video_url_from_replicate_output(output_obj):
-    if isinstance(output_obj, str) and output_obj.startswith("http"):
-        return output_obj
-    if isinstance(output_obj, dict):
-        for key in ["video", "output", "url", "mp4", "result"]:
-            val = output_obj.get(key)
-            found = _extract_video_url_from_replicate_output(val)
-            if found:
-                return found
-    if isinstance(output_obj, (list, tuple)):
-        for item in output_obj:
-            found = _extract_video_url_from_replicate_output(item)
-            if found:
-                return found
-    return None
-
-
-def _get_replicate_api_token():
-    secret_keys = ["REPLICATE_API_TOKEN", "REPLICATE_API_KEY"]
-    for key in secret_keys:
-        try:
-            value = st.secrets.get(key)
-        except Exception:
-            value = None
-        if value:
-            return str(value).strip()
-
-    for key in secret_keys:
-        value = os.getenv(key)
-        if value:
-            return str(value).strip()
-
-    return None
-
-
-def _run_replicate_face_model(client, model_ref, image_path, audio_path, script_text):
-    image_path = str(image_path)
-    if not os.path.isfile(image_path) or os.path.getsize(image_path) <= 0:
-        raise ValueError("Replicate face generation requires a valid image file path.")
-
-    model_lc = str(model_ref).lower()
-    has_audio = bool(audio_path and os.path.isfile(audio_path) and os.path.getsize(audio_path) > 1024)
-
-    if "p-video-avatar" in model_lc:
-        input_builders = [
-            lambda i, a, t: {"image": i, "voice_script": t, "voice_prompt": "speak naturally", "video_prompt": "real human talking head with natural lip movement and subtle eye blinks", "resolution": "720p"},
-            lambda i, a, t: {"image": i, "voice_script": t, "resolution": "720p"},
-        ]
-    elif "sadtalker" in model_lc:
-        input_builders = [
-            lambda i, a, t: {"source_image": i, "driven_audio": a, "preprocess": "full"},
-            lambda i, a, t: {"source_image": i, "driven_audio": a},
-            lambda i, a, t: {"image": i, "audio": a},
-        ]
-    elif "liveportrait" in model_lc:
-        input_builders = [
-            lambda i, a, t: {"source_image": i, "driving_audio": a},
-            lambda i, a, t: {"image": i, "audio": a},
-            lambda i, a, t: {"source": i, "driving": a},
-        ]
-    else:
-        input_builders = [
-            lambda i, a, t: {"image": i, "voice_script": t},
-            lambda i, a, t: {"image": i, "text": t},
-        ]
-
-    for build_payload in input_builders:
-        try:
-            with open(image_path, "rb") as img_file:
-                aud_file = open(audio_path, "rb") if has_audio else None
-                try:
-                    payload = build_payload(img_file, aud_file, script_text)
-                    output = client.run(model_ref, input=payload)
-                finally:
-                    if aud_file:
-                        aud_file.close()
-
-            video_url = _extract_video_url_from_replicate_output(output)
-            if video_url:
-                return video_url
-        except Exception as e:
-            logger.warning(f"Replicate payload failed for {model_ref}: {e}")
-            continue
-
-    return None
-
-
-def generate_world_face_video(prompt, face_image_path, duration=10, quality="HD", animation_style="Expressive Real Human (No Lip-Only Fallback)", backend_choice="Auto (LivePortrait → SadTalker → Wav2Lip)", motion_level="high", voice_language=None, voice_label=None):
-    """Cloud-only face generation using Replicate models; no local face animation pipeline."""
+def generate_world_face_video(prompt, face_image_path, duration=10, quality="HD", animation_style="Expressive Real Human (No Lip-Only Fallback)", backend_choice="Auto (LivePortrait → SadTalker → Wav2Lip)", motion_level="high", voice_language=None, voice_label=None, runpod_api_key=None):
+    """Cloud-only face generation via the ComfyUI-on-RunPod serverless endpoint (replaces Replicate/DeepInfra)."""
     if not face_image_path or not os.path.exists(face_image_path):
         return None
 
-    if not HAS_REPLICATE:
-        logger.warning("Replicate library is not installed.")
-        return None
-
-    replicate_token = _get_replicate_api_token()
-    if not replicate_token:
-        st.session_state["replicate_last_error"] = "Replicate API token is missing from Streamlit secrets or environment."
-        logger.warning("Replicate API token is missing from Streamlit secrets or environment.")
-        return None
+    from comfyui_engine import generate_face_video as _runpod_generate_face_video
 
     temp_audio = None
     try:
@@ -7024,42 +6922,26 @@ def generate_world_face_video(prompt, face_image_path, duration=10, quality="HD"
             temp_audio = tmp_aud.name
         _synthesize_face_audio_strict(prompt, temp_audio, voice_cfg, duration_hint=duration)
 
-        client = replicate.Client(api_token=replicate_token)
+        video_result = _runpod_generate_face_video(
+            face_image_path=face_image_path,
+            audio_path=temp_audio,
+            script_text=prompt,
+            duration=duration,
+            quality=quality,
+            api_key=runpod_api_key,
+        )
 
-        model_candidates = [
-            str(os.getenv("REPLICATE_FACE_MODEL", "prunaai/p-video-avatar")).strip() or "prunaai/p-video-avatar",
-            "prunaai/p-video-avatar",
-            "lucataco/sadtalker",
-            "cjwbw/sadtalker",
-            "gandhana/liveportrait",
-            "gandhary/liveportrait",
-        ]
+        if video_result:
+            st.session_state["face_video_engine_used"] = "ComfyUI (RunPod)"
+            st.session_state["face_video_runtime_mode"] = "Cloud"
+            st.session_state["face_video_last_error"] = None
+            return video_result
 
-        deduped = []
-        seen = set()
-        for model in model_candidates:
-            key = model.strip().lower()
-            if not key or key in seen:
-                continue
-            seen.add(key)
-            deduped.append(model.strip())
-
-        for model_ref in deduped:
-            try:
-                video_url = _run_replicate_face_model(client, model_ref, face_image_path, temp_audio, prompt)
-                if video_url:
-                    st.session_state["face_video_engine_used"] = f"Replicate ({model_ref})"
-                    st.session_state["face_video_runtime_mode"] = "Cloud"
-                    st.session_state["replicate_last_error"] = None
-                    return video_url
-            except Exception as e:
-                logger.warning(f"Replicate fallback failed for {model_ref}: {e}")
-
-        st.session_state["replicate_last_error"] = "All Replicate cloud models failed to produce a video URL."
+        st.session_state["face_video_last_error"] = "RunPod ComfyUI face video generation failed to produce a video."
         return None
     except Exception as e:
-        st.session_state["replicate_last_error"] = str(e)
-        logger.warning(f"Replicate face generation failed: {e}")
+        st.session_state["face_video_last_error"] = str(e)
+        logger.warning(f"RunPod ComfyUI face generation failed: {e}")
         return None
     finally:
         if temp_audio:
@@ -12197,7 +12079,7 @@ def run_face_video_mode():
                     elif not st.session_state.get("face_image_upload") or not os.path.exists(st.session_state["face_image_upload"]):
                         st.error("Please upload a face image or take a photo using camera mode.")
                     else:
-                        with st.spinner(f"Generating {quality} lip-sync face video on DeepInfra Cloud..."):
+                        with st.spinner(f"Generating {quality} lip-sync face video via ComfyUI on RunPod..."):
                             # Use safe wrapper with error handling
                             video_path, gen_error = safe_generate_face_video_wrapper(
                                 face_prompt,
@@ -12218,8 +12100,8 @@ def run_face_video_mode():
                                 st.toast(f"Face video generated successfully in {quality} quality!")
                                 st.rerun()
                             else:
-                                failure_reason = st.session_state.get("replicate_last_error", "Unknown generation error")
-                                st.error(f"DeepInfra generation failed. {failure_reason}")
+                                failure_reason = st.session_state.get("face_video_last_error", "Unknown generation error")
+                                st.error(f"RunPod ComfyUI generation failed. {failure_reason}")
     with fv_col2:
         with st.container(border=True):
             st.markdown("<h3 style='font-family: Orbitron; font-size: 15px; color: #FFC0CB; margin-bottom: 15px; letter-spacing: 0.5px;'>👤 FACE VIDEO PLAYER</h3>", unsafe_allow_html=True)
@@ -12844,8 +12726,19 @@ def run_unified_face_video_mode():
                 st.session_state["fv_manual_voice_mode"] = "female"
             
             st.markdown("<br>", unsafe_allow_html=True)
-            
-                        # Generate Button - Pure DeepInfra Cloud Engine ☁️
+
+            with st.expander("🔑 RunPod API Key (optional test override)"):
+                unified_fv_runpod_api_key = st.text_input(
+                    "RunPod API Key",
+                    type="password",
+                    placeholder="Leave blank to use RUNPOD_API_KEY from server config",
+                    key="unified_fv_runpod_api_key_input",
+                    label_visibility="collapsed"
+                )
+
+            st.markdown("<br>", unsafe_allow_html=True)
+
+            # Generate Button - ComfyUI on RunPod Serverless ☁️
             if st.button("🌍 Generate Global Face Video", key="unified_fv_generate_btn", use_container_width=True):
                             if not face_prompt or not face_prompt.strip():
                                 st.error("Kripya pehle text script likhein!")
@@ -12870,8 +12763,8 @@ def run_unified_face_video_mode():
                                 else:
                                     st.success(f"✓ {message}")
                         
-                                    # Step 2: Generate via DeepInfra Cloud directly ☁️
-                                    with st.spinner(f"☁️ Generating {quality} face video on DeepInfra Cloud..."):
+                                    # Step 2: Generate via ComfyUI on RunPod ☁️
+                                    with st.spinner(f"☁️ Generating {quality} face video via ComfyUI on RunPod..."):
                                         try:
                                                                                         # Manual voice only (auto voice type hata diya hai)
                                             manual_voice_selected = st.session_state.get("fv_manual_voice_selected")
@@ -12883,6 +12776,7 @@ def run_unified_face_video_mode():
                                                 quality=quality,
                                                 voice_language="English",
                                                 voice_label=voice_to_use,
+                                                runpod_api_key=unified_fv_runpod_api_key.strip() or None,
                                             )
                                 
                                             if video_url:
@@ -12900,9 +12794,9 @@ def run_unified_face_video_mode():
                                                 st.toast("✅ Face video generated successfully!")
                                                 st.rerun()
                                             else:
-                                                failure_reason = st.session_state.get("replicate_last_error", "Unknown generation error")
-                                                st.error(f"❌.set Cloud generation failed. {failure_reason}")
-                                                st.info("Troubleshoot: verify DEEPINFRA_API_KEY is valid and accessible from .env / .streamlit/secrets.toml.")
+                                                failure_reason = st.session_state.get("face_video_last_error", "Unknown generation error")
+                                                st.error(f"❌ Cloud generation failed. {failure_reason}")
+                                                st.info("Troubleshoot: verify RUNPOD_API_KEY is valid and the ComfyUI endpoint is reachable.")
                                         except Exception as e:
                                             st.error(f"❌ Cloud Generation Error: {str(e)}")
                                             logger.error(f"Unified face video error: {e}")

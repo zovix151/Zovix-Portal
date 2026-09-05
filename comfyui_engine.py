@@ -195,3 +195,127 @@ def generate_workshop_image(prompt, aspect_ratio="16:9", negative_prompt="", qua
     except Exception as e:
         logger.error(f"ComfyUI RunPod workshop image generation failed: {e}")
         return None
+
+
+# ---------------------------------------------------------------------------
+# Global Face Video Studio - same RunPod ComfyUI endpoint, talking-head graph
+# ---------------------------------------------------------------------------
+FACE_WORKFLOW_PATH = os.getenv("COMFYUI_FACE_WORKFLOW_PATH", os.path.join(_APP_DIR, "zovix_face_workflow.json"))
+FACE_VIDEO_OUTPUT_DIR = os.getenv("FACE_VIDEO_OUTPUT_DIR", os.path.join(_APP_DIR, "face_videos"))
+
+NODE_FACE_IMAGE = "1"
+NODE_FACE_AUDIO = "2"
+NODE_FACE_ANIMATE = "3"
+NODE_FACE_SAVE_VIDEO = "4"
+
+FACE_QUALITY_RESOLUTION = {"Standard": 512, "HD": 768, "4K": 1024}
+
+
+def load_face_workflow():
+    """Read zovix_face_workflow.json fresh from disk on every call."""
+    with open(FACE_WORKFLOW_PATH, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def inject_face_settings(workflow, image_filename, audio_filename, script_text="", duration=10, quality="HD"):
+    """Inject the uploaded face image/audio filenames and script/quality settings into the face workflow."""
+    resolution = FACE_QUALITY_RESOLUTION.get(quality, 768)
+
+    if NODE_FACE_IMAGE in workflow:
+        workflow[NODE_FACE_IMAGE]["inputs"]["image"] = image_filename
+
+    if audio_filename and NODE_FACE_AUDIO in workflow:
+        workflow[NODE_FACE_AUDIO]["inputs"]["audio"] = audio_filename
+
+    if NODE_FACE_ANIMATE in workflow:
+        workflow[NODE_FACE_ANIMATE]["inputs"]["resolution"] = resolution
+        workflow[NODE_FACE_ANIMATE]["inputs"]["duration"] = duration
+        workflow[NODE_FACE_ANIMATE]["inputs"]["script_text"] = script_text or ""
+
+    return workflow
+
+
+def _file_to_data_uri(path, mime):
+    with open(path, "rb") as f:
+        encoded = base64.b64encode(f.read()).decode("utf-8")
+    return f"data:{mime};base64,{encoded}"
+
+
+def _extract_video_output(output):
+    """Normalize RunPod ComfyUI face-video output shapes into (base64_or_none, url_or_none)."""
+    if output is None:
+        return None, None
+    if isinstance(output, str):
+        return (None, output) if output.startswith("http") else (output, None)
+    if isinstance(output, dict):
+        for key in ("video_url", "url"):
+            if output.get(key):
+                return None, output[key]
+        for key in ("video", "data", "base64"):
+            if output.get(key):
+                val = output[key]
+                return (None, val) if str(val).startswith("http") else (val, None)
+        nested = output.get("videos") or output.get("gifs") or output.get("images")
+        if nested:
+            return _extract_video_output(nested)
+    if isinstance(output, list):
+        for item in output:
+            b64, url = _extract_video_output(item)
+            if b64 or url:
+                return b64, url
+    return None, None
+
+
+def generate_face_video(face_image_path, audio_path=None, script_text="", duration=10, quality="HD",
+                         api_key=None, endpoint_id=None, timeout=240):
+    """
+    Generate a talking-head face video through the ComfyUI-on-RunPod serverless
+    API - the exact same endpoint/pattern used by the Creative Workshop image
+    pipeline. Returns a local file path or a hosted video URL on success, or
+    None on failure.
+    """
+    api_key = (api_key or RUNPOD_API_KEY or "").strip()
+    endpoint_id = (endpoint_id or RUNPOD_ENDPOINT_ID or "").strip()
+
+    if not api_key:
+        logger.error("RUNPOD_API_KEY not configured; cannot call ComfyUI RunPod face endpoint.")
+        return None
+    if not endpoint_id:
+        logger.error("ComfyUI RunPod endpoint id not configured.")
+        return None
+    if not face_image_path or not os.path.exists(face_image_path):
+        logger.error("Face image not found for RunPod face video generation.")
+        return None
+
+    try:
+        image_filename = f"face_{uuid.uuid4().hex[:8]}.png"
+        images_payload = [{"name": image_filename, "image": _file_to_data_uri(face_image_path, "image/png")}]
+
+        audio_filename = None
+        if audio_path and os.path.exists(audio_path):
+            audio_filename = f"audio_{uuid.uuid4().hex[:8]}.mp3"
+            images_payload.append({"name": audio_filename, "image": _file_to_data_uri(audio_path, "audio/mpeg")})
+
+        workflow = inject_face_settings(load_face_workflow(), image_filename, audio_filename, script_text, duration, quality)
+
+        result = run_comfyui_job(workflow, api_key, endpoint_id, images=images_payload, timeout=timeout)
+
+        video_b64, video_url = _extract_video_output(result.get("output"))
+        if video_url:
+            return video_url
+
+        if video_b64:
+            raw_b64 = video_b64.split(",", 1)[1] if "," in video_b64[:60] else video_b64
+            video_bytes = base64.b64decode(raw_b64)
+            os.makedirs(FACE_VIDEO_OUTPUT_DIR, exist_ok=True)
+            output_path = os.path.join(FACE_VIDEO_OUTPUT_DIR, f"face_video_{uuid.uuid4().hex[:6]}.mp4")
+            with open(output_path, "wb") as f:
+                f.write(video_bytes)
+            return output_path
+
+        logger.error(f"RunPod ComfyUI face job returned no video: {result}")
+        return None
+
+    except Exception as e:
+        logger.error(f"ComfyUI RunPod face video generation failed: {e}")
+        return None
