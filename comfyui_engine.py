@@ -32,6 +32,7 @@ logger = logging.getLogger("zovix.comfyui")
 # ---------------------------------------------------------------------------
 RUNPOD_API_KEY = os.getenv("RUNPOD_API_KEY", "")
 RUNPOD_ENDPOINT_ID = os.getenv("COMFYUI_RUNPOD_ENDPOINT_ID", "ipb2c2vnew0qbz")
+RUNPOD_FACE_ENDPOINT_ID = os.getenv("COMFYUI_FACE_RUNPOD_ENDPOINT_ID", "r3ni4j00y7ar7a")
 RUNPOD_BASE_URL = os.getenv("RUNPOD_BASE_URL", "https://api.runpod.ai/v2")
 
 _APP_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -275,7 +276,7 @@ def generate_face_video(face_image_path, audio_path=None, script_text="", durati
     None on failure.
     """
     api_key = (api_key or RUNPOD_API_KEY or "").strip()
-    endpoint_id = (endpoint_id or RUNPOD_ENDPOINT_ID or "").strip()
+    endpoint_id = (endpoint_id or RUNPOD_FACE_ENDPOINT_ID or "").strip()
 
     if not api_key:
         logger.error("RUNPOD_API_KEY not configured; cannot call ComfyUI RunPod face endpoint.")

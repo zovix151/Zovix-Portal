@@ -105,15 +105,17 @@ def get_system_secret(key: str, default_val: Optional[str] = None) -> Optional[s
     return os.getenv(key, default_val)
 
 # ========================================================
-# DATABASE PATH - configurable so it can point to a persistent disk
-# (e.g. a Render Disk mounted at /var/data) instead of the ephemeral
-# container filesystem, which is wiped on every redeploy/restart.
+# DATABASE PATH - use Render's mounted persistent disk whenever available.
 # ========================================================
-DB_PATH = os.getenv("ZOVIX_DB_PATH") or get_system_secret("ZOVIX_DB_PATH") or "zovix_v4.db"
-if DB_PATH != "zovix_v4.db":
-    _db_dir = os.path.dirname(DB_PATH)
-    if _db_dir:
-        os.makedirs(_db_dir, exist_ok=True)
+_APP_DIR = os.path.dirname(os.path.abspath(__file__))
+_RENDER_DISK_PATH = "/var/data/zovix_v4.db"
+_DEFAULT_DB_PATH = _RENDER_DISK_PATH if os.path.isdir("/var/data") else os.path.join(_APP_DIR, "zovix_v4.db")
+DB_PATH = os.getenv("ZOVIX_DB_PATH") or get_system_secret("ZOVIX_DB_PATH") or _DEFAULT_DB_PATH
+_db_dir = os.path.dirname(DB_PATH)
+if _db_dir:
+    os.makedirs(_db_dir, exist_ok=True)
+if os.getenv("RENDER") and not os.path.isdir("/var/data") and not os.getenv("ZOVIX_DB_PATH"):
+    logger.warning("Persistent database storage is not configured. Attach a Render Disk and set ZOVIX_DB_PATH=/var/data/zovix_v4.db to prevent credit loss on redeploy.")
 logger.info(f"Using database file: {DB_PATH}")
 
 # System Configuration
@@ -1847,6 +1849,9 @@ def login_or_register_social(email, platform):
 
 def get_user_credits_db(username):
     """Get real user credits from database"""
+    if not username:
+        logger.warning("[TOKEN TXN] get_user_credits_db called without an account id")
+        return 0
     check_and_expire_vouchers(username)
     conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     cursor = conn.cursor()
@@ -1859,7 +1864,8 @@ def get_user_credits_db(username):
     finally:
         conn.close()
     if row:
-        return row[0] + row[1]
+        return float(row[0] or 0) + float(row[1] or 0)
+    logger.error(f"[TOKEN TXN] Balance lookup found no account row for username={username!r} in DB_PATH={DB_PATH!r}")
     return 0
 
 def add_credits(username, amount, credit_type="standard"):
@@ -2056,8 +2062,14 @@ def check_and_refresh_subscription(username):
     has_sub, pack_name = has_active_subscription(username)
     if has_sub:
         refreshed, tokens_added = refresh_subscription_tokens(username)
+        if st.session_state.get("logged_user") == username:
+            st.session_state["user_credits"] = get_user_credits_db(username)
+            st.session_state["credit_balance"] = st.session_state["user_credits"]
         if refreshed:
             return True, tokens_added
+    elif st.session_state.get("logged_user") == username:
+        st.session_state["user_credits"] = get_user_credits_db(username)
+        st.session_state["credit_balance"] = st.session_state["user_credits"]
     return False, 0
 
 # ========================================================
