@@ -1659,6 +1659,7 @@ def init_database():
                 order_id TEXT,
                 payment_id TEXT,
                 amount INTEGER,
+                credits INTEGER DEFAULT 0,
                 credits_added INTEGER,
                 pack_name TEXT,
                 status TEXT,
@@ -1667,6 +1668,8 @@ def init_database():
                 timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
+
+        cursor.execute("ALTER TABLE payment_history ADD COLUMN IF NOT EXISTS credits INTEGER DEFAULT 0")
         
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS dynamic_ui_profiles (
@@ -1783,14 +1786,10 @@ def resolve_account_username(username):
         conn.close()
 
 def authenticate_user_db(username, password):
-    """Real authentication with password verification"""
-    username = normalize_account_username(username)
     if not username or not password:
         return False, False
-
-    username = resolve_account_username(username) or username
     
-    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
+    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
     cursor = conn.cursor()
     try:
         cursor.execute("SELECT password, twofa_secret FROM users WHERE username = ?", (username,))
@@ -1814,9 +1813,9 @@ def authenticate_user_db(username, password):
                     st.session_state["2fa_enabled"] = False
                     return True, False
             else:
-                logger.warning(f"Failed login attempt for user: {username}")
                 return False, False
         else:
+            # ✅ User exist nahi karta, toh naya banao
             register_user_db(username, password)
             return True, False
             
@@ -2371,13 +2370,11 @@ def save_payment_history(username, order_id, payment_id, amount, credits_added, 
 
 
 def register_pending_payment(username, order_id, amount, credits_added, pack_name, gateway="razorpay"):
-    """Persist newly created order so refresh/login can reconcile credits later."""
-    username = resolve_account_username(username) or normalize_account_username(username)
     if not username or not order_id:
         return False
 
     plan_type = "monthly" if "Subscription" in str(pack_name) else "one_time"
-    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
+    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
     cursor = conn.cursor()
     try:
         cursor.execute(
@@ -2390,21 +2387,22 @@ def register_pending_payment(username, order_id, amount, credits_added, pack_nam
             if str(existing_status).lower() != "success":
                 cursor.execute(
                     """UPDATE payment_history
-                       SET amount = ?, credits_added = ?, pack_name = ?, status = ?, plan_type = ?, gateway = ?
+                       SET amount = ?, credits = ?, credits_added = ?, pack_name = ?, status = ?, plan_type = ?, gateway = ?
                        WHERE id = ?""",
-                    (int(round(float(amount or 0))), int(credits_added), str(pack_name), "created", plan_type, gateway, existing_id)
+                    (int(round(float(amount or 0))), int(credits_added), int(credits_added), str(pack_name), "created", plan_type, gateway, existing_id)
                 )
         else:
             cursor.execute(
                 """INSERT INTO payment_history
-                   (username, order_id, payment_id, amount, credits_added, pack_name, status, plan_type, gateway)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                   (username, order_id, payment_id, amount, credits, credits_added, pack_name, status, plan_type, gateway)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (
                     username,
                     order_id,
                     "",
                     int(round(float(amount or 0))),
-                    int(credits_added),
+                    int(credits_added),  # ✅ credits column
+                    int(credits_added),  # ✅ credits_added column
                     str(pack_name),
                     "created",
                     plan_type,
@@ -2412,6 +2410,12 @@ def register_pending_payment(username, order_id, amount, credits_added, pack_nam
                 )
             )
         conn.commit()
+        return True
+    except Exception as e:
+        logger.error(f"Register pending payment error: {e}")
+        return False
+    finally:
+        conn.close()
         return True
     except Exception as e:
         logger.error(f"Register pending payment error: {e}")
