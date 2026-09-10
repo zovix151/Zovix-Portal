@@ -1755,10 +1755,40 @@ init_database()
 # 17. AUTHENTICATION FUNCTIONS - IMPROVED
 # ========================================================
 
+def normalize_account_username(username):
+    """Normalize login identities so email casing cannot split one account into two."""
+    value = str(username or "").strip()
+    return value.lower() if "@" in value else value
+
+
+def resolve_account_username(username):
+    """Return the username stored in PostgreSQL using a case-insensitive lookup."""
+    candidate = normalize_account_username(username)
+    if not candidate:
+        return ""
+
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            "SELECT username FROM users WHERE LOWER(TRIM(username)) = LOWER(TRIM(?)) LIMIT 1",
+            (candidate,)
+        )
+        row = cursor.fetchone()
+        return str(row[0]) if row and row[0] else ""
+    except Exception as e:
+        logger.error(f"Account lookup error for {candidate!r}: {e}")
+        return ""
+    finally:
+        conn.close()
+
 def authenticate_user_db(username, password):
     """Real authentication with password verification"""
+    username = normalize_account_username(username)
     if not username or not password:
         return False, False
+
+    username = resolve_account_username(username) or username
     
     conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     cursor = conn.cursor()
@@ -1798,6 +1828,9 @@ def authenticate_user_db(username, password):
 
 def register_user_db(username, password):
     """Register a new user with real password storage"""
+    username = normalize_account_username(username)
+    if not username or not password:
+        return False
     conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     cursor = conn.cursor()
     try:
@@ -2339,6 +2372,7 @@ def save_payment_history(username, order_id, payment_id, amount, credits_added, 
 
 def register_pending_payment(username, order_id, amount, credits_added, pack_name, gateway="razorpay"):
     """Persist newly created order so refresh/login can reconcile credits later."""
+    username = resolve_account_username(username) or normalize_account_username(username)
     if not username or not order_id:
         return False
 
@@ -3031,22 +3065,25 @@ def handle_payment_response():
 
     amount_for_finalize = st.session_state.get("pending_amount", 0)
 
+    callback_username = resolve_account_username(st.session_state.get("logged_user", ""))
     if not credits_to_add or not pack_name or not amount_for_finalize:
         conn = sqlite3.connect(DB_PATH, check_same_thread=False)
         cursor = conn.cursor()
         try:
             cursor.execute(
-                "SELECT credits_added, pack_name, amount FROM payment_history WHERE username = ? AND order_id = ? ORDER BY id DESC LIMIT 1",
-                (st.session_state.get("logged_user", ""), order_id)
+                "SELECT username, credits_added, pack_name, amount FROM payment_history WHERE order_id = ? ORDER BY id DESC LIMIT 1",
+                (order_id,)
             )
             row = cursor.fetchone()
             if row:
+                if not callback_username:
+                    callback_username = str(row[0] or "")
                 if not credits_to_add:
-                    credits_to_add = int(row[0] or 0)
+                    credits_to_add = int(row[1] or 0)
                 if not pack_name:
-                    pack_name = str(row[1] or "Starter")
+                    pack_name = str(row[2] or "Starter")
                 if not amount_for_finalize:
-                    amount_for_finalize = float(row[2] or 0)
+                    amount_for_finalize = float(row[3] or 0)
         except Exception:
             pass
         finally:
@@ -3057,9 +3094,16 @@ def handle_payment_response():
         st.error("Payment response was incomplete. Please try again.")
         return False
 
-    if not st.session_state.get("is_logged_in") or not st.session_state.get("logged_user"):
-        st.query_params.clear()
-        st.info("✅ Payment successful! Please log in to claim your credits.")
+    if not st.session_state.get("is_logged_in") or not callback_username:
+        st.session_state["pending_payment_callback"] = {
+            "order_id": order_id,
+            "payment_id": payment_id,
+            "signature": signature,
+            "credits": credits_to_add,
+            "pack_name": pack_name,
+            "amount": amount_for_finalize,
+        }
+        st.info("✅ Payment successful! Please log in to claim your credits. It will be retried automatically.")
         return False
 
     if not verify_payment_signature(order_id, payment_id, signature):
@@ -3068,7 +3112,7 @@ def handle_payment_response():
         return False
 
     success, message = finalize_razorpay_payment(
-        st.session_state.get("logged_user"),
+        callback_username,
         order_id,
         payment_id,
         signature,
@@ -3092,6 +3136,7 @@ def handle_payment_response():
 
 def finalize_razorpay_payment(username, order_id, payment_id, signature, amount, credits_to_add, pack_name, gateway="razorpay"):
     """Apply credits once and only once for a successful Razorpay payment."""
+    username = resolve_account_username(username)
     if not username:
         return False, "Please log in to claim your credits."
 
@@ -3108,12 +3153,14 @@ def finalize_razorpay_payment(username, order_id, payment_id, signature, amount,
         conn = sqlite3.connect(DB_PATH, check_same_thread=False)
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT id, status, credits_added, pack_name, amount FROM payment_history WHERE username = ? AND order_id = ? ORDER BY id DESC LIMIT 1",
-            (username, order_id)
+            "SELECT id, username, status, credits_added, pack_name, amount FROM payment_history WHERE order_id = ? ORDER BY id DESC LIMIT 1",
+            (order_id,)
         )
         existing = cursor.fetchone()
         existing_id = existing[0] if existing else None
-        existing_status = str(existing[1]).lower() if existing else ""
+        if existing and existing[1]:
+            username = str(existing[1])
+        existing_status = str(existing[2]).lower() if existing else ""
         if existing and existing_status == "success":
             conn.close()
             st.session_state["payment_verified"] = True
@@ -3125,12 +3172,12 @@ def finalize_razorpay_payment(username, order_id, payment_id, signature, amount,
             return True, "✅ Payment already processed. Credits already added."
 
         if existing:
-            if (not credits_to_add or credits_to_add <= 0) and existing[2]:
-                credits_to_add = int(existing[2])
-            if not pack_name and existing[3]:
-                pack_name = str(existing[3])
-            if (not amount or float(amount) <= 0) and existing[4]:
-                amount = float(existing[4])
+            if (not credits_to_add or credits_to_add <= 0) and existing[3]:
+                credits_to_add = int(existing[3])
+            if not pack_name and existing[4]:
+                pack_name = str(existing[4])
+            if (not amount or float(amount) <= 0) and existing[5]:
+                amount = float(existing[5])
 
         if not credits_to_add or int(credits_to_add) <= 0:
             conn.close()
@@ -3186,6 +3233,7 @@ def finalize_razorpay_payment(username, order_id, payment_id, signature, amount,
         st.session_state["pending_credits"] = 0
         st.session_state["pending_pack_name"] = ""
         st.session_state["pending_amount"] = 0
+        st.session_state["pending_payment_callback"] = None
         st.session_state["payment_verified"] = True
         st.session_state["razorpay_processed_order_id"] = order_id
         st.session_state["payment_processing"] = False
@@ -12922,6 +12970,7 @@ def show_auth_modal(mode="login"):
                 else:
                     auth_result, twofa_enabled = authenticate_user_db(username_val, password_val)
                     if auth_result:
+                        username_val = resolve_account_username(username_val) or normalize_account_username(username_val)
                         if twofa_enabled and HAS_2FA:
                             st.session_state["2fa_temp_user"] = username_val
                             st.session_state["show_2fa"] = True
@@ -12943,7 +12992,7 @@ def show_auth_modal(mode="login"):
                             
                             check_and_refresh_subscription(username_val)
                             
-                            if st.session_state.get("pending_credits", 0) > 0:
+                            if st.session_state.get("pending_credits", 0) > 0 and not st.session_state.get("pending_payment_callback"):
                                 pending_amt = st.session_state["pending_credits"]
                                 if add_credits(username_val, pending_amt):
                                     st.session_state['user_credits'] = get_user_credits_db(username_val)
@@ -12972,6 +13021,7 @@ def show_auth_modal(mode="login"):
                     st.error("Password must be at least 4 characters long.")
                 else:
                     if register_user_db(username_val, password_val):
+                        username_val = normalize_account_username(username_val)
                         st.session_state["is_logged_in"] = True
                         st.session_state["logged_user"] = username_val
                         st.session_state["xp_points"] = 0
@@ -13017,6 +13067,7 @@ def social_login_dialog_box(platform):
     st.write("")
     if st.button("Authenticate & Log In", key="social_confirm_btn", use_container_width=True):
         if social_email and "@" in social_email:
+            social_email = normalize_account_username(social_email)
             success = login_or_register_social(social_email, platform)
             if success:
                 st.session_state["is_logged_in"] = True
@@ -13035,7 +13086,7 @@ def social_login_dialog_box(platform):
                 
                 check_and_refresh_subscription(social_email)
                 
-                if st.session_state.get("pending_credits", 0) > 0:
+                if st.session_state.get("pending_credits", 0) > 0 and not st.session_state.get("pending_payment_callback"):
                     pending_amt = st.session_state["pending_credits"]
                     if add_credits(social_email, pending_amt):
                         st.session_state['user_credits'] = get_user_credits_db(social_email)
@@ -13122,6 +13173,7 @@ def show_2fa_modal():
         if st.button("✅ Verify", key="2fa_verify_btn", use_container_width=True):
             if code and len(code) == 6:
                 username = st.session_state.get("2fa_temp_user", "")
+                username = resolve_account_username(username) or normalize_account_username(username)
                 if HAS_2FA and pyotp:
                     try:
                         conn = sqlite3.connect(DB_PATH, check_same_thread=False)
@@ -13150,7 +13202,7 @@ def show_2fa_modal():
                                 
                                 check_and_refresh_subscription(username)
                                 
-                                if st.session_state.get("pending_credits", 0) > 0:
+                                if st.session_state.get("pending_credits", 0) > 0 and not st.session_state.get("pending_payment_callback"):
                                     pending_amt = st.session_state["pending_credits"]
                                     if add_credits(username, pending_amt):
                                         st.session_state['user_credits'] = get_user_credits_db(username)
