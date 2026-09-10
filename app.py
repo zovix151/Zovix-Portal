@@ -114,8 +114,13 @@ DB_PATH = os.getenv("ZOVIX_DB_PATH") or get_system_secret("ZOVIX_DB_PATH") or _D
 _db_dir = os.path.dirname(DB_PATH)
 if _db_dir:
     os.makedirs(_db_dir, exist_ok=True)
-if os.getenv("RENDER") and not os.path.isdir("/var/data") and not os.getenv("ZOVIX_DB_PATH"):
-    logger.warning("Persistent database storage is not configured. Attach a Render Disk and set ZOVIX_DB_PATH=/var/data/zovix_v4.db to prevent credit loss on redeploy.")
+_IS_RENDER_DEPLOYMENT = bool(os.getenv("RENDER") or os.getenv("RENDER_EXTERNAL_URL"))
+_DB_ON_RENDER_DISK = os.path.abspath(DB_PATH).startswith("/var/data/")
+if _IS_RENDER_DEPLOYMENT and not _DB_ON_RENDER_DISK:
+    raise RuntimeError(
+        "Refusing to run with an ephemeral SQLite database on Render. "
+        "Attach a Persistent Disk at /var/data and set ZOVIX_DB_PATH=/var/data/zovix_v4.db."
+    )
 logger.info(f"Using database file: {DB_PATH}")
 
 # System Configuration

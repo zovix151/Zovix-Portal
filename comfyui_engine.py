@@ -249,16 +249,20 @@ def _extract_video_output(output):
     if isinstance(output, str):
         return (None, output) if output.startswith("http") else (output, None)
     if isinstance(output, dict):
-        for key in ("video_url", "url"):
+        for key in ("video_url", "videoUrl", "download_url", "downloadUrl", "url"):
             if output.get(key):
                 return None, output[key]
-        for key in ("video", "data", "base64"):
+        for key in ("video", "video_base64", "videoBase64", "data", "base64"):
             if output.get(key):
                 val = output[key]
                 return (None, val) if str(val).startswith("http") else (val, None)
-        nested = output.get("videos") or output.get("gifs") or output.get("images")
+        nested = output.get("videos") or output.get("outputs") or output.get("result") or output.get("gifs")
         if nested:
             return _extract_video_output(nested)
+        for value in output.values():
+            video_b64, video_url = _extract_video_output(value)
+            if video_b64 or video_url:
+                return video_b64, video_url
     if isinstance(output, list):
         for item in output:
             b64, url = _extract_video_output(item)
@@ -289,6 +293,15 @@ def generate_face_video(face_image_path, audio_path=None, script_text="", durati
         return None
 
     try:
+        workflow = load_face_workflow()
+        placeholder_node = workflow.get(NODE_FACE_ANIMATE, {})
+        placeholder_title = str(placeholder_node.get("_meta", {}).get("title", "")).lower()
+        if "replace with your real" in placeholder_title:
+            raise RuntimeError(
+                "zovix_face_workflow.json is a placeholder, not an executable talking-head workflow. "
+                "Export the LivePortrait/SadTalker + video-save workflow installed on this RunPod endpoint and replace this file."
+            )
+
         image_filename = f"face_{uuid.uuid4().hex[:8]}.png"
         images_payload = [{"name": image_filename, "image": _file_to_data_uri(face_image_path, "image/png")}]
 
@@ -297,7 +310,7 @@ def generate_face_video(face_image_path, audio_path=None, script_text="", durati
             audio_filename = f"audio_{uuid.uuid4().hex[:8]}.mp3"
             images_payload.append({"name": audio_filename, "image": _file_to_data_uri(audio_path, "audio/mpeg")})
 
-        workflow = inject_face_settings(load_face_workflow(), image_filename, audio_filename, script_text, duration, quality)
+        workflow = inject_face_settings(workflow, image_filename, audio_filename, script_text, duration, quality)
 
         result = run_comfyui_job(workflow, api_key, endpoint_id, images=images_payload, timeout=timeout)
 
@@ -314,7 +327,7 @@ def generate_face_video(face_image_path, audio_path=None, script_text="", durati
                 f.write(video_bytes)
             return output_path
 
-        logger.error(f"RunPod ComfyUI face job returned no video: {result}")
+        logger.error(f"RunPod ComfyUI face job returned no video for endpoint={endpoint_id}. Output keys: {list(result.get('output', {}).keys()) if isinstance(result.get('output'), dict) else type(result.get('output')).__name__}")
         return None
 
     except Exception as e:
