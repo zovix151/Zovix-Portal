@@ -17,6 +17,7 @@ if not _DATABASE_URL:
 
 def _translate_query(query: str) -> str:
     """Translate the small SQLite SQL subset used by app.py to PostgreSQL."""
+    query = re.sub(r"\bDATETIME\b", "TIMESTAMP", query, flags=re.I)
     query = re.sub(r"\bINTEGER\s+PRIMARY\s+KEY\s+AUTOINCREMENT\b", "SERIAL PRIMARY KEY", query, flags=re.I)
     query = re.sub(r"\bPRAGMA\s+table_info\s*\(\s*([\w]+)\s*\)",
                    r"SELECT ordinal_position, column_name FROM information_schema.columns WHERE table_name = '\1' ORDER BY ordinal_position",

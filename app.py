@@ -1526,7 +1526,7 @@ def init_database():
                 gdpr_version TEXT DEFAULT '',
                 language TEXT DEFAULT 'en',
                 last_login TEXT DEFAULT '',
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
         
@@ -1572,7 +1572,7 @@ def init_database():
                 scenes_ai INTEGER,
                 calculated_cost REAL,
                 credits_deducted REAL,
-                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
         
@@ -1581,7 +1581,7 @@ def init_database():
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 parent_username TEXT,
                 sub_username TEXT,
-                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
         
@@ -1591,7 +1591,7 @@ def init_database():
                 username TEXT,
                 prompt TEXT,
                 thumbnail_path TEXT,
-                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
         
@@ -1624,7 +1624,7 @@ def init_database():
                 file_name TEXT,
                 file_path TEXT,
                 file_type TEXT,
-                upload_time DATETIME DEFAULT CURRENT_TIMESTAMP
+                upload_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
         
@@ -1635,7 +1635,7 @@ def init_database():
                 business_name TEXT,
                 products TEXT,
                 schedule TEXT,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
         
@@ -1648,7 +1648,7 @@ def init_database():
                 language TEXT,
                 video_path TEXT,
                 script TEXT,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
         
@@ -1664,7 +1664,7 @@ def init_database():
                 status TEXT,
                 plan_type TEXT DEFAULT 'one_time',
                 gateway TEXT DEFAULT 'razorpay',
-                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
         
@@ -1674,7 +1674,7 @@ def init_database():
                 username TEXT,
                 behavior_profile TEXT,
                 ui_preferences TEXT,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
         
@@ -1686,7 +1686,7 @@ def init_database():
                 emotion TEXT,
                 audio_path TEXT,
                 voice_id TEXT,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
         
@@ -1696,7 +1696,7 @@ def init_database():
                 referrer_username TEXT,
                 new_user_username TEXT,
                 reward_given INTEGER DEFAULT 0,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
         
@@ -1705,7 +1705,7 @@ def init_database():
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT,
                 platform TEXT,
-                share_time DATETIME DEFAULT CURRENT_TIMESTAMP
+                share_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
         
@@ -1714,7 +1714,7 @@ def init_database():
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT,
                 achievement TEXT,
-                unlocked_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                unlocked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
         
@@ -1723,7 +1723,7 @@ def init_database():
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 task_id TEXT,
                 error TEXT,
-                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
         
