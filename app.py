@@ -1513,19 +1513,20 @@ def init_database():
     try:
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS users (
-                username TEXT PRIMARY KEY,
-                password TEXT,
-                credits REAL DEFAULT 10.0,
-                xp_points REAL DEFAULT 10.0,
-                streak_count INTEGER DEFAULT 0,
-                last_claim_date TEXT,
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username VARCHAR(255) UNIQUE NOT NULL,
+                password VARCHAR(255) NOT NULL,
+                credits INTEGER DEFAULT 10,
                 voucher_credits INTEGER DEFAULT 0,
-                voucher_expires_at TEXT DEFAULT '',
-                twofa_secret TEXT DEFAULT '',
+                voucher_expires_at TIMESTAMP,
+                xp_points INTEGER DEFAULT 0,
+                streak_count INTEGER DEFAULT 0,
+                last_claim_date VARCHAR(50),
+                twofa_secret VARCHAR(255),
                 gdpr_consent INTEGER DEFAULT 0,
-                gdpr_version TEXT DEFAULT '',
-                language TEXT DEFAULT 'en',
-                last_login TEXT DEFAULT '',
+                gdpr_version VARCHAR(50),
+                language VARCHAR(10) DEFAULT 'en',
+                last_login TIMESTAMP,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
@@ -1660,16 +1661,18 @@ def init_database():
                 payment_id TEXT,
                 amount INTEGER,
                 credits INTEGER DEFAULT 0,
-                credits_added INTEGER,
+                credits_added INTEGER DEFAULT 0,
                 pack_name TEXT,
                 status TEXT,
                 plan_type TEXT DEFAULT 'one_time',
                 gateway TEXT DEFAULT 'razorpay',
-                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
 
         cursor.execute("ALTER TABLE payment_history ADD COLUMN IF NOT EXISTS credits INTEGER DEFAULT 0")
+        cursor.execute("ALTER TABLE payment_history ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
         
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS dynamic_ui_profiles (
@@ -1789,7 +1792,7 @@ def authenticate_user_db(username, password):
     if not username or not password:
         return False, False
     
-    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     cursor = conn.cursor()
     try:
         cursor.execute("SELECT password, twofa_secret FROM users WHERE username = ?", (username,))
@@ -1836,7 +1839,7 @@ def register_user_db(username, password):
         cursor.execute(
             """INSERT OR IGNORE INTO users 
                (username, password, credits, xp_points, streak_count, last_claim_date, voucher_credits, voucher_expires_at, language) 
-               VALUES (?, ?, 10.0, 10.0, 0, '', 0, '', 'en')""",
+               VALUES (?, ?, 10.0, 10.0, 0, '', 0, NULL, 'en')""",
             (username, password)
         )
         conn.commit()
@@ -1859,7 +1862,7 @@ def login_or_register_social(email, platform):
             cursor.execute(
                 """INSERT INTO users 
                    (username, password, credits, xp_points, streak_count, last_claim_date, voucher_credits, voucher_expires_at, language) 
-                   VALUES (?, ?, 10.0, 10.0, 0, '', 0, '', 'en')""",
+                   VALUES (?, ?, 10.0, 10.0, 0, '', 0, NULL, 'en')""",
                 (email, f"social_{platform.lower()}")
             )
             conn.commit()
@@ -2015,7 +2018,7 @@ def check_and_expire_vouchers(username):
                 expires_at = datetime.fromisoformat(expires_at_str)
                 if datetime.now() > expires_at:
                     cursor.execute(
-                        "UPDATE users SET voucher_credits = 0, voucher_expires_at = '' WHERE username = ?",
+                        "UPDATE users SET voucher_credits = 0, voucher_expires_at = NULL WHERE username = ?",
                         (username,)
                     )
                     conn.commit()
@@ -2355,9 +2358,9 @@ def save_payment_history(username, order_id, payment_id, amount, credits_added, 
     try:
         cursor.execute(
             """INSERT INTO payment_history 
-               (username, order_id, payment_id, amount, credits_added, pack_name, status, plan_type, gateway) 
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-            (username, order_id, payment_id, amount, credits_added, pack_name, status, plan_type, gateway)
+               (username, order_id, payment_id, amount, credits, credits_added, pack_name, status, plan_type, gateway)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (username, order_id, payment_id, amount, credits_added, credits_added, pack_name, status, plan_type, gateway)
         )
         conn.commit()
         logger.info(f"Payment history saved: {order_id} for {username}")
@@ -2370,11 +2373,13 @@ def save_payment_history(username, order_id, payment_id, amount, credits_added, 
 
 
 def register_pending_payment(username, order_id, amount, credits_added, pack_name, gateway="razorpay"):
+    """Persist a Razorpay order before checkout so it can be finalized exactly once."""
+    username = resolve_account_username(username) or normalize_account_username(username)
     if not username or not order_id:
         return False
 
     plan_type = "monthly" if "Subscription" in str(pack_name) else "one_time"
-    conn = sqlite3.connect("zovix_v4.db", check_same_thread=False)
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     cursor = conn.cursor()
     try:
         cursor.execute(
@@ -2401,8 +2406,8 @@ def register_pending_payment(username, order_id, amount, credits_added, pack_nam
                     order_id,
                     "",
                     int(round(float(amount or 0))),
-                    int(credits_added),  # ✅ credits column
-                    int(credits_added),  # ✅ credits_added column
+                    int(credits_added),
+                    int(credits_added),
                     str(pack_name),
                     "created",
                     plan_type,
@@ -2412,6 +2417,7 @@ def register_pending_payment(username, order_id, amount, credits_added, pack_nam
         conn.commit()
         return True
     except Exception as e:
+        conn.rollback()
         logger.error(f"Register pending payment error: {e}")
         return False
     finally:
@@ -3151,7 +3157,7 @@ def finalize_razorpay_payment(username, order_id, payment_id, signature, amount,
         conn = sqlite3.connect(DB_PATH, check_same_thread=False)
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT id, username, status, credits_added, pack_name, amount FROM payment_history WHERE order_id = ? ORDER BY id DESC LIMIT 1",
+            "SELECT id, username, status, credits_added, pack_name, amount FROM payment_history WHERE order_id = ? ORDER BY id DESC LIMIT 1 FOR UPDATE",
             (order_id,)
         )
         existing = cursor.fetchone()
@@ -3186,17 +3192,18 @@ def finalize_razorpay_payment(username, order_id, payment_id, signature, amount,
             (int(credits_to_add), username)
         )
         if cursor.rowcount == 0:
-            conn.close()
+            conn.rollback()
             return False, "User account not found for credit update."
 
         if existing_id:
             cursor.execute(
                 """UPDATE payment_history
-                   SET payment_id = ?, amount = ?, credits_added = ?, pack_name = ?, status = ?, plan_type = ?, gateway = ?
+                   SET payment_id = ?, amount = ?, credits = ?, credits_added = ?, pack_name = ?, status = ?, plan_type = ?, gateway = ?
                    WHERE id = ?""",
                 (
                     payment_id,
                     amount_value,
+                    int(credits_to_add),
                     int(credits_to_add),
                     pack_name,
                     "success",
@@ -3208,13 +3215,14 @@ def finalize_razorpay_payment(username, order_id, payment_id, signature, amount,
         else:
             cursor.execute(
                 """INSERT INTO payment_history
-                   (username, order_id, payment_id, amount, credits_added, pack_name, status, plan_type, gateway)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                   (username, order_id, payment_id, amount, credits, credits_added, pack_name, status, plan_type, gateway)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (
                     username,
                     order_id,
                     payment_id,
                     amount_value,
+                    int(credits_to_add),
                     int(credits_to_add),
                     pack_name,
                     "success",
