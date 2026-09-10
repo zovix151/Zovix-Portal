@@ -10,7 +10,7 @@ import requests
 import base64
 import tempfile
 import subprocess
-import sqlite3
+import postgres_db as sqlite3
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any, Tuple, List
 from PIL import Image
@@ -45,14 +45,14 @@ def validate_and_deduct_tokens(engine_name, quality="Standard"):
             f"⚠️ Please login and add credits to generate. Required: {required} credits."
         )
 
-    db_path = "zovix_v4.db"
+    db_path = None
 
     # --- Expire vouchers if past validity ---
     try:
         conn = sqlite3.connect(db_path, check_same_thread=False)
         cur = conn.cursor()
         row = cur.execute(
-            "SELECT voucher_credits, voucher_expires_at FROM users WHERE username=?",
+            "SELECT voucher_credits, voucher_expires_at FROM users WHERE LOWER(TRIM(username))=LOWER(TRIM(?))",
             (username,),
         ).fetchone()
         if row and row[0] and row[1]:
@@ -60,7 +60,7 @@ def validate_and_deduct_tokens(engine_name, quality="Standard"):
                 exp_dt = datetime.fromisoformat(row[1])
                 if datetime.now() > exp_dt:
                     cur.execute(
-                        "UPDATE users SET voucher_credits=0, voucher_expires_at='' WHERE username=?",
+                        "UPDATE users SET voucher_credits=0, voucher_expires_at=NULL WHERE LOWER(TRIM(username))=LOWER(TRIM(?))",
                         (username,),
                     )
                     conn.commit()
@@ -77,7 +77,7 @@ def validate_and_deduct_tokens(engine_name, quality="Standard"):
     try:
         conn = sqlite3.connect(db_path, check_same_thread=False)
         row = conn.execute(
-            "SELECT credits, voucher_credits FROM users WHERE username=?",
+            "SELECT credits, voucher_credits FROM users WHERE LOWER(TRIM(username))=LOWER(TRIM(?))",
             (username,),
         ).fetchone()
         if row:
@@ -102,13 +102,13 @@ def validate_and_deduct_tokens(engine_name, quality="Standard"):
         cur = conn.cursor()
         if v_credits >= required:
             cur.execute(
-                "UPDATE users SET voucher_credits=? WHERE username=?",
+                "UPDATE users SET voucher_credits=? WHERE LOWER(TRIM(username))=LOWER(TRIM(?))",
                 (v_credits - required, username),
             )
         else:
             remaining = required - v_credits
             cur.execute(
-                "UPDATE users SET voucher_credits=0, credits=credits-? WHERE username=?",
+                "UPDATE users SET voucher_credits=0, credits=credits-? WHERE LOWER(TRIM(username))=LOWER(TRIM(?))",
                 (remaining, username),
             )
         conn.commit()

@@ -49,13 +49,13 @@ import socket
 import platform
 from production_engine import generate_production_face_video, generate_production_voice, generate_production_face_video_streamlit, generate_production_voice_streamlit, get_language_list, get_emotion_list, get_cost_estimate, check_endpoint_health
 from production_engine import generate_production_face_video, generate_production_voice
-from deepinfra_engine import DeepInfraFaceEngine, validate_and_deduct_tokens
+from credits_engine import validate_and_deduct_tokens
 
 # ========================================================
 # TOKEN VALIDATION & DEDUCTION FALLBACK
 # ========================================================
 # Top-level fallback definition for validate_and_deduct_tokens.
-# Normalmente imported from deepinfra_engine; yahan fallback rakha hai
+# Fallback keeps the credit check available if the standalone credits module is unavailable.
 # taaki missing hone par bhi NameError na aaye aur generation proceed ho.
 if 'validate_and_deduct_tokens' not in globals():
     def validate_and_deduct_tokens(mode_name: str = "", quality: str = "Standard"):
@@ -65,7 +65,7 @@ if 'validate_and_deduct_tokens' not in globals():
         are actually deducted and low-balance warnings are shown.
         """
         try:
-            from deepinfra_engine import validate_and_deduct_tokens as _real
+            from credits_engine import validate_and_deduct_tokens as _real
             return _real(mode_name, quality)
         except Exception as e:
             logger.error(f"validate_and_deduct_tokens fallback error: {e}")
@@ -143,7 +143,6 @@ RUNWAY_API_KEY = get_system_secret("RUNWAY_API_KEY")
 HUGGINGFACE_API_KEY = get_system_secret("HUGGINGFACE_API_KEY")
 DEEPSEEK_API_KEY = get_system_secret("DEEPSEEK_API_KEY")
 DEEPINFRA_API_KEY = get_system_secret("DEEPINFRA_API_KEY") or get_system_secret("DEEPINFRA_API_TOKEN") or os.getenv("DEEPINFRA_API_KEY", "")
-DEEPINFRA_FACE_MODEL = get_system_secret("DEEPINFRA_FACE_MODEL", "") or os.getenv("DEEPINFRA_FACE_MODEL", "")
 DEEPINFRA_TEXT_MODEL = os.getenv("DEEPINFRA_TEXT_MODEL", "deepseek-ai/DeepSeek-V3")
 FACE_VIDEO_MAX_SECONDS = 10
 # RunPod Production Infrastructure
@@ -7066,41 +7065,6 @@ def _create_tone_audio(duration_seconds=5.0):
     return path
 
 
-def _run_local_wav2lip_fallback(prompt, face_image_path, duration, quality):
-    """Run local Wav2Lip CLI as a final fallback."""
-    logger.info("[DeepInfra] Attempting local Wav2Lip fallback...")
-    try:
-        status = get_wav2lip_setup_status()
-        if not status or not status.get("ready", False):
-            logger.error("[DeepInfra] Local Wav2Lip not ready")
-            return None
-
-        audio_path = f"face_videos/_fallback_audio_{uuid.uuid4().hex[:8]}.mp3"
-        try:
-            voice_cfg = _resolve_face_voice_config(voice_language=None, voice_label=None)
-            _synthesize_face_audio_strict(prompt or "Hello! This is a Zovix AI generated video.", audio_path, voice_cfg, duration_hint=duration)
-        except Exception:
-            audio_path = _create_tone_audio(duration)
-
-        out_path = f"face_videos/wav2lip_local_{uuid.uuid4().hex[:8]}.mp4"
-        os.makedirs("face_videos", exist_ok=True)
-        result = run_wav2lip_cli(
-            face_image_path=face_image_path,
-            audio_path=audio_path,
-            output_video_path=out_path,
-            width=512,
-            height=512,
-            fps=24
-        )
-        if result and os.path.exists(out_path):
-            st.session_state["face_video_engine_used"] = "Wav2Lip (Local Fallback)"
-            st.session_state["face_video_runtime_mode"] = "Local"
-            safe_remove_file(audio_path) if audio_path else None
-            return out_path
-    except Exception as e:
-        logger.error(f"[DeepInfra] Local Wav2Lip fallback error: {e}")
-    return None
-
 def generate_elevenlabs_audio_for_face(text, output_path, voice_id="21m00Tcm4TlvDq8ikWAM"):
     eleven_key = os.getenv("ELEVENLABS_API_KEY") or get_system_secret("ELEVENLABS_API_KEY")
     if not eleven_key:
@@ -8095,12 +8059,13 @@ def render_ai_sales_ui():
                                 
                                 if audio_ok and os.path.exists(audio_path):
                                     img_path = st.session_state["sales_product_image"]
-                                    avatar_engine = DeepInfraFaceEngine()
-                                    output_path = avatar_engine.generate_face_video(
-                                        face_image=img_path,
+                                    from comfyui_engine import generate_face_video as runpod_generate_face_video
+                                    output_path = runpod_generate_face_video(
+                                        face_image_path=img_path,
                                         audio_path=audio_path,
+                                        script_text=script,
+                                        duration=10,
                                         quality=sales_quality,
-                                        allow_static_fallback=False,
                                     )
 
                                     if output_path and (output_path.startswith("http") or (os.path.exists(output_path) and os.path.getsize(output_path) > 1000)):
@@ -8109,7 +8074,7 @@ def render_ai_sales_ui():
                                         st.rerun()
                                     else:
                                         st.session_state["sales_video_output"] = None
-                                        st.error("Talking avatar generation failed. Your credits were not converted into an audio-only video.")
+                                        st.error("RunPod talking avatar generation failed. Check RUNPOD_API_KEY and COMFYUI_FACE_RUNPOD_ENDPOINT_ID.")
                                 else:
                                     st.error("Audio generation failed.")
                                     

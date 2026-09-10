@@ -65,6 +65,12 @@ class PostgresConnection:
     def cursor(self):
         return PostgresCursor(self._connection.cursor())
 
+    def execute(self, query: str, params: Optional[Any] = None):
+        """Support legacy connection.execute(...) calls used by credit checks."""
+        cursor = self.cursor()
+        cursor.execute(query, params)
+        return cursor
+
     def commit(self):
         return self._connection.commit()
 
