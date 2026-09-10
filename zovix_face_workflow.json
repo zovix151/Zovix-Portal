@@ -1,47 +1,64 @@
 {
   "1": {
     "inputs": {
-      "image": "face.png",
+      "image": "input_face.png",
       "upload": "image"
     },
     "class_type": "LoadImage",
     "_meta": {
-      "title": "Load Face Image"
+      "title": "Global Source Face Image"
     }
   },
   "2": {
     "inputs": {
-      "audio": "speech.mp3"
+      "audio_path": "input_dialogue.wav",
+      "stream_index": 0
     },
-    "class_type": "VHS_LoadAudio",
+    "class_type": "LoadAudio",
     "_meta": {
-      "title": "Load Driving Audio"
+      "title": "Global Audio / TTS Stream"
     }
   },
   "3": {
     "inputs": {
-      "source_image": ["1", 0],
-      "driving_audio": ["2", 0],
-      "resolution": 768,
-      "duration": 10,
-      "script_text": ""
+      "insightface_model": "antelopev2",
+      "detection_bbox_detector": "yolov8n",
+      "face_restore_model": "CodeFormer"
     },
-    "class_type": "LivePortraitProcess",
+    "class_type": "LivePortraitLoadModel",
     "_meta": {
-      "title": "Talking Head Animation (replace with your real face-animation graph)"
+      "title": "LivePortrait Model & Face Analysis"
     }
   },
   "4": {
     "inputs": {
-      "images": ["3", 0],
-      "audio": ["2", 0],
+      "source_image": ["1", 0],
+      "driven_audio": ["2", 0],
+      "model": ["3", 0],
+      "do_crop": true,
+      "scale": 2.3,
+      "vx_ratio": 0.0,
+      "vy_ratio": -0.125
+    },
+    "class_type": "LivePortraitNode",
+    "_meta": {
+      "title": "Advanced LivePortrait Execution Engine"
+    }
+  },
+  "5": {
+    "inputs": {
       "frame_rate": 25,
-      "filename_prefix": "ZovixFaceVideo",
-      "format": "video/h264-mp4"
+      "loop_count": 0,
+      "filename_prefix": "Zovix_WorldClass_Studio",
+      "format": "video/h264-mp4",
+      "pix_fmt": "yuv420p",
+      "crf": 19,
+      "save_metadata": true,
+      "images": ["4", 0]
     },
     "class_type": "VHS_VideoCombine",
     "_meta": {
-      "title": "Save Face Video"
+      "title": "Video Helper Suite (High-FPS Export)"
     }
   }
 }
