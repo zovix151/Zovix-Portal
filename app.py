@@ -2416,12 +2416,6 @@ def register_pending_payment(username, order_id, amount, credits_added, pack_nam
         return False
     finally:
         conn.close()
-        return True
-    except Exception as e:
-        logger.error(f"Register pending payment error: {e}")
-        return False
-    finally:
-        conn.close()
 
 def process_payment_success(username, order_id, payment_id, signature, amount, credits_to_add, pack_name, gateway="razorpay"):
     """Process successful payment - ADD CREDITS REAL"""
