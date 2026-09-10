@@ -1,64 +1,94 @@
 {
-  "1": {
-    "inputs": {
-      "image": "input_face.png",
-      "upload": "image"
+  "last_node_id": 5,
+  "last_link_id": 5,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "LoadImage",
+      "pos": [50, 100],
+      "size": [315, 275],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "outputs": [
+        {"name": "IMAGE", "type": "IMAGE", "links": [1], "slot_index": 0},
+        {"name": "MASK", "type": "MASK", "links": [], "slot_index": 1}
+      ],
+      "properties": {"Node name for JS": "LoadImage"},
+      "widgets_values": ["input_face.png", "image"]
     },
-    "class_type": "LoadImage",
-    "_meta": {
-      "title": "Global Source Face Image"
+    {
+      "id": 2,
+      "type": "LoadAudio",
+      "pos": [50, 420],
+      "size": [315, 120],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "outputs": [
+        {"name": "AUDIO", "type": "AUDIO", "links": [2], "slot_index": 0}
+      ],
+      "properties": {"Node name for JS": "LoadAudio"},
+      "widgets_values": ["input_dialogue.wav"]
+    },
+    {
+      "id": 3,
+      "type": "LivePortraitLoadModel",
+      "pos": [400, 100],
+      "size": [315, 130],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "outputs": [
+        {"name": "MODEL", "type": "LIVE_PORTRAIT_MODEL", "links": [3], "slot_index": 0}
+      ],
+      "properties": {"Node name for JS": "LivePortraitLoadModel"},
+      "widgets_values": ["antelopev2", "yolov8n", "CodeFormer"]
+    },
+    {
+      "id": 4,
+      "type": "LivePortraitNode",
+      "pos": [750, 100],
+      "size": [315, 250],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "outputs": [
+        {"name": "IMAGE", "type": "IMAGE", "links": [4], "slot_index": 0}
+      ],
+      "inputs": [
+        {"name": "source_image", "type": "IMAGE", "link": 1},
+        {"name": "driven_audio", "type": "AUDIO", "link": 2},
+        {"name": "model", "type": "LIVE_PORTRAIT_MODEL", "link": 3}
+      ],
+      "properties": {"Node name for JS": "LivePortraitNode"},
+      "widgets_values": [true, 2.3, 0.0, -0.125]
+    },
+    {
+      "id": 5,
+      "type": "VHS_VideoCombine",
+      "pos": [1100, 100],
+      "size": [315, 240],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {"name": "images", "type": "IMAGE", "link": 4}
+      ],
+      "properties": {"Node name for JS": "VHS_VideoCombine"},
+      "widgets_values": [25, 0, "Zovix_WorldClass_Studio", "video/h264-mp4", "yuv420p", 19, true]
     }
+  ],
+  "links": [
+    [1, 1, 0, 4, 0, "IMAGE"],
+    [2, 2, 0, 4, 1, "AUDIO"],
+    [3, 3, 0, 4, 2, "LIVE_PORTRAIT_MODEL"],
+    [4, 4, 0, 5, 0, "IMAGE"]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {"scale": 1.0, "offset": [0, 0]}
   },
-  "2": {
-    "inputs": {
-      "audio_path": "input_dialogue.wav",
-      "stream_index": 0
-    },
-    "class_type": "LoadAudio",
-    "_meta": {
-      "title": "Global Audio / TTS Stream"
-    }
-  },
-  "3": {
-    "inputs": {
-      "insightface_model": "antelopev2",
-      "detection_bbox_detector": "yolov8n",
-      "face_restore_model": "CodeFormer"
-    },
-    "class_type": "LivePortraitLoadModel",
-    "_meta": {
-      "title": "LivePortrait Model & Face Analysis"
-    }
-  },
-  "4": {
-    "inputs": {
-      "source_image": ["1", 0],
-      "driven_audio": ["2", 0],
-      "model": ["3", 0],
-      "do_crop": true,
-      "scale": 2.3,
-      "vx_ratio": 0.0,
-      "vy_ratio": -0.125
-    },
-    "class_type": "LivePortraitNode",
-    "_meta": {
-      "title": "Advanced LivePortrait Execution Engine"
-    }
-  },
-  "5": {
-    "inputs": {
-      "frame_rate": 25,
-      "loop_count": 0,
-      "filename_prefix": "Zovix_WorldClass_Studio",
-      "format": "video/h264-mp4",
-      "pix_fmt": "yuv420p",
-      "crf": 19,
-      "save_metadata": true,
-      "images": ["4", 0]
-    },
-    "class_type": "VHS_VideoCombine",
-    "_meta": {
-      "title": "Video Helper Suite (High-FPS Export)"
-    }
-  }
+  "version": 0.4
 }
