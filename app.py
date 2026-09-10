@@ -1,8 +1,8 @@
-import os
+﻿import os
 import cv2
 import time
 import uuid
-import sqlite3
+import postgres_db as sqlite3
 import asyncio
 import random
 import requests
@@ -105,23 +105,10 @@ def get_system_secret(key: str, default_val: Optional[str] = None) -> Optional[s
     return os.getenv(key, default_val)
 
 # ========================================================
-# DATABASE PATH - use Render's mounted persistent disk whenever available.
+# DATABASE - Supabase PostgreSQL (Render-safe persistent storage).
 # ========================================================
-_APP_DIR = os.path.dirname(os.path.abspath(__file__))
-_RENDER_DISK_PATH = "/var/data/zovix_v4.db"
-_DEFAULT_DB_PATH = _RENDER_DISK_PATH if os.path.isdir("/var/data") else os.path.join(_APP_DIR, "zovix_v4.db")
-DB_PATH = os.getenv("ZOVIX_DB_PATH") or get_system_secret("ZOVIX_DB_PATH") or _DEFAULT_DB_PATH
-_db_dir = os.path.dirname(DB_PATH)
-if _db_dir:
-    os.makedirs(_db_dir, exist_ok=True)
-_IS_RENDER_DEPLOYMENT = bool(os.getenv("RENDER") or os.getenv("RENDER_EXTERNAL_URL"))
-_DB_ON_RENDER_DISK = os.path.abspath(DB_PATH).startswith("/var/data/")
-if _IS_RENDER_DEPLOYMENT and not _DB_ON_RENDER_DISK:
-    raise RuntimeError(
-        "Refusing to run with an ephemeral SQLite database on Render. "
-        "Attach a Persistent Disk at /var/data and set ZOVIX_DB_PATH=/var/data/zovix_v4.db."
-    )
-logger.info(f"Using database file: {DB_PATH}")
+DB_PATH = None
+logger.info("Using Supabase PostgreSQL database")
 
 # System Configuration
 SYSTEM_CONFIG = {
