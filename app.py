@@ -1174,7 +1174,7 @@ LANGUAGE_VOICE_MAP = {
 # ========================================================
 
 BASE_BURN_RATE = {
-    "Face Video Generator": 25,
+    "Face Video Generator": 0,
     "Face Video Studio": 25,
     "Expressive Face Video": 25,
     "Cinematic Engine": 25,

@@ -32,7 +32,7 @@ logger = logging.getLogger("zovix.comfyui")
 # ---------------------------------------------------------------------------
 RUNPOD_API_KEY = os.getenv("RUNPOD_API_KEY", "")
 RUNPOD_ENDPOINT_ID = os.getenv("COMFYUI_RUNPOD_ENDPOINT_ID", "ipb2c2vnew0qbz")
-RUNPOD_FACE_ENDPOINT_ID = os.getenv("COMFYUI_FACE_RUNPOD_ENDPOINT_ID", "r3ni4j00y7ar7a")
+RUNPOD_FACE_ENDPOINT_ID = os.getenv("COMFYUI_FACE_RUNPOD_ENDPOINT_ID", "fvk0rrbngd0zds")
 RUNPOD_BASE_URL = os.getenv("RUNPOD_BASE_URL", "https://api.runpod.ai/v2")
 
 _APP_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -206,8 +206,8 @@ FACE_VIDEO_OUTPUT_DIR = os.getenv("FACE_VIDEO_OUTPUT_DIR", os.path.join(_APP_DIR
 
 NODE_FACE_IMAGE = "1"
 NODE_FACE_AUDIO = "2"
-NODE_FACE_ANIMATE = "3"
-NODE_FACE_SAVE_VIDEO = "4"
+NODE_FACE_ANIMATE = "4"
+NODE_FACE_SAVE_VIDEO = "5"
 
 FACE_QUALITY_RESOLUTION = {"Standard": 512, "HD": 768, "4K": 1024}
 
@@ -229,9 +229,9 @@ def inject_face_settings(workflow, image_filename, audio_filename, script_text="
         workflow[NODE_FACE_AUDIO]["inputs"]["audio"] = audio_filename
 
     if NODE_FACE_ANIMATE in workflow:
-        workflow[NODE_FACE_ANIMATE]["inputs"]["resolution"] = resolution
-        workflow[NODE_FACE_ANIMATE]["inputs"]["duration"] = duration
-        workflow[NODE_FACE_ANIMATE]["inputs"]["script_text"] = script_text or ""
+        workflow[NODE_FACE_ANIMATE]["inputs"].setdefault("resolution", resolution)
+        workflow[NODE_FACE_ANIMATE]["inputs"].setdefault("duration", duration)
+        workflow[NODE_FACE_ANIMATE]["inputs"].setdefault("script_text", script_text or "")
 
     return workflow
 

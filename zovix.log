@@ -16728,3 +16728,118 @@ ConnectionResetError: [WinError 10054] An existing connection was forcibly close
 2026-09-10 11:35:49,721 - Zovix - INFO - Load balancer initialized with 4 workers
 2026-09-10 11:35:51,740 - Zovix - INFO - Redis cache connected
 2026-09-10 11:35:51,743 - Zovix - INFO - Database initialized successfully
+2026-09-10 12:45:35,164 - Zovix - INFO - Using database file: C:\Zovix-Clean\zovix_v4.db
+2026-09-10 12:45:39,406 - Zovix - INFO - Redis connected for rate limiting
+2026-09-10 12:45:39,422 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-10 12:45:41,461 - Zovix - INFO - Redis cache connected
+2026-09-10 12:45:41,480 - Zovix - INFO - Database initialized successfully
+2026-09-10 12:45:43,099 - Zovix - INFO - Using database file: C:\Zovix-Clean\zovix_v4.db
+2026-09-10 12:45:45,119 - Zovix - INFO - Redis connected for rate limiting
+2026-09-10 12:45:45,121 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-10 12:45:47,157 - Zovix - INFO - Redis cache connected
+2026-09-10 12:45:47,161 - Zovix - INFO - Database initialized successfully
+2026-09-10 12:46:12,727 - Zovix - INFO - Using database file: C:\Zovix-Clean\zovix_v4.db
+2026-09-10 12:46:14,774 - Zovix - INFO - Redis connected for rate limiting
+2026-09-10 12:46:14,775 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-10 12:46:16,827 - Zovix - INFO - Redis cache connected
+2026-09-10 12:46:16,832 - Zovix - INFO - Database initialized successfully
+2026-09-10 12:46:21,305 - Zovix - INFO - Using database file: C:\Zovix-Clean\zovix_v4.db
+2026-09-10 12:46:23,323 - Zovix - INFO - Redis connected for rate limiting
+2026-09-10 12:46:23,323 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-10 12:46:25,345 - Zovix - INFO - Redis cache connected
+2026-09-10 12:46:25,347 - Zovix - INFO - Database initialized successfully
+2026-09-10 12:46:27,448 - Zovix - INFO - Using database file: C:\Zovix-Clean\zovix_v4.db
+2026-09-10 12:46:29,484 - Zovix - INFO - Redis connected for rate limiting
+2026-09-10 12:46:29,485 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-10 12:46:31,516 - Zovix - INFO - Redis cache connected
+2026-09-10 12:46:31,519 - Zovix - INFO - Database initialized successfully
+2026-09-10 12:48:30,361 - Zovix - INFO - Using database file: C:\Zovix-Clean\zovix_v4.db
+2026-09-10 12:48:32,392 - Zovix - INFO - Redis connected for rate limiting
+2026-09-10 12:48:32,393 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-10 12:48:34,425 - Zovix - INFO - Redis cache connected
+2026-09-10 12:48:34,430 - Zovix - INFO - Database initialized successfully
+2026-09-10 12:48:37,611 - Zovix - INFO - Using database file: C:\Zovix-Clean\zovix_v4.db
+2026-09-10 12:48:39,645 - Zovix - INFO - Redis connected for rate limiting
+2026-09-10 12:48:39,646 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-10 12:48:41,666 - Zovix - INFO - Redis cache connected
+2026-09-10 12:48:41,668 - Zovix - INFO - Database initialized successfully
+2026-09-10 12:49:04,319 - Zovix - INFO - Using database file: C:\Zovix-Clean\zovix_v4.db
+2026-09-10 12:49:06,341 - Zovix - INFO - Redis connected for rate limiting
+2026-09-10 12:49:06,341 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-10 12:49:08,360 - Zovix - INFO - Redis cache connected
+2026-09-10 12:49:08,361 - Zovix - INFO - Database initialized successfully
+2026-09-10 12:49:12,374 - Zovix - INFO - Using database file: C:\Zovix-Clean\zovix_v4.db
+2026-09-10 12:49:14,395 - Zovix - INFO - Redis connected for rate limiting
+2026-09-10 12:49:14,396 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-10 12:49:16,426 - Zovix - INFO - Redis cache connected
+2026-09-10 12:49:16,428 - Zovix - INFO - Database initialized successfully
+2026-09-10 12:49:18,546 - Zovix - INFO - Using database file: C:\Zovix-Clean\zovix_v4.db
+2026-09-10 12:49:20,580 - Zovix - INFO - Redis connected for rate limiting
+2026-09-10 12:49:20,581 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-10 12:49:22,611 - Zovix - INFO - Redis cache connected
+2026-09-10 12:49:22,614 - Zovix - INFO - Database initialized successfully
+2026-09-10 12:49:40,706 - Zovix - INFO - Using database file: C:\Zovix-Clean\zovix_v4.db
+2026-09-10 12:49:42,743 - Zovix - INFO - Redis connected for rate limiting
+2026-09-10 12:49:42,744 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-10 12:49:44,771 - Zovix - INFO - Redis cache connected
+2026-09-10 12:49:44,773 - Zovix - INFO - Database initialized successfully
+2026-09-10 12:50:14,108 - Zovix - INFO - Using database file: C:\Zovix-Clean\zovix_v4.db
+2026-09-10 12:50:16,138 - Zovix - INFO - Redis connected for rate limiting
+2026-09-10 12:50:16,139 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-10 12:50:18,161 - Zovix - INFO - Redis cache connected
+2026-09-10 12:50:18,164 - Zovix - INFO - Database initialized successfully
+2026-09-10 12:50:23,975 - Zovix - INFO - Using database file: C:\Zovix-Clean\zovix_v4.db
+2026-09-10 12:50:26,009 - Zovix - INFO - Redis connected for rate limiting
+2026-09-10 12:50:26,010 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-10 12:50:28,037 - Zovix - INFO - Redis cache connected
+2026-09-10 12:50:28,039 - Zovix - INFO - Database initialized successfully
+2026-09-10 12:50:36,174 - Zovix - INFO - Using database file: C:\Zovix-Clean\zovix_v4.db
+2026-09-10 12:50:38,209 - Zovix - INFO - Redis connected for rate limiting
+2026-09-10 12:50:38,210 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-10 12:50:40,236 - Zovix - INFO - Redis cache connected
+2026-09-10 12:50:40,238 - Zovix - INFO - Database initialized successfully
+2026-09-10 13:00:23,946 - Zovix - INFO - Using database file: C:\Zovix-Clean\zovix_v4.db
+2026-09-10 13:00:27,228 - Zovix - INFO - Redis connected for rate limiting
+2026-09-10 13:00:27,235 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-10 13:00:29,266 - Zovix - INFO - Redis cache connected
+2026-09-10 13:00:29,271 - Zovix - INFO - Database initialized successfully
+2026-09-10 13:00:38,043 - Zovix - INFO - Using database file: C:\Zovix-Clean\zovix_v4.db
+2026-09-10 13:00:40,063 - Zovix - INFO - Redis connected for rate limiting
+2026-09-10 13:00:40,064 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-10 13:00:42,075 - Zovix - INFO - Redis cache connected
+2026-09-10 13:00:42,077 - Zovix - INFO - Database initialized successfully
+2026-09-10 13:01:03,978 - Zovix - INFO - Using database file: C:\Zovix-Clean\zovix_v4.db
+2026-09-10 13:01:06,004 - Zovix - INFO - Redis connected for rate limiting
+2026-09-10 13:01:06,005 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-10 13:01:08,023 - Zovix - INFO - Redis cache connected
+2026-09-10 13:01:08,026 - Zovix - INFO - Database initialized successfully
+2026-09-10 13:01:16,029 - Zovix - INFO - Using database file: C:\Zovix-Clean\zovix_v4.db
+2026-09-10 13:01:18,055 - Zovix - INFO - Redis connected for rate limiting
+2026-09-10 13:01:18,056 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-10 13:01:20,081 - Zovix - INFO - Redis cache connected
+2026-09-10 13:01:20,083 - Zovix - INFO - Database initialized successfully
+2026-09-10 13:01:22,198 - Zovix - INFO - Using database file: C:\Zovix-Clean\zovix_v4.db
+2026-09-10 13:01:24,231 - Zovix - INFO - Redis connected for rate limiting
+2026-09-10 13:01:24,233 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-10 13:01:26,262 - Zovix - INFO - Redis cache connected
+2026-09-10 13:01:26,264 - Zovix - INFO - Database initialized successfully
+2026-09-10 13:05:52,333 - Zovix - INFO - Using database file: C:\Zovix-Clean\zovix_v4.db
+2026-09-10 13:05:54,353 - Zovix - INFO - Redis connected for rate limiting
+2026-09-10 13:05:54,355 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-10 13:05:56,386 - Zovix - INFO - Redis cache connected
+2026-09-10 13:05:56,388 - Zovix - INFO - Database initialized successfully
+2026-09-10 13:06:16,074 - Zovix - INFO - Using database file: C:\Zovix-Clean\zovix_v4.db
+2026-09-10 13:06:18,107 - Zovix - INFO - Redis connected for rate limiting
+2026-09-10 13:06:18,108 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-10 13:06:20,133 - Zovix - INFO - Redis cache connected
+2026-09-10 13:06:20,134 - Zovix - INFO - Database initialized successfully
+2026-09-10 13:06:26,815 - Zovix - INFO - Using database file: C:\Zovix-Clean\zovix_v4.db
+2026-09-10 13:06:28,835 - Zovix - INFO - Redis connected for rate limiting
+2026-09-10 13:06:28,835 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-10 13:06:30,870 - Zovix - INFO - Redis cache connected
+2026-09-10 13:06:30,871 - Zovix - INFO - Database initialized successfully
+2026-09-10 13:06:35,649 - Zovix - INFO - Using database file: C:\Zovix-Clean\zovix_v4.db
+2026-09-10 13:06:37,672 - Zovix - INFO - Redis connected for rate limiting
+2026-09-10 13:06:37,672 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-10 13:06:39,699 - Zovix - INFO - Redis cache connected
+2026-09-10 13:06:39,701 - Zovix - INFO - Database initialized successfully
