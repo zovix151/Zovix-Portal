@@ -59,9 +59,14 @@ QUALITY_STEPS = {"Standard": 10, "HD": 16, "Pro": 24}
 
 
 def load_workflow():
-    """Read zovix_workflow.json fresh from disk on every call."""
+    """Read the ComfyUI prompt graph, unwrapping an exported API payload if needed."""
     with open(WORKFLOW_PATH, "r", encoding="utf-8") as f:
-        return json.load(f)
+        workflow = json.load(f)
+    if isinstance(workflow, dict) and isinstance(workflow.get("input"), dict):
+        nested_workflow = workflow["input"].get("workflow")
+        if isinstance(nested_workflow, dict):
+            return nested_workflow
+    return workflow
 
 
 def inject_prompt_settings(workflow, prompt, negative_prompt="", aspect_ratio="16:9", quality="Standard", seed=None):
@@ -141,16 +146,34 @@ def _extract_base64_images(output):
             if isinstance(item, str):
                 found.append(item)
             elif isinstance(item, dict):
-                found.append(item.get("data") or item.get("image") or item.get("base64"))
+                found.extend(_extract_base64_images(item))
         return [b64 for b64 in found if b64]
     if isinstance(output, dict):
-        images = output.get("images")
-        if images:
-            return _extract_base64_images(images)
-        for key in ("image", "data", "base64"):
+        for key in ("images", "image", "data", "base64", "image_base64", "imageBase64"):
             if output.get(key):
-                return [output[key]]
+                return _extract_base64_images(output[key]) if key == "images" else [output[key]]
+        for value in output.values():
+            found = _extract_base64_images(value)
+            if found:
+                return found
     return []
+
+
+def _decode_image_payload(value):
+    """Decode a data URI/base64 image and reject empty or suspiciously tiny payloads."""
+    if not isinstance(value, str) or not value.strip():
+        return None
+    raw_value = value.strip()
+    if raw_value.startswith("http"):
+        response = requests.get(raw_value, timeout=30)
+        response.raise_for_status()
+        image_bytes = response.content
+    else:
+        raw_b64 = raw_value.split(",", 1)[1] if "," in raw_value[:100] else raw_value
+        image_bytes = base64.b64decode(raw_b64, validate=True)
+    if len(image_bytes) < 1024:
+        raise ValueError("RunPod returned an empty or invalid image payload")
+    return image_bytes
 
 
 def generate_workshop_image(prompt, aspect_ratio="16:9", negative_prompt="", quality="Standard", seed=None,
@@ -182,10 +205,7 @@ def generate_workshop_image(prompt, aspect_ratio="16:9", negative_prompt="", qua
             logger.error(f"RunPod ComfyUI job returned no images: {result}")
             return None
 
-        raw_b64 = images_b64[0]
-        if "," in raw_b64[:60]:  # strip a data:image/...;base64, prefix if present
-            raw_b64 = raw_b64.split(",", 1)[1]
-        image_bytes = base64.b64decode(raw_b64)
+        image_bytes = _decode_image_payload(images_b64[0])
 
         os.makedirs(WORKSHOP_OUTPUT_DIR, exist_ok=True)
         output_path = os.path.join(WORKSHOP_OUTPUT_DIR, f"workshop_output_{uuid.uuid4().hex[:6]}.png")

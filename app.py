@@ -5072,18 +5072,6 @@ def generate_pro_image(prompt, aspect_ratio="16:9", negative_prompt="", quality=
     except Exception as e:
         logger.error(f"ComfyUI generate_pro_image error: {e}")
 
-    # Last-resort local placeholder so the UI never hard-crashes on outage.
-    try:
-        width, height = {"16:9": (1344, 768), "9:16": (768, 1344), "21:9": (1536, 640),
-                          "4:5": (896, 1120), "3:2": (1152, 768)}.get(aspect_ratio, (1024, 1024))
-        img = Image.new("RGB", (width, height), color=(18, 19, 26))
-        d = ImageDraw.Draw(img)
-        d.rectangle([(10, 10), (width - 10, height - 10)], outline=(236, 72, 153), width=4)
-        output_path = f"workshop_output_{uuid.uuid4().hex[:6]}.png"
-        img.save(output_path)
-        return output_path
-    except Exception as e:
-        logger.error(f"Fallback image error: {e}")
     return None
 
 def convert_image_to_video_svd_robust(image_path, motion_bucket_id=127):
