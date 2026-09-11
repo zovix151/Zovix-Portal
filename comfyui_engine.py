@@ -121,7 +121,7 @@ def run_comfyui_job(workflow, api_key, endpoint_id, images=None, timeout=180):
     resp.raise_for_status()
     result = resp.json()
 
-    if result.get("status") == "COMPLETED":
+    if result.get("status") == "COMPLETED" or result.get("output") is not None:
         return result
 
     if result.get("status") == "FAILED":
@@ -272,10 +272,15 @@ def _extract_video_output(output):
         for key in ("video_url", "videoUrl", "download_url", "downloadUrl", "url"):
             if output.get(key):
                 return None, output[key]
+        for key in ("link", "file_url", "fileUrl"):
+            if output.get(key):
+                return None, output[key]
         for key in ("video", "video_base64", "videoBase64", "data", "base64"):
             if output.get(key):
                 val = output[key]
                 return (None, val) if str(val).startswith("http") else (val, None)
+        if output.get("filename") and output.get("url"):
+            return None, output["url"]
         nested = output.get("videos") or output.get("outputs") or output.get("result") or output.get("gifs")
         if nested:
             return _extract_video_output(nested)
@@ -327,8 +332,11 @@ def generate_face_video(face_image_path, audio_path=None, script_text="", durati
 
         audio_filename = None
         if audio_path and os.path.exists(audio_path):
-            audio_filename = f"audio_{uuid.uuid4().hex[:8]}.mp3"
-            images_payload.append({"name": audio_filename, "image": _file_to_data_uri(audio_path, "audio/mpeg")})
+            audio_ext = os.path.splitext(audio_path)[1].lower() or ".wav"
+            audio_mime = {".wav": "audio/wav", ".ogg": "audio/ogg", ".m4a": "audio/mp4"}.get(audio_ext, "audio/mpeg")
+            audio_filename = f"audio_{uuid.uuid4().hex[:8]}{audio_ext}"
+            audio_data = _file_to_data_uri(audio_path, audio_mime)
+            images_payload.append({"name": audio_filename, "audio": audio_data, "image": audio_data})
 
         workflow = inject_face_settings(workflow, image_filename, audio_filename, script_text, duration, quality)
 
@@ -347,7 +355,11 @@ def generate_face_video(face_image_path, audio_path=None, script_text="", durati
                 f.write(video_bytes)
             return output_path
 
-        logger.error(f"RunPod ComfyUI face job returned no video for endpoint={endpoint_id}. Output keys: {list(result.get('output', {}).keys()) if isinstance(result.get('output'), dict) else type(result.get('output')).__name__}")
+        logger.error(
+            "RunPod ComfyUI face job returned no video for endpoint=%s. Full response: %s",
+            endpoint_id,
+            str(result)[:4000],
+        )
         return None
 
     except Exception as e:
