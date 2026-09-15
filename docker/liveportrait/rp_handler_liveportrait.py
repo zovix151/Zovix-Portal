@@ -73,6 +73,29 @@ def download_file(url: str, output_path: str) -> str:
     raise RuntimeError(f"Failed to download {url} after {max_retries} attempts")
 
 
+def decode_input_file(value: str, output_path: str) -> str:
+    """Accept either a public URL or a data URI/base64 payload from RunPod input."""
+    if not value:
+        raise ValueError("Missing input file payload")
+    if value.startswith("data:"):
+        try:
+            encoded = value.split(",", 1)[1]
+            with open(output_path, "wb") as f:
+                f.write(base64.b64decode(encoded, validate=True))
+            return output_path
+        except Exception as exc:
+            raise ValueError(f"Invalid data URI input: {exc}") from exc
+    if value.startswith("http://") or value.startswith("https://"):
+        return download_file(value, output_path)
+    raise ValueError("Input file must be a public URL or data URI")
+
+
+def encode_file_data_uri(file_path: str, mime: str) -> str:
+    with open(file_path, "rb") as f:
+        encoded = base64.b64encode(f.read()).decode("ascii")
+    return f"data:{mime};base64,{encoded}"
+
+
 def upload_to_cloud(file_path: str, content_type: str = "video/mp4") -> str:
     """Upload file to cloud storage and return public URL"""
     file_ext = os.path.splitext(file_path)[1]
@@ -202,29 +225,29 @@ def handler(job: Dict[str, Any]) -> Dict[str, Any]:
     try:
         # Parse input
         input_data = job.get("input", {})
-        face_image_url = input_data.get("face_image_url", "")
-        audio_url = input_data.get("audio_url", "")
+        face_image_value = input_data.get("face_image_url") or input_data.get("face_image_base64", "")
+        audio_value = input_data.get("audio_url") or input_data.get("audio_base64", "")
         enhancer_flag = input_data.get("enhancer", True)
         resolution = input_data.get("resolution", "1024x1024")
 
-        if not face_image_url or not audio_url:
-            raise ValueError("face_image_url and audio_url are required")
+        if not face_image_value or not audio_value:
+            raise ValueError("face_image_url/face_image_base64 and audio_url/audio_base64 are required")
 
         # Generate unique job ID
         run_id = uuid.uuid4().hex[:8]
 
         # Download assets
-        logger.info(f"Downloading face image: {face_image_url}")
-        face_path = download_file(face_image_url, os.path.join(INPUT_DIR, f"face_{run_id}.jpg"))
+        logger.info("Preparing face image input")
+        face_path = decode_input_file(face_image_value, os.path.join(INPUT_DIR, f"face_{run_id}.png"))
 
-        logger.info(f"Downloading audio: {audio_url}")
-        audio_path = download_file(audio_url, os.path.join(INPUT_DIR, f"audio_{run_id}.mp3"))
+        logger.info("Preparing audio input")
+        audio_path = decode_input_file(audio_value, os.path.join(INPUT_DIR, f"audio_{run_id}.wav"))
 
         # Generate talking face video
         output_path = generate_talking_face(face_path, audio_path, enhancer_flag, resolution)
 
-        # Upload to cloud storage
-        video_url = upload_to_cloud(output_path, "video/mp4")
+        # Return the generated asset directly so no fake storage URL is exposed.
+        video_data_uri = encode_file_data_uri(output_path, "video/mp4")
 
         # Cleanup temp files
         for f in [face_path, audio_path, output_path]:
@@ -235,7 +258,8 @@ def handler(job: Dict[str, Any]) -> Dict[str, Any]:
                 pass
 
         return {
-            "output": video_url,
+            "output": video_data_uri,
+            "video_base64": video_data_uri,
             "status": "COMPLETED",
             "job_id": job_id
         }

@@ -39,7 +39,33 @@ import streamlit.components.v1 as components
 from pydantic import BaseModel, Field
 import textwrap
 
-st.set_page_config(layout="wide", initial_sidebar_state="collapsed")
+st.set_page_config(
+    page_title="ZOVIX - Create Cinematic AI Videos in Minutes",
+    page_icon="🎬",
+    layout="wide",
+    initial_sidebar_state="collapsed",
+)
+
+# Serve crawler files at the standard root URLs instead of returning Streamlit's app shell.
+try:
+    import tornado.web
+    from streamlit.web.server.server import Server
+
+    _seo_server = Server.get_current()
+    _seo_tornado_app = getattr(_seo_server, "_tornado_app", None)
+    if _seo_tornado_app and not getattr(_seo_tornado_app, "_zovix_seo_routes_registered", False):
+        _seo_static_path = os.path.join(os.path.dirname(__file__), "static")
+        _seo_tornado_app.add_handlers(
+            r".*",
+            [
+                (r"/robots\.txt", tornado.web.StaticFileHandler, {"path": os.path.join(_seo_static_path, "robots.txt")}),
+                (r"/sitemap\.xml", tornado.web.StaticFileHandler, {"path": os.path.join(_seo_static_path, "sitemap.xml")}),
+            ],
+        )
+        _seo_tornado_app._zovix_seo_routes_registered = True
+except Exception:
+    pass
+
 from typing import List, Dict, Any, Tuple, Optional, Union
 from datetime import datetime, timedelta
 from functools import wraps
@@ -796,6 +822,9 @@ cache_manager = CacheManager()
 
 if "current_page" not in st.session_state:
     st.session_state["current_page"] = "landing"
+requested_page = st.query_params.get("page")
+if requested_page in {"landing", "studio"}:
+    st.session_state["current_page"] = requested_page
 if "is_logged_in" not in st.session_state:
     st.session_state["is_logged_in"] = False
 if "studio_active_mode" not in st.session_state:
@@ -6920,7 +6949,7 @@ def _clamp_face_video_duration(duration):
 def generate_face_video(prompt, face_image_path, duration=30, emotion="neutral", 
                         camera_angle="front", quality="Standard", 
                         voice_language=None, voice_label=None, runpod_api_key=None):
-    """Pure Cloud Face Video Generation via ComfyUI on RunPod."""
+    """Generate through RunPod first, then fall back to Replicate."""
     print("=" * 60)
     print("🎬 generate_face_video() called - ComfyUI RunPod Cloud Mode")
     print("=" * 60)
@@ -6973,19 +7002,119 @@ def generate_face_video(prompt, face_image_path, duration=30, emotion="neutral",
     if video_result:
         return video_result
     
-    logger.error("RunPod ComfyUI face video generation failed. No local fallback available.")
+    logger.error("RunPod and Replicate face video generation failed.")
     return None
 
 
+def _get_replicate_face_token():
+    for key in ("REPLICATE_API_TOKEN", "REPLICATE_API_KEY"):
+        value = os.getenv(key, "") or get_system_secret(key, "")
+        if value:
+            return str(value).strip()
+    return ""
+
+
+def _extract_replicate_video_url(output):
+    if isinstance(output, str) and output.startswith(("http://", "https://")):
+        return output
+    if isinstance(output, dict):
+        for key in ("video", "output", "url", "mp4", "result"):
+            found = _extract_replicate_video_url(output.get(key))
+            if found:
+                return found
+    if isinstance(output, (list, tuple)):
+        for item in output:
+            found = _extract_replicate_video_url(item)
+            if found:
+                return found
+    return None
+
+
+def _run_replicate_face_model(client, model_ref, image_path, audio_path, script_text):
+    model_name = model_ref.lower()
+    has_audio = bool(audio_path and os.path.isfile(audio_path) and os.path.getsize(audio_path) > 1024)
+    if "p-video-avatar" in model_name:
+        payloads = [
+            {"image": "image", "voice_script": script_text, "voice_prompt": "speak naturally", "video_prompt": "real human talking head with natural lip movement and subtle eye blinks", "resolution": "720p"},
+            {"image": "image", "voice_script": script_text, "resolution": "720p"},
+        ]
+    elif "sadtalker" in model_name:
+        payloads = [{"source_image": "image", "driven_audio": "audio", "preprocess": "full"}, {"source_image": "image", "driven_audio": "audio"}]
+    elif "liveportrait" in model_name:
+        payloads = [{"source_image": "image", "driving_audio": "audio"}, {"image": "image", "audio": "audio"}]
+    else:
+        payloads = [{"image": "image", "voice_script": script_text}, {"image": "image", "text": script_text}]
+
+    for template in payloads:
+        try:
+            with open(image_path, "rb") as image_file:
+                files = {"image": image_file}
+                if has_audio:
+                    with open(audio_path, "rb") as audio_file:
+                        files["audio"] = audio_file
+                        payload = {key: (files[value] if value in files else value) for key, value in template.items()}
+                        output = client.run(model_ref, input=payload)
+                else:
+                    payload = {key: (files[value] if value in files else value) for key, value in template.items()}
+                    output = client.run(model_ref, input=payload)
+            video_url = _extract_replicate_video_url(output)
+            if video_url:
+                return video_url
+        except Exception as exc:
+            logger.warning("Replicate model %s input variant failed: %s", model_ref, exc)
+    return None
+
+
+def _generate_replicate_face_video(prompt, face_image_path, duration, quality, voice_language, voice_label):
+    token = _get_replicate_face_token()
+    if not token:
+        raise RuntimeError("Replicate fallback is not configured. Set REPLICATE_API_TOKEN.")
+    try:
+        import replicate
+    except ImportError as exc:
+        raise RuntimeError("Replicate fallback package is not installed.") from exc
+
+    voice_cfg = _resolve_face_voice_config(voice_language=voice_language, voice_label=voice_label)
+    temp_audio = None
+    try:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp_audio:
+            temp_audio = tmp_audio.name
+        _synthesize_face_audio_strict(prompt, temp_audio, voice_cfg, duration_hint=duration)
+        client = replicate.Client(api_token=token)
+        model_candidates = [
+            os.getenv("REPLICATE_FACE_MODEL", "prunaai/p-video-avatar"),
+            "prunaai/p-video-avatar",
+            "lucataco/sadtalker",
+            "cjwbw/sadtalker",
+            "gandhana/liveportrait",
+        ]
+        seen = set()
+        for model_ref in model_candidates:
+            model_ref = str(model_ref).strip()
+            if not model_ref or model_ref.lower() in seen:
+                continue
+            seen.add(model_ref.lower())
+            result = _run_replicate_face_model(client, model_ref, face_image_path, temp_audio, prompt)
+            if result:
+                st.session_state["face_video_engine_used"] = f"Replicate ({model_ref})"
+                st.session_state["face_video_runtime_mode"] = "Cloud Fallback"
+                st.session_state["face_video_last_error"] = None
+                return result
+        raise RuntimeError("All Replicate face models returned no video.")
+    finally:
+        if temp_audio:
+            safe_remove_file(temp_audio)
+
+
 def generate_world_face_video(prompt, face_image_path, duration=10, quality="HD", animation_style="Expressive Real Human (No Lip-Only Fallback)", backend_choice="Auto (LivePortrait → SadTalker → Wav2Lip)", motion_level="high", voice_language=None, voice_label=None, runpod_api_key=None):
-    """Cloud-only face generation via the ComfyUI-on-RunPod serverless endpoint (replaces Replicate/DeepInfra)."""
+    """Try RunPod first and automatically use Replicate when RunPod fails."""
     if not face_image_path or not os.path.exists(face_image_path):
         return None
 
-    from comfyui_engine import generate_face_video as _runpod_generate_face_video
-
     temp_audio = None
     try:
+        from comfyui_engine import generate_face_video as _runpod_generate_face_video
+
         voice_cfg = _resolve_face_voice_config(voice_language=voice_language, voice_label=voice_label, preferred_gender=st.session_state.get('fv_detected_gender') if st.session_state.get('fv_gender_auto', False) else None)
         with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp_aud:
             temp_audio = tmp_aud.name
@@ -7006,15 +7135,22 @@ def generate_world_face_video(prompt, face_image_path, duration=10, quality="HD"
             st.session_state["face_video_last_error"] = None
             return video_result
 
-        st.session_state["face_video_last_error"] = "RunPod ComfyUI face video generation failed to produce a video."
-        return None
+        runpod_error = "RunPod returned no video output."
     except Exception as e:
-        st.session_state["face_video_last_error"] = str(e)
+        runpod_error = str(e)
         logger.warning(f"RunPod ComfyUI face generation failed: {e}")
-        return None
     finally:
         if temp_audio:
             safe_remove_file(temp_audio)
+
+    logger.warning("RunPod face generation failed; starting Replicate fallback: %s", runpod_error)
+    try:
+        return _generate_replicate_face_video(prompt, face_image_path, duration, quality, voice_language, voice_label)
+    except Exception as fallback_error:
+        combined_error = f"RunPod failed: {runpod_error} | Replicate fallback failed: {fallback_error}"
+        st.session_state["face_video_last_error"] = combined_error
+        logger.error(combined_error)
+        return None
 
 
 def _detect_face_gender(face_image_path):
@@ -7710,6 +7846,8 @@ def render_ai_agent_ui():
                 col_qa1, col_qa2 = st.columns(2)
                 with col_qa1:
                     if st.button("📱 Generate WhatsApp Ad", key="agent_whatsapp_ad", use_container_width=True):
+                        if not require_login_for_generation("AI Agent Mode"):
+                            st.stop()
                         with st.spinner("Generating WhatsApp ad..."):
                             ad_text = f"🏪 {st.session_state['agent_business_name']} - Now Open!\n\n"
                             ad_text += "📍 Our Products:\n"
@@ -7724,6 +7862,8 @@ def render_ai_agent_ui():
                 
                 with col_qa2:
                     if st.button("📸 Generate Instagram Post", key="agent_instagram_post", use_container_width=True):
+                        if not require_login_for_generation("AI Agent Mode"):
+                            st.stop()
                         with st.spinner("Generating Instagram post..."):
                             post_prompt = f"Beautiful product photography showcasing {st.session_state['agent_business_name']} products, professional, clean background, studio lighting"
                             img_path = generate_pro_image(post_prompt, "1:1")
@@ -7935,6 +8075,8 @@ def render_ai_sales_ui():
 
             # Generate Button
             if st.button("🎙️ Generate Sales Video", key="sales_generate_btn", use_container_width=True):
+                if not require_login_for_generation("AI Sales Mode"):
+                    st.stop()
                 # Validation
                 if not product_name.strip():
                     st.error("Please enter a product name.")
@@ -8396,6 +8538,8 @@ def render_live_emotion_voice():
             emotion_voice = st.selectbox("Voice", voice_opts or list(ELEVENLABS_VOICES.keys()), key="emotion_voice_voice", label_visibility="collapsed")
 
             if st.button("🎤 Generate Emotion Voice", key="emotion_generate_btn", use_container_width=True):
+                if not require_login_for_generation("Live Emotion Mode"):
+                    st.stop()
                 if not emotion_text.strip():
                     st.error("Please enter text.")
                 else:
@@ -8682,6 +8826,8 @@ def run_blueprints_mode():
             col_gen1, col_gen2 = st.columns(2)
             with col_gen1:
                 if st.button("Generate Blueprint", key="bp_generate_btn", use_container_width=True):
+                    if not require_login_for_generation("Blueprints Mode"):
+                        st.stop()
                     cleaned_prompt = (blueprint_prompt or "").strip()
                     if not cleaned_prompt:
                         st.error("Please enter a blueprint description.")
@@ -10404,6 +10550,8 @@ def run_creative_workshop():
             st.markdown("<br>", unsafe_allow_html=True)
 
             if st.button("🚀 Generate Workshop Image", key="workshop_generation_action_btn", use_container_width=True):
+                if not require_login_for_generation("Creative Workshop Mode"):
+                    st.stop()
                 if not workshop_prompt_str.strip():
                     st.error("❌ Please enter an image description.")
                 else:
@@ -10642,6 +10790,8 @@ def run_upscaler_mode():
             
             # Generate Button
             if st.button("⚡ Upscale Image", key="us_upscale_btn", use_container_width=True):
+                if not require_login_for_generation("Upscaler Mode"):
+                    st.stop()
                 # Validate
                 if not st.session_state.get("us_temp_image") or not os.path.exists(st.session_state["us_temp_image"]):
                     st.error("Please upload an image first.")
@@ -10936,6 +11086,8 @@ def run_draw_mode():
             
             # ✅ Generate Button
             if st.button("🎨 Generate Drawing", key="dr_generate_btn", use_container_width=True):
+                if not require_login_for_generation("Draw Mode"):
+                    st.stop()
                 if not draw_prompt.strip():
                     st.error("❌ Please enter a drawing description.")
                 else:
@@ -11723,6 +11875,8 @@ def run_video_editor_mode():
             
             # Process Button
             if st.button("🚀 PROCESS & EDIT VIDEO", key="movie_generate_btn_editor", use_container_width=True):
+                if not require_login_for_generation("Video Editor Mode"):
+                    st.stop()
                 current_uploads = st.session_state.get("editor_uploads", []) or uploaded_media
                 if not current_uploads:
                     st.error("❌ Please upload at least one media file (video/image).")
@@ -12079,6 +12233,8 @@ def run_face_video_mode():
             face_prompt = st.text_area("Video Description / Script (for lip sync):", placeholder="Describe what the person should say: e.g. Hello everyone! Welcome to my channel. Today we're going to explore the mysteries of the universe...", height=100, key="fv_prompt")
             st.write("")
             if st.button("👤 Generate Face Video", key="fv_generate_btn", use_container_width=True):
+                if not require_login_for_generation("Face Video Mode"):
+                    st.stop()
                 # Validate face image before scanning
                 face_img_for_scan = st.session_state.get("face_image_upload")
                 if face_img_for_scan is not None:
@@ -12274,6 +12430,8 @@ pip install gfpgan realesrgan""",
             )
 
             if st.button("🧬 Generate Expressive Face Video", key="efv_generate_btn", use_container_width=True):
+                if not require_login_for_generation("Expressive Face Video Mode"):
+                    st.stop()
                 success, required_tokens, message = validate_and_deduct_tokens("Expressive Face Video", efv_quality)
                 if not success:
                     st.error(message)
@@ -12775,6 +12933,8 @@ def run_unified_face_video_mode():
 
             # Generate Button - ComfyUI on RunPod Serverless ☁️
             if st.button("🌍 Generate Global Face Video", key="unified_fv_generate_btn", use_container_width=True):
+                            if not require_login_for_generation("Face Video Mode"):
+                                st.stop()
                             if not face_prompt or not face_prompt.strip():
                                 st.error("Kripya pehle text script likhein!")
                             elif len(face_prompt) > 120:
@@ -13621,6 +13781,8 @@ def run_cinematic_engine():
             )
             
             if st.button("📐 Generate Blueprint", key="deepseek_generate_blueprint_btn", use_container_width=True):
+                if not require_login_for_generation("Cinematic Engine"):
+                    st.stop()
                 if not user_input.strip():
                     st.error("Please enter a video concept.")
                 else:
@@ -13736,6 +13898,8 @@ def run_cinematic_engine():
         col_btn1, col_btn2 = st.columns([4, 1])
         with col_btn2:
             if st.button("Generate", key="studio_generate_action_btn", use_container_width=True):
+                if not require_login_for_generation("Cinematic Engine"):
+                    st.stop()
                 # Cinematic Video Generation Logic
                 if not user_input.strip():
                     st.error("Please enter a video topic or script.")
@@ -14792,6 +14956,16 @@ def handle_engine_access_request(mode_value: str):
     st.rerun()
     return True
 
+
+def require_login_for_generation(mode_value: str = "") -> bool:
+    """Open the login dialog before any Studio generation work runs."""
+    if st.session_state.get("is_logged_in", False):
+        return True
+    if mode_value:
+        st.session_state["auth_redirect_mode"] = mode_value
+    show_auth_modal("login")
+    return False
+
 # ========================================================
 # 44. MAIN APPLICATION FLOW
 # ========================================================
@@ -14817,15 +14991,9 @@ if st.session_state["current_page"] == "landing":
     from landing_page import WorldClassLandingPage
     landing = WorldClassLandingPage()
     landing.render()
-    if st.session_state.pop("landing_auth_requested", False):
-        show_auth_modal("login")
     st.stop()  
 
 elif st.session_state["current_page"] == "studio":
-    if not st.session_state["is_logged_in"]:
-        st.session_state["current_page"] = "landing"
-        st.rerun()
-    
     if st.session_state.get("2fa_enabled", False) and not st.session_state.get("2fa_verified", False):
         show_2fa_modal()
         st.stop()
@@ -15102,6 +15270,7 @@ elif st.session_state["current_page"] == "studio":
         st.session_state["current_page"] = "landing"
         st.session_state["is_logged_in"] = False
         st.session_state["2fa_verified"] = False
+        st.query_params.clear()
         st.rerun()
     
     # ========================================================
@@ -15970,6 +16139,8 @@ def run_production_engine_mode():
         cloud_aud_url = st.text_input("Or use Audio URL", placeholder="https://...")
         
         if st.button("Generate Face Video", use_container_width=True, type="primary"):
+            if not require_login_for_generation("Face Video Mode"):
+                st.stop()
             img_url = cloud_img_url.strip() or (face_image and "uploaded") or ""
             aud_url = cloud_aud_url.strip() or (audio_file and "uploaded") or ""
             
@@ -16015,6 +16186,8 @@ def run_production_engine_mode():
             tts_clone = st.file_uploader("Voice Clone Reference (optional)", type=["mp3", "wav"], key="pe_voice_clone")
         
         if st.button("Generate Voice", use_container_width=True, type="primary"):
+            if not require_login_for_generation("Live Emotion Mode"):
+                st.stop()
             if not tts_text:
                 st.error("Please enter text to convert")
             else:

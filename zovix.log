@@ -16843,3 +16843,607 @@ ConnectionResetError: [WinError 10054] An existing connection was forcibly close
 2026-09-10 13:06:37,672 - Zovix - INFO - Load balancer initialized with 4 workers
 2026-09-10 13:06:39,699 - Zovix - INFO - Redis cache connected
 2026-09-10 13:06:39,701 - Zovix - INFO - Database initialized successfully
+2026-09-13 12:06:43,008 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-13 12:06:49,022 - Zovix - INFO - Redis connected for rate limiting
+2026-09-13 12:06:49,038 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-13 12:06:51,070 - Zovix - INFO - Redis cache connected
+2026-09-13 12:06:54,440 - Zovix - INFO - Database initialized successfully
+2026-09-13 12:07:10,274 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-13 12:07:12,312 - Zovix - INFO - Redis connected for rate limiting
+2026-09-13 12:07:12,312 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-13 12:07:14,348 - Zovix - INFO - Redis cache connected
+2026-09-13 12:07:17,686 - Zovix - INFO - Database initialized successfully
+2026-09-13 12:07:54,012 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-13 12:07:56,049 - Zovix - INFO - Redis connected for rate limiting
+2026-09-13 12:07:56,049 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-13 12:07:58,077 - Zovix - INFO - Redis cache connected
+2026-09-13 12:08:01,103 - Zovix - INFO - Database initialized successfully
+2026-09-15 11:41:21,497 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 11:41:27,320 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 11:41:27,344 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 11:41:29,377 - Zovix - INFO - Redis cache connected
+2026-09-15 11:41:32,764 - Zovix - INFO - Database initialized successfully
+2026-09-15 11:41:35,623 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 11:41:37,677 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 11:41:37,678 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 11:41:39,730 - Zovix - INFO - Redis cache connected
+2026-09-15 11:41:43,004 - Zovix - INFO - Database initialized successfully
+2026-09-15 11:42:39,943 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 11:42:41,990 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 11:42:41,991 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 11:42:44,007 - Zovix - INFO - Redis cache connected
+2026-09-15 11:42:47,311 - Zovix - INFO - Database initialized successfully
+2026-09-15 11:43:38,096 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 11:43:40,125 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 11:43:40,125 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 11:43:42,147 - Zovix - INFO - Redis cache connected
+2026-09-15 11:43:44,208 - Zovix - INFO - Database initialized successfully
+2026-09-15 11:43:48,667 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 11:43:50,699 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 11:43:50,699 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 11:43:52,745 - Zovix - INFO - Redis cache connected
+2026-09-15 11:43:56,022 - Zovix - INFO - Database initialized successfully
+2026-09-15 11:51:57,277 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 11:52:01,211 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 11:52:01,220 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 11:52:03,271 - Zovix - INFO - Redis cache connected
+2026-09-15 11:52:06,520 - Zovix - INFO - Database initialized successfully
+2026-09-15 11:52:13,687 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 11:52:15,733 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 11:52:15,734 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 11:52:17,772 - Zovix - INFO - Redis cache connected
+2026-09-15 11:52:21,062 - Zovix - INFO - Database initialized successfully
+2026-09-15 11:52:21,160 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 11:52:23,195 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 11:52:23,196 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 11:52:25,239 - Zovix - INFO - Redis cache connected
+2026-09-15 11:52:28,434 - Zovix - INFO - Database initialized successfully
+2026-09-15 11:52:28,539 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 11:52:30,589 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 11:52:30,590 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 11:52:32,639 - Zovix - INFO - Redis cache connected
+2026-09-15 11:52:35,807 - Zovix - INFO - Database initialized successfully
+2026-09-15 11:52:46,704 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 11:52:48,744 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 11:52:48,745 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 11:52:50,784 - Zovix - INFO - Redis cache connected
+2026-09-15 11:52:53,933 - Zovix - INFO - Database initialized successfully
+2026-09-15 11:52:54,029 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 11:52:56,083 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 11:52:56,084 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 11:52:58,123 - Zovix - INFO - Redis cache connected
+2026-09-15 11:53:01,408 - Zovix - INFO - Database initialized successfully
+2026-09-15 11:53:01,513 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 11:53:03,549 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 11:53:03,551 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 11:53:05,594 - Zovix - INFO - Redis cache connected
+2026-09-15 11:53:08,473 - Zovix - INFO - Database initialized successfully
+2026-09-15 11:53:25,412 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 11:53:27,441 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 11:53:27,442 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 11:53:29,483 - Zovix - INFO - Redis cache connected
+2026-09-15 11:53:32,640 - Zovix - INFO - Database initialized successfully
+2026-09-15 11:53:32,772 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 11:53:34,818 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 11:53:34,819 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 11:53:36,873 - Zovix - INFO - Redis cache connected
+2026-09-15 11:53:40,012 - Zovix - INFO - Database initialized successfully
+2026-09-15 11:53:40,125 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 11:53:42,170 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 11:53:42,171 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 11:53:44,226 - Zovix - INFO - Redis cache connected
+2026-09-15 11:53:47,180 - Zovix - INFO - Database initialized successfully
+2026-09-15 11:55:34,905 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 11:55:36,930 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 11:55:36,930 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 11:55:38,976 - Zovix - INFO - Redis cache connected
+2026-09-15 11:55:42,587 - Zovix - INFO - Database initialized successfully
+2026-09-15 11:55:42,683 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 11:55:44,708 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 11:55:44,709 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 11:55:46,764 - Zovix - INFO - Redis cache connected
+2026-09-15 11:55:49,856 - Zovix - INFO - Database initialized successfully
+2026-09-15 11:55:50,937 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 11:55:52,977 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 11:55:52,977 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 11:55:55,006 - Zovix - INFO - Redis cache connected
+2026-09-15 11:55:58,253 - Zovix - INFO - Database initialized successfully
+2026-09-15 11:57:36,677 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 11:57:38,723 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 11:57:38,725 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 11:57:40,775 - Zovix - INFO - Redis cache connected
+2026-09-15 11:57:43,932 - Zovix - INFO - Database initialized successfully
+2026-09-15 11:57:47,809 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 11:57:49,864 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 11:57:49,868 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 11:57:51,905 - Zovix - INFO - Redis cache connected
+2026-09-15 11:57:55,300 - Zovix - INFO - Database initialized successfully
+2026-09-15 11:58:09,990 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 11:58:12,013 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 11:58:12,014 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 11:58:14,070 - Zovix - INFO - Redis cache connected
+2026-09-15 11:58:17,195 - Zovix - INFO - Database initialized successfully
+2026-09-15 11:58:20,168 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 11:58:22,204 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 11:58:22,205 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 11:58:24,260 - Zovix - INFO - Redis cache connected
+2026-09-15 11:58:27,349 - Zovix - INFO - Database initialized successfully
+2026-09-15 11:58:27,790 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 11:58:29,823 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 11:58:29,824 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 11:58:31,880 - Zovix - INFO - Redis cache connected
+2026-09-15 11:58:35,234 - Zovix - INFO - Database initialized successfully
+2026-09-15 11:58:38,136 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 11:58:40,177 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 11:58:40,177 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 11:58:42,226 - Zovix - INFO - Redis cache connected
+2026-09-15 11:58:45,371 - Zovix - INFO - Database initialized successfully
+2026-09-15 11:59:02,507 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 11:59:04,562 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 11:59:04,563 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 11:59:06,593 - Zovix - INFO - Redis cache connected
+2026-09-15 11:59:09,890 - Zovix - INFO - Database initialized successfully
+2026-09-15 11:59:47,222 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 11:59:49,249 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 11:59:49,250 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 11:59:51,291 - Zovix - INFO - Redis cache connected
+2026-09-15 11:59:54,799 - Zovix - INFO - Database initialized successfully
+2026-09-15 12:00:04,560 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 12:00:06,612 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 12:00:06,613 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 12:00:08,659 - Zovix - INFO - Redis cache connected
+2026-09-15 12:00:12,412 - Zovix - INFO - Database initialized successfully
+2026-09-15 12:00:16,886 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 12:00:18,909 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 12:00:18,911 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 12:00:20,968 - Zovix - INFO - Redis cache connected
+2026-09-15 12:00:24,291 - Zovix - INFO - Database initialized successfully
+2026-09-15 12:00:32,048 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 12:00:34,093 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 12:00:34,094 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 12:00:36,148 - Zovix - INFO - Redis cache connected
+2026-09-15 12:00:39,241 - Zovix - INFO - Database initialized successfully
+2026-09-15 12:00:43,211 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 12:00:45,245 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 12:00:45,246 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 12:00:47,274 - Zovix - INFO - Redis cache connected
+2026-09-15 12:00:50,505 - Zovix - INFO - Database initialized successfully
+2026-09-15 18:36:49,164 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 18:36:51,191 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 18:36:51,191 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 18:36:53,221 - Zovix - INFO - Redis cache connected
+2026-09-15 18:36:55,233 - Zovix - INFO - Database initialized successfully
+2026-09-15 18:37:01,033 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 18:37:03,061 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 18:37:03,062 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 18:37:05,094 - Zovix - INFO - Redis cache connected
+2026-09-15 18:37:06,684 - Zovix - INFO - Database initialized successfully
+2026-09-15 18:37:09,199 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 18:37:11,231 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 18:37:11,232 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 18:37:13,277 - Zovix - INFO - Redis cache connected
+2026-09-15 18:37:15,139 - Zovix - INFO - Database initialized successfully
+2026-09-15 18:38:26,118 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 18:38:28,136 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 18:38:28,138 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 18:38:30,182 - Zovix - INFO - Redis cache connected
+2026-09-15 18:38:31,810 - Zovix - INFO - Database initialized successfully
+2026-09-15 18:38:36,286 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 18:38:38,332 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 18:38:38,332 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 18:38:40,376 - Zovix - INFO - Redis cache connected
+2026-09-15 18:38:41,777 - Zovix - INFO - Database initialized successfully
+2026-09-15 18:38:44,709 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 18:38:46,754 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 18:38:46,755 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 18:38:48,782 - Zovix - INFO - Redis cache connected
+2026-09-15 18:38:50,582 - Zovix - INFO - Database initialized successfully
+2026-09-15 18:43:55,238 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 18:43:57,270 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 18:43:57,271 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 18:43:59,304 - Zovix - INFO - Redis cache connected
+2026-09-15 18:58:05,071 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 18:58:07,122 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 18:58:07,123 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 18:58:09,150 - Zovix - INFO - Redis cache connected
+2026-09-15 18:58:12,462 - Zovix - INFO - Database initialized successfully
+2026-09-15 18:58:35,038 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 18:58:37,074 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 18:58:37,074 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 18:58:39,122 - Zovix - INFO - Redis cache connected
+2026-09-15 18:58:42,287 - Zovix - INFO - Database initialized successfully
+2026-09-15 18:59:29,728 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 18:59:33,382 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 18:59:33,399 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 18:59:35,451 - Zovix - INFO - Redis cache connected
+2026-09-15 18:59:38,812 - Zovix - INFO - Database initialized successfully
+2026-09-15 18:59:44,837 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 18:59:46,891 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 18:59:46,891 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 18:59:48,915 - Zovix - INFO - Redis cache connected
+2026-09-15 18:59:52,021 - Zovix - INFO - Database initialized successfully
+2026-09-15 18:59:54,938 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 18:59:56,976 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 18:59:56,977 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 18:59:59,021 - Zovix - INFO - Redis cache connected
+2026-09-15 19:00:02,057 - Zovix - INFO - Database initialized successfully
+2026-09-15 19:06:24,318 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 19:06:26,375 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 19:06:26,376 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 19:06:28,396 - Zovix - INFO - Redis cache connected
+2026-09-15 19:06:29,925 - Zovix - INFO - Database initialized successfully
+2026-09-15 19:06:40,688 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 19:06:42,729 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 19:06:42,730 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 19:06:44,763 - Zovix - INFO - Redis cache connected
+2026-09-15 19:06:46,213 - Zovix - INFO - Database initialized successfully
+2026-09-15 19:07:00,593 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 19:07:02,641 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 19:07:02,642 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 19:07:04,669 - Zovix - INFO - Redis cache connected
+2026-09-15 19:07:07,842 - Zovix - INFO - Database initialized successfully
+2026-09-15 19:07:33,874 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 19:07:38,133 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 19:07:38,148 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 19:07:40,205 - Zovix - INFO - Redis cache connected
+2026-09-15 19:07:43,579 - Zovix - INFO - Database initialized successfully
+2026-09-15 19:10:01,214 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 19:10:03,242 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 19:10:03,243 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 19:10:05,295 - Zovix - INFO - Redis cache connected
+2026-09-15 19:10:07,947 - Zovix - INFO - Database initialized successfully
+2026-09-15 19:10:44,317 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 19:10:46,339 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 19:10:46,339 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 19:10:48,365 - Zovix - INFO - Redis cache connected
+2026-09-15 19:10:51,690 - Zovix - INFO - Database initialized successfully
+2026-09-15 19:12:30,554 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 19:12:32,585 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 19:12:32,585 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 19:12:34,598 - Zovix - INFO - Redis cache connected
+2026-09-15 19:12:37,777 - Zovix - INFO - Database initialized successfully
+2026-09-15 19:12:40,677 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 19:12:42,700 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 19:12:42,700 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 19:12:44,731 - Zovix - INFO - Redis cache connected
+2026-09-15 19:12:47,813 - Zovix - INFO - Database initialized successfully
+2026-09-15 19:13:28,936 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 19:13:30,960 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 19:13:30,960 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 19:13:32,975 - Zovix - INFO - Redis cache connected
+2026-09-15 19:13:34,408 - Zovix - INFO - Database initialized successfully
+2026-09-15 19:13:40,056 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 19:13:42,082 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 19:13:42,082 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 19:13:44,119 - Zovix - INFO - Redis cache connected
+2026-09-15 19:13:46,810 - Zovix - INFO - Database initialized successfully
+2026-09-15 19:14:12,695 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 19:14:14,716 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 19:14:14,716 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 19:14:16,738 - Zovix - INFO - Redis cache connected
+2026-09-15 19:14:18,249 - Zovix - INFO - Database initialized successfully
+2026-09-15 19:17:58,426 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 19:18:00,463 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 19:18:00,465 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 19:18:02,511 - Zovix - INFO - Redis cache connected
+2026-09-15 19:18:04,995 - Zovix - INFO - Database initialized successfully
+2026-09-15 19:18:10,383 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 19:18:12,422 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 19:18:12,423 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 19:18:14,462 - Zovix - INFO - Redis cache connected
+2026-09-15 19:18:17,648 - Zovix - INFO - Database initialized successfully
+2026-09-15 19:18:51,655 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 19:18:53,697 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 19:18:53,698 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 19:18:55,754 - Zovix - INFO - Redis cache connected
+2026-09-15 19:18:59,119 - Zovix - INFO - Database initialized successfully
+2026-09-15 19:19:27,672 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 19:19:29,698 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 19:19:29,700 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 19:19:31,746 - Zovix - INFO - Redis cache connected
+2026-09-15 19:19:33,875 - Zovix - INFO - Database initialized successfully
+2026-09-15 19:20:04,648 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 19:20:06,695 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 19:20:06,696 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 19:20:08,740 - Zovix - INFO - Redis cache connected
+2026-09-15 19:20:11,824 - Zovix - INFO - Database initialized successfully
+2026-09-15 19:20:18,153 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 19:20:20,200 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 19:20:20,202 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 19:20:22,245 - Zovix - INFO - Redis cache connected
+2026-09-15 19:20:25,546 - Zovix - INFO - Database initialized successfully
+2026-09-15 19:20:45,328 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 19:20:47,361 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 19:20:47,362 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 19:20:49,403 - Zovix - INFO - Redis cache connected
+2026-09-15 19:20:52,532 - Zovix - INFO - Database initialized successfully
+2026-09-15 19:21:08,524 - Zovix - WARNING - DeepFace scan failed (using default voice): name 'DeepFace' is not defined
+2026-09-15 19:21:08,534 - Zovix - INFO - Image validated: (912, 512), mode=RGB
+2026-09-15 19:21:08,535 - Zovix - INFO - DeepFace Auto-Voice: Adult Male (Age:25) -> Priya (Hindi Female)
+2026-09-15 19:21:11,717 - Zovix - WARNING - Fallback TTS voice failed (en-US-GuyNeural): No audio was received. Please verify that your parameters are correct.
+2026-09-15 19:21:12,513 - Zovix - WARNING - Fallback TTS voice failed (en-US-AriaNeural): No audio was received. Please verify that your parameters are correct.
+2026-09-15 19:21:13,318 - Zovix - WARNING - Fallback TTS voice failed (en-GB-RyanNeural): No audio was received. Please verify that your parameters are correct.
+2026-09-15 19:21:13,322 - Zovix - INFO - Devanagari script detected - auto-enabling Hindi voice model
+2026-09-15 19:21:13,322 - Zovix - INFO - TTS tiers available: ['ElevenLabs', 'Edge-TTS', 'GenerativeFallback']
+2026-09-15 19:21:13,678 - Zovix - WARNING - ElevenLabs HTTP 402: {"detail":{"type":"payment_required","code":"paid_plan_required","message":"Free users cannot use library voices via the API. Please upgrade your subscription to use this voice.","status":"payment_req
+2026-09-15 19:21:15,841 - zovix.comfyui - ERROR - RUNPOD_API_KEY not configured; cannot call ComfyUI RunPod face endpoint.
+2026-09-15 19:21:15,841 - Zovix - ERROR - RunPod ComfyUI face video generation failed. No local fallback available.
+2026-09-15 19:36:23,980 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 19:36:27,306 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 19:36:27,317 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 19:36:29,337 - Zovix - INFO - Redis cache connected
+2026-09-15 19:36:31,543 - Zovix - INFO - Database initialized successfully
+2026-09-15 19:36:37,418 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 19:36:39,460 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 19:36:39,461 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 19:36:41,494 - Zovix - INFO - Redis cache connected
+2026-09-15 19:36:43,803 - Zovix - INFO - Database initialized successfully
+2026-09-15 19:36:46,351 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 19:36:48,401 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 19:36:48,402 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 19:36:50,444 - Zovix - INFO - Redis cache connected
+2026-09-15 19:36:53,819 - Zovix - INFO - Database initialized successfully
+2026-09-15 19:40:21,724 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 19:40:23,760 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 19:40:23,762 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 19:40:25,811 - Zovix - INFO - Redis cache connected
+2026-09-15 19:40:29,027 - Zovix - INFO - Database initialized successfully
+2026-09-15 19:41:44,295 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 19:41:47,652 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 19:41:47,660 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 19:41:49,686 - Zovix - INFO - Redis cache connected
+2026-09-15 19:41:51,997 - Zovix - INFO - Database initialized successfully
+2026-09-15 19:46:06,587 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 19:46:09,912 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 19:46:09,927 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 19:46:11,973 - Zovix - INFO - Redis cache connected
+2026-09-15 19:46:13,460 - Zovix - INFO - Database initialized successfully
+2026-09-15 19:46:59,633 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 19:47:02,988 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 19:47:02,999 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 19:47:05,020 - Zovix - INFO - Redis cache connected
+2026-09-15 19:47:08,225 - Zovix - INFO - Database initialized successfully
+2026-09-15 19:49:33,173 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 19:49:36,520 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 19:49:36,530 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 19:49:38,563 - Zovix - INFO - Redis cache connected
+2026-09-15 19:49:41,893 - Zovix - INFO - Database initialized successfully
+2026-09-15 19:53:03,972 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 19:53:07,261 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 19:53:07,274 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 19:53:09,304 - Zovix - INFO - Redis cache connected
+2026-09-15 19:53:12,464 - Zovix - INFO - Database initialized successfully
+2026-09-15 19:53:23,718 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 19:53:25,768 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 19:53:25,769 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 19:53:27,803 - Zovix - INFO - Redis cache connected
+2026-09-15 19:53:31,102 - Zovix - INFO - Database initialized successfully
+2026-09-15 20:00:31,922 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 20:00:35,410 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 20:00:35,424 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 20:00:37,458 - Zovix - INFO - Redis cache connected
+2026-09-15 20:00:40,981 - Zovix - INFO - Database initialized successfully
+2026-09-15 20:02:06,524 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 20:02:09,845 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 20:02:09,859 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 20:02:11,891 - Zovix - INFO - Redis cache connected
+2026-09-15 20:02:15,189 - Zovix - INFO - Database initialized successfully
+2026-09-15 20:06:45,961 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 20:06:49,291 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 20:06:49,304 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 20:06:51,359 - Zovix - INFO - Redis cache connected
+2026-09-15 20:06:55,277 - Zovix - INFO - Database initialized successfully
+2026-09-15 20:13:11,567 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 20:13:14,929 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 20:13:14,943 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 20:13:16,979 - Zovix - INFO - Redis cache connected
+2026-09-15 20:13:18,507 - Zovix - INFO - Database initialized successfully
+2026-09-15 20:20:19,612 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 20:20:21,650 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 20:20:21,650 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 20:20:23,673 - Zovix - INFO - Redis cache connected
+2026-09-15 20:20:25,994 - Zovix - INFO - Database initialized successfully
+2026-09-15 20:21:54,705 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 20:21:56,751 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 20:21:56,753 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 20:21:58,792 - Zovix - INFO - Redis cache connected
+2026-09-15 20:22:00,744 - Zovix - INFO - Database initialized successfully
+2026-09-15 20:23:09,419 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 20:23:11,455 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 20:23:11,457 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 20:23:13,508 - Zovix - INFO - Redis cache connected
+2026-09-15 20:23:16,771 - Zovix - INFO - Database initialized successfully
+2026-09-15 20:23:23,920 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 20:23:25,969 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 20:23:25,971 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 20:23:28,015 - Zovix - INFO - Redis cache connected
+2026-09-15 20:23:31,103 - Zovix - INFO - Database initialized successfully
+2026-09-15 20:23:40,379 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 20:23:42,416 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 20:23:42,417 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 20:23:44,460 - Zovix - INFO - Redis cache connected
+2026-09-15 20:23:47,038 - Zovix - INFO - Database initialized successfully
+2026-09-15 20:23:49,518 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 20:23:51,549 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 20:23:51,550 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 20:23:53,590 - Zovix - INFO - Redis cache connected
+2026-09-15 20:23:55,198 - Zovix - INFO - Database initialized successfully
+2026-09-15 20:24:01,578 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 20:24:03,616 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 20:24:03,616 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 20:24:05,653 - Zovix - INFO - Redis cache connected
+2026-09-15 20:24:08,009 - Zovix - INFO - Database initialized successfully
+2026-09-15 20:25:27,210 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 20:25:30,543 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 20:25:30,549 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 20:25:32,588 - Zovix - INFO - Redis cache connected
+2026-09-15 20:25:35,730 - Zovix - INFO - Database initialized successfully
+2026-09-15 20:28:42,942 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 20:28:44,995 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 20:28:44,997 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 20:28:47,039 - Zovix - INFO - Redis cache connected
+2026-09-15 20:28:49,500 - Zovix - INFO - Database initialized successfully
+2026-09-15 20:29:16,005 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 20:29:19,311 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 20:29:19,327 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 20:29:21,370 - Zovix - INFO - Redis cache connected
+2026-09-15 20:29:24,035 - Zovix - INFO - Database initialized successfully
+2026-09-15 20:35:04,903 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 20:35:08,242 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 20:35:08,257 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 20:35:10,318 - Zovix - INFO - Redis cache connected
+2026-09-15 20:35:13,471 - Zovix - INFO - Database initialized successfully
+2026-09-15 20:37:18,063 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 20:37:20,114 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 20:37:20,115 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 20:37:22,132 - Zovix - INFO - Redis cache connected
+2026-09-15 20:37:24,339 - Zovix - INFO - Database initialized successfully
+2026-09-15 20:38:33,818 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 20:38:37,090 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 20:38:37,105 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 20:38:39,149 - Zovix - INFO - Redis cache connected
+2026-09-15 20:38:42,370 - Zovix - INFO - Database initialized successfully
+2026-09-15 20:41:38,672 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 20:41:40,687 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 20:41:40,687 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 20:41:42,740 - Zovix - INFO - Redis cache connected
+2026-09-15 20:41:45,328 - Zovix - INFO - Database initialized successfully
+2026-09-15 20:42:12,202 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 20:42:14,248 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 20:42:14,249 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 20:42:16,285 - Zovix - INFO - Redis cache connected
+2026-09-15 20:42:19,356 - Zovix - INFO - Database initialized successfully
+2026-09-15 20:42:39,733 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 20:42:43,067 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 20:42:43,078 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 20:42:45,122 - Zovix - INFO - Redis cache connected
+2026-09-15 20:42:46,839 - Zovix - INFO - Database initialized successfully
+2026-09-15 20:46:52,628 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 20:46:55,963 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 20:46:55,969 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 20:46:58,013 - Zovix - INFO - Redis cache connected
+2026-09-15 20:47:01,325 - Zovix - INFO - Database initialized successfully
+2026-09-15 20:52:27,300 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 20:52:30,618 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 20:52:30,624 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 20:52:32,648 - Zovix - INFO - Redis cache connected
+2026-09-15 20:52:36,014 - Zovix - INFO - Database initialized successfully
+2026-09-15 20:52:41,005 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 20:52:43,037 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 20:52:43,038 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 20:52:45,099 - Zovix - INFO - Redis cache connected
+2026-09-15 20:52:47,087 - Zovix - INFO - Database initialized successfully
+2026-09-15 20:52:58,614 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 20:53:00,649 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 20:53:00,650 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 20:53:02,666 - Zovix - INFO - Redis cache connected
+2026-09-15 20:53:04,268 - Zovix - INFO - Database initialized successfully
+2026-09-15 20:53:31,699 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 20:53:33,744 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 20:53:33,745 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 20:53:35,799 - Zovix - INFO - Redis cache connected
+2026-09-15 20:53:38,830 - Zovix - INFO - Database initialized successfully
+2026-09-15 20:53:56,283 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 20:53:58,299 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 20:53:58,301 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 20:54:00,343 - Zovix - INFO - Redis cache connected
+2026-09-15 20:54:02,849 - Zovix - INFO - Database initialized successfully
+2026-09-15 20:54:06,496 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 20:54:08,545 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 20:54:08,547 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 20:54:10,592 - Zovix - INFO - Redis cache connected
+2026-09-15 20:54:12,325 - Zovix - INFO - Database initialized successfully
+2026-09-15 20:54:38,465 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 20:54:40,491 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 20:54:40,492 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 20:54:42,536 - Zovix - INFO - Redis cache connected
+2026-09-15 20:54:44,584 - Zovix - INFO - Database initialized successfully
+2026-09-15 20:55:13,550 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 20:55:14,730 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 20:55:15,586 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 20:55:15,587 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 20:55:16,755 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 20:55:16,756 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 20:55:17,630 - Zovix - INFO - Redis cache connected
+2026-09-15 20:55:18,810 - Zovix - INFO - Redis cache connected
+2026-09-15 20:55:21,659 - Zovix - INFO - Database initialized successfully
+2026-09-15 20:55:27,730 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 20:55:29,749 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 20:55:29,750 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 20:55:31,795 - Zovix - INFO - Redis cache connected
+2026-09-15 20:55:34,805 - Zovix - INFO - Database initialized successfully
+2026-09-15 20:55:42,383 - Zovix - WARNING - DeepFace scan failed (using default voice): name 'DeepFace' is not defined
+2026-09-15 20:55:42,399 - Zovix - INFO - Image validated: (912, 512), mode=RGB
+2026-09-15 20:55:42,400 - Zovix - INFO - DeepFace Auto-Voice: Adult Male (Age:25) -> Rachel (Premium Female)
+2026-09-15 20:55:45,370 - Zovix - WARNING - ElevenLabs voice ID pNInz6obpgDQ5IdwJg7p rejected (404); retrying with default voice.
+2026-09-15 20:55:46,917 - Zovix - WARNING - Fallback TTS voice failed (en-US-AriaNeural): No audio was received. Please verify that your parameters are correct.
+2026-09-15 20:55:47,809 - Zovix - WARNING - Fallback TTS voice failed (en-US-GuyNeural): No audio was received. Please verify that your parameters are correct.
+2026-09-15 20:55:48,610 - Zovix - WARNING - Fallback TTS voice failed (en-GB-SoniaNeural): No audio was received. Please verify that your parameters are correct.
+2026-09-15 20:55:48,611 - Zovix - INFO - Devanagari script detected - auto-enabling Hindi voice model
+2026-09-15 20:55:48,611 - Zovix - INFO - TTS tiers available: ['ElevenLabs', 'Edge-TTS', 'GenerativeFallback']
+2026-09-15 20:55:49,677 - Zovix - WARNING - ElevenLabs voice ID pNInz6obpgDQ5IdwJg7p rejected (404); retrying with default voice.
+2026-09-15 20:55:50,030 - Zovix - WARNING - ElevenLabs HTTP 402: {"detail":{"type":"payment_required","code":"paid_plan_required","message":"Free users cannot use library voices via the API. Please upgrade your subscription to use this voice.","status":"payment_req
+2026-09-15 20:55:51,257 - zovix.comfyui - ERROR - RUNPOD_API_KEY not configured; cannot call ComfyUI RunPod face endpoint.
+2026-09-15 20:55:51,258 - Zovix - WARNING - RunPod face generation failed; starting Replicate fallback: RunPod returned no video output.
+2026-09-15 20:55:52,317 - Zovix - WARNING - ElevenLabs voice ID pNInz6obpgDQ5IdwJg7p rejected (404); retrying with default voice.
+2026-09-15 20:55:53,753 - Zovix - WARNING - Fallback TTS voice failed (en-US-AriaNeural): No audio was received. Please verify that your parameters are correct.
+2026-09-15 20:55:54,551 - Zovix - WARNING - Fallback TTS voice failed (en-US-GuyNeural): No audio was received. Please verify that your parameters are correct.
+2026-09-15 20:55:55,356 - Zovix - WARNING - Fallback TTS voice failed (en-GB-SoniaNeural): No audio was received. Please verify that your parameters are correct.
+2026-09-15 20:55:55,357 - Zovix - INFO - Devanagari script detected - auto-enabling Hindi voice model
+2026-09-15 20:55:55,358 - Zovix - INFO - TTS tiers available: ['ElevenLabs', 'Edge-TTS', 'GenerativeFallback']
+2026-09-15 20:55:56,444 - Zovix - WARNING - ElevenLabs voice ID pNInz6obpgDQ5IdwJg7p rejected (404); retrying with default voice.
+2026-09-15 20:55:56,773 - Zovix - WARNING - ElevenLabs HTTP 402: {"detail":{"type":"payment_required","code":"paid_plan_required","message":"Free users cannot use library voices via the API. Please upgrade your subscription to use this voice.","status":"payment_req
+2026-09-15 20:56:03,274 - httpx - INFO - HTTP Request: POST https://api.replicate.com/v1/models/prunaai/p-video-avatar/predictions "HTTP/1.1 201 Created"
+2026-09-15 20:56:04,297 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/zqr56jyq2drmw0d0mpp9hcwhvm "HTTP/1.1 200 OK"
+2026-09-15 20:56:05,322 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/zqr56jyq2drmw0d0mpp9hcwhvm "HTTP/1.1 200 OK"
+2026-09-15 20:56:06,252 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/zqr56jyq2drmw0d0mpp9hcwhvm "HTTP/1.1 200 OK"
+2026-09-15 20:56:07,267 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/zqr56jyq2drmw0d0mpp9hcwhvm "HTTP/1.1 200 OK"
+2026-09-15 20:56:08,199 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/zqr56jyq2drmw0d0mpp9hcwhvm "HTTP/1.1 200 OK"
+2026-09-15 20:56:09,133 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/zqr56jyq2drmw0d0mpp9hcwhvm "HTTP/1.1 200 OK"
+2026-09-15 20:56:10,136 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/zqr56jyq2drmw0d0mpp9hcwhvm "HTTP/1.1 200 OK"
+2026-09-15 20:56:11,158 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/zqr56jyq2drmw0d0mpp9hcwhvm "HTTP/1.1 200 OK"
+2026-09-15 20:56:12,085 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/zqr56jyq2drmw0d0mpp9hcwhvm "HTTP/1.1 200 OK"
+2026-09-15 20:56:13,070 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/zqr56jyq2drmw0d0mpp9hcwhvm "HTTP/1.1 200 OK"
+2026-09-15 20:56:14,027 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/zqr56jyq2drmw0d0mpp9hcwhvm "HTTP/1.1 200 OK"
+2026-09-15 20:56:15,051 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/zqr56jyq2drmw0d0mpp9hcwhvm "HTTP/1.1 200 OK"
+2026-09-15 20:56:16,073 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/zqr56jyq2drmw0d0mpp9hcwhvm "HTTP/1.1 200 OK"
+2026-09-15 20:56:17,001 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/zqr56jyq2drmw0d0mpp9hcwhvm "HTTP/1.1 200 OK"
+2026-09-15 20:56:18,019 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/zqr56jyq2drmw0d0mpp9hcwhvm "HTTP/1.1 200 OK"
+2026-09-15 20:56:19,434 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/zqr56jyq2drmw0d0mpp9hcwhvm "HTTP/1.1 200 OK"
+2026-09-15 20:56:20,337 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/zqr56jyq2drmw0d0mpp9hcwhvm "HTTP/1.1 200 OK"
+2026-09-15 20:56:21,297 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/zqr56jyq2drmw0d0mpp9hcwhvm "HTTP/1.1 200 OK"
+2026-09-15 20:56:22,218 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/zqr56jyq2drmw0d0mpp9hcwhvm "HTTP/1.1 200 OK"
+2026-09-15 20:56:23,139 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/zqr56jyq2drmw0d0mpp9hcwhvm "HTTP/1.1 200 OK"
+2026-09-15 20:56:24,060 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/zqr56jyq2drmw0d0mpp9hcwhvm "HTTP/1.1 200 OK"
+2026-09-15 20:56:24,965 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/zqr56jyq2drmw0d0mpp9hcwhvm "HTTP/1.1 200 OK"
+2026-09-15 20:56:25,904 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/zqr56jyq2drmw0d0mpp9hcwhvm "HTTP/1.1 200 OK"
+2026-09-15 20:56:26,808 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/zqr56jyq2drmw0d0mpp9hcwhvm "HTTP/1.1 200 OK"
+2026-09-15 20:56:27,748 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/zqr56jyq2drmw0d0mpp9hcwhvm "HTTP/1.1 200 OK"
+2026-09-15 20:56:28,658 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/zqr56jyq2drmw0d0mpp9hcwhvm "HTTP/1.1 200 OK"
+2026-09-15 20:56:29,584 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/zqr56jyq2drmw0d0mpp9hcwhvm "HTTP/1.1 200 OK"
+2026-09-15 20:56:30,483 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/zqr56jyq2drmw0d0mpp9hcwhvm "HTTP/1.1 200 OK"
+2026-09-15 20:56:31,389 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/zqr56jyq2drmw0d0mpp9hcwhvm "HTTP/1.1 200 OK"
+2026-09-15 20:56:32,304 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/zqr56jyq2drmw0d0mpp9hcwhvm "HTTP/1.1 200 OK"
+2026-09-15 20:56:33,201 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/zqr56jyq2drmw0d0mpp9hcwhvm "HTTP/1.1 200 OK"
+2026-09-15 20:56:34,114 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/zqr56jyq2drmw0d0mpp9hcwhvm "HTTP/1.1 200 OK"
+2026-09-15 20:56:35,530 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/zqr56jyq2drmw0d0mpp9hcwhvm "HTTP/1.1 200 OK"
+2026-09-15 20:56:39,005 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 20:56:41,034 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 20:56:41,035 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 20:56:43,060 - Zovix - INFO - Redis cache connected
+2026-09-15 20:56:45,320 - Zovix - INFO - Database initialized successfully
+2026-09-15 20:57:34,228 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 20:57:36,276 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 20:57:36,277 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 20:57:38,306 - Zovix - INFO - Redis cache connected
+2026-09-15 20:57:41,036 - Zovix - INFO - Database initialized successfully
+2026-09-15 20:57:50,790 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 20:57:52,822 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 20:57:52,823 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 20:57:54,842 - Zovix - INFO - Redis cache connected
+2026-09-15 20:57:58,166 - Zovix - INFO - Database initialized successfully
+2026-09-15 21:12:50,349 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-15 21:12:53,674 - Zovix - INFO - Redis connected for rate limiting
+2026-09-15 21:12:53,682 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-15 21:12:55,719 - Zovix - INFO - Redis cache connected
+2026-09-15 21:12:58,781 - Zovix - INFO - Database initialized successfully

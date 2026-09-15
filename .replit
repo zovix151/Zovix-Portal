@@ -1,0 +1,5 @@
+run = "streamlit run replit_face_app.py --server.address 0.0.0.0 --server.port $PORT"
+
+[deployment]
+run = ["streamlit", "run", "replit_face_app.py", "--server.address", "0.0.0.0", "--server.port", "$PORT"]
+deploymentTarget = "cloudrun"

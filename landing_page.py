@@ -1,5 +1,4 @@
 import streamlit as st
-import streamlit as st
 
 st.set_page_config(
     page_title="Zovix - Create Cinematic AI Videos in Minutes",
@@ -23,8 +22,6 @@ class WorldClassLandingPage:
             st.session_state["current_testimonial"] = 0
 
     def render(self):
-        if st.button("🔑 Login", key="landing_auth_button"):
-            st.session_state["landing_auth_requested"] = True
         self._inject_css()
         self._render_navbar()
         self._render_hero()
@@ -43,6 +40,30 @@ class WorldClassLandingPage:
         <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Orbitron:wght@400;500;600;700;800;900&family=Playfair+Display:wght@700;900&display=swap');
         * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        /* ===== STREAMLIT DEFAULT UI HIDE ===== */
+        [data-testid="stHeader"], header, [data-testid="stToolbar"], #MainMenu, footer {
+            display: none !important;
+            visibility: hidden !important;
+            height: 0 !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+
+        /* ===== FULL WIDTH FIX ===== */
+        .block-container {
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+            max-width: 100% !important;
+            margin: 0 auto !important;
+        }
+        section.main > div {
+            max-width: 100% !important;
+            padding: 0 !important;
+        }
+
         .animated-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; overflow: hidden; pointer-events: none; }
         .animated-bg .orb { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.3; animation: floatOrb 20s infinite ease-in-out; }
         .animated-bg .orb:nth-child(1) { width: 500px; height: 500px; background: #EC4899; top: -100px; left: -100px; animation-delay: 0s; }
@@ -62,10 +83,14 @@ class WorldClassLandingPage:
         .nav-links a:hover { color: #ffffff; }
         .nav-cta-btn, .hero-primary-btn, .hero-secondary-btn, .pricing-btn { cursor: pointer; }
         .hero-section { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 120px 40px 60px; position: relative; z-index: 1; }
-        .hero-content { max-width: 1200px; width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
+        .hero-content { max-width: 1200px; width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; margin: 0 auto; }
         .hero-left { animation: fadeInUp 1s ease; }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
         .hero-badge { display: inline-block; padding: 6px 18px; background: rgba(69, 243, 255, 0.1); border: 1px solid rgba(69, 243, 255, 0.2); border-radius: 20px; font-size: 12px; color: #45f3ff; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 24px; }
+        .hero-topline { display: flex; align-items: center; justify-content: space-between; gap: 16px; width: calc(100vw - 130px); max-width: none; margin-bottom: 25px; }
+        .hero-topline .hero-badge { margin-bottom: 0; }
+        .hero-create-btn { display: inline-flex; align-items: center; white-space: nowrap; padding: 10px 14px; border: 1px solid rgba(255,255,255,.2); border-radius: 8px; background: rgba(255,255,255,.08); color: #fff; text-decoration: none !important; font: 700 12px 'Arial', sans-serif; transition: background .2s ease, border-color .2s ease, transform .2s ease; }
+        .hero-create-btn:hover { background: #EC4899; border-color: #EC4899; color: #fff; transform: translateY(-2px); }
         .hero-title { font-family: 'Orbitron', sans-serif; font-size: 64px; font-weight: 900; line-height: 1.1; margin-bottom: 24px; }
         .hero-title .highlight { background: linear-gradient(135deg, #45f3ff 0%, #EC4899 50%, #8b5cf6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
         .hero-subtitle { font-size: 20px; color: #94a3b8; line-height: 1.6; margin-bottom: 32px; max-width: 500px; }
@@ -75,10 +100,10 @@ class WorldClassLandingPage:
         .hero-stats { display: flex; gap: 40px; margin-top: 40px; }
         .hero-stat .number { font-family: 'Orbitron', sans-serif; font-size: 32px; font-weight: 700; color: #45f3ff; }
         .hero-stat .label { font-size: 13px; color: #94a3b8; margin-top: 4px; }
-        .hero-video-container { position: relative; border-radius: 20px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 30px 80px rgba(0,0,0,0.8); }
+        .hero-video-container { position: relative; border-radius: 20px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 30px 80px rgba(0,0,0,0.8); background: #000; }
         .hero-video-container video { width: 100%; display: block; }
         .hero-video-overlay { position: absolute; bottom: 0; left: 0; right: 0; padding: 30px; background: linear-gradient(transparent, rgba(0,0,0,0.8)); }
-        .features-section, .how-it-works, .stats-section, .testimonials-section, .pricing-section, .cta-section, .landing-footer { position: relative; z-index: 1; }
+        .features-section, .how-it-works, .stats-section, .testimonials-section, .pricing-section, .cta-section, .landing-footer { position: relative; z-index: 1; padding: 80px 40px; max-width: 1400px; margin: 0 auto; }
         .section-header { text-align: center; max-width: 700px; margin: 0 auto 60px; }
         .section-header .tag { display: inline-block; padding: 6px 18px; background: rgba(236, 72, 153, 0.1); border: 1px solid rgba(236, 72, 153, 0.2); border-radius: 20px; font-size: 12px; color: #EC4899; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; }
         .section-header h2 { font-family: 'Orbitron', sans-serif; font-size: 48px; font-weight: 800; margin-bottom: 16px; }
@@ -116,14 +141,14 @@ class WorldClassLandingPage:
         .cta-container { max-width: 800px; margin: 0 auto; text-align: center; }
         .cta-container h2 { font-family: 'Orbitron', sans-serif; font-size: 48px; font-weight: 800; margin-bottom: 16px; }
         .cta-container .cta-buttons { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
-        .landing-footer { padding: 40px; border-top: 1px solid rgba(255,255,255,0.05); }
+        .landing-footer { display: block !important; visibility: visible !important; opacity: 1 !important; clear: both; min-height: 260px; padding: 40px; border-top: 1px solid rgba(255,255,255,0.05); }
         .footer-content { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; }
         .footer-brand .logo-text { font-family: 'Orbitron', sans-serif; font-size: 24px; font-weight: 700; }
         .footer-brand .logo-text span { color: #45f3ff; }
         .footer-col a { display: block; text-decoration: none; font-size: 14px; padding: 6px 0; }
         .footer-bottom { max-width: 1200px; margin: 30px auto 0; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #64748b; }
         @media (max-width: 1024px) { .hero-content { grid-template-columns: 1fr; gap: 40px; } .hero-title { font-size: 48px; } .features-grid, .pricing-grid, .testimonials-grid, .stats-grid { grid-template-columns: repeat(2, 1fr); } .steps-container { grid-template-columns: 1fr; } .footer-content { grid-template-columns: 1fr 1fr; } }
-        @media (max-width: 768px) { .landing-nav { padding: 12px 20px; flex-wrap: wrap; gap: 12px; } .nav-links { display: none; } .hero-section { padding: 100px 20px 40px; } .hero-title { font-size: 36px; } .hero-subtitle { font-size: 16px; } .features-grid, .pricing-grid, .testimonials-grid, .stats-grid, .footer-content { grid-template-columns: 1fr; } .section-header h2, .cta-container h2 { font-size: 32px; } .hero-stats { flex-wrap: wrap; gap: 20px; } .footer-bottom { flex-direction: column; gap: 12px; text-align: center; } }
+        @media (max-width: 768px) { .landing-nav { padding: 12px 20px; flex-wrap: wrap; gap: 12px; } .nav-links { display: none; } .hero-section { padding: 100px 20px 40px; } .hero-topline { align-items: flex-start; width: 100%; } .hero-create-btn { padding: 9px 10px; font-size: 11px; } .hero-title { font-size: 36px; } .hero-subtitle { font-size: 16px; } .features-grid, .pricing-grid, .testimonials-grid, .stats-grid, .footer-content { grid-template-columns: 1fr; } .section-header h2, .cta-container h2 { font-size: 32px; } .hero-stats { flex-wrap: wrap; gap: 20px; } .footer-bottom { flex-direction: column; gap: 12px; text-align: center; } }
         </style>
         """, unsafe_allow_html=True)
 
@@ -150,11 +175,13 @@ class WorldClassLandingPage:
             <div class="animated-bg"><div class="orb"></div><div class="orb"></div><div class="orb"></div></div>
             <div class="hero-content">
                 <div class="hero-left">
-                    <div class="hero-badge">🚀 Next-Gen AI Studio</div>
+                    <div class="hero-topline">
+                        <div class="hero-badge">🚀 Next-Gen AI Studio</div>
+                        <a class="hero-create-btn" href="?page=studio">🚀 Start Creating Free</a>
+                    </div>
                     <h1 class="hero-title">Create Cinematic<br><span class="highlight">AI Videos</span><br>in Minutes</h1>
                     <p class="hero-subtitle">Transform your ideas into stunning cinematic videos with AI. No technical skills needed. Just describe what you want.</p>
                     <div class="hero-actions">
-                        <button class="hero-primary-btn" id="login_btn">🚀 Start Creating Free</button>
                         <button class="hero-secondary-btn" onclick="document.getElementById('features').scrollIntoView()">Watch Demo →</button>
                     </div>
                     <div class="hero-stats">
@@ -265,10 +292,45 @@ class WorldClassLandingPage:
         st.markdown("</div></section>", unsafe_allow_html=True)
 
     def _render_cta(self):
-        st.markdown("<section class='cta-section'><div class='cta-container'><h2>Ready to <span class='glow-text'>Create?</span></h2><p>Join 15,000+ creators already using ZOVIX to generate cinematic AI videos.</p><div class='cta-buttons'><button class='hero-primary-btn'>🚀 Start Creating Free</button><button class='hero-secondary-btn' onclick=\"document.getElementById('features').scrollIntoView()\">See Features →</button></div></div></section>", unsafe_allow_html=True)
+        st.markdown("<section class='cta-section'><div class='cta-container'><h2>Ready to <span class='glow-text'>Create?</span></h2><p>Join 15,000+ creators already using ZOVIX to generate cinematic AI videos.</p><div class='cta-buttons'><button class='hero-secondary-btn' onclick=\"document.getElementById('features').scrollIntoView()\">See Features →</button></div></div></section>", unsafe_allow_html=True)
+        st.link_button("🚀 Start Creating Free", "?page=studio", width="content")
 
     def _render_footer(self):
-        st.markdown("<footer class='landing-footer'><div class='footer-content'><div class='footer-brand'><div class='logo-text'>ZOV<span>IX</span></div><p>The next-generation AI video creation platform. Create cinematic videos from text in minutes.</p></div><div class='footer-col'><h5>Product</h5><a href='#features'>Features</a><a href='#pricing'>Pricing</a><a href='#'>Changelog</a><a href='#'>Roadmap</a></div><div class='footer-col'><h5>Company</h5><a href='#'>About</a><a href='#'>Careers</a><a href='#'>Blog</a><a href='#'>Contact</a></div><div class='footer-col'><h5>Support</h5><a href='#'>Help Center</a><a href='#'>Documentation</a><a href='#'>Privacy Policy</a><a href='#'>Terms</a></div></div><div class='footer-bottom'><span>© 2026 ZOVIX. All rights reserved.</span><span>Made with ❤️ in India 🇮🇳</span></div></footer>", unsafe_allow_html=True)
+        st.markdown("""
+        <footer class="landing-footer" id="support">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <div class="logo-text">ZOV<span>IX</span></div>
+                    <p>The next-generation AI video creation platform. Create cinematic videos from text in minutes.</p>
+                </div>
+                <div class="footer-col" id="product">
+                    <h5>Product</h5>
+                    <a href="#features">Features</a>
+                    <a href="#pricing">Pricing</a>
+                    <a href="#">Changelog</a>
+                    <a href="#">Roadmap</a>
+                </div>
+                <div class="footer-col" id="company">
+                    <h5>Company</h5>
+                    <a href="#">About</a>
+                    <a href="#">Careers</a>
+                    <a href="#">Blog</a>
+                    <a href="#">Contact</a>
+                </div>
+                <div class="footer-col">
+                    <h5>Support</h5>
+                    <a href="#">Help Center</a>
+                    <a href="#">Documentation</a>
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <span>© 2026 ZOVIX. All rights reserved.</span>
+                <span>Made with ❤️ in India 🇮🇳</span>
+            </div>
+        </footer>
+        """, unsafe_allow_html=True)
 
     def _inject_animations(self):
         st.markdown("""

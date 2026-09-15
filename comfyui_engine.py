@@ -33,6 +33,7 @@ logger = logging.getLogger("zovix.comfyui")
 RUNPOD_API_KEY = os.getenv("RUNPOD_API_KEY", "")
 RUNPOD_ENDPOINT_ID = os.getenv("COMFYUI_RUNPOD_ENDPOINT_ID", "ipb2c2vnew0qbz")
 RUNPOD_FACE_ENDPOINT_ID = os.getenv("COMFYUI_FACE_RUNPOD_ENDPOINT_ID", "fvk0rrbngd0zds")
+RUNPOD_FACE_MODE = os.getenv("RUNPOD_FACE_MODE", "handler").strip().lower()
 RUNPOD_BASE_URL = os.getenv("RUNPOD_BASE_URL", "https://api.runpod.ai/v2")
 
 _APP_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -296,6 +297,34 @@ def _extract_video_output(output):
     return None, None
 
 
+def _run_face_handler_job(face_image_path, audio_path, api_key, endpoint_id, quality, timeout):
+    """Call the rebuildable RunPod LivePortrait handler endpoint."""
+    image_mime = "image/png"
+    audio_ext = os.path.splitext(audio_path)[1].lower() if audio_path else ".wav"
+    audio_mime = {".wav": "audio/wav", ".ogg": "audio/ogg", ".m4a": "audio/mp4"}.get(audio_ext, "audio/mpeg")
+    payload = {
+        "input": {
+            "face_image_base64": _file_to_data_uri(face_image_path, image_mime),
+            "audio_base64": _file_to_data_uri(audio_path, audio_mime),
+            "enhancer": quality in {"HD", "4K"},
+            "resolution": {"Standard": "512x512", "HD": "768x768", "4K": "1024x1024"}.get(quality, "768x768"),
+            "output_format": "mp4",
+        }
+    }
+    url = f"{RUNPOD_BASE_URL}/{endpoint_id}/runsync"
+    response = requests.post(url, headers=_headers(api_key), json=payload, timeout=min(timeout, 90))
+    response.raise_for_status()
+    result = response.json()
+    if result.get("status") == "COMPLETED" or result.get("output") is not None:
+        return result
+    if result.get("status") == "FAILED":
+        raise RuntimeError(f"RunPod face handler failed: {result.get('error', result)}")
+    job_id = result.get("id")
+    if not job_id:
+        raise RuntimeError(f"RunPod face handler returned no job id: {result}")
+    return _poll_job(endpoint_id, job_id, api_key, timeout)
+
+
 def generate_face_video(face_image_path, audio_path=None, script_text="", duration=10, quality="HD",
                          api_key=None, endpoint_id=None, timeout=240):
     """
@@ -340,7 +369,12 @@ def generate_face_video(face_image_path, audio_path=None, script_text="", durati
 
         workflow = inject_face_settings(workflow, image_filename, audio_filename, script_text, duration, quality)
 
-        result = run_comfyui_job(workflow, api_key, endpoint_id, images=images_payload, timeout=timeout)
+        if RUNPOD_FACE_MODE == "handler":
+            if not audio_path or not os.path.exists(audio_path):
+                raise ValueError("RunPod face handler requires an audio file")
+            result = _run_face_handler_job(face_image_path, audio_path, api_key, endpoint_id, quality, timeout)
+        else:
+            result = run_comfyui_job(workflow, api_key, endpoint_id, images=images_payload, timeout=timeout)
 
         video_b64, video_url = _extract_video_output(result.get("output"))
         if video_url:
