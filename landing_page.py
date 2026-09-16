@@ -82,12 +82,13 @@ class WorldClassLandingPage:
         .nav-links a { color: #94a3b8; text-decoration: none; font-size: 13px; font-weight: 500; transition: all 0.3s ease; position: relative; }
         .nav-links a:hover { color: #ffffff; }
         .nav-cta-btn, .hero-primary-btn, .hero-secondary-btn, .pricing-btn { cursor: pointer; }
-        .hero-section { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 120px 40px 60px; position: relative; z-index: 1; }
-        .hero-content { max-width: 1200px; width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; margin: 0 auto; }
+        .hero-section { min-height: 100svh; display: flex; align-items: center; justify-content: center; padding: 120px 40px 60px; position: relative; z-index: 1; }
+        .hero-content { max-width: 1280px; width: min(100%, 1280px); display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(36px, 5vw, 72px); align-items: center; margin: 0 auto; }
+        .hero-left, .hero-right { min-width: 0; }
         .hero-left { animation: fadeInUp 1s ease; }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
         .hero-badge { display: inline-block; padding: 6px 18px; background: rgba(69, 243, 255, 0.1); border: 1px solid rgba(69, 243, 255, 0.2); border-radius: 20px; font-size: 12px; color: #45f3ff; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 24px; }
-        .hero-topline { display: flex; align-items: center; justify-content: space-between; gap: 16px; width: calc(100vw - 130px); max-width: none; margin-bottom: 25px; }
+        .hero-topline { display: flex; align-items: center; justify-content: space-between; gap: 16px; width: 100%; max-width: 100%; margin-bottom: 25px; }
         .hero-topline .hero-badge { margin-bottom: 0; }
         .hero-create-btn { display: inline-flex; align-items: center; white-space: nowrap; padding: 10px 14px; border: 1px solid rgba(255,255,255,.2); border-radius: 8px; background: rgba(255,255,255,.08); color: #fff; text-decoration: none !important; font: 700 12px 'Arial', sans-serif; transition: background .2s ease, border-color .2s ease, transform .2s ease; }
         .hero-create-btn:hover { background: #EC4899; border-color: #EC4899; color: #fff; transform: translateY(-2px); }
@@ -100,8 +101,8 @@ class WorldClassLandingPage:
         .hero-stats { display: flex; gap: 40px; margin-top: 40px; }
         .hero-stat .number { font-family: 'Orbitron', sans-serif; font-size: 32px; font-weight: 700; color: #45f3ff; }
         .hero-stat .label { font-size: 13px; color: #94a3b8; margin-top: 4px; }
-        .hero-video-container { position: relative; border-radius: 20px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 30px 80px rgba(0,0,0,0.8); background: #000; }
-        .hero-video-container video { width: 100%; display: block; }
+        .hero-video-container { position: relative; width: 100%; aspect-ratio: 16 / 10; border-radius: 20px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 30px 80px rgba(0,0,0,0.8); background: #000; }
+        .hero-video-container video { width: 100%; height: 100%; object-fit: cover; display: block; }
         .hero-video-overlay { position: absolute; bottom: 0; left: 0; right: 0; padding: 30px; background: linear-gradient(transparent, rgba(0,0,0,0.8)); }
         .features-section, .how-it-works, .stats-section, .testimonials-section, .pricing-section, .cta-section, .landing-footer { position: relative; z-index: 1; padding: 80px 40px; max-width: 1400px; margin: 0 auto; }
         .section-header { text-align: center; max-width: 700px; margin: 0 auto 60px; }
@@ -147,6 +148,7 @@ class WorldClassLandingPage:
         .footer-brand .logo-text span { color: #45f3ff; }
         .footer-col a { display: block; text-decoration: none; font-size: 14px; padding: 6px 0; }
         .footer-bottom { max-width: 1200px; margin: 30px auto 0; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #64748b; }
+        @media (min-width: 1600px) { .landing-nav { padding-left: 64px; padding-right: 64px; } .hero-section { padding-left: 64px; padding-right: 64px; } .hero-content { max-width: 1560px; } .hero-title { font-size: clamp(64px, 4.2vw, 92px); } .hero-subtitle { font-size: clamp(20px, 1.35vw, 28px); } .hero-stat .number { font-size: clamp(32px, 2.2vw, 48px); } }
         @media (max-width: 1024px) { .hero-content { grid-template-columns: 1fr; gap: 40px; } .hero-title { font-size: 48px; } .features-grid, .pricing-grid, .testimonials-grid, .stats-grid { grid-template-columns: repeat(2, 1fr); } .steps-container { grid-template-columns: 1fr; } .footer-content { grid-template-columns: 1fr 1fr; } }
         @media (max-width: 768px) { .landing-nav { padding: 12px 20px; flex-wrap: wrap; gap: 12px; } .nav-links { display: none; } .hero-section { padding: 100px 20px 40px; } .hero-topline { align-items: flex-start; width: 100%; } .hero-create-btn { padding: 9px 10px; font-size: 11px; } .hero-title { font-size: 36px; } .hero-subtitle { font-size: 16px; } .features-grid, .pricing-grid, .testimonials-grid, .stats-grid, .footer-content { grid-template-columns: 1fr; } .section-header h2, .cta-container h2 { font-size: 32px; } .hero-stats { flex-wrap: wrap; gap: 20px; } .footer-bottom { flex-direction: column; gap: 12px; text-align: center; } }
         </style>
