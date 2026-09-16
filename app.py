@@ -823,7 +823,10 @@ cache_manager = CacheManager()
 if "current_page" not in st.session_state:
     st.session_state["current_page"] = "landing"
 requested_page = st.query_params.get("page")
-if requested_page in {"landing", "studio"}:
+if requested_page == "studio" and not st.session_state.get("is_logged_in", False):
+    st.session_state["current_page"] = "landing"
+    st.session_state["auth_redirect_mode"] = "Cinematic Engine"
+elif requested_page in {"landing", "studio"}:
     st.session_state["current_page"] = requested_page
 if "is_logged_in" not in st.session_state:
     st.session_state["is_logged_in"] = False
@@ -14991,6 +14994,8 @@ if st.session_state["current_page"] == "landing":
     from landing_page import WorldClassLandingPage
     landing = WorldClassLandingPage()
     landing.render()
+    if st.session_state.get("auth_redirect_mode") and not st.session_state.get("is_logged_in", False):
+        show_auth_modal("login")
     st.stop()  
 
 elif st.session_state["current_page"] == "studio":
@@ -15311,8 +15316,9 @@ elif st.session_state["current_page"] == "studio":
     """.format("▼" if st.session_state.get("quick_access_open") else "▶"), unsafe_allow_html=True)
     
     if st.button("Toggle Quick Access", key="qa_toggle", use_container_width=True):
-        st.session_state["quick_access_open"] = not st.session_state.get("quick_access_open", False)
-        st.rerun()
+        if require_login_for_generation():
+            st.session_state["quick_access_open"] = not st.session_state.get("quick_access_open", False)
+            st.rerun()
     
     if st.session_state.get("quick_access_open", False):
         st.markdown('<div class="qa-grid">', unsafe_allow_html=True)
@@ -15328,8 +15334,9 @@ elif st.session_state["current_page"] == "studio":
         for i, (icon, label, tab) in enumerate(quick_items):
             with cols[i]:
                 if st.button(f"{icon} {label}", key=f"qa_{label}", use_container_width=True):
-                    st.session_state["sidebar_tab"] = tab
-                    st.rerun()
+                    if require_login_for_generation():
+                        st.session_state["sidebar_tab"] = tab
+                        st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
     
     # ========================================================
