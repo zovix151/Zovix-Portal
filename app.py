@@ -312,8 +312,7 @@ class RateLimiter:
                     SYSTEM_CONFIG["REDIS_URL"],
                     decode_responses=True
                 )
-                self._redis_client.ping()
-                logger.info("Redis connected for rate limiting")
+                logger.info("Redis rate-limit client initialized lazily")
             except Exception as e:
                 logger.warning(f"Redis not available: {e}")
                 self._redis_client = None
@@ -358,10 +357,15 @@ class RateLimiter:
         remaining = self.max_requests - len(self._memory_cache[user_id])
         return True, remaining
 
-rate_limiter = RateLimiter(
-    max_requests=SYSTEM_CONFIG["RATE_LIMIT_REQUESTS"],
-    time_window=SYSTEM_CONFIG["RATE_LIMIT_WINDOW"]
-)
+@st.cache_resource(show_spinner=False)
+def _get_rate_limiter():
+    return RateLimiter(
+        max_requests=SYSTEM_CONFIG["RATE_LIMIT_REQUESTS"],
+        time_window=SYSTEM_CONFIG["RATE_LIMIT_WINDOW"]
+    )
+
+
+rate_limiter = _get_rate_limiter()
 
 # ========================================================
 # 3. GDPR COMPLIANCE
@@ -667,8 +671,13 @@ else:
             with self._lock:
                 return self._results.get(task_id)
     
-    task_queue = ThreadedTaskQueue()
-    task_queue.start()
+        @st.cache_resource(show_spinner=False)
+        def _get_threaded_task_queue():
+            task_queue_instance = ThreadedTaskQueue()
+            task_queue_instance.start()
+            return task_queue_instance
+
+        task_queue = _get_threaded_task_queue()
 
 # ========================================================
 # 6. LOAD BALANCER
@@ -738,7 +747,12 @@ class LoadBalancer:
             
             worker['last_check'] = current_time
 
-load_balancer = LoadBalancer()
+@st.cache_resource(show_spinner=False)
+def _get_load_balancer():
+    return LoadBalancer()
+
+
+load_balancer = _get_load_balancer()
 
 # ========================================================
 # 7. CACHE SYSTEM
@@ -756,8 +770,7 @@ class CacheManager:
                     SYSTEM_CONFIG["REDIS_URL"],
                     decode_responses=True
                 )
-                self._redis_client.ping()
-                logger.info("Redis cache connected")
+                logger.info("Redis cache client initialized lazily")
             except Exception as e:
                 logger.warning(f"Redis not available: {e}")
                 self._redis_client = None
@@ -814,7 +827,12 @@ class CacheManager:
         self._memory_cache.clear()
         self._memory_expiry.clear()
 
-cache_manager = CacheManager()
+@st.cache_resource(show_spinner=False)
+def _get_cache_manager():
+    return CacheManager()
+
+
+cache_manager = _get_cache_manager()
 
 # ========================================================
 # 8. GLOBAL SESSION STATE
@@ -1786,7 +1804,18 @@ def init_database():
     finally:
         conn.close()
 
-init_database()
+@st.cache_resource(show_spinner=False)
+def _initialize_database_once():
+    init_database()
+    return True
+
+
+_startup_requested_page = st.query_params.get("page")
+if _startup_requested_page == "studio":
+    _initialize_database_once()
+elif not st.session_state.get("_database_init_started", False):
+    st.session_state["_database_init_started"] = True
+    threading.Thread(target=init_database, daemon=True, name="zovix-db-init").start()
 
 # ========================================================
 # 17. AUTHENTICATION FUNCTIONS - IMPROVED
@@ -13427,8 +13456,39 @@ def open_preview_modal(video_path):
 
 
 
-_CINEMATIC_JOBS = {}
-_CINEMATIC_JOBS_LOCK = threading.Lock()
+@st.cache_resource(show_spinner=False)
+def _get_cinematic_job_registry():
+    return {}, threading.Lock()
+
+
+_CINEMATIC_JOBS, _CINEMATIC_JOBS_LOCK = _get_cinematic_job_registry()
+
+
+def _cinematic_job_file(job_id):
+    os.makedirs("temp_scenes", exist_ok=True)
+    return os.path.join("temp_scenes", f"cinematic_job_{job_id}.json")
+
+
+def _save_cinematic_job(job_id, job):
+    with _CINEMATIC_JOBS_LOCK:
+        _CINEMATIC_JOBS[job_id] = dict(job)
+        target = _cinematic_job_file(job_id)
+        temp_target = f"{target}.tmp"
+        try:
+            with open(temp_target, "w", encoding="utf-8") as handle:
+                json.dump(_CINEMATIC_JOBS[job_id], handle)
+            os.replace(temp_target, target)
+        except Exception as exc:
+            logger.warning("Could not persist cinematic job %s: %s", job_id, exc)
+
+
+def _load_cinematic_job(job_id):
+    target = _cinematic_job_file(job_id)
+    try:
+        with open(target, "r", encoding="utf-8") as handle:
+            return json.load(handle)
+    except (FileNotFoundError, json.JSONDecodeError, OSError):
+        return None
 
 
 def _run_cinematic_generation_job(job_id, script_text, duration_choice, selected_model,
@@ -13436,10 +13496,9 @@ def _run_cinematic_generation_job(job_id, script_text, duration_choice, selected
                                   cinematic_quality, user_api_key, bgm_path, bgm_volume):
     """Run the long cinematic pipeline without accessing Streamlit session state."""
     def update_status(message):
-        with _CINEMATIC_JOBS_LOCK:
-            job = _CINEMATIC_JOBS.get(job_id)
-            if job:
-                job["status"] = message
+        current = _get_cinematic_job(job_id) or {}
+        current["status"] = message
+        _save_cinematic_job(job_id, current)
 
     try:
         update_status("Processing script & fetching stock clips...")
@@ -13457,9 +13516,10 @@ def _run_cinematic_generation_job(job_id, script_text, duration_choice, selected
             bgm_path = get_music_path(music_mood) if music_mood else None
 
         update_status(f"Building {len(scenes_data)} scenes with visuals and voiceover...")
+        output_path = os.path.join("temp_scenes", f"cinematic_{job_id}.mp4")
         success = StitcherEngine.build_scene_stitched_video_isolated(
             scenes_data=scenes_data,
-            video_output="final_shorts.mp4",
+            video_output=output_path,
             size_choice=selected_size,
             voice_profile=voice_profile,
             language_choice=language_choice,
@@ -13468,29 +13528,29 @@ def _run_cinematic_generation_job(job_id, script_text, duration_choice, selected
             music_mood=music_mood,
             quality=cinematic_quality,
         )
-        if not success or not os.path.exists("final_shorts.mp4") or os.path.getsize("final_shorts.mp4") <= 1000:
+        if not success or not os.path.exists(output_path) or os.path.getsize(output_path) <= 1000:
             raise RuntimeError("Video compilation failed. Check API keys and FFmpeg output.")
 
-        with _CINEMATIC_JOBS_LOCK:
-            _CINEMATIC_JOBS[job_id] = {
-                "status": "Completed",
-                "video_path": "final_shorts.mp4",
-                "error": None,
-            }
+        _save_cinematic_job(job_id, {
+            "status": "Completed",
+            "video_path": output_path,
+            "error": None,
+        })
     except Exception as exc:
         logger.exception("Cinematic background job failed")
-        with _CINEMATIC_JOBS_LOCK:
-            _CINEMATIC_JOBS[job_id] = {
-                "status": "Failed",
-                "video_path": None,
-                "error": str(exc),
-            }
+        _save_cinematic_job(job_id, {
+            "status": "Failed",
+            "video_path": None,
+            "error": str(exc),
+        })
 
 
 def _get_cinematic_job(job_id):
     with _CINEMATIC_JOBS_LOCK:
         job = _CINEMATIC_JOBS.get(job_id)
-        return dict(job) if job else None
+        if job:
+            return dict(job)
+    return _load_cinematic_job(job_id)
 
 
 if hasattr(st, "fragment"):
@@ -13507,6 +13567,7 @@ if hasattr(st, "fragment"):
 
         if job["status"] == "Completed":
             st.session_state["cinematic_video_ready"] = True
+            st.session_state["cinematic_video_path"] = job.get("video_path")
             st.session_state["cinematic_job_id"] = None
             st.success("🎬 Cinematic video generated successfully!")
             st.rerun()
@@ -14091,11 +14152,12 @@ def run_cinematic_engine():
 
                         job_id = uuid.uuid4().hex
                         with _CINEMATIC_JOBS_LOCK:
-                            _CINEMATIC_JOBS[job_id] = {
+                            initial_job = {
                                 "status": "Starting cinematic engine...",
                                 "video_path": None,
                                 "error": None,
                             }
+                        _save_cinematic_job(job_id, initial_job)
                         st.session_state["cinematic_job_id"] = job_id
                         threading.Thread(
                             target=_run_cinematic_generation_job,
@@ -14278,14 +14340,15 @@ def run_cinematic_engine():
             </h3>
             """, unsafe_allow_html=True)
             
-            if os.path.exists("final_shorts.mp4") and os.path.getsize("final_shorts.mp4") > 0:
-                st.video("final_shorts.mp4", format="video/mp4", autoplay=False, loop=True, muted=False)
+            cinematic_video_path = st.session_state.get("cinematic_video_path") or "final_shorts.mp4"
+            if os.path.exists(cinematic_video_path) and os.path.getsize(cinematic_video_path) > 0:
+                st.video(cinematic_video_path, format="video/mp4", autoplay=False, loop=True, muted=False)
                 
                 col_dl, col_clr = st.columns(2)
                 with col_dl:
                     if st.button("📥 Download Video", key="canvas_download_btn", use_container_width=True):
-                        if os.path.exists("final_shorts.mp4"):
-                            with open("final_shorts.mp4", "rb") as f:
+                        if os.path.exists(cinematic_video_path):
+                            with open(cinematic_video_path, "rb") as f:
                                 video_bytes = f.read()
                             st.download_button(
                                 label="📥 Click to Save",
@@ -14296,7 +14359,8 @@ def run_cinematic_engine():
                             )
                 with col_clr:
                     if st.button("🧹 Clear", key="canvas_clear_btn", use_container_width=True):
-                        safe_remove_file("final_shorts.mp4")
+                        safe_remove_file(cinematic_video_path)
+                        st.session_state["cinematic_video_path"] = None
                         st.rerun()
             else:
                 st.markdown("""

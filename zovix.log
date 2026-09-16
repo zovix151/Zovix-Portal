@@ -18176,3 +18176,63 @@ ConnectionResetError: [WinError 10054] An existing connection was forcibly close
 2026-09-16 14:55:02,182 - Zovix - INFO - Load balancer initialized with 4 workers
 2026-09-16 14:55:04,233 - Zovix - INFO - Redis cache connected
 2026-09-16 14:55:06,873 - Zovix - INFO - Database initialized successfully
+2026-09-16 15:19:25,714 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-16 15:19:26,919 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-16 15:19:27,152 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-09-16 15:19:27,194 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-09-16 15:19:27,395 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-16 15:19:27,396 - Zovix - INFO - Redis cache client initialized lazily
+2026-09-16 15:22:07,146 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-16 15:22:09,857 - Zovix - INFO - Database initialized successfully
+2026-09-16 15:22:16,456 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-16 15:22:19,925 - Zovix - INFO - Database initialized successfully
+2026-09-16 15:22:59,362 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-16 15:23:12,542 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-16 15:23:16,200 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-16 15:24:03,446 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-16 15:24:04,709 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-09-16 15:24:04,715 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-16 15:24:04,716 - Zovix - INFO - Redis cache client initialized lazily
+2026-09-16 15:24:07,081 - Zovix - INFO - Database initialized successfully
+2026-09-16 15:24:07,229 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-16 15:24:09,028 - Zovix - INFO - Database initialized successfully
+2026-09-16 15:30:12,513 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-16 15:30:13,760 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-09-16 15:30:13,766 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-16 15:30:13,767 - Zovix - INFO - Redis cache client initialized lazily
+2026-09-16 15:30:16,317 - Zovix - INFO - Database initialized successfully
+2026-09-16 15:30:18,273 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-16 15:30:21,619 - Zovix - INFO - Database initialized successfully
+2026-09-16 15:30:47,555 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-16 15:31:20,489 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-16 15:31:20,527 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-16 15:31:24,300 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-16 15:31:26,418 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-16 15:31:30,219 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-16 15:31:41,080 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-16 15:31:44,874 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-16 15:31:45,781 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-16 15:31:49,001 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-16 15:32:04,363 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-16 15:32:06,158 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-16 15:32:07,246 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-16 15:32:14,704 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-16 15:32:18,781 - Zovix - WARNING - Could not persist cinematic job 1225bbb3c3cc452ab37469b18d6333d8: [WinError 5] Access is denied: 'temp_scenes\\cinematic_job_1225bbb3c3cc452ab37469b18d6333d8.json.tmp' -> 'temp_scenes\\cinematic_job_1225bbb3c3cc452ab37469b18d6333d8.json'
+2026-09-16 15:32:18,785 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-16 15:32:18,847 - google_genai.models - INFO - AFC is enabled with max remote calls: 10.
+2026-09-16 15:32:23,267 - httpx - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-09-16 15:32:25,880 - Zovix - WARNING - ElevenLabs voice catalog request failed: HTTP 400
+2026-09-16 15:32:25,881 - Zovix - WARNING - ElevenLabs voice catalog request failed: HTTP 400
+2026-09-16 15:32:25,881 - Zovix - WARNING - ElevenLabs voice catalog request failed: HTTP 400
+2026-09-16 15:32:26,413 - Zovix - WARNING - ElevenLabs voice ID 21m00Tcm4TlvDq8ikWAM rejected (400); retrying with default voice.
+2026-09-16 15:32:26,418 - Zovix - WARNING - ElevenLabs voice ID 21m00Tcm4TlvDq8ikWAM rejected (400); retrying with default voice.
+2026-09-16 15:32:26,436 - Zovix - WARNING - ElevenLabs voice ID 21m00Tcm4TlvDq8ikWAM rejected (400); retrying with default voice.
+2026-09-16 15:33:01,572 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-16 15:33:11,704 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-16 15:33:17,106 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-16 15:35:04,814 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-16 15:35:08,374 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-16 15:35:14,140 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-16 15:35:17,798 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-16 15:35:33,097 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-16 15:35:35,943 - Zovix - INFO - Using Supabase PostgreSQL database
