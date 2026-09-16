@@ -4773,10 +4773,66 @@ def get_safe_elevenlabs_voice_id(voice_id=None, default_id=DEFAULT_ELEVENLABS_VO
     return value
 
 
+def resolve_elevenlabs_voice_id(voice_id=None, preferred_gender=None):
+    """Resolve a UI voice ID against the voices actually available to the account."""
+    requested_id = get_safe_elevenlabs_voice_id(voice_id, "")
+    api_key = os.getenv("ELEVENLABS_API_KEY") or get_system_secret("ELEVENLABS_API_KEY")
+    if not api_key:
+        return requested_id or DEFAULT_ELEVENLABS_VOICE_ID
+
+    cache_key = "elevenlabs:available_voices:v1"
+    available = cache_manager.get(cache_key)
+    if not isinstance(available, list):
+        try:
+            response = requests.get(
+                "https://api.elevenlabs.io/v1/voices",
+                headers={"xi-api-key": api_key, "Accept": "application/json"},
+                timeout=15,
+            )
+            if response.status_code == 200:
+                available = response.json().get("voices", [])
+                cache_manager.set(cache_key, available, ttl=900)
+            else:
+                logger.warning("ElevenLabs voice catalog request failed: HTTP %s", response.status_code)
+                available = []
+        except Exception as exc:
+            logger.warning("ElevenLabs voice catalog unavailable: %s", exc)
+            available = []
+
+    if not available:
+        return requested_id or DEFAULT_ELEVENLABS_VOICE_ID
+
+    by_id = {str(item.get("voice_id", "")): item for item in available if item.get("voice_id")}
+    if requested_id in by_id:
+        return requested_id
+
+    gender = normalize_gender_label(preferred_gender)
+    if not gender and voice_id:
+        for metadata in ELEVENLABS_VOICES.values():
+            if metadata.get("id") == voice_id:
+                gender = normalize_gender_label(metadata.get("gender"))
+                break
+
+    if gender in {"male", "female"}:
+        for item in available:
+            labels = item.get("labels") or {}
+            item_gender = normalize_gender_label(labels.get("gender") or labels.get("sex"))
+            if item_gender == gender and item.get("voice_id"):
+                logger.warning("ElevenLabs voice ID %s unavailable; using account %s voice %s.", voice_id, gender, item.get("voice_id"))
+                return str(item["voice_id"])
+
+    fallback_id = DEFAULT_ELEVENLABS_VOICE_ID
+    if fallback_id in by_id:
+        return fallback_id
+    fallback_id = str(available[0].get("voice_id", ""))
+    logger.warning("ElevenLabs voice ID %s unavailable; using account voice %s.", voice_id, fallback_id)
+    return fallback_id or DEFAULT_ELEVENLABS_VOICE_ID
+
+
 class ScriptingEngine:
     @staticmethod
-    def generate_script(topic, duration_choice, selected_model, language_choice):
-        effective_api_key = st.session_state.get("user_gemini_api_key", "").strip() or GEMINI_API_KEY
+    def generate_script(topic, duration_choice, selected_model, language_choice, user_api_key=None):
+        effective_api_key = (user_api_key or "").strip() or GEMINI_API_KEY
         if has_genai and effective_api_key:
             try:
                 client_gen = genai.Client(api_key=effective_api_key)
@@ -5391,9 +5447,9 @@ class AudioEngine:
         if not eleven_key:
             return False
 
-        fallback_voice_id = DEFAULT_ELEVENLABS_VOICE_ID
+        fallback_voice_id = resolve_elevenlabs_voice_id(voice_id)
         candidate_ids = []
-        safe_voice_id = get_safe_elevenlabs_voice_id(voice_id, fallback_voice_id)
+        safe_voice_id = get_safe_elevenlabs_voice_id(fallback_voice_id, DEFAULT_ELEVENLABS_VOICE_ID)
         if safe_voice_id:
             candidate_ids.append(safe_voice_id)
         if safe_voice_id != fallback_voice_id:
@@ -5602,7 +5658,7 @@ class StitcherEngine:
         return create_emergency_solid_clip(output_video_path, 5.0, res_width, res_height)
 
     @staticmethod
-    def build_scene_stitched_video_isolated(scenes_data, video_output, size_choice, voice_profile, language_choice, bgm_path=None, bgm_volume=0.3, music_mood=None, status_dict=None, workshop_img=None):
+    def build_scene_stitched_video_isolated(scenes_data, video_output, size_choice, voice_profile, language_choice, bgm_path=None, bgm_volume=0.3, music_mood=None, status_dict=None, workshop_img=None, quality=None):
         safe_remove_file(video_output)
         # Resolution mapping for upsampling: 720p, 1080p, 2K, 4K
         aspect = "9:16"
@@ -5611,9 +5667,8 @@ class StitcherEngine:
         elif "1:1" in size_choice:
             aspect = "1:1"
                 # Quality detection from session state - FIX: Proper resolution scaling for all qualities
-        quality = st.session_state.get("cinematic_quality", "Standard")
         quality_map = {"4K": 2160, "2K": 1440, "HD": 1080, "Pro": 1080, "Standard": 720}
-        target_h = quality_map.get(quality, 720)
+        target_h = quality_map.get(quality or "Standard", 720)
         res_map = {
             "9:16": (int(target_h * 9 / 16), target_h),
             "16:9": (target_h * 16 // 9, target_h),
@@ -6779,8 +6834,9 @@ def _resolve_face_voice_config(voice_language=None, voice_label=None, preferred_
     if not available_voices:
         available_voices = ["Adam (Premium Male)"]
 
+    manual_voice_selected = bool(voice_label and str(voice_label).strip())
     selected_voice = voice_label or st.session_state.get("face_voice_model") or available_voices[0]
-    if preferred_gender in {"male", "female"}:
+    if preferred_gender in {"male", "female"} and not manual_voice_selected:
         default_gender_voice = None
         for voice_name in available_voices:
             meta = ELEVENLABS_VOICES.get(voice_name, {})
@@ -7198,7 +7254,8 @@ def generate_elevenlabs_audio_for_face(text, output_path, voice_id="21m00Tcm4Tlv
         return False
 
     candidate_ids = []
-    safe_voice_id = get_safe_elevenlabs_voice_id(voice_id, DEFAULT_ELEVENLABS_VOICE_ID)
+    safe_voice_id = resolve_elevenlabs_voice_id(voice_id)
+    safe_voice_id = get_safe_elevenlabs_voice_id(safe_voice_id, DEFAULT_ELEVENLABS_VOICE_ID)
     if safe_voice_id:
         candidate_ids.append(safe_voice_id)
     if safe_voice_id != DEFAULT_ELEVENLABS_VOICE_ID:
@@ -8364,7 +8421,8 @@ def generate_emotion_voice(text, emotion="neutral", voice_type="male", output_pa
     # ═══ TIER 1: ELEVENLABS ═══
     if eleven_key:
         candidate_ids = []
-        safe_voice_id = get_safe_elevenlabs_voice_id(elevenlabs_voice_id, DEFAULT_ELEVENLABS_VOICE_ID)
+        safe_voice_id = resolve_elevenlabs_voice_id(elevenlabs_voice_id, preferred_gender=voice_type)
+        safe_voice_id = get_safe_elevenlabs_voice_id(safe_voice_id, DEFAULT_ELEVENLABS_VOICE_ID)
         if safe_voice_id:
             candidate_ids.append(safe_voice_id)
         if safe_voice_id != DEFAULT_ELEVENLABS_VOICE_ID:
@@ -8535,9 +8593,9 @@ def render_live_emotion_voice():
             emotion_text = st.text_area("Text to speak", placeholder="Enter text for emotional voice generation...", height=100, key="emotion_voice_text_input")
             st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">😊 Select Emotion</p>', unsafe_allow_html=True)
             emotion = st.selectbox("Emotion", ["neutral", "happy", "sad", "angry", "excited", "fearful", "mysterious", "serious"], key="emotion_voice_select", label_visibility="collapsed")
-            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">🎤 Voice Gender</p>', unsafe_allow_html=True)
-            voice_gender = st.selectbox("Voice Gender", ["male", "female"], key="emotion_voice_gender", label_visibility="collapsed")
-            voice_opts = [v for v, m in ELEVENLABS_VOICES.items() if m.get('gender') == voice_gender]
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">🎤 Voice Filter</p>', unsafe_allow_html=True)
+            voice_gender = st.selectbox("Voice Filter", ["all", "male", "female"], key="emotion_voice_gender", label_visibility="collapsed")
+            voice_opts = list(ELEVENLABS_VOICES.keys()) if voice_gender == "all" else [v for v, m in ELEVENLABS_VOICES.items() if m.get('gender') == voice_gender]
             emotion_voice = st.selectbox("Voice", voice_opts or list(ELEVENLABS_VOICES.keys()), key="emotion_voice_voice", label_visibility="collapsed")
 
             if st.button("🎤 Generate Emotion Voice", key="emotion_generate_btn", use_container_width=True):
@@ -8550,13 +8608,14 @@ def render_live_emotion_voice():
                         try:
                             voice_meta = ELEVENLABS_VOICES.get(emotion_voice, {})
                             voice_id = voice_meta.get("id", "21m00Tcm4TlvDq8ikWAM")
+                            selected_voice_gender = voice_meta.get("gender", "male")
                             output_path = f"face_videos/emotion_voice_{uuid.uuid4().hex[:8]}.mp3"
                             
                             # ✅ FIX: Call generate_emotion_voice() instead of generate_elevenlabs_audio_for_face()
                             audio_ok = generate_emotion_voice(
                                 text=emotion_text,
                                 emotion=emotion,
-                                voice_type=voice_gender,
+                                voice_type=selected_voice_gender,
                                 output_path=output_path,
                                 elevenlabs_voice_id=voice_id
                             )
@@ -13368,6 +13427,104 @@ def open_preview_modal(video_path):
 
 
 
+_CINEMATIC_JOBS = {}
+_CINEMATIC_JOBS_LOCK = threading.Lock()
+
+
+def _run_cinematic_generation_job(job_id, script_text, duration_choice, selected_model,
+                                  language_choice, selected_size, voice_profile,
+                                  cinematic_quality, user_api_key, bgm_path, bgm_volume):
+    """Run the long cinematic pipeline without accessing Streamlit session state."""
+    def update_status(message):
+        with _CINEMATIC_JOBS_LOCK:
+            job = _CINEMATIC_JOBS.get(job_id)
+            if job:
+                job["status"] = message
+
+    try:
+        update_status("Processing script & fetching stock clips...")
+        scenes_data, music_mood = ScriptingEngine.generate_script(
+            topic=script_text,
+            duration_choice=duration_choice,
+            selected_model=selected_model,
+            language_choice=language_choice,
+            user_api_key=user_api_key,
+        )
+        if not scenes_data:
+            raise RuntimeError("Failed to generate script. Please try again.")
+
+        if not bgm_path:
+            bgm_path = get_music_path(music_mood) if music_mood else None
+
+        update_status(f"Building {len(scenes_data)} scenes with visuals and voiceover...")
+        success = StitcherEngine.build_scene_stitched_video_isolated(
+            scenes_data=scenes_data,
+            video_output="final_shorts.mp4",
+            size_choice=selected_size,
+            voice_profile=voice_profile,
+            language_choice=language_choice,
+            bgm_path=bgm_path,
+            bgm_volume=bgm_volume,
+            music_mood=music_mood,
+            quality=cinematic_quality,
+        )
+        if not success or not os.path.exists("final_shorts.mp4") or os.path.getsize("final_shorts.mp4") <= 1000:
+            raise RuntimeError("Video compilation failed. Check API keys and FFmpeg output.")
+
+        with _CINEMATIC_JOBS_LOCK:
+            _CINEMATIC_JOBS[job_id] = {
+                "status": "Completed",
+                "video_path": "final_shorts.mp4",
+                "error": None,
+            }
+    except Exception as exc:
+        logger.exception("Cinematic background job failed")
+        with _CINEMATIC_JOBS_LOCK:
+            _CINEMATIC_JOBS[job_id] = {
+                "status": "Failed",
+                "video_path": None,
+                "error": str(exc),
+            }
+
+
+def _get_cinematic_job(job_id):
+    with _CINEMATIC_JOBS_LOCK:
+        job = _CINEMATIC_JOBS.get(job_id)
+        return dict(job) if job else None
+
+
+if hasattr(st, "fragment"):
+    @st.fragment(run_every="3s")
+    def render_cinematic_job_status():
+        job_id = st.session_state.get("cinematic_job_id")
+        if not job_id:
+            return
+
+        job = _get_cinematic_job(job_id)
+        if not job:
+            st.warning("Cinematic job status is unavailable. Please start again.")
+            return
+
+        if job["status"] == "Completed":
+            st.session_state["cinematic_video_ready"] = True
+            st.session_state["cinematic_job_id"] = None
+            st.success("🎬 Cinematic video generated successfully!")
+            st.rerun()
+        elif job["status"] == "Failed":
+            st.session_state["cinematic_job_id"] = None
+            st.error(f"❌ Cinematic Engine Error: {job.get('error', 'Unknown error')}")
+            st.rerun()
+        else:
+            st.info(f"⏳ Status: {job['status']}")
+else:
+    def render_cinematic_job_status():
+        job_id = st.session_state.get("cinematic_job_id")
+        if job_id:
+            job = _get_cinematic_job(job_id)
+            if job and job["status"] not in {"Completed", "Failed"}:
+                st.info(f"⏳ Status: {job['status']}")
+
+
 def run_cinematic_engine():
     """Cinematic Engine - Matching Studio Style"""
     
@@ -13720,6 +13877,7 @@ def run_cinematic_engine():
         <p>Transform your ideas into professional cinematic videos with AI</p>
     </div>
     """, unsafe_allow_html=True)
+    render_cinematic_job_status()
     
     # ============================================
     # TRANSLATION, KEYS & SHORTCUTS
@@ -13903,41 +14061,26 @@ def run_cinematic_engine():
             if st.button("Generate", key="studio_generate_action_btn", use_container_width=True):
                 if not require_login_for_generation("Cinematic Engine"):
                     st.stop()
-                # Cinematic Video Generation Logic
                 if not user_input.strip():
                     st.error("Please enter a video topic or script.")
+                elif st.session_state.get("cinematic_job_id"):
+                    st.info("A cinematic render is already running. Please wait for it to finish.")
                 else:
                     st.session_state["studio_prompt_value"] = user_input
                     try:
-                        # Step 1: Validate tokens
                         success, required_tokens, message = validate_and_deduct_tokens("Cinematic Engine", cinematic_quality)
                         if not success:
                             st.error(message)
                             st.stop()
-                        
-                        # Step 2: Parse parameters
+
                         selected_size = st.session_state.get("aspect_ratio", "9:16 Vertical (Shorts/Reels)")
                         dur_choice = st.session_state.get("duration_choice", "Quick Format Shorts (10-15s)")
                         voice_profile = st.session_state.get("voice_profile", "Adam (Premium Male)")
                         lang_choice = st.session_state.get("language_choice", "🇮🇳 Hinglish (Fluent Hindi Mix)")
                         selected_model = "gemini-2.5-pro" if "gemini-2.5-pro" in st.session_state.get("model_choice", "") else "gemini-2.5-flash"
-                        
-                        # Step 3: Generate script using ScriptingEngine
-                        with st.spinner("📝 Generating script using AI..."):
-                            scenes_data, music_mood = ScriptingEngine.generate_script(
-                                topic=user_input,
-                                duration_choice=dur_choice,
-                                selected_model=selected_model,
-                                language_choice=lang_choice
-                            )
-                            if not scenes_data:
-                                st.error("Failed to generate script. Please try again.")
-                                st.stop()
-                            st.success(f"✅ Script generated: {len(scenes_data)} scenes, mood: {music_mood}")
-                        
-                        # Step 4: Get BGM
+
                         bgm_path = None
-                        bgm_volume = 0.2  # <-- Ye line add kar do (Default 20% background music volume)
+                        bgm_volume = 0.2
 
                         current_bgm = locals().get('uploaded_bgm', globals().get('uploaded_bgm', None))
 
@@ -13945,37 +14088,34 @@ def run_cinematic_engine():
                             bgm_path = f"face_videos/custom_bgm_{uuid.uuid4().hex[:8]}.mp3"
                             with open(bgm_path, "wb") as f:
                                 f.write(current_bgm.getbuffer())
-                        else:
-                             bgm_path = get_music_path(music_mood) if 'get_music_path' in dir() else None
-                        
-                        # Step 5: Build video using StitcherEngine pipeline
-                        with st.spinner("🎬 Generating cinematic video..."):
-                            status_placeholder = st.empty()
-                            progress_bar = st.progress(0, text="Starting cinematic engine...")
-                            
-                            status_placeholder.info("Building scenes with visuals and voiceover...")
-                            progress_bar.progress(0.3, text="Processing scenes...")
-                            
-                            success = StitcherEngine.build_scene_stitched_video_isolated(
-                                scenes_data=scenes_data,
-                                video_output="final_shorts.mp4",
-                                size_choice=selected_size,
-                                voice_profile=voice_profile,
-                                language_choice=lang_choice,
-                                bgm_path=bgm_path,
-                                bgm_volume=bgm_volume,
-                                music_mood=music_mood
-                            )
-                            
-                            if success and os.path.exists("final_shorts.mp4") and os.path.getsize("final_shorts.mp4") > 1000:
-                                progress_bar.progress(1.0, text="✅ Cinematic video created!")
-                                st.success("🎬 Cinematic video generated successfully!")
-                                st.session_state["cinematic_video_ready"] = True
-                                st.balloons()
-                                st.rerun()
-                            else:
-                                progress_bar.progress(0, text="❌ Failed")
-                                st.error("Video compilation failed. Check API keys and try again.")
+
+                        job_id = uuid.uuid4().hex
+                        with _CINEMATIC_JOBS_LOCK:
+                            _CINEMATIC_JOBS[job_id] = {
+                                "status": "Starting cinematic engine...",
+                                "video_path": None,
+                                "error": None,
+                            }
+                        st.session_state["cinematic_job_id"] = job_id
+                        threading.Thread(
+                            target=_run_cinematic_generation_job,
+                            args=(
+                                job_id,
+                                user_input,
+                                dur_choice,
+                                selected_model,
+                                lang_choice,
+                                selected_size,
+                                voice_profile,
+                                cinematic_quality,
+                                st.session_state.get("user_gemini_api_key", ""),
+                                bgm_path,
+                                bgm_volume,
+                            ),
+                            daemon=True,
+                        ).start()
+                        st.success("✅ Generation started in background. You can keep working while it renders.")
+                        st.rerun()
                     
                     except Exception as e:
                         st.error(f"❌ Cinematic Engine Error: {str(e)}")
