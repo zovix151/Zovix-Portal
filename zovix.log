@@ -18236,3 +18236,8 @@ ConnectionResetError: [WinError 10054] An existing connection was forcibly close
 2026-09-16 15:35:17,798 - Zovix - INFO - Using Supabase PostgreSQL database
 2026-09-16 15:35:33,097 - Zovix - INFO - Using Supabase PostgreSQL database
 2026-09-16 15:35:35,943 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-16 15:41:02,675 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-09-16 15:41:03,914 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-09-16 15:41:03,919 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-09-16 15:41:03,920 - Zovix - INFO - Redis cache client initialized lazily
+2026-09-16 15:41:06,313 - Zovix - INFO - Database initialized successfully

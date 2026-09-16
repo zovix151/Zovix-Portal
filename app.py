@@ -671,13 +671,13 @@ else:
             with self._lock:
                 return self._results.get(task_id)
     
-        @st.cache_resource(show_spinner=False)
-        def _get_threaded_task_queue():
-            task_queue_instance = ThreadedTaskQueue()
-            task_queue_instance.start()
-            return task_queue_instance
+    @st.cache_resource(show_spinner=False)
+    def _get_threaded_task_queue():
+        task_queue_instance = ThreadedTaskQueue()
+        task_queue_instance.start()
+        return task_queue_instance
 
-        task_queue = _get_threaded_task_queue()
+    task_queue = _get_threaded_task_queue()
 
 # ========================================================
 # 6. LOAD BALANCER
