@@ -74,7 +74,7 @@ def download_file(url: str, output_path: str) -> str:
 
 
 def decode_input_file(value: str, output_path: str) -> str:
-    """Accept either a public URL or a data URI/base64 payload from RunPod input."""
+    """Accept a public URL, data URI, or raw base64 payload from RunPod input."""
     if not value:
         raise ValueError("Missing input file payload")
     if value.startswith("data:"):
@@ -87,7 +87,12 @@ def decode_input_file(value: str, output_path: str) -> str:
             raise ValueError(f"Invalid data URI input: {exc}") from exc
     if value.startswith("http://") or value.startswith("https://"):
         return download_file(value, output_path)
-    raise ValueError("Input file must be a public URL or data URI")
+    try:
+        with open(output_path, "wb") as f:
+            f.write(base64.b64decode(value, validate=True))
+        return output_path
+    except Exception as exc:
+        raise ValueError("Input file must be a public URL, data URI, or raw base64 payload") from exc
 
 
 def encode_file_data_uri(file_path: str, mime: str) -> str:

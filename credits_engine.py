@@ -10,9 +10,51 @@ import postgres_db as db
 logger = logging.getLogger("Zovix.Credits")
 
 
-def validate_and_deduct_tokens(engine_name, quality="Standard"):
+FACE_VIDEO_WORD_PRICES = {
+    "Standard": ((50, 15), (85, 20), (120, 30)),
+    "HD": ((50, 20), (85, 26), (120, 40)),
+    "4K": ((50, 25), (85, 32), (120, 50)),
+}
+
+
+def get_prompt_word_cost(engine_name, quality="Standard", word_count=0):
+    """Return the word-band credit cost matching the face-video pricing rules."""
+    engine_key = str(engine_name or "").strip().lower()
+    face_like_engines = {
+        "face video generator",
+        "face video studio",
+        "expressive face video",
+        "ai sales video",
+        "sales video",
+        "sales prompt",
+    }
+
+    if engine_key in face_like_engines:
+        try:
+            words = int(word_count or 0)
+        except (TypeError, ValueError):
+            words = 0
+        if words <= 0:
+            return FACE_VIDEO_WORD_PRICES.get(quality, FACE_VIDEO_WORD_PRICES["Standard"])[0][1]
+        for maximum_words, price in FACE_VIDEO_WORD_PRICES.get(quality, FACE_VIDEO_WORD_PRICES["Standard"]):
+            if words <= maximum_words:
+                return price
+        return None
+
     quality_cost_map = {"Standard": 25, "HD": 60, "4K": 110}
-    required = quality_cost_map.get(quality, 3)
+    return quality_cost_map.get(quality, 3)
+
+
+def get_face_video_token_cost(quality="Standard", word_count=0):
+    """Return the face-video price for the script word-count band."""
+    return get_prompt_word_cost("Face Video Generator", quality, word_count)
+
+
+def validate_and_deduct_tokens(engine_name, quality="Standard", word_count=None):
+    # Face-video and sales prompt pricing follows the same quality and script word-count table.
+    required = get_prompt_word_cost(engine_name, quality, word_count)
+    if required is None:
+        return False, 0, "Prompt is limited to 120 words. Please shorten it."
     low_balance_threshold = 25
     username = str(st.session_state.get("logged_user") or "").strip()
 

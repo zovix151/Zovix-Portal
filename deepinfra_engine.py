@@ -29,7 +29,7 @@ def validate_and_deduct_tokens(engine_name, quality="Standard"):
     """
         # Cost per generation based on quality (same pricing as the rest of the app:
     # Standard=3, HD=4, 4K=6 tokens/credits).
-    quality_cost_map = {"Standard": 25, "HD": 60, "4K": 110}
+    quality_cost_map = {"Standard": 25, "HD": 35, "4K": 50}
     required = quality_cost_map.get(quality, 3)
 
     LOW_BALANCE_THRESHOLD = 25

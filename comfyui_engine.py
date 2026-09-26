@@ -31,8 +31,8 @@ logger = logging.getLogger("zovix.comfyui")
 # RunPod serverless configuration
 # ---------------------------------------------------------------------------
 RUNPOD_API_KEY = os.getenv("RUNPOD_API_KEY", "")
-RUNPOD_ENDPOINT_ID = os.getenv("COMFYUI_RUNPOD_ENDPOINT_ID", "ipb2c2vnew0qbz")
-RUNPOD_FACE_ENDPOINT_ID = os.getenv("COMFYUI_FACE_RUNPOD_ENDPOINT_ID", "fvk0rrbngd0zds")
+RUNPOD_ENDPOINT_ID = os.getenv("COMFYUI_RUNPOD_ENDPOINT_ID", "0eswlxs03223vf")
+RUNPOD_FACE_ENDPOINT_ID = os.getenv("COMFYUI_FACE_RUNPOD_ENDPOINT_ID", "0eswlxs03223vf")
 RUNPOD_FACE_MODE = os.getenv("RUNPOD_FACE_MODE", "handler").strip().lower()
 RUNPOD_BASE_URL = os.getenv("RUNPOD_BASE_URL", "https://api.runpod.ai/v2")
 
@@ -105,7 +105,7 @@ def _poll_job(endpoint_id, job_id, api_key, timeout, poll_interval=2):
         resp.raise_for_status()
         result = resp.json()
         status = result.get("status", "IN_QUEUE")
-        if status == "COMPLETED":
+        if status in {"COMPLETED", "SUCCESS", "success"}:
             return result
         if status == "FAILED":
             raise RuntimeError(f"RunPod job failed: {result.get('error', 'Unknown error')}")
@@ -122,7 +122,12 @@ def run_comfyui_job(workflow, api_key, endpoint_id, images=None, timeout=180):
     resp.raise_for_status()
     result = resp.json()
 
-    if result.get("status") == "COMPLETED" or result.get("output") is not None:
+    if (
+        result.get("status") in {"COMPLETED", "SUCCESS", "success"}
+        or result.get("output") is not None
+        or result.get("video_base64")
+        or result.get("video_url")
+    ):
         return result
 
     if result.get("status") == "FAILED":
@@ -297,25 +302,38 @@ def _extract_video_output(output):
     return None, None
 
 
-def _run_face_handler_job(face_image_path, audio_path, api_key, endpoint_id, quality, timeout):
-    """Call the rebuildable RunPod LivePortrait handler endpoint."""
-    image_mime = "image/png"
-    audio_ext = os.path.splitext(audio_path)[1].lower() if audio_path else ".wav"
-    audio_mime = {".wav": "audio/wav", ".ogg": "audio/ogg", ".m4a": "audio/mp4"}.get(audio_ext, "audio/mpeg")
+def _run_face_handler_job(face_image_path, audio_path, api_key, endpoint_id, quality, timeout=60):
+    """Call the rebuildable RunPod InfiniteTalk handler endpoint."""
+    with open(face_image_path, "rb") as image_file:
+        image_base64 = base64.b64encode(image_file.read()).decode("utf-8")
+    with open(audio_path, "rb") as audio_file:
+        audio_base64 = base64.b64encode(audio_file.read()).decode("utf-8")
+
+    resolution = {"Standard": 512, "HD": 768, "4K": 1024}.get(quality, 512)
+
     payload = {
         "input": {
-            "face_image_base64": _file_to_data_uri(face_image_path, image_mime),
-            "audio_base64": _file_to_data_uri(audio_path, audio_mime),
-            "enhancer": quality in {"HD", "4K"},
-            "resolution": {"Standard": "512x512", "HD": "768x768", "4K": "1024x1024"}.get(quality, "768x768"),
-            "output_format": "mp4",
+            "input_type": "image",
+            "person_count": "single",
+            "image_base64": image_base64,
+            "wav_base64": audio_base64,
+            "prompt": "A person talking naturally",
+            "width": resolution,
+            "height": resolution,
+            "force_offload": True,
+            "return_volume": False,
         }
     }
     url = f"{RUNPOD_BASE_URL}/{endpoint_id}/runsync"
-    response = requests.post(url, headers=_headers(api_key), json=payload, timeout=min(timeout, 90))
+    response = requests.post(url, headers=_headers(api_key), json=payload, timeout=min(timeout, 300))
     response.raise_for_status()
     result = response.json()
-    if result.get("status") == "COMPLETED" or result.get("output") is not None:
+    if (
+        result.get("status") in {"COMPLETED", "SUCCESS", "success"}
+        or result.get("output") is not None
+        or result.get("video_base64")
+        or result.get("video_url")
+    ):
         return result
     if result.get("status") == "FAILED":
         raise RuntimeError(f"RunPod face handler failed: {result.get('error', result)}")
@@ -325,8 +343,24 @@ def _run_face_handler_job(face_image_path, audio_path, api_key, endpoint_id, qua
     return _poll_job(endpoint_id, job_id, api_key, timeout)
 
 
+def _run_wan_prompt_job(prompt, api_key, endpoint_id, timeout):
+    """Call a Wan RunPod endpoint whose contract is input.prompt."""
+    payload = {"input": {"prompt": prompt}}
+    async_url = f"{RUNPOD_BASE_URL}/{endpoint_id}/run"
+    async_response = requests.post(async_url, headers=_headers(api_key), json=payload, timeout=30)
+    async_response.raise_for_status()
+    async_result = async_response.json()
+    if async_result.get("status") == "FAILED":
+        raise RuntimeError(f"RunPod Wan async job failed: {async_result.get('error', async_result)}")
+    job_id = async_result.get("id")
+    if not job_id:
+        raise RuntimeError(f"RunPod Wan async response had no job id: {async_result}")
+    logger.info("RunPod Wan async job submitted: %s", job_id)
+    return _poll_job(endpoint_id, job_id, api_key, timeout)
+
+
 def generate_face_video(face_image_path, audio_path=None, script_text="", duration=10, quality="HD",
-                         api_key=None, endpoint_id=None, timeout=240):
+                         api_key=None, endpoint_id=None, timeout=300):
     """
     Generate a talking-head face video through the ComfyUI-on-RunPod serverless
     API - the exact same endpoint/pattern used by the Creative Workshop image
@@ -347,14 +381,17 @@ def generate_face_video(face_image_path, audio_path=None, script_text="", durati
         return None
 
     try:
-        workflow = load_face_workflow()
-        placeholder_node = workflow.get(NODE_FACE_ANIMATE, {})
-        placeholder_title = str(placeholder_node.get("_meta", {}).get("title", "")).lower()
-        if "replace with your real" in placeholder_title:
-            raise RuntimeError(
-                "zovix_face_workflow.json is a placeholder, not an executable talking-head workflow. "
-                "Export the LivePortrait/SadTalker + video-save workflow installed on this RunPod endpoint and replace this file."
-            )
+        if RUNPOD_FACE_MODE != "handler":
+            workflow = load_face_workflow()
+            placeholder_node = workflow.get(NODE_FACE_ANIMATE, {})
+            placeholder_title = str(placeholder_node.get("_meta", {}).get("title", "")).lower()
+            if "replace with your real" in placeholder_title:
+                raise RuntimeError(
+                    "zovix_face_workflow.json is a placeholder, not an executable talking-head workflow. "
+                    "Export the LivePortrait/SadTalker + video-save workflow installed on this RunPod endpoint and replace this file."
+                )
+        else:
+            workflow = None
 
         image_filename = f"face_{uuid.uuid4().hex[:8]}.png"
         images_payload = [{"name": image_filename, "image": _file_to_data_uri(face_image_path, "image/png")}]
@@ -367,9 +404,17 @@ def generate_face_video(face_image_path, audio_path=None, script_text="", durati
             audio_data = _file_to_data_uri(audio_path, audio_mime)
             images_payload.append({"name": audio_filename, "audio": audio_data, "image": audio_data})
 
-        workflow = inject_face_settings(workflow, image_filename, audio_filename, script_text, duration, quality)
+        if workflow is not None:
+            workflow = inject_face_settings(workflow, image_filename, audio_filename, script_text, duration, quality)
 
-        if RUNPOD_FACE_MODE == "handler":
+        if RUNPOD_FACE_MODE == "wan_prompt":
+            result = _run_wan_prompt_job(
+                prompt=script_text,
+                api_key=api_key,
+                endpoint_id=endpoint_id,
+                timeout=timeout,
+            )
+        elif RUNPOD_FACE_MODE == "handler":
             if not audio_path or not os.path.exists(audio_path):
                 raise ValueError("RunPod face handler requires an audio file")
             result = _run_face_handler_job(face_image_path, audio_path, api_key, endpoint_id, quality, timeout)
@@ -377,6 +422,8 @@ def generate_face_video(face_image_path, audio_path=None, script_text="", durati
             result = run_comfyui_job(workflow, api_key, endpoint_id, images=images_payload, timeout=timeout)
 
         video_b64, video_url = _extract_video_output(result.get("output"))
+        if not video_b64 and not video_url:
+            video_b64, video_url = _extract_video_output(result)
         if video_url:
             return video_url
 

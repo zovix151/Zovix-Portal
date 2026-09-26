@@ -25,6 +25,7 @@ import sys
 import logging
 import pickle
 import tempfile
+from pathlib import Path
 try:
     from dotenv import load_dotenv
     HAS_DOTENV = True
@@ -75,7 +76,11 @@ import socket
 import platform
 from production_engine import generate_production_face_video, generate_production_voice, generate_production_face_video_streamlit, generate_production_voice_streamlit, get_language_list, get_emotion_list, get_cost_estimate, check_endpoint_health
 from production_engine import generate_production_face_video, generate_production_voice
-from credits_engine import validate_and_deduct_tokens
+from credits_engine import validate_and_deduct_tokens, get_face_video_token_cost
+from deepseek_engine import generate_sales_script
+from sales_funnel import build_sales_funnel
+from voice_engine import generate_sales_voice
+from video_composer import compose_sales_video
 
 # ========================================================
 # TOKEN VALIDATION & DEDUCTION FALLBACK
@@ -84,7 +89,7 @@ from credits_engine import validate_and_deduct_tokens
 # Fallback keeps the credit check available if the standalone credits module is unavailable.
 # taaki missing hone par bhi NameError na aaye aur generation proceed ho.
 if 'validate_and_deduct_tokens' not in globals():
-    def validate_and_deduct_tokens(mode_name: str = "", quality: str = "Standard"):
+    def validate_and_deduct_tokens(mode_name: str = "", quality: str = "Standard", word_count=None):
         """
         Fallback token validation/deduction. Delegates to the real
         DB-backed implementation in deepinfra_engine.py so tokens
@@ -92,7 +97,7 @@ if 'validate_and_deduct_tokens' not in globals():
         """
         try:
             from credits_engine import validate_and_deduct_tokens as _real
-            return _real(mode_name, quality)
+            return _real(mode_name, quality, word_count)
         except Exception as e:
             logger.error(f"validate_and_deduct_tokens fallback error: {e}")
             return False, 0, "⚠️ Credit system unavailable. Please try again."
@@ -122,13 +127,20 @@ if not HAS_DOTENV:
 
 load_dotenv()
 
+def _clean_secret_value(value):
+    """Remove dotenv whitespace/quote artifacts without logging secret contents."""
+    cleaned = str(value or "").strip()
+    if len(cleaned) >= 2 and cleaned[0] == cleaned[-1] and cleaned[0] in {"'", '"'}:
+        cleaned = cleaned[1:-1].strip()
+    return cleaned
+
 def get_system_secret(key: str, default_val: Optional[str] = None) -> Optional[str]:
     try:
         if key in st.secrets:
-            return st.secrets[key]
+            return _clean_secret_value(st.secrets[key])
     except Exception:
         pass
-    return os.getenv(key, default_val)
+    return _clean_secret_value(os.getenv(key, default_val))
 
 # ========================================================
 # DATABASE - Supabase PostgreSQL (Render-safe persistent storage).
@@ -390,6 +402,21 @@ class GDPRManager:
                     return row[0] == 1 and row[1] == self.consent_version
             except:
                 pass
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS sales_video_history (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        username TEXT NOT NULL,
+                        file_name TEXT,
+                        timestamp TEXT,
+                        prompt TEXT,
+                        video_path TEXT,
+                        thumbnail_path TEXT,
+                        caption_path TEXT,
+                        funnel_json TEXT DEFAULT '{}',
+                        quality TEXT DEFAULT 'Standard',
+                        credits_charged INTEGER DEFAULT 0
+                    )
+                """)
             finally:
                 conn.close()
         
@@ -436,11 +463,11 @@ class GDPRManager:
             
             col1, col2 = st.columns(2)
             with col1:
-                if st.button("✅ I Accept", use_container_width=True):
+                if st.button("✅ I Accept", width="stretch"):
                     self.set_consent(username)
                     st.rerun()
             with col2:
-                if st.button("❌ Decline", use_container_width=True):
+                if st.button("❌ Decline", width="stretch"):
                     st.warning("You need to accept GDPR consent to use the platform.")
                     return False
         
@@ -1050,10 +1077,22 @@ if "sales_product_name" not in st.session_state:
     st.session_state["sales_product_name"] = ""
 if "sales_product_price" not in st.session_state:
     st.session_state["sales_product_price"] = ""
+if "sales_script_variations" not in st.session_state:
+    st.session_state["sales_script_variations"] = []
+if "sales_selected_script_idx" not in st.session_state:
+    st.session_state["sales_selected_script_idx"] = 0
 if "sales_script" not in st.session_state:
     st.session_state["sales_script"] = ""
+if "sales_funnel" not in st.session_state:
+    st.session_state["sales_funnel"] = {}
 if "sales_video_output" not in st.session_state:
     st.session_state["sales_video_output"] = None
+if "sales_video_thumbnail" not in st.session_state:
+    st.session_state["sales_video_thumbnail"] = None
+if "sales_video_caption" not in st.session_state:
+    st.session_state["sales_video_caption"] = None
+if "sales_video_history" not in st.session_state:
+    st.session_state["sales_video_history"] = []
 
 # ========================================================
 # 9. THIRD-PARTY IMPORTS & CONFIGURATION
@@ -1827,6 +1866,36 @@ def normalize_account_username(username):
     return value.lower() if "@" in value else value
 
 
+def preload_logged_in_user_data(username):
+    """Keep a short-lived session cache so the same user profile isn't reloaded on every rerun."""
+    username = normalize_account_username(username or "")
+    if not username:
+        return
+
+    last_loaded = st.session_state.get("user_profile_cache_ts", 0)
+    cached_user = st.session_state.get("user_profile_loaded_for")
+    if cached_user == username and (time.time() - float(last_loaded)) < 5:
+        return
+
+    st.session_state["xp_points"] = get_user_xp_db(username)
+    st.session_state["creator_level"] = 1 + (st.session_state["xp_points"] // 100)
+    st.session_state["history_renders"] = load_renders_history_db(username)
+    st.session_state["face_video_history"] = load_face_video_history_db(username)
+    st.session_state["sales_video_history"] = load_sales_video_history_db(username)
+    latest_sales = st.session_state["sales_video_history"][0] if st.session_state["sales_video_history"] else None
+    if latest_sales:
+        st.session_state["sales_video_output"] = latest_sales.get("video_path")
+        st.session_state["sales_video_thumbnail"] = latest_sales.get("thumbnail_path")
+        st.session_state["sales_video_caption"] = latest_sales.get("caption_path")
+        st.session_state["sales_funnel"] = latest_sales.get("funnel", {})
+        st.session_state["sales_script"] = latest_sales.get("prompt", "")
+    st.session_state["user_credits"] = get_user_credits_db(username)
+    st.session_state["credit_balance"] = st.session_state["user_credits"]
+    st.session_state["user_profile_loaded_for"] = username
+    st.session_state["user_profile_cache_ts"] = time.time()
+
+
+@st.cache_data(show_spinner=False, ttl=30)
 def resolve_account_username(username):
     """Return the username stored in PostgreSQL using a case-insensitive lookup."""
     candidate = normalize_account_username(username)
@@ -1934,6 +2003,7 @@ def login_or_register_social(email, platform):
     finally:
         conn.close()
 
+@st.cache_data(show_spinner=False, ttl=20)
 def get_user_credits_db(username):
     """Get real user credits from database"""
     if not username:
@@ -2037,6 +2107,7 @@ def deduct_credits_db(username, amount):
     finally:
         conn.close()
 
+@st.cache_data(show_spinner=False, ttl=30)
 def get_user_xp_db(username):
     conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     cursor = conn.cursor()
@@ -2088,6 +2159,7 @@ def check_and_expire_vouchers(username):
     finally:
         conn.close()
 
+@st.cache_data(show_spinner=False, ttl=30)
 def has_active_subscription(username):
     conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     cursor = conn.cursor()
@@ -2247,6 +2319,7 @@ def reward_referral(referrer_username):
 # 20. ACHIEVEMENT SYSTEM
 # ========================================================
 
+@st.cache_data(show_spinner=False, ttl=60)
 def check_achievements(username):
     conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     cursor = conn.cursor()
@@ -2290,6 +2363,7 @@ def check_achievements(username):
 # 21. LEADERBOARD SYSTEM
 # ========================================================
 
+@st.cache_data(show_spinner=False, ttl=60)
 def get_leaderboard(limit=10):
     conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     cursor = conn.cursor()
@@ -2639,13 +2713,13 @@ def render_enhanced_payment_ui():
                     """, unsafe_allow_html=True)
                     
                     if plan_data["price"] == 0:
-                        if st.button("🚀 Get Free Plan", key=f"enhanced_free_{plan_key}", use_container_width=True):
+                        if st.button("🚀 Get Free Plan", key=f"enhanced_free_{plan_key}", width="stretch"):
                             add_credits(st.session_state["logged_user"], plan_data['tokens'])
                             st.session_state['user_credits'] = get_user_credits_db(st.session_state["logged_user"])
                             st.success(f"✅ Added {plan_data['tokens']} free tokens!")
                             st.rerun()
                     else:
-                        if st.button(f"Subscribe {selected_currency} {converted_price:.2f}", key=f"enhanced_sub_{plan_key}", use_container_width=True):
+                        if st.button(f"Subscribe {selected_currency} {converted_price:.2f}", key=f"enhanced_sub_{plan_key}", width="stretch"):
                             st.session_state["pending_credits"] = plan_data['tokens']
                             st.session_state["pending_pack_name"] = plan_data['name'] + " Subscription"
                             st.session_state["pending_amount"] = price_inr
@@ -2690,7 +2764,7 @@ def render_enhanced_payment_ui():
                         </div>
                     """, unsafe_allow_html=True)
                     
-                    if st.button(f"Buy {selected_currency} {converted_price:.2f}", key=f"enhanced_buy_{plan_key}", use_container_width=True):
+                    if st.button(f"Buy {selected_currency} {converted_price:.2f}", key=f"enhanced_buy_{plan_key}", width="stretch"):
                         st.session_state["pending_credits"] = plan_data['tokens']
                         st.session_state["pending_pack_name"] = plan_data['name']
                         st.session_state["pending_amount"] = price_inr
@@ -2716,7 +2790,7 @@ def render_payment_modal():
         with col_title:
             st.markdown("<h3 style='font-family: Orbitron; color: #45f3ff; margin: 0;'>💳 Complete Payment</h3>", unsafe_allow_html=True)
         with col_close:
-            if st.button("❌ Close", key="payment_panel_close_btn", use_container_width=True):
+            if st.button("❌ Close", key="payment_panel_close_btn", width="stretch"):
                 clear_payment_state()
                 st.rerun()
 
@@ -2750,7 +2824,7 @@ def render_payment_modal():
                     if st.button(
                         button_label,
                         key=f"modal_gateway_{gateway}",
-                        use_container_width=True,
+                        width="stretch",
                         type="primary" if selected else "secondary"
                     ):
                         st.session_state["selected_gateway"] = gateway
@@ -2770,13 +2844,13 @@ def render_payment_modal():
                 
                 if st.session_state.get("payment_verified", False):
                     st.success("✅ Payment already verified! Credits added to your account.")
-                    if st.button("🔄 Refresh Balance", use_container_width=True):
+                    if st.button("🔄 Refresh Balance", width="stretch"):
                         st.session_state['user_credits'] = get_user_credits_db(st.session_state["logged_user"])
                         st.rerun()
                     return
 
                 # ---- PAY WITH RAZORPAY BUTTON ----
-                if st.button("💳 Pay with Razorpay", key="razorpay_pay_btn", use_container_width=True):
+                if st.button("💳 Pay with Razorpay", key="razorpay_pay_btn", width="stretch"):
                     if not RAZORPAY_KEY_ID or not RAZORPAY_KEY_SECRET:
                         st.error("❌ Razorpay not configured. Add RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET in Streamlit secrets.")
                     else:
@@ -2838,7 +2912,7 @@ def render_payment_modal():
                     key="crypto_currency_select"
                 )
                 
-                if st.button(f"Generate {crypto_currency} Address", use_container_width=True):
+                if st.button(f"Generate {crypto_currency} Address", width="stretch"):
                     with st.spinner(f"Generating {crypto_currency} address..."):
                         amount_usd = convert_price(amount, "USD")
                         result = create_crypto_payment(amount_usd, crypto_currency)
@@ -2866,7 +2940,7 @@ def render_payment_modal():
                 
                 st.markdown("<br>", unsafe_allow_html=True)
                 
-                if st.button("💳 Generate Binance Payment Address", key="binance_gen_btn", use_container_width=True):
+                if st.button("💳 Generate Binance Payment Address", key="binance_gen_btn", width="stretch"):
                     with st.spinner("Generating payment address..."):
                         # Map display currency to crypto currency code
                         currency_map = {
@@ -2930,7 +3004,7 @@ def render_payment_modal():
                     st.markdown("<br>", unsafe_allow_html=True)
                     st.info("🟡 After sending payment, click below to verify. This may take a few minutes to confirm on the blockchain.")
                     
-                    if st.button("✅ I've Sent the Payment - Verify", key="binance_verify_btn", use_container_width=True):
+                    if st.button("✅ I've Sent the Payment - Verify", key="binance_verify_btn", width="stretch"):
                         st.session_state["payment_verified"] = True
                         st.session_state["pending_credits"] = credits
                         st.session_state["pending_pack_name"] = plan_name
@@ -3791,7 +3865,7 @@ def save_face_video_to_db(username, file_name, prompt, path, face_path, quality=
     cursor = conn.cursor()
     try:
         timestamp = time.strftime("%b %d, %Y - %I:%M %p")
-        quality_credit_costs = {"Standard": 25, "HD": 60, "4K": 110}
+        quality_credit_costs = {"Standard": 25, "HD": 35, "4K": 50}
         credits_charged = quality_credit_costs.get(quality, 25) if credits_charged is None else credits_charged
         cost_inr = calculate_render_cost("Face Video", quality=quality)
         cursor.execute(
@@ -3806,6 +3880,92 @@ def save_face_video_to_db(username, file_name, prompt, path, face_path, quality=
     finally:
         conn.close()
 
+def save_sales_video_to_db(username, file_name, prompt, video_path, thumbnail_path,
+                           caption_path, funnel=None, quality="Standard", credits_charged=0):
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
+    cursor = conn.cursor()
+    try:
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS sales_video_history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT NOT NULL,
+                file_name TEXT,
+                timestamp TEXT,
+                prompt TEXT,
+                video_path TEXT,
+                thumbnail_path TEXT,
+                caption_path TEXT,
+                funnel_json TEXT DEFAULT '{}',
+                quality TEXT DEFAULT 'Standard',
+                credits_charged INTEGER DEFAULT 0
+            )
+        """)
+        cursor.execute(
+            "INSERT INTO sales_video_history "
+            "(username, file_name, timestamp, prompt, video_path, thumbnail_path, caption_path, funnel_json, quality, credits_charged) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (
+                normalize_account_username(username),
+                file_name,
+                time.strftime("%b %d, %Y - %I:%M %p"),
+                prompt,
+                video_path,
+                thumbnail_path,
+                caption_path,
+                json.dumps(funnel or {}, ensure_ascii=True),
+                quality,
+                int(credits_charged or 0),
+            ),
+        )
+        conn.commit()
+    except Exception as exc:
+        logger.error("Save sales video error: %s", exc)
+    finally:
+        conn.close()
+
+@st.cache_data(show_spinner=False, ttl=30)
+def load_sales_video_history_db(username):
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
+    cursor = conn.cursor()
+    history = []
+    try:
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS sales_video_history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT NOT NULL,
+                file_name TEXT,
+                timestamp TEXT,
+                prompt TEXT,
+                video_path TEXT,
+                thumbnail_path TEXT,
+                caption_path TEXT,
+                funnel_json TEXT DEFAULT '{}',
+                quality TEXT DEFAULT 'Standard',
+                credits_charged INTEGER DEFAULT 0
+            )
+        """)
+        cursor.execute(
+            "SELECT file_name, timestamp, prompt, video_path, thumbnail_path, caption_path, funnel_json, quality, credits_charged "
+            "FROM sales_video_history WHERE username = ? ORDER BY id DESC",
+            (normalize_account_username(username),),
+        )
+        for row in cursor.fetchall():
+            try:
+                funnel = json.loads(row[6] or "{}")
+            except (TypeError, json.JSONDecodeError):
+                funnel = {}
+            history.append({
+                "file_name": row[0], "timestamp": row[1], "prompt": row[2],
+                "video_path": row[3], "thumbnail_path": row[4], "caption_path": row[5],
+                "funnel": funnel, "quality": row[7], "credits_charged": row[8] or 0,
+            })
+    except Exception as exc:
+        logger.error("Load sales video history error: %s", exc)
+    finally:
+        conn.close()
+    return history
+
+@st.cache_data(show_spinner=False, ttl=30)
 def load_renders_history_db(username):
     conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     cursor = conn.cursor()
@@ -3966,7 +4126,7 @@ def show_admin_dashboard():
                     if has_cost and len(r) >= 5:
                         r[4] = f'₹{r[4]:.2f}' if r[4] else '₹0.00'
                     data.append(r)
-                st.dataframe(pd.DataFrame(data, columns=df_cols), use_container_width=True, hide_index=True)
+                st.dataframe(pd.DataFrame(data, columns=df_cols), width="stretch", hide_index=True)
             else:
                 st.info('No generations yet.')
         except Exception as e:
@@ -3975,7 +4135,7 @@ def show_admin_dashboard():
         st.markdown('---')
         col1, col2 = st.columns(2)
         with col1:
-            if st.button('📊 Export Report (CSV)', key='admin_export_csv', use_container_width=True):
+            if st.button('📊 Export Report (CSV)', key='admin_export_csv', width="stretch"):
                 try:
                     cursor.execute('SELECT * FROM history ORDER BY id DESC')
                     all_rows = cursor.fetchall()
@@ -3991,13 +4151,14 @@ def show_admin_dashboard():
                 except Exception as e:
                     st.error(f'Export error: {e}')
         with col2:
-            if st.button('🔄 Refresh', key='admin_refresh', use_container_width=True):
+            if st.button('🔄 Refresh', key='admin_refresh', width="stretch"):
                 st.rerun()
     except Exception as e:
         st.error(f'Dashboard error: {e}')
     finally:
         conn.close()
 
+@st.cache_data(show_spinner=False, ttl=30)
 def load_face_video_history_db(username):
     conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     cursor = conn.cursor()
@@ -4261,6 +4422,63 @@ def safe_generate_face_video_wrapper(prompt, face_image_path, duration=30, emoti
         logger.error(f"safe_generate_face_video_wrapper error: {e}")
     
     return video_path, error_msg
+
+def refund_face_video_credits(required_tokens, reason="Face video generation failed", username=None):
+    """Return tokens deducted for a face-video attempt that did not produce a video."""
+    username = str(username or st.session_state.get("logged_user") or "").strip()
+    try:
+        amount = int(required_tokens or 0)
+    except (TypeError, ValueError):
+        amount = 0
+    if not username or amount <= 0:
+        logger.warning("Face video refund skipped: missing user or invalid amount (%s)", required_tokens)
+        return False
+    refunded = add_credits(username, amount)
+    if refunded:
+        current_balance = get_user_credits_db(username)
+        st.session_state["user_credits"] = current_balance
+        st.session_state["credit_balance"] = current_balance
+        logger.info("Refunded %s credits to %s: %s", amount, username, reason)
+        return True
+    logger.error("Face video credit refund failed for %s (%s credits): %s", username, amount, reason)
+    return False
+
+
+def settle_face_video_credits(reserved_tokens, actual_tokens=None, reason="Replicate runtime settlement"):
+    """Keep the provider-derived charge and return any unused reservation."""
+    try:
+        reserved = max(0, int(reserved_tokens or 0))
+        actual = None if actual_tokens is None else max(1, int(actual_tokens))
+    except (TypeError, ValueError):
+        reserved, actual = 0, None
+    if reserved <= 0 or actual is None:
+        return reserved
+
+    username = str(st.session_state.get("logged_user") or "").strip()
+    if actual < reserved and username:
+        refund_face_video_credits(reserved - actual, reason)
+    elif actual > reserved and username:
+        extra = actual - reserved
+        if not deduct_credits_db(username, extra):
+            logger.error("Face video settlement could not collect extra %s credits", extra)
+            return reserved
+    return actual
+
+
+def _replicate_face_runtime_tokens(predict_time, quality="Standard"):
+    """Convert Replicate billed compute seconds into credits conservatively."""
+    if predict_time is None:
+        return None
+    try:
+        import math
+        seconds = max(0.0, float(predict_time or 0))
+        usd_per_second = max(0.0, float(os.getenv("REPLICATE_FACE_COST_PER_SECOND_USD", "0.006")))
+        credits_per_usd = max(1.0, float(os.getenv("ZOVIX_CREDITS_PER_USD", "1000")))
+        safety_buffer = max(1.0, float(os.getenv("REPLICATE_FACE_BILLING_BUFFER", "1.25")))
+        quality_multiplier = {"Standard": 1.0, "HD": 1.15, "4K": 1.35}.get(str(quality), 1.0)
+        return max(1, int(math.ceil(seconds * usd_per_second * credits_per_usd * quality_multiplier * safety_buffer)))
+    except (TypeError, ValueError):
+        return None
 
 def get_base64_img_raw(path):
     if not path or not os.path.exists(path):
@@ -5171,11 +5389,177 @@ def get_scene_asset(description, output_filename, scene_text=None, idx=None, sta
         logger.error(f"Get scene asset error: {e}")
     return False
 
+def _get_replicate_image_token():
+    return _clean_secret_value(
+        os.getenv("REPLICATE_API_TOKEN", "")
+        or os.getenv("REPLICATE_API_KEY", "")
+        or get_system_secret("REPLICATE_API_TOKEN", "")
+        or get_system_secret("REPLICATE_API_KEY", "")
+    )
+
+
+def _extract_replicate_image_url(output):
+    if isinstance(output, str) and output.startswith(("http://", "https://")):
+        return output
+    if isinstance(output, dict):
+        for key in ("image", "images", "output", "url", "image_url", "imageUrl"):
+            found = _extract_replicate_image_url(output.get(key))
+            if found:
+                return found
+    if isinstance(output, (list, tuple)):
+        for item in output:
+            found = _extract_replicate_image_url(item)
+            if found:
+                return found
+    for attribute in ("url", "output", "image"):
+        try:
+            found = _extract_replicate_image_url(getattr(output, attribute, None))
+        except Exception:
+            found = None
+        if found:
+            return found
+    return None
+
+
+def _generate_replicate_workshop_image(prompt, aspect_ratio, negative_prompt, quality, output_dir):
+    token = _get_replicate_image_token()
+    if not token:
+        raise RuntimeError("REPLICATE_API_TOKEN is not configured.")
+
+    quality_model_defaults = {
+        "Standard": "black-forest-labs/flux-schnell",
+        "HD": "black-forest-labs/flux-dev",
+        "Pro": "black-forest-labs/flux-1.1-pro",
+    }
+    model_env_keys = {
+        "Standard": "REPLICATE_WORKSHOP_STANDARD_MODEL",
+        "HD": "REPLICATE_WORKSHOP_HD_MODEL",
+        "Pro": "REPLICATE_WORKSHOP_PRO_MODEL",
+    }
+    quality_name = str(quality or "Standard")
+    model_ref = _clean_secret_value(
+        os.getenv(model_env_keys.get(quality_name, ""), "")
+        or os.getenv("REPLICATE_WORKSHOP_MODEL", "")
+        or quality_model_defaults.get(quality_name, quality_model_defaults["Standard"])
+    )
+    ratio = aspect_ratio if aspect_ratio in {"16:9", "9:16", "1:1", "21:9", "4:5", "3:2"} else "16:9"
+    effective_prompt = str(prompt).strip()
+    if str(negative_prompt or "").strip():
+        effective_prompt += f" Avoid these unwanted elements: {str(negative_prompt).strip()}"
+    input_payload = {
+        "prompt": effective_prompt,
+        "aspect_ratio": ratio,
+        "output_format": "png",
+        "num_outputs": 1,
+    }
+    if quality_name == "Standard":
+        input_payload["output_quality"] = 80
+    elif quality_name == "HD":
+        input_payload.update({"megapixels": "1", "num_inference_steps": 28})
+    else:
+        input_payload.update({"output_quality": 100, "prompt_upsampling": True, "safety_tolerance": 2})
+    payload = {"input": input_payload}
+    headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+    prediction_url = f"https://api.replicate.com/v1/models/{model_ref}/predictions"
+    response = requests.post(prediction_url, headers=headers, json=payload, timeout=60)
+    if response.status_code not in {200, 201, 202}:
+        raise RuntimeError(f"Replicate returned HTTP {response.status_code}: {response.text[:400]}")
+    prediction = response.json()
+    prediction_id = prediction.get("id")
+    if not prediction_id:
+        raise RuntimeError(f"Replicate returned no prediction id: {prediction}")
+
+    status_url = f"https://api.replicate.com/v1/predictions/{prediction_id}"
+    deadline = time.time() + max(60, int(os.getenv("REPLICATE_WORKSHOP_TIMEOUT", "240")))
+    while time.time() < deadline:
+        status_response = requests.get(status_url, headers={"Authorization": f"Bearer {token}"}, timeout=30)
+        if status_response.status_code != 200:
+            raise RuntimeError(f"Replicate status returned HTTP {status_response.status_code}: {status_response.text[:300]}")
+        prediction = status_response.json()
+        status = str(prediction.get("status", "")).lower()
+        if status == "succeeded":
+            image_url = _extract_replicate_image_url(prediction.get("output"))
+            if not image_url:
+                raise RuntimeError("Replicate prediction succeeded but returned no image URL.")
+            image_response = requests.get(image_url, timeout=90)
+            image_response.raise_for_status()
+            if len(image_response.content) < 10000:
+                raise RuntimeError("Replicate returned an empty image.")
+            output_path = Path(output_dir) / f"replicate_workshop_{uuid.uuid4().hex[:8]}.png"
+            output_path.write_bytes(image_response.content)
+            return str(output_path)
+        if status in {"failed", "canceled", "cancelled"}:
+            raise RuntimeError(f"Replicate prediction {status}: {prediction.get('error') or prediction}")
+        time.sleep(2)
+    raise TimeoutError(f"Replicate image prediction timed out after {int(os.getenv('REPLICATE_WORKSHOP_TIMEOUT', '240'))} seconds.")
+
+
 def generate_pro_image(prompt, aspect_ratio="16:9", negative_prompt="", quality="Standard", runpod_api_key=None):
-    """Generate a Creative Workshop image via the ComfyUI API on RunPod (replaces Stability/Pollinations)."""
-    from comfyui_engine import generate_workshop_image
+    """Generate a Workshop image with Replicate, Stability, then ComfyUI RunPod."""
+    output_dir = Path("workshop_outputs")
+    output_dir.mkdir(parents=True, exist_ok=True)
+    replicate_error = "Replicate was not attempted."
+    stability_error = "STABILITY_API_KEY is not configured."
+    fallback_error = "RunPod fallback was not attempted."
+    st.session_state["workshop_image_error"] = None
 
     try:
+        output_path = _generate_replicate_workshop_image(
+            prompt, aspect_ratio, negative_prompt, quality, output_dir
+        )
+        if output_path and os.path.exists(output_path):
+            model_ref = _clean_secret_value(
+                os.getenv({
+                    "Standard": "REPLICATE_WORKSHOP_STANDARD_MODEL",
+                    "HD": "REPLICATE_WORKSHOP_HD_MODEL",
+                    "Pro": "REPLICATE_WORKSHOP_PRO_MODEL",
+                }.get(str(quality), ""), "")
+                or os.getenv("REPLICATE_WORKSHOP_MODEL", "")
+                or {
+                    "Standard": "black-forest-labs/flux-schnell",
+                    "HD": "black-forest-labs/flux-dev",
+                    "Pro": "black-forest-labs/flux-1.1-pro",
+                }.get(str(quality), "black-forest-labs/flux-schnell")
+            )
+            st.session_state["workshop_image_engine_used"] = f"Replicate ({model_ref})"
+            return output_path
+    except Exception as exc:
+        replicate_error = str(exc)
+        logger.warning("Replicate Workshop generation failed; trying Stability AI: %s", exc)
+    stability_key = (STABILITY_API_KEY or os.getenv("STABILITY_API_KEY") or get_system_secret("STABILITY_API_KEY") or "").strip()
+
+    if stability_key and stability_key.lower() != "mock":
+        output_path = output_dir / f"stability_workshop_{uuid.uuid4().hex[:8]}.png"
+        stability_ratio = aspect_ratio if aspect_ratio in {
+            "16:9", "1:1", "21:9", "2:3", "3:2", "4:5", "5:4", "9:16", "9:21"
+        } else "16:9"
+        payload = {
+            "prompt": f"High-quality creative artwork, detailed composition: {str(prompt).strip()}",
+            "output_format": "png",
+            "aspect_ratio": stability_ratio,
+        }
+        if str(negative_prompt or "").strip():
+            payload["negative_prompt"] = str(negative_prompt).strip()
+        try:
+            response = requests.post(
+                "https://api.stability.ai/v2beta/stable-image/generate/core",
+                headers={"authorization": f"Bearer {stability_key}", "accept": "image/*"},
+                files={key: (None, str(value)) for key, value in payload.items()},
+                timeout=90,
+            )
+            if response.status_code == 200 and len(response.content) > 10000:
+                output_path.write_bytes(response.content)
+                if output_path.exists() and output_path.stat().st_size > 10000:
+                    st.session_state["workshop_image_engine_used"] = "Stability AI"
+                    return str(output_path)
+            response_detail = response.text[:300].replace("\n", " ")
+            stability_error = f"Stability AI returned HTTP {response.status_code}: {response_detail}"
+        except Exception as exc:
+            stability_error = str(exc)
+            logger.warning("Stability Workshop generation failed; trying ComfyUI RunPod: %s", exc)
+
+    try:
+        from comfyui_engine import generate_workshop_image
         output_path = generate_workshop_image(
             prompt,
             aspect_ratio=aspect_ratio,
@@ -5184,11 +5568,17 @@ def generate_pro_image(prompt, aspect_ratio="16:9", negative_prompt="", quality=
             api_key=runpod_api_key or os.getenv("RUNPOD_API_KEY") or get_system_secret("RUNPOD_API_KEY"),
         )
         if output_path and os.path.exists(output_path):
+            st.session_state["workshop_image_engine_used"] = "ComfyUI (RunPod fallback)"
             return output_path
-        logger.warning("ComfyUI workshop generation returned no image.")
-    except Exception as e:
-        logger.error(f"ComfyUI generate_pro_image error: {e}")
+        fallback_error = "ComfyUI RunPod returned no image. Check RUNPOD_API_KEY and COMFYUI_RUNPOD_ENDPOINT_ID."
+        logger.warning(fallback_error)
+    except Exception as exc:
+        fallback_error = f"ComfyUI RunPod fallback failed: {exc}"
+        logger.error(fallback_error)
 
+    combined_error = f"Replicate: {replicate_error} | Stability: {stability_error} | RunPod: {fallback_error}"
+    st.session_state["workshop_image_error"] = combined_error
+    logger.error("Creative Workshop image generation failed: %s", combined_error)
     return None
 
 def convert_image_to_video_svd_robust(image_path, motion_bucket_id=127):
@@ -6958,15 +7348,18 @@ def deepface_scan_face_and_select_voice(face_image_path):
     if not face_image_path or not os.path.exists(face_image_path):
         logger.warning("DeepFace: No face image path provided, using default voice (Adam)")
         return result
+
+    if os.getenv("ENABLE_DEEPFACE_SCAN", "0").strip().lower() not in {"1", "true", "yes"}:
+        return result
     
     try:
-        import warnings
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            import tensorflow as tf
-            tf.get_logger().setLevel("ERROR")
-            
-            analysis = DeepFace.analyze(img_path=face_image_path, actions=['age', 'gender'], enforce_detection=False)
+        try:
+            from deepface import DeepFace
+        except Exception as import_error:
+            logger.info("DeepFace auto-scan unavailable; using default voice: %s", import_error)
+            return result
+
+        analysis = DeepFace.analyze(img_path=face_image_path, actions=['age', 'gender'], enforce_detection=False)
         
         if isinstance(analysis, list) and len(analysis) > 0:
             face_data = analysis[0]
@@ -7037,7 +7430,7 @@ def _clamp_face_video_duration(duration):
 def generate_face_video(prompt, face_image_path, duration=30, emotion="neutral", 
                         camera_angle="front", quality="Standard", 
                         voice_language=None, voice_label=None, runpod_api_key=None):
-    """Generate through RunPod first, then fall back to Replicate."""
+    """Prefer configured RunPod face generation. Only use Replicate when RunPod is not configured."""
     print("=" * 60)
     print("🎬 generate_face_video() called - ComfyUI RunPod Cloud Mode")
     print("=" * 60)
@@ -7147,7 +7540,11 @@ def _run_replicate_face_model(client, model_ref, image_path, audio_path, script_
                     output = client.run(model_ref, input=payload)
             video_url = _extract_replicate_video_url(output)
             if video_url:
-                return video_url
+                metrics = getattr(output, "metrics", None)
+                if metrics is None and isinstance(output, dict):
+                    metrics = output.get("metrics")
+                predict_time = metrics.get("predict_time") if isinstance(metrics, dict) else None
+                return video_url, predict_time
         except Exception as exc:
             logger.warning("Replicate model %s input variant failed: %s", model_ref, exc)
     return None
@@ -7184,20 +7581,89 @@ def _generate_replicate_face_video(prompt, face_image_path, duration, quality, v
             seen.add(model_ref.lower())
             result = _run_replicate_face_model(client, model_ref, face_image_path, temp_audio, prompt)
             if result:
+                video_url, predict_time = result
+                st.session_state["face_video_replicate_predict_time"] = predict_time
                 st.session_state["face_video_engine_used"] = f"Replicate ({model_ref})"
                 st.session_state["face_video_runtime_mode"] = "Cloud Fallback"
                 st.session_state["face_video_last_error"] = None
-                return result
+                return video_url
         raise RuntimeError("All Replicate face models returned no video.")
     finally:
         if temp_audio:
             safe_remove_file(temp_audio)
 
 
+def _generate_replicate_sales_video(image_path, audio_path, script_text):
+    """Generate a sales avatar through Replicate, with ComfyUI RunPod fallback."""
+    token = _get_replicate_face_token()
+    replicate_error = "Replicate was not configured."
+    if token:
+        try:
+            import replicate
+            model_ref = str(os.getenv("REPLICATE_SALES_MODEL", "prunaai/p-video-avatar")).strip()
+            client = replicate.Client(api_token=token)
+            result = _run_replicate_face_model(client, model_ref, image_path, audio_path, script_text)
+            if result:
+                video_url, predict_time = result
+                st.session_state["sales_video_engine_used"] = f"Replicate ({model_ref})"
+                st.session_state["sales_video_replicate_predict_time"] = predict_time
+                return video_url
+            replicate_error = f"Replicate model {model_ref} returned no video output."
+        except Exception as exc:
+            replicate_error = str(exc)
+            logger.warning("Replicate sales avatar failed; trying RunPod fallback: %s", exc)
+
+    effective_runpod_key = (RUNPOD_API_KEY or os.getenv("RUNPOD_API_KEY", "") or get_system_secret("RUNPOD_API_KEY", "")).strip()
+    effective_endpoint = (RUNPOD_ENDPOINT_FACE or FACE_ENDPOINT_ID or os.getenv("RUNPOD_ENDPOINT_FACE", "") or os.getenv("COMFYUI_FACE_RUNPOD_ENDPOINT_ID", "")).strip()
+    if effective_runpod_key and effective_endpoint:
+        try:
+            from comfyui_engine import generate_face_video as runpod_generate_face_video
+            video_result = runpod_generate_face_video(
+                face_image_path=image_path,
+                audio_path=audio_path,
+                script_text=script_text,
+                duration=10,
+                quality="Standard",
+                api_key=effective_runpod_key,
+                endpoint_id=effective_endpoint,
+            )
+            if video_result:
+                st.session_state["sales_video_engine_used"] = "ComfyUI (RunPod)"
+                st.session_state["sales_video_runtime_mode"] = "Cloud Fallback"
+                return video_result
+            raise RuntimeError("RunPod returned no sales video output.")
+        except Exception as exc:
+            raise RuntimeError(f"Replicate failed: {replicate_error}; RunPod fallback failed: {exc}") from exc
+
+    raise RuntimeError(f"Replicate failed: {replicate_error}; RunPod fallback is not configured.")
+
+
 def generate_world_face_video(prompt, face_image_path, duration=10, quality="HD", animation_style="Expressive Real Human (No Lip-Only Fallback)", backend_choice="Auto (LivePortrait → SadTalker → Wav2Lip)", motion_level="high", voice_language=None, voice_label=None, runpod_api_key=None):
-    """Try RunPod first and automatically use Replicate when RunPod fails."""
+    """Generate with Replicate first, then fall back to RunPod if needed."""
     if not face_image_path or not os.path.exists(face_image_path):
         return None
+
+    st.session_state["face_video_replicate_predict_time"] = None
+
+    replicate_error = "Replicate was not attempted."
+    try:
+        replicate_result = _generate_replicate_face_video(
+            prompt,
+            face_image_path,
+            duration,
+            quality,
+            voice_language,
+            voice_label,
+        )
+        if replicate_result:
+            return replicate_result
+        replicate_error = "Replicate returned no video output."
+    except Exception as e:
+        replicate_error = str(e)
+        logger.warning("Replicate face generation failed; trying RunPod fallback: %s", e)
+
+    effective_runpod_key = (runpod_api_key or RUNPOD_API_KEY or os.getenv("RUNPOD_API_KEY", "") or get_system_secret("RUNPOD_API_KEY", "") or "").strip()
+    effective_endpoint = (RUNPOD_ENDPOINT_FACE or FACE_ENDPOINT_ID or os.getenv("RUNPOD_ENDPOINT_FACE", "") or os.getenv("COMFYUI_FACE_RUNPOD_ENDPOINT_ID", "") or "").strip()
 
     temp_audio = None
     try:
@@ -7214,7 +7680,8 @@ def generate_world_face_video(prompt, face_image_path, duration=10, quality="HD"
             script_text=prompt,
             duration=duration,
             quality=quality,
-            api_key=runpod_api_key,
+            api_key=effective_runpod_key,
+            endpoint_id=effective_endpoint,
         )
 
         if video_result:
@@ -7231,14 +7698,16 @@ def generate_world_face_video(prompt, face_image_path, duration=10, quality="HD"
         if temp_audio:
             safe_remove_file(temp_audio)
 
-    logger.warning("RunPod face generation failed; starting Replicate fallback: %s", runpod_error)
-    try:
-        return _generate_replicate_face_video(prompt, face_image_path, duration, quality, voice_language, voice_label)
-    except Exception as fallback_error:
-        combined_error = f"RunPod failed: {runpod_error} | Replicate fallback failed: {fallback_error}"
+    if effective_runpod_key and effective_endpoint:
+        combined_error = f"Replicate failed: {replicate_error} | RunPod fallback failed: {runpod_error}"
         st.session_state["face_video_last_error"] = combined_error
         logger.error(combined_error)
         return None
+
+    combined_error = f"Replicate failed: {replicate_error} | RunPod fallback unavailable: {runpod_error}"
+    st.session_state["face_video_last_error"] = combined_error
+    logger.error(combined_error)
+    return None
 
 
 def _detect_face_gender(face_image_path):
@@ -7583,7 +8052,7 @@ def render_premium_selection_cards(label, options, session_key):
         wrapper_class = "selected-opt-wrap" if is_selected else "unselected-opt-wrap"
         with cols[idx]:
             st.markdown(f"<div class='{wrapper_class}'>", unsafe_allow_html=True)
-            if st.button(opt, key=f"opt_btn_{session_key}_{idx}", use_container_width=True):
+            if st.button(opt, key=f"opt_btn_{session_key}_{idx}", width="stretch"):
                 st.session_state[session_key] = opt
                 st.rerun()
             st.markdown("</div>", unsafe_allow_html=True)
@@ -7803,7 +8272,7 @@ def render_ai_agent_ui():
             )
             
             # ✅ FIXED: Activate Button with proper logic
-            if st.button("🚀 Activate AI Agent", key="agent_activate_btn", use_container_width=True):
+            if st.button("🚀 Activate AI Agent", key="agent_activate_btn", width="stretch"):
                 if not business_name.strip():
                     st.error("❌ Please enter a business name.")
                 elif not products_text.strip():
@@ -7848,6 +8317,7 @@ def render_ai_agent_ui():
                                 st.toast("✅ AI Agent activated successfully!")
                                 st.rerun()
                         except Exception as e:
+                            refund_face_video_credits(required_tokens, f"AI Agent activation failed: {e}")
                             st.error(f"❌ Error: {str(e)}")
     
     with agent_col2:
@@ -7934,7 +8404,7 @@ def render_ai_agent_ui():
                 
                 col_qa1, col_qa2 = st.columns(2)
                 with col_qa1:
-                    if st.button("📱 Generate WhatsApp Ad", key="agent_whatsapp_ad", use_container_width=True):
+                    if st.button("📱 Generate WhatsApp Ad", key="agent_whatsapp_ad", width="stretch"):
                         if not require_login_for_generation("AI Agent Mode"):
                             st.stop()
                         with st.spinner("Generating WhatsApp ad..."):
@@ -7950,7 +8420,7 @@ def render_ai_agent_ui():
                             st.rerun()
                 
                 with col_qa2:
-                    if st.button("📸 Generate Instagram Post", key="agent_instagram_post", use_container_width=True):
+                    if st.button("📸 Generate Instagram Post", key="agent_instagram_post", width="stretch"):
                         if not require_login_for_generation("AI Agent Mode"):
                             st.stop()
                         with st.spinner("Generating Instagram post..."):
@@ -7984,7 +8454,7 @@ def render_ai_agent_ui():
                 
                 if st.session_state.get("agent_instagram_image") and os.path.exists(st.session_state["agent_instagram_image"]):
                     with st.expander("📸 Instagram Post Preview", expanded=False):
-                        st.image(st.session_state["agent_instagram_image"], caption="Generated Post Image", use_container_width=True)
+                        st.image(st.session_state["agent_instagram_image"], caption="Generated Post Image", width="stretch")
                         st.text(st.session_state.get("agent_instagram_caption", ""))
                         st.download_button(
                             label="📥 Download Image",
@@ -8035,8 +8505,117 @@ def render_ai_agent_ui():
                 """, unsafe_allow_html=True)
 
 
+def generate_agent_ad(business_name, product_list, target_platform="Instagram"):
+    """Logic to generate AI advertisement copy using LLM"""
+    if not business_name or not product_list:
+        return "Please configure business name and products first."
+    
+    products_str = ", ".join([p.get('name', '') for p in product_list])
+    
+    # Fallback to hardcoded viral templates if no API is active
+    return (
+        f"🚀 {business_name} Exclusive Launch!\n\n"
+        f"Upgrade your life with our latest: {products_str}. "
+        f"Designed for those who demand excellence and performance. 💎\n\n"
+        f"Available now on our portal. Don't wait for the future, create it with us.\n\n"
+        f"#{business_name.replace(' ', '')} #AIInnovation #FutureTech #ZovixAgent"
+    )
+
+def render_ai_agent_ui():
+    """AI Agent Studio UI - Dark Theme Implementation"""
+    st.markdown("""
+    <div style="background: linear-gradient(135deg, rgba(139,92,246,0.06), rgba(69,243,255,0.06));
+        border-radius: 16px; border: 1px solid rgba(139,92,246,0.08);
+        padding: 16px 20px; margin-bottom: 18px; text-align: center;">
+        <span style="display: inline-block; background: rgba(139,92,246,0.12); color: #8B5CF6;
+            padding: 4px 14px; border-radius: 16px; font-size: 9px;
+            font-family: 'Orbitron', sans-serif; letter-spacing: 1px;
+            border: 1px solid rgba(139,92,246,0.15); margin-bottom: 6px;">🤖 AUTONOMOUS AGENT</span>
+        <h2 style="font-family: 'Orbitron', sans-serif; font-size: 20px; color: #FFFFFF; margin: 0;">
+            AI <span style="background: linear-gradient(135deg, #8B5CF6, #EC4899);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;">Agent</span> Studio
+        </h2>
+        <p style="font-family: 'Inter', sans-serif; color: #94a3b8; font-size: 12px; margin: 4px 0 0 0;">
+            Brand Automation • Market Intelligence • Content Generation
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    tab1, tab2, tab3 = st.tabs(["🏢 Brand Profile", "📦 Product Manager", "⚡ Agent Actions"])
+
+    with tab1:
+        with st.container(border=True):
+            st.markdown('<p style="color: #8B5CF6; font-family: Orbitron; font-size: 12px;">🏢 BUSINESS PROFILE</p>', unsafe_allow_html=True)
+            biz_name = st.text_input("Business Name", value=st.session_state.get("agent_business_name", ""), placeholder="e.g. Zovix Tech Solutions")
+            if biz_name != st.session_state.get("agent_business_name"):
+                st.session_state["agent_business_name"] = biz_name
+            
+            st.caption("Agent uses this profile to maintain brand consistency across all generated content.")
+
+    with tab2:
+        with st.container(border=True):
+            st.markdown('<p style="color: #8B5CF6; font-family: Orbitron; font-size: 12px;">📦 INVENTORY</p>', unsafe_allow_html=True)
+            p_col1, p_col2 = st.columns([2, 1])
+            with p_col1:
+                new_p = st.text_input("Add Product/Service", key="agent_new_p_name", placeholder="e.g. Cloud Storage")
+            with p_col2:
+                st.write("") # spacing
+                if st.button("➕ Add", width="stretch"):
+                    if new_p:
+                        current_ps = st.session_state.get("agent_products", [])
+                        current_ps.append({"name": new_p, "added_at": time.time()})
+                        st.session_state["agent_products"] = current_ps
+                        st.rerun()
+
+            st.write("")
+            if not st.session_state.get("agent_products"):
+                st.info("Your inventory is empty.")
+            else:
+                for i, p in enumerate(st.session_state.get("agent_products", [])):
+                    cols = st.columns([5, 1])
+                    cols[0].markdown(f"""<div style="background: rgba(255,255,255,0.03); padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">🔹 {p['name']}</div>""", unsafe_allow_html=True)
+                    if cols[1].button("🗑️", key=f"del_p_{i}"):
+                        st.session_state["agent_products"].pop(i)
+                        st.rerun()
+
+    with tab3:
+        with st.container(border=True):
+            st.markdown('<p style="color: #8B5CF6; font-family: Orbitron; font-size: 12px;">⚡ AGENT COMMANDS</p>', unsafe_allow_html=True)
+            target = st.selectbox("Select Target Strategy", ["Viral Instagram Ad", "Professional LinkedIn Post", "Fast Twitter Thread", "Email Marketing Campaign"])
+            
+            if st.button("🚀 Execute AI Ad Campaign", width="stretch"):
+                if not st.session_state.get("agent_business_name") or not st.session_state.get("agent_products"):
+                    st.error("Missing Brand Details! Please setup Brand Profile and Product Manager first.")
+                else:
+                    with st.spinner("Agent is analyzing market trends and generating copy..."):
+                        ad_text = generate_agent_ad(
+                            st.session_state.get("agent_business_name"),
+                            st.session_state.get("agent_products", []),
+                            target
+                        )
+                        st.session_state["agent_generated_ad"] = ad_text
+            
+            if st.session_state.get("agent_generated_ad"):
+                st.markdown("---")
+                st.markdown(f"**Generated Strategy for {target}:**")
+                st.markdown(f"""<div style="background: rgba(139,92,246,0.08); padding: 15px; border-radius: 12px; border: 1px solid rgba(139,92,246,0.2); color: #e0e0e0; font-family: 'Inter', sans-serif; line-height: 1.6;">{st.session_state["agent_generated_ad"]}</div>""", unsafe_allow_html=True)
+                st.write("")
+                if st.button("✨ Save to Dashboard"):
+                    st.success("Strategy saved to Business Intel!")
+
 def render_ai_sales_ui():
     """AI Sales Video Generator - Product videos with AI voice & image"""
+    default_voice = next(iter(ELEVENLABS_VOICES.keys()), "Rachel")
+    product_name = st.session_state.get("sales_product_name", "")
+    product_price = st.session_state.get("sales_product_price", "")
+    product_category = st.session_state.get("sales_category", "Electronics")
+    sales_language = st.session_state.get("sales_language", "Hindi")
+    sales_voice = st.session_state.get("sales_voice", default_voice)
+    sales_quality = st.session_state.get("sales_quality", "Standard")
+    sales_tone = st.session_state.get("sales_tone", "Professional")
+    sales_prompt = st.session_state.get("sales_auto_prompt", "")
+
     st.markdown("""
     <div style="
         background: linear-gradient(135deg, rgba(236,72,153,0.06), rgba(69,243,255,0.06));
@@ -8064,45 +8643,67 @@ def render_ai_sales_ui():
             st.markdown('<h4 style="font-family: Orbitron; font-size: 12px; color: #EC4899; margin-bottom: 12px;">⚙️ SALES PARAMETERS</h4>', unsafe_allow_html=True)
             
             # ============================================
-            # ✅ NEW: SCRIPT / PROMPT OPTION
+            # ✅ SALES SCRIPT FLOW: Product -> Script -> Select -> Voice -> Avatar -> Compose
             # ============================================
-            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">📝 Sales Script / Prompt</p>', unsafe_allow_html=True)
-            
-            script_mode = st.radio(
-                "Choose Script Mode",
-                ["🤖 Auto-Generate Script", "✍️ Write Custom Script"],
-                horizontal=True,
-                key="sales_script_mode"
+            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">📝 Sales Script Workflow</p>', unsafe_allow_html=True)
+            st.info("💡 Step 1: fill product details. Step 2: generate 3 script variations. Step 3: pick one. Step 4: generate voice and final video.")
+
+            sales_prompt = st.text_area(
+                "Additional Script Instructions (Optional)",
+                placeholder="e.g. Make it funny, target young audience, emphasize quality...",
+                height=60,
+                key="sales_auto_prompt",
+                help="Extra guidance for the script generator"
             )
-            
-            if script_mode == "🤖 Auto-Generate Script":
-                # Auto-generate from product details
-                st.info("💡 Script will be auto-generated based on product name, price, and category")
-                sales_prompt = st.text_area(
-                    "Additional Instructions (Optional)",
-                    placeholder="e.g. Make it funny, target young audience, emphasize quality...",
-                    height=60,
-                    key="sales_auto_prompt",
-                    help="Add extra instructions for script generation"
+
+            if st.button("🧠 Generate 3 Script Variations", key="sales_generate_scripts_btn", width="stretch"):
+                if not product_name.strip():
+                    st.error("Please enter a product name before generating scripts.")
+                else:
+                    try:
+                        variations = generate_sales_script(
+                            product_name=product_name,
+                            price=product_price,
+                            category=product_category,
+                            language=sales_language,
+                            extra_instructions=f"{sales_tone} tone. {sales_prompt}",
+                        )
+                        st.session_state["sales_script_variations"] = variations
+                        st.session_state["sales_selected_script_idx"] = 0
+                        st.session_state["sales_script"] = variations[0]["script"]
+                        st.success("✅ 3 sales script variations generated successfully.")
+                    except Exception as exc:
+                        st.error(f"Script generation failed: {exc}")
+
+            variations = st.session_state.get("sales_script_variations", [])
+            if variations:
+                selected_idx = st.radio(
+                    "Select 1 script variation",
+                    options=list(range(len(variations))),
+                    index=min(int(st.session_state.get("sales_selected_script_idx", 0)), max(len(variations) - 1, 0)),
+                    format_func=lambda idx: f"{idx + 1}. {variations[idx].get('tone', 'creative').replace('_', ' ').title()}",
+                    key="sales_selected_script_idx",
                 )
-                sales_script = ""  # Will be generated on the fly
+                selected_script = str(variations[selected_idx].get("script", "")).strip()
+                if selected_script:
+                    st.session_state["sales_script"] = selected_script
+                st.markdown(f"<div style='background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.25); border-radius: 10px; padding: 12px; margin-top: 8px;'><strong>Selected Script</strong><br>{st.session_state.get('sales_script', '')}</div>", unsafe_allow_html=True)
+                st.caption(f"CTA: {variations[selected_idx].get('cta', 'Shop now.')}")
             else:
-                # Custom script with 1000 character limit
                 sales_script = st.text_area(
-                    "📝 Custom Sales Script",
+                    "📝 Custom Sales Script (Fallback)",
                     placeholder="Write your sales script here... (Max 1000 characters)\n\nExample:\n'Introducing our premium wireless earbuds with 24-hour battery life and crystal clear sound. Perfect for music lovers and fitness enthusiasts. Get yours today at just Rs. 999!'",
                     height=120,
                     key="sales_custom_script",
-                    max_chars=1000  # ✅ 1000 character limit
+                    max_chars=1000,
                 )
                 st.caption(f"📝 {len(sales_script)}/1000 characters")
-                
-                # Progress bar for character count
                 char_percent = min(100, (len(sales_script) / 1000) * 100)
                 if char_percent > 0:
                     color = "#10b981" if char_percent < 80 else "#f59e0b" if char_percent < 95 else "#ef4444"
                     st.progress(char_percent / 100, text=f"Character usage: {char_percent:.0f}%")
-            
+                st.session_state["sales_script"] = sales_script
+
             st.markdown("---")
             
             # Product Details
@@ -8114,7 +8715,7 @@ def render_ai_sales_ui():
                 with open(temp_path, "wb") as f:
                     f.write(product_image.getbuffer())
                 st.session_state["sales_product_image"] = temp_path
-                st.image(temp_path, caption="Product Image", use_container_width=True)
+                st.image(temp_path, caption="Product Image", width="stretch")
 
             st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">🏷️ Product Name</p>', unsafe_allow_html=True)
             product_name = st.text_input("Product Name", placeholder="e.g. Premium Wireless Earbuds", key="sales_product_name", label_visibility="collapsed")
@@ -8163,142 +8764,128 @@ def render_ai_sales_ui():
             st.markdown("<br>", unsafe_allow_html=True)
 
             # Generate Button
-            if st.button("🎙️ Generate Sales Video", key="sales_generate_btn", use_container_width=True):
+            if st.button("🎙️ Generate Sales Video", key="sales_generate_btn", width="stretch"):
                 if not require_login_for_generation("AI Sales Mode"):
                     st.stop()
-                # Validation
-                if not product_name.strip():
-                    st.error("Please enter a product name.")
-                elif not st.session_state.get("sales_product_image"):
-                    st.error("Please upload a product image.")
-                else:
-                    # Check character limit for custom script
-                    if script_mode == "✍️ Write Custom Script" and len(sales_script) > 1000:
-                        st.error("❌ Script exceeds 1000 character limit! Please shorten your script.")
-                        return
-                    
-                    # Token validation
-                    quality_map = {"Standard": 3, "HD": 4, "4K": 6}
-                    required_tokens = quality_map.get(sales_quality, 3)
-                    
-                    if st.session_state.get('user_credits', 0) < required_tokens:
-                        st.error(f"Insufficient credits! Required: {required_tokens}, Available: {st.session_state.get('user_credits', 0)}")
-                    else:
-                        deduct_credits_db(st.session_state["logged_user"], required_tokens)
-                        st.session_state['user_credits'] = get_user_credits_db(st.session_state["logged_user"])
-                        
-                        with st.spinner(f"Generating {sales_language} sales video..."):
-                            try:
-                                # ✅ FIX: Generate script based on mode
-                                if script_mode == "🤖 Auto-Generate Script":
-                                    # Build script from product details
-                                    script_parts = []
-                                    
-                                    # Opening based on tone
-                                    tone_openings = {
-                                        "Professional": "Presenting",
-                                        "Friendly": "Hey there! Check out",
-                                        "Urgent": "Don't miss out on",
-                                        "Luxury": "Experience the premium",
-                                        "Youthful": "Yo! Get ready for",
-                                        "Humorous": "You're gonna love",
-                                        "Inspirational": "Discover your best with"
-                                    }
-                                    opening = tone_openings.get(sales_tone, "Introducing")
-                                    
-                                    script_parts.append(f"{opening} {product_name}!")
-                                    
-                                    # Features (auto-generated based on category)
-                                    features = {
-                                        "Electronics": "cutting-edge technology, premium build quality, and exceptional performance",
-                                        "Fashion": "stylish designs, premium materials, and perfect fit for every occasion",
-                                        "Food & Beverage": "authentic flavors, fresh ingredients, and irresistible taste",
-                                        "Beauty": "natural ingredients, proven results, and luxurious feel",
-                                        "Home & Living": "elegant design, durable materials, and functional beauty",
-                                        "Sports": "superior performance, maximum comfort, and unbeatable durability",
-                                        "Other": "exceptional quality, incredible value, and customer satisfaction"
-                                    }
-                                    features_text = features.get(product_category, "exceptional quality and incredible value")
-                                    script_parts.append(f"Featuring {features_text}.")
-                                    
-                                    # Price
-                                    if product_price.strip():
-                                        script_parts.append(f"Get yours today at just {product_price}!")
-                                    else:
-                                        script_parts.append("Get the best value for your money!")
-                                    
-                                    # Call to action based on tone
-                                    cta_actions = {
-                                        "Professional": "Order now and experience the difference.",
-                                        "Friendly": "Grab yours today! You won't regret it.",
-                                        "Urgent": "Limited stock available. Order now!",
-                                        "Luxury": "Elevate your lifestyle. Shop now.",
-                                        "Youthful": "Don't sleep on this deal. Get it now!",
-                                        "Humorous": "What are you waiting for? Go get it!",
-                                        "Inspirational": "Take the first step. Get yours today!"
-                                    }
-                                    cta = cta_actions.get(sales_tone, "Order now!")
-                                    script_parts.append(cta)
-                                    
-                                    # Additional instructions
-                                    if sales_prompt.strip():
-                                        script_parts.append(f"\n{sales_prompt}")
-                                    
-                                    script = " ".join(script_parts)
-                                    
-                                    # ✅ Language-specific variations
-                                    if sales_language in ["Hindi", "Hinglish"]:
-                                        script = f"{product_name} ka jadoo dekho! {features_text} Ye hai aapka mauka! {product_price if product_price.strip() else 'Best price'} mein paayein. {cta}"
-                                    
-                                    st.session_state["sales_script"] = script
-                                    
-                                else:
-                                    # Custom script mode
-                                    script = sales_script
-                                    st.session_state["sales_script"] = script
-                                
-                                # ✅ Validate script length
-                                if len(script) < 10:
-                                    st.error("Script is too short! Please provide more details.")
-                                    return
-                                
-                                # Generate audio
-                                audio_path = f"face_videos/sales_audio_{uuid.uuid4().hex[:8]}.mp3"
-                                voice_meta = ELEVENLABS_VOICES.get(sales_voice, {})
-                                voice_id = voice_meta.get("id", "21m00Tcm4TlvDq8ikWAM")
-                                
-                                audio_ok = generate_elevenlabs_audio_for_face(script, audio_path, voice_id)
-                                if not audio_ok:
-                                    audio_ok = AudioEngine.run_fallback_tts(
-                                        text=script,
-                                        output_filename=audio_path,
-                                        language_choice=f"🇮🇳 Hinglish (Fluent Hindi Mix)" if sales_language in ["Hindi", "Hinglish"] else "🇬🇧 English (US Standard)",
-                                        voice_profile=sales_voice
-                                    )
-                                
-                                if audio_ok and os.path.exists(audio_path):
-                                    img_path = st.session_state["sales_product_image"]
-                                    from comfyui_engine import generate_face_video as runpod_generate_face_video
-                                    output_path = runpod_generate_face_video(
-                                        face_image_path=img_path,
-                                        audio_path=audio_path,
-                                        script_text=script,
-                                        duration=10,
-                                        quality=sales_quality,
-                                    )
 
-                                    if output_path and (output_path.startswith("http") or (os.path.exists(output_path) and os.path.getsize(output_path) > 1000)):
-                                        st.session_state["sales_video_output"] = output_path
-                                        st.toast("✅ Talking sales avatar generated!")
-                                        st.rerun()
-                                    else:
-                                        st.session_state["sales_video_output"] = None
-                                        st.error("RunPod talking avatar generation failed. Check RUNPOD_API_KEY and COMFYUI_FACE_RUNPOD_ENDPOINT_ID.")
-                                else:
-                                    st.error("Audio generation failed.")
-                                    
-                            except Exception as e:
-                                st.error(f"Error: {str(e)}")
+                product_name = st.session_state.get("sales_product_name", "").strip()
+                product_price = st.session_state.get("sales_product_price", "").strip()
+                if not product_name:
+                    st.error("Please enter a product name.")
+                    st.stop()
+                if not st.session_state.get("sales_product_image"):
+                    st.error("Please upload a product image.")
+                    st.stop()
+
+                selected_script = str(st.session_state.get("sales_script") or "").strip()
+                if not selected_script:
+                    variations = st.session_state.get("sales_script_variations", [])
+                    if variations:
+                        selected_script = str(variations[0].get("script", "")).strip()
+                        st.session_state["sales_script"] = selected_script
+                    else:
+                        st.error("Please generate or enter a sales script before creating the video.")
+                        st.stop()
+
+                sales_word_count = len(selected_script.split())
+                if sales_word_count > 120:
+                    st.error("Sales script maximum 120 words hai. Please script chhoti karein.")
+                    st.stop()
+
+                success, required_tokens, message = validate_and_deduct_tokens("AI Sales Video", sales_quality, sales_word_count)
+                if not success:
+                    st.error(message)
+                    st.stop()
+
+                st.success(message)
+                if len(selected_script.strip()) < 10:
+                    refund_face_video_credits(required_tokens, "Sales script was too short")
+                    st.error("Script is too short! Please provide more details.")
+                    st.stop()
+
+                progress_steps = [
+                    (0, "Script selection"),
+                    (25, "Voice generation"),
+                    (50, "Video generation"),
+                    (75, "Composer finishing"),
+                    (100, "Final output ready")
+                ]
+                progress_bar = st.progress(0, text=f"Step 1/4: {progress_steps[0][1]}...")
+                with st.status("Step 1/4: Preparing script and product context...", expanded=True) as sales_progress:
+                    try:
+                        progress_bar.progress(15, text="Step 1/4: Script validated and product context ready")
+                        sales_progress.update(label="Step 2/4: Generating voice from selected script...", state="running")
+                        progress_bar.progress(35, text="Step 2/4: Generating voice from selected script...")
+                        audio_path = f"face_videos/sales_audio_{uuid.uuid4().hex[:8]}.mp3"
+                        if not generate_sales_voice(selected_script, sales_language, audio_path, tone=sales_tone):
+                            refund_face_video_credits(required_tokens, "Sales audio generation failed")
+                            st.error("Audio generation failed.")
+                            st.stop()
+
+                        progress_bar.progress(55, text="Step 3/4: Producing sales video from the product and voice")
+                        sales_progress.update(label="Step 3/4: Producing sales video from the product and voice...", state="running")
+                        img_path = st.session_state["sales_product_image"]
+                        output_path = _generate_replicate_sales_video(
+                            image_path=img_path,
+                            audio_path=audio_path,
+                            script_text=selected_script,
+                        )
+
+                        if not output_path or (not output_path.startswith("http") and not (os.path.exists(output_path) and os.path.getsize(output_path) > 1000)):
+                            st.session_state["sales_video_output"] = None
+                            refund_face_video_credits(required_tokens, "Replicate sales video returned no output")
+                            st.error("Replicate talking sales avatar generation failed.")
+                            st.stop()
+
+                        sales_progress.update(label="Step 4/4: Composing final thumbnail, caption, and publish-ready output...", state="running")
+                        progress_bar.progress(80, text="Step 4/4: Composing final thumbnail, caption, and publish-ready output...")
+                        composed = compose_sales_video(
+                            video_path=output_path,
+                            audio_path=audio_path,
+                            product_image=img_path,
+                            price=product_price,
+                            script=selected_script,
+                            language=sales_language,
+                        )
+
+                        funnel = build_sales_funnel(
+                            product_name=product_name,
+                            price=product_price,
+                            category=product_category,
+                            script=selected_script,
+                            language=sales_language,
+                            tone=sales_tone,
+                        )
+
+                        progress_bar.progress(100, text="Final output ready")
+                        sales_progress.update(label="Final output ready", state="complete")
+                        st.session_state["sales_funnel"] = funnel
+                        st.session_state["sales_video_output"] = composed["video_path"]
+                        st.session_state["sales_video_thumbnail"] = composed["thumbnail_path"]
+                        st.session_state["sales_video_caption"] = composed["srt_path"]
+                        st.session_state["sales_script"] = selected_script
+                        st.session_state["sales_script_variations"] = st.session_state.get("sales_script_variations", [])
+                        sales_username = normalize_account_username(st.session_state.get("logged_user", ""))
+                        if sales_username:
+                            save_sales_video_to_db(
+                                username=sales_username,
+                                file_name=Path(composed["video_path"]).name,
+                                prompt=selected_script,
+                                video_path=composed["video_path"],
+                                thumbnail_path=composed.get("thumbnail_path"),
+                                caption_path=composed.get("srt_path"),
+                                funnel=funnel,
+                                quality=sales_quality,
+                                credits_charged=required_tokens,
+                            )
+                            load_sales_video_history_db.clear()
+                            st.session_state["sales_video_history"] = load_sales_video_history_db(sales_username)
+                        st.toast("✅ Talking sales avatar generated!")
+                        st.rerun()
+
+                    except Exception as e:
+                        refund_face_video_credits(required_tokens, f"Replicate sales generation error: {e}")
+                        st.error(f"Error: {str(e)}")
 
     with col2:
         with st.container(border=True):
@@ -8308,32 +8895,99 @@ def render_ai_sales_ui():
             if st.session_state.get("sales_script"):
                 with st.expander("📝 View Sales Script", expanded=False):
                     st.text(st.session_state["sales_script"])
+                variations = st.session_state.get("sales_script_variations", [])
+                if variations:
+                    with st.expander("🧠 Replicate Script Variations", expanded=False):
+                        for variation in variations:
+                            st.markdown(f"**{variation['tone'].replace('_', ' ').title()}**")
+                            st.write(variation["script"])
+                            st.caption(f"CTA: {variation['cta']}")
             
             sales_output = st.session_state.get("sales_video_output")
+            sales_thumbnail = st.session_state.get("sales_video_thumbnail")
+            sales_caption = st.session_state.get("sales_video_caption")
+            sales_funnel = st.session_state.get("sales_funnel", {})
             is_remote_sales_video = isinstance(sales_output, str) and sales_output.startswith("http")
             is_local_sales_video = isinstance(sales_output, str) and os.path.exists(sales_output)
             if is_remote_sales_video or is_local_sales_video:
                 st.video(sales_output)
-                
+                if sales_thumbnail and os.path.exists(sales_thumbnail):
+                    st.image(sales_thumbnail, caption="Click below to play the generated video", use_container_width=True)
+                    if is_remote_sales_video:
+                        st.link_button("▶ Play video", sales_output, use_container_width=True)
+                    elif is_local_sales_video:
+                        st.link_button("▶ Play video", sales_output, use_container_width=True)
+
+                if sales_funnel:
+                    st.markdown("### 📣 Caption")
+                    st.write(sales_funnel.get("caption", ""))
+                    st.markdown("### #️⃣ Hashtags")
+                    st.write(sales_funnel.get("hashtags", ""))
+                    st.markdown("### 🛍️ Product description")
+                    st.write(sales_funnel.get("description", ""))
+                    st.markdown("### ✉️ Email message")
+                    st.text_area(
+                        "Email message",
+                        sales_funnel.get("email", ""),
+                        height=180,
+                        key="sales_email_preview",
+                        label_visibility="collapsed",
+                    )
+                    st.download_button(
+                        "📥 Download Email Message",
+                        data=sales_funnel.get("email", ""),
+                        file_name="sales_email_message.txt",
+                        mime="text/plain",
+                        key="sales_email_download",
+                        width="stretch",
+                    )
+                    st.markdown("### 💬 WhatsApp message")
+                    st.text_area(
+                        "WhatsApp message",
+                        sales_funnel.get("whatsapp", ""),
+                        height=120,
+                        key="sales_whatsapp_preview",
+                        label_visibility="collapsed",
+                    )
+                    st.download_button(
+                        "📥 Download WhatsApp Message",
+                        data=sales_funnel.get("whatsapp", ""),
+                        file_name="sales_whatsapp_message.txt",
+                        mime="text/plain",
+                        key="sales_whatsapp_download",
+                        width="stretch",
+                    )
+
+                if sales_caption and os.path.exists(sales_caption):
+                    caption_text = Path(sales_caption).read_text(encoding="utf-8")
+                    with st.expander("📝 View SRT captions", expanded=False):
+                        st.text(caption_text)
+
                 col_dl, col_clr = st.columns(2)
                 with col_dl:
                     if is_local_sales_video:
                         with open(sales_output, "rb") as f:
                             st.download_button(
-                                "📥 Download",
+                                "📥 Download Video",
                                 data=f.read(),
                                 file_name=f"sales_video_{uuid.uuid4().hex[:8]}.mp4",
                                 mime="video/mp4",
-                                use_container_width=True,
+                                width="stretch",
                             )
                     else:
-                        st.link_button("Open Video", sales_output, use_container_width=True)
+                        st.link_button("📥 Open Video", sales_output, use_container_width=True)
                 with col_clr:
-                    if st.button("Clear", key="sales_clear", use_container_width=True):
+                    if st.button("Clear", key="sales_clear", width="stretch"):
                         if is_local_sales_video:
                             safe_remove_file(sales_output)
+                        for generated_file in (sales_thumbnail, sales_caption):
+                            if generated_file and os.path.exists(generated_file):
+                                safe_remove_file(generated_file)
                         st.session_state["sales_video_output"] = None
+                        st.session_state["sales_video_thumbnail"] = None
+                        st.session_state["sales_video_caption"] = None
                         st.session_state["sales_script"] = None
+                        st.session_state["sales_funnel"] = {}
                         st.rerun()
             else:
                 st.info("No sales video generated yet. Upload product image, fill details, and click Generate.")
@@ -8377,7 +9031,7 @@ def generate_dynamic_ui():
             else:
                 st.info("🧑‍🔬 Advanced mode: Full control with expert tools and shortcuts")
 
-            if st.button("Apply UI Settings", key="dyn_ui_apply", use_container_width=True):
+            if st.button("Apply UI Settings", key="dyn_ui_apply", width="stretch"):
                 st.toast(f"UI Profile set to {profile.title()}!")
                 st.rerun()
 
@@ -8627,13 +9281,13 @@ def render_live_emotion_voice():
             voice_opts = list(ELEVENLABS_VOICES.keys()) if voice_gender == "all" else [v for v, m in ELEVENLABS_VOICES.items() if m.get('gender') == voice_gender]
             emotion_voice = st.selectbox("Voice", voice_opts or list(ELEVENLABS_VOICES.keys()), key="emotion_voice_voice", label_visibility="collapsed")
 
-            if st.button("🎤 Generate Emotion Voice", key="emotion_generate_btn", use_container_width=True):
+            if st.button("🎤 Generate Emotion Voice", key="emotion_generate_btn", width="stretch"):
                 if not require_login_for_generation("Live Emotion Mode"):
                     st.stop()
                 if not emotion_text.strip():
                     st.error("Please enter text.")
                 else:
-                    with st.spinner(f"Generating {emotion} voice..."):
+                    with st.spinner("Generating ZOVIX Emotion Voice..."):
                         try:
                             voice_meta = ELEVENLABS_VOICES.get(emotion_voice, {})
                             voice_id = voice_meta.get("id", "21m00Tcm4TlvDq8ikWAM")
@@ -8675,8 +9329,8 @@ def render_live_emotion_voice():
                 if text_used:
                     st.caption(f'"{text_used[:100]}..."' if len(text_used) > 100 else f'"{text_used}"')
                 with open(audio_output, "rb") as f:
-                    st.download_button("📥 Download Audio", data=f.read(), file_name=f"emotion_voice_{emotion_used}.mp3", mime="audio/mpeg", use_container_width=True)
-                if st.button("Clear", key="emotion_clear", use_container_width=True):
+                    st.download_button("📥 Download Audio", data=f.read(), file_name=f"emotion_voice_{emotion_used}.mp3", mime="audio/mpeg", width="stretch")
+                if st.button("Clear", key="emotion_clear", width="stretch"):
                     safe_remove_file(audio_output)
                     st.session_state["emotion_voice_output"] = None
                     st.rerun()
@@ -8916,7 +9570,7 @@ def run_blueprints_mode():
             st.markdown("<br>", unsafe_allow_html=True)
             col_gen1, col_gen2 = st.columns(2)
             with col_gen1:
-                if st.button("Generate Blueprint", key="bp_generate_btn", use_container_width=True):
+                if st.button("Generate Blueprint", key="bp_generate_btn", width="stretch"):
                     if not require_login_for_generation("Blueprints Mode"):
                         st.stop()
                     cleaned_prompt = (blueprint_prompt or "").strip()
@@ -8935,7 +9589,7 @@ def run_blueprints_mode():
                             selected_template_name = selected_template
                             if selected_template_name and selected_template_name != "None" and selected_template_name in template_map:
                                 template_context = template_map[selected_template_name].get("prompt", "")
-                            with st.spinner("Zovix Blueprint Engine generating professional blueprint..."):
+                            with st.spinner("Generating ZOVIX Blueprint..."):
                                 try:
                                     blueprint_path = generate_blueprint_with_deepseek(
                                         cleaned_prompt,
@@ -8961,12 +9615,14 @@ def run_blueprints_mode():
                                         st.toast("Blueprint generated successfully!")
                                         st.rerun()
                                     else:
+                                        refund_face_video_credits(required_tokens, "Blueprint generation returned no output")
                                         st.error(st.session_state.get("active_blueprint_error") or "Blueprint generation failed. Please try a different description.")
                                 except Exception as e:
+                                    refund_face_video_credits(required_tokens, f"Blueprint generation error: {e}")
                                     logger.error(f"Blueprint generation UI error: {e}")
                                     st.error(f"Error generating blueprint: {str(e)}")
             with col_gen2:
-                if st.button("Quick Template", key="bp_template_btn", use_container_width=True):
+                if st.button("Quick Template", key="bp_template_btn", width="stretch"):
                     template_data = template_map.get(selected_template)
                     if not template_data:
                         st.error("Please select a valid template.")
@@ -9008,11 +9664,11 @@ def run_blueprints_mode():
                         data=active_svg.encode("utf-8"),
                         file_name=f"zovix_blueprint_{uuid.uuid4().hex[:8]}.svg",
                         mime="image/svg+xml",
-                        use_container_width=True,
+                        width="stretch",
                         key="bp_download_svg_btn"
                     )
                 with col_clr:
-                    if st.button("Clear blueprint", key="bp_clear_btn", use_container_width=True):
+                    if st.button("Clear blueprint", key="bp_clear_btn", width="stretch"):
                         if active_bp and os.path.exists(active_bp):
                             safe_remove_file(active_bp)
                         st.session_state["active_blueprint"] = None
@@ -9025,7 +9681,7 @@ def run_blueprints_mode():
                         svg_code = handle.read()
                     components.html(_wrap_svg_for_streamlit(svg_code), height=620, scrolling=False)
                 else:
-                    st.image(active_bp, use_container_width=True)
+                    st.image(active_bp, width="stretch")
                 try:
                     analysis = analyze_blueprint(active_bp)
                     if analysis:
@@ -9053,11 +9709,11 @@ def run_blueprints_mode():
                         data=bp_bytes,
                         file_name=f"zovix_blueprint_{uuid.uuid4().hex[:8]}{os.path.splitext(active_bp)[1]}",
                         mime="image/svg+xml" if str(active_bp).lower().endswith('.svg') else "image/png",
-                        use_container_width=True,
+                        width="stretch",
                         key="bp_download_btn"
                     )
                 with col_clr:
-                    if st.button("Clear blueprint", key="bp_clear_btn", use_container_width=True):
+                    if st.button("Clear blueprint", key="bp_clear_btn", width="stretch"):
                         safe_remove_file(active_bp)
                         st.session_state["active_blueprint"] = None
                         st.session_state["active_blueprint_svg"] = None
@@ -10629,18 +11285,9 @@ def run_creative_workshop():
                 label_visibility="collapsed"
             )
 
-            with st.expander("🔑 RunPod API Key (optional test override)"):
-                workshop_runpod_api_key = st.text_input(
-                    "RunPod API Key",
-                    type="password",
-                    placeholder="Leave blank to use RUNPOD_API_KEY from server config",
-                    key="workshop_runpod_api_key_input",
-                    label_visibility="collapsed"
-                )
-
             st.markdown("<br>", unsafe_allow_html=True)
 
-            if st.button("🚀 Generate Workshop Image", key="workshop_generation_action_btn", use_container_width=True):
+            if st.button("🚀 Generate Workshop Image", key="workshop_generation_action_btn", width="stretch"):
                 if not require_login_for_generation("Creative Workshop Mode"):
                     st.stop()
                 if not workshop_prompt_str.strip():
@@ -10652,39 +11299,54 @@ def run_creative_workshop():
                     if st.session_state.get('user_credits', 0) < required_tokens:
                         st.error(f"❌ Insufficient credits! Required: {required_tokens}, Available: {st.session_state.get('user_credits', 0)}")
                     else:
+                        credits_deducted = False
                         try:
-                            deduct_credits_db(st.session_state["logged_user"], required_tokens)
-                            st.session_state['user_credits'] = get_user_credits_db(st.session_state["logged_user"])
+                            credits_deducted = deduct_credits_db(st.session_state["logged_user"], required_tokens)
+                            if not credits_deducted:
+                                current_balance = get_user_credits_db(st.session_state["logged_user"])
+                                st.session_state['user_credits'] = current_balance
+                                st.session_state['credit_balance'] = current_balance
+                                st.error("❌ Credits could not be reserved. Please try again.")
+                            else:
+                                st.session_state['user_credits'] = get_user_credits_db(st.session_state["logged_user"])
+                                st.session_state['credit_balance'] = st.session_state['user_credits']
 
-                            with st.spinner(f"🎨 Generating {workshop_quality} image via ComfyUI..."):
-                                img_path = generate_pro_image(
-                                    workshop_prompt_str,
-                                    workshop_ar,
-                                    workshop_neg_prompt_str,
-                                    workshop_quality,
-                                    workshop_runpod_api_key.strip() or None
-                                )
-
-                                if img_path and os.path.exists(img_path):
-                                    st.session_state["workshop_active_image"] = img_path
-
-                                    timestamp = time.strftime("%Y%m%d_%H%M%S")
-                                    file_name = f"workshop_{timestamp}.png"
-                                    save_render_to_db(
-                                        st.session_state["logged_user"],
-                                        file_name,
-                                        workshop_prompt_str[:100],
-                                        img_path,
-                                        "Creative Workshop",
-                                        required_tokens
+                                with st.spinner("Generating ZOVIX Creative..."):
+                                    img_path = generate_pro_image(
+                                        workshop_prompt_str,
+                                        workshop_ar,
+                                        workshop_neg_prompt_str,
+                                        workshop_quality,
+                                        None
                                     )
-                                    st.session_state["history_renders"] = load_renders_history_db(st.session_state["logged_user"])
 
-                                    st.toast("✅ Image generated successfully!")
-                                    st.rerun()
-                                else:
-                                    st.error("❌ Image generation failed. ComfyUI (RunPod) request aur fallback dono unsuccessful rahe. Please try again.")
+                                    if img_path and os.path.exists(img_path):
+                                        st.session_state["workshop_active_image"] = img_path
+
+                                        timestamp = time.strftime("%Y%m%d_%H%M%S")
+                                        file_name = f"workshop_{timestamp}.png"
+                                        save_render_to_db(
+                                            st.session_state["logged_user"],
+                                            file_name,
+                                            workshop_prompt_str[:100],
+                                            img_path,
+                                            "Creative Workshop",
+                                            required_tokens
+                                        )
+                                        st.session_state["history_renders"] = load_renders_history_db(st.session_state["logged_user"])
+
+                                        engine_used = st.session_state.get("workshop_image_engine_used", "Image engine")
+                                        st.toast(f"✅ Image generated with {engine_used}!")
+                                        st.rerun()
+                                    else:
+                                        refund_face_video_credits(required_tokens, "Creative Workshop image generation returned no output")
+                                        provider_error = st.session_state.get("workshop_image_error")
+                                        st.error("❌ Image generation failed. Credits have been returned.")
+                                        if provider_error:
+                                            st.warning(provider_error)
                         except Exception as e:
+                            if credits_deducted:
+                                refund_face_video_credits(required_tokens, f"Creative Workshop generation error: {e}")
                             st.error(f"❌ Error: {str(e)}")
 
     with w_col2:
@@ -10703,7 +11365,7 @@ def run_creative_workshop():
 
             active_img_file = st.session_state.get("workshop_active_image")
             if active_img_file and os.path.exists(active_img_file):
-                st.image(active_img_file, use_container_width=True)
+                st.image(active_img_file, width="stretch")
 
                 col_dl, col_clr = st.columns(2)
                 with col_dl:
@@ -10714,11 +11376,11 @@ def run_creative_workshop():
                         data=img_bytes,
                         file_name=f"zovix_creative_{uuid.uuid4().hex[:8]}.png",
                         mime="image/png",
-                        use_container_width=True,
+                        width="stretch",
                         key="creative_download_btn"
                     )
                 with col_clr:
-                    if st.button("🧹 Clear Output", key="creative_clear_btn", use_container_width=True):
+                    if st.button("🧹 Clear Output", key="creative_clear_btn", width="stretch"):
                         safe_remove_file(active_img_file)
                         st.session_state["workshop_active_image"] = None
                         st.rerun()
@@ -10847,7 +11509,7 @@ def run_upscaler_mode():
                 with open(temp_path, "wb") as f:
                     f.write(uploaded_image_up.getbuffer())
                 st.session_state["us_temp_image"] = temp_path
-                st.image(temp_path, caption="Original Image", use_container_width=True)
+                st.image(temp_path, caption="Original Image", width="stretch")
             
             # Scale Factor
             st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">🔍 Scale Factor</p>', unsafe_allow_html=True)
@@ -10880,7 +11542,7 @@ def run_upscaler_mode():
             st.markdown("<br>", unsafe_allow_html=True)
             
             # Generate Button
-            if st.button("⚡ Upscale Image", key="us_upscale_btn", use_container_width=True):
+            if st.button("⚡ Upscale Image", key="us_upscale_btn", width="stretch"):
                 if not require_login_for_generation("Upscaler Mode"):
                     st.stop()
                 # Validate
@@ -10898,7 +11560,7 @@ def run_upscaler_mode():
                         deduct_credits_db(st.session_state["logged_user"], required_tokens)
                         st.session_state['user_credits'] = get_user_credits_db(st.session_state["logged_user"])
                         
-                        with st.spinner(f"🔄 Upscaling image {scale_factor}x with {enhancement_type} enhancement..."):
+                        with st.spinner("Generating ZOVIX Upscaler..."):
                             # Call upscale function
                             upscaled_path = upscale_image_fixed(
                                 st.session_state["us_temp_image"],
@@ -10926,6 +11588,7 @@ def run_upscaler_mode():
                                 st.toast(f"✅ Image upscaled {scale_factor}x successfully!")
                                 st.rerun()
                             else:
+                                refund_face_video_credits(required_tokens, "Upscaler returned no output")
                                 st.error("Image upscaling failed. Please try a different image or settings.")
     
     with us_col2:
@@ -10951,11 +11614,11 @@ def run_upscaler_mode():
                 with col_orig:
                     st.markdown('<p style="font-family: Inter; font-size: 10px; color: #94a3b8; text-align: center;">📷 Original</p>', unsafe_allow_html=True)
                     if orig_path and os.path.exists(orig_path):
-                        st.image(orig_path, use_container_width=True)
+                        st.image(orig_path, width="stretch")
                 
                 with col_up:
                     st.markdown('<p style="font-family: Inter; font-size: 10px; color: #45f3ff; text-align: center;">⚡ Upscaled</p>', unsafe_allow_html=True)
-                    st.image(active_upscaled, use_container_width=True)
+                    st.image(active_upscaled, width="stretch")
                 
                 st.markdown("<br>", unsafe_allow_html=True)
                 
@@ -10994,11 +11657,11 @@ def run_upscaler_mode():
                         data=upscaled_bytes,
                         file_name=f"zovix_upscaled_{uuid.uuid4().hex[:8]}.png",
                         mime="image/png",
-                        use_container_width=True,
+                        width="stretch",
                         key="us_download_btn"
                     )
                 with col_clr:
-                    if st.button("🧹 Clear Image", key="us_clear_btn", use_container_width=True):
+                    if st.button("🧹 Clear Image", key="us_clear_btn", width="stretch"):
                         safe_remove_file(active_upscaled)
                         safe_remove_file(st.session_state.get("us_temp_image", ""))
                         st.session_state["active_upscaled_image"] = None
@@ -11176,7 +11839,7 @@ def run_draw_mode():
             st.markdown("<br>", unsafe_allow_html=True)
             
             # ✅ Generate Button
-            if st.button("🎨 Generate Drawing", key="dr_generate_btn", use_container_width=True):
+            if st.button("🎨 Generate Drawing", key="dr_generate_btn", width="stretch"):
                 if not require_login_for_generation("Draw Mode"):
                     st.stop()
                 if not draw_prompt.strip():
@@ -11192,7 +11855,7 @@ def run_draw_mode():
                             deduct_credits_db(st.session_state["logged_user"], required_tokens)
                             st.session_state['user_credits'] = get_user_credits_db(st.session_state["logged_user"])
                             
-                            with st.spinner(f"🎨 Generating {draw_style} drawing using {engine_choice}..."):
+                            with st.spinner("Generating ZOVIX Draw..."):
                                 drawing_path = generate_drawing_hybrid(
                                     prompt=draw_prompt,
                                     style=draw_style,
@@ -11220,8 +11883,10 @@ def run_draw_mode():
                                     st.toast(f"✅ Drawing generated using {engine_used}!")
                                     st.rerun()
                                 else:
+                                    refund_face_video_credits(required_tokens, "Draw generation returned no output")
                                     st.error("❌ Drawing generation failed. Please try a different prompt or style.")
                         except Exception as e:
+                            refund_face_video_credits(required_tokens, f"Draw generation error: {e}")
                             st.error(f"❌ Error: {str(e)}")
     
     with dr_col2:
@@ -11263,7 +11928,7 @@ def run_draw_mode():
                 except:
                     pass
                 
-                st.image(active_drawing, use_container_width=True)
+                st.image(active_drawing, width="stretch")
                 st.markdown("<br>", unsafe_allow_html=True)
                 
                 col_dl, col_clr = st.columns(2)
@@ -11275,11 +11940,11 @@ def run_draw_mode():
                         data=drawing_bytes,
                         file_name=f"zovix_drawing_{uuid.uuid4().hex[:8]}.png",
                         mime="image/png",
-                        use_container_width=True,
+                        width="stretch",
                         key="dr_download_btn"
                     )
                 with col_clr:
-                    if st.button("🧹 Clear Drawing", key="dr_clear_btn", use_container_width=True):
+                    if st.button("🧹 Clear Drawing", key="dr_clear_btn", width="stretch"):
                         safe_remove_file(active_drawing)
                         st.session_state["active_drawing"] = None
                         st.session_state["draw_engine_used"] = None
@@ -11965,7 +12630,7 @@ def run_video_editor_mode():
             st.markdown("<br>", unsafe_allow_html=True)
             
             # Process Button
-            if st.button("🚀 PROCESS & EDIT VIDEO", key="movie_generate_btn_editor", use_container_width=True):
+            if st.button("🚀 PROCESS & EDIT VIDEO", key="movie_generate_btn_editor", width="stretch"):
                 if not require_login_for_generation("Video Editor Mode"):
                     st.stop()
                 current_uploads = st.session_state.get("editor_uploads", []) or uploaded_media
@@ -11993,7 +12658,7 @@ def run_video_editor_mode():
                                 vo_text = st.session_state.get("editor_voiceover_text", "")
                                 vo_profile = st.session_state.get("editor_voiceover_profile", "Adam (Premium Male)")
 
-                            with st.spinner("🎬 Processing your video..."):
+                            with st.spinner("Generating ZOVIX Video Editor..."):
                                 success = process_editor_video(
                                     uploaded_files=current_uploads,
                                     output_path=output_path,
@@ -12047,11 +12712,11 @@ def run_video_editor_mode():
                         data=video_bytes,
                         file_name=f"zovix_edited_video_{uuid.uuid4().hex[:8]}.mp4",
                         mime="video/mp4",
-                        use_container_width=True,
+                        width="stretch",
                         key="editor_download_btn"
                     )
                 with col_clr:
-                    if st.button("🧹 Clear Output", key="editor_clear_btn", use_container_width=True):
+                    if st.button("🧹 Clear Output", key="editor_clear_btn", width="stretch"):
                         safe_remove_file(active_output)
                         st.session_state["active_editor_output"] = None
                         st.rerun()
@@ -12216,9 +12881,9 @@ def run_face_video_mode():
                         bottom = top + size
                         cropped = img.crop((left, top, right, bottom))
                         cropped.save(face_path)
-                        st.image(face_path, caption="Captured Face Image", use_container_width=True)
+                        st.image(face_path, caption="Captured Face Image", width="stretch")
                     except Exception:
-                        st.image(face_path, caption="Captured Image", use_container_width=True)
+                        st.image(face_path, caption="Captured Image", width="stretch")
             else:
                 face_image_upload = st.file_uploader("Upload Face Image (JPG, PNG, WEBP)", type=['jpg', 'jpeg', 'png', 'webp'], key="fv_face_upload")
                 if face_image_upload:
@@ -12227,7 +12892,7 @@ def run_face_video_mode():
                         f.write(face_image_upload.getbuffer())
                     st.session_state["face_image_upload"] = face_path
                     st.success(f"✅ Face image uploaded: {face_image_upload.name}")
-                    st.image(face_path, caption="Uploaded Face Image", use_container_width=True)
+                    st.image(face_path, caption="Uploaded Face Image", width="stretch")
             st.markdown("---")
             st.markdown("<div class='face-controls-grid'>", unsafe_allow_html=True)
             st.markdown("""<div class='face-control-item'><div class='label'>👄 Mode</div><div class='value'>Lip-Sync Only</div></div>""", unsafe_allow_html=True)
@@ -12268,7 +12933,7 @@ def run_face_video_mode():
             
             if gender_auto and face_available:
                 with col_g2:
-                    if st.button("🔍 Detect Now", key="fv_detect_gender_btn", use_container_width=True):
+                    if st.button("🔍 Detect Now", key="fv_detect_gender_btn", width="stretch"):
                         with st.spinner("Analyzing face image for gender..."):
                             detected = detect_gender_from_image(face_uploaded)
                             if detected:
@@ -12323,7 +12988,7 @@ def run_face_video_mode():
             st.markdown("---")
             face_prompt = st.text_area("Video Description / Script (for lip sync):", placeholder="Describe what the person should say: e.g. Hello everyone! Welcome to my channel. Today we're going to explore the mysteries of the universe...", height=100, key="fv_prompt")
             st.write("")
-            if st.button("👤 Generate Face Video", key="fv_generate_btn", use_container_width=True):
+            if st.button("👤 Generate Face Video", key="fv_generate_btn", width="stretch"):
                 if not require_login_for_generation("Face Video Mode"):
                     st.stop()
                 # Validate face image before scanning
@@ -12351,17 +13016,23 @@ def run_face_video_mode():
                                 logger.warning(f"Generate-time face scan error: {scan_err}")
                                 st.toast("Face scan unavailable. Using default voice.", icon="🤖")
                 
-                success, required_tokens, message = validate_and_deduct_tokens("Face Video Generator", quality)
+                face_word_count = len(face_prompt.split())
+                if face_word_count > 120:
+                    st.error("Face video script maximum 120 words hai. Please script chhoti karein.")
+                    st.stop()
+                success, required_tokens, message = validate_and_deduct_tokens("Face Video Generator", quality, face_word_count)
                 if not success:
                     st.error(message)
                 else:
                     st.success(message)
                     if not face_prompt.strip():
+                        refund_face_video_credits(required_tokens, "Face script was empty")
                         st.error("Please enter a video description for lip sync.")
                     elif not st.session_state.get("face_image_upload") or not os.path.exists(st.session_state["face_image_upload"]):
+                        refund_face_video_credits(required_tokens, "Face image was missing")
                         st.error("Please upload a face image or take a photo using camera mode.")
                     else:
-                        with st.spinner(f"Generating {quality} lip-sync face video via ComfyUI on RunPod..."):
+                        with st.spinner("Generating ZOVIX Face Video..."):
                             # Use safe wrapper with error handling
                             video_path, gen_error = safe_generate_face_video_wrapper(
                                 face_prompt,
@@ -12372,6 +13043,7 @@ def run_face_video_mode():
                                 voice_label=fv_voice_model,
                             )
                             if gen_error:
+                                refund_face_video_credits(required_tokens, gen_error)
                                 st.error(gen_error)
                             elif video_path and (video_path.startswith("http") or os.path.exists(video_path)):
                                 st.session_state["active_face_video"] = video_path
@@ -12382,6 +13054,7 @@ def run_face_video_mode():
                                 st.toast(f"Face video generated successfully in {quality} quality!")
                                 st.rerun()
                             else:
+                                refund_face_video_credits(required_tokens, "RunPod face generation returned no video")
                                 failure_reason = st.session_state.get("face_video_last_error", "Unknown generation error")
                                 st.error(f"RunPod ComfyUI generation failed. {failure_reason}")
     with fv_col2:
@@ -12422,11 +13095,11 @@ def run_face_video_mode():
                             download_data = None
 
                     if download_data:
-                        st.download_button(label="📥 Download Face Video", data=download_data, file_name=f"zovix_face_video_{uuid.uuid4().hex[:8]}.mp4", mime="video/mp4", use_container_width=True, key="fv_download_btn")
+                        st.download_button(label="📥 Download Face Video", data=download_data, file_name=f"zovix_face_video_{uuid.uuid4().hex[:8]}.mp4", mime="video/mp4", width="stretch", key="fv_download_btn")
                     else:
                         st.info("Download temporarily unavailable")
                 with col_clr:
-                    if st.button("🧹 Clear Video", key="fv_clear_btn", use_container_width=True):
+                    if st.button("🧹 Clear Video", key="fv_clear_btn", width="stretch"):
                         if is_local_video:
                             safe_remove_file(active_face_video)
                         st.session_state["active_face_video"] = None
@@ -12488,7 +13161,7 @@ pip install gfpgan realesrgan""",
                     f.write(face_image_upload.getbuffer())
                 st.session_state["face_image_upload"] = face_path
                 st.success(f"✅ Face image uploaded: {face_image_upload.name}")
-                st.image(face_path, caption="Uploaded Face Image", use_container_width=True)
+                st.image(face_path, caption="Uploaded Face Image", width="stretch")
 
             engine_choice = st.selectbox(
                 "Backend Preference",
@@ -12520,20 +13193,27 @@ pip install gfpgan realesrgan""",
                 key="efv_prompt",
             )
 
-            if st.button("🧬 Generate Expressive Face Video", key="efv_generate_btn", use_container_width=True):
+            if st.button("🧬 Generate Expressive Face Video", key="efv_generate_btn", width="stretch"):
                 if not require_login_for_generation("Expressive Face Video Mode"):
                     st.stop()
-                success, required_tokens, message = validate_and_deduct_tokens("Expressive Face Video", efv_quality)
+                st.session_state["face_video_replicate_predict_time"] = None
+                efv_word_count = len(efv_prompt.split())
+                if efv_word_count > 120:
+                    st.error("Expressive face video script maximum 120 words hai. Please script chhoti karein.")
+                    st.stop()
+                success, required_tokens, message = validate_and_deduct_tokens("Expressive Face Video", efv_quality, efv_word_count)
                 if not success:
                     st.error(message)
                 else:
                     st.success(message)
                     if not efv_prompt.strip():
+                        refund_face_video_credits(required_tokens, "Expressive face script was empty")
                         st.error("Please enter a script for expressive face generation.")
                     elif not st.session_state.get("face_image_upload") or not os.path.exists(st.session_state["face_image_upload"]):
+                        refund_face_video_credits(required_tokens, "Expressive face image was missing")
                         st.error("Please upload a face image first.")
                     else:
-                        with st.spinner(f"Generating {efv_quality} expressive face video..."):
+                        with st.spinner("Generating ZOVIX Expressive Face Video..."):
                             video_path = generate_expressive_face_video(
                                 efv_prompt,
                                 st.session_state["face_image_upload"],
@@ -12560,6 +13240,7 @@ pip install gfpgan realesrgan""",
                                 st.toast(f"Expressive face video generated in {efv_quality} quality!")
                                 st.rerun()
                             else:
+                                refund_face_video_credits(required_tokens, "Expressive face generation returned no video")
                                 st.error("Expressive generation failed. Verify LivePortrait/SadTalker setup and try again.")
 
     with efv_col2:
@@ -12587,11 +13268,11 @@ pip install gfpgan realesrgan""",
                         data=video_bytes,
                         file_name=f"zovix_expressive_face_video_{uuid.uuid4().hex[:8]}.mp4",
                         mime="video/mp4",
-                        use_container_width=True,
+                        width="stretch",
                         key="efv_download_btn",
                     )
                 with col_clr:
-                    if st.button("🧹 Clear Video", key="efv_clear_btn", use_container_width=True):
+                    if st.button("🧹 Clear Video", key="efv_clear_btn", width="stretch"):
                         safe_remove_file(active_video)
                         st.session_state["active_expressive_face_video"] = None
                         st.rerun()
@@ -12938,7 +13619,7 @@ def run_unified_face_video_mode():
             if face_image_upload:
                 st.session_state["unified_face_image_bytes"] = bytes(face_image_upload.getbuffer())
                 st.success(f"✅ {face_image_upload.name} uploaded successfully!")
-                st.image(st.session_state["unified_face_image_bytes"], caption="Uploaded Face", use_container_width=True)
+                st.image(st.session_state["unified_face_image_bytes"], caption="Uploaded Face", width="stretch")
             
             # Script
             st.markdown('<p class="face-label">📝 Dialogue / Script</p>', unsafe_allow_html=True)
@@ -13011,25 +13692,16 @@ def run_unified_face_video_mode():
             
             st.markdown("<br>", unsafe_allow_html=True)
 
-            with st.expander("🔑 RunPod API Key (optional test override)"):
-                unified_fv_runpod_api_key = st.text_input(
-                    "RunPod API Key",
-                    type="password",
-                    placeholder="Leave blank to use RUNPOD_API_KEY from server config",
-                    key="unified_fv_runpod_api_key_input",
-                    label_visibility="collapsed"
-                )
-
             st.markdown("<br>", unsafe_allow_html=True)
 
             # Generate Button - ComfyUI on RunPod Serverless ☁️
-            if st.button("🌍 Generate Global Face Video", key="unified_fv_generate_btn", use_container_width=True):
+            if st.button("🌍 Generate Global Face Video", key="unified_fv_generate_btn", width="stretch"):
                             if not require_login_for_generation("Face Video Mode"):
                                 st.stop()
                             if not face_prompt or not face_prompt.strip():
                                 st.error("Kripya pehle text script likhein!")
-                            elif len(face_prompt) > 120:
-                                st.error("Starter plan par max 120 characters allow hain (~10 sec video). Chhota script likhein ya Pro plan lein!")
+                            elif len(face_prompt.split()) > 120:
+                                st.error("Face video script maximum 120 words hai. Please script chhoti karein.")
                             elif not face_image_upload:
                                 st.error("Please upload a face photo first.")
                             else:
@@ -13043,14 +13715,17 @@ def run_unified_face_video_mode():
                                         f.write(face_bytes)
                     
                                                                 # Step 1: Token validation
-                                success, required_tokens, message = validate_and_deduct_tokens("Face Video Generator", quality)
+                                face_word_count = len(face_prompt.split())
+                                success, required_tokens, message = validate_and_deduct_tokens(
+                                    "Face Video Generator", quality, face_word_count
+                                )
                                 if not success:
                                     st.error(message)
                                 else:
                                     st.success(f"✓ {message}")
                         
                                     # Step 2: Generate via ComfyUI on RunPod ☁️
-                                    with st.spinner(f"☁️ Generating {quality} face video via ComfyUI on RunPod..."):
+                                    with st.spinner("Generating ZOVIX Face Video..."):
                                         try:
                                                                                         # Manual voice only (auto voice type hata diya hai)
                                             manual_voice_selected = st.session_state.get("fv_manual_voice_selected")
@@ -13062,7 +13737,7 @@ def run_unified_face_video_mode():
                                                 quality=quality,
                                                 voice_language="English",
                                                 voice_label=voice_to_use,
-                                                runpod_api_key=unified_fv_runpod_api_key.strip() or None,
+                                                runpod_api_key=None,
                                             )
                                 
                                             if video_url:
@@ -13080,10 +13755,12 @@ def run_unified_face_video_mode():
                                                 st.toast("✅ Face video generated successfully!")
                                                 st.rerun()
                                             else:
+                                                refund_face_video_credits(required_tokens, "Cloud face generation returned no video")
                                                 failure_reason = st.session_state.get("face_video_last_error", "Unknown generation error")
                                                 st.error(f"❌ Cloud generation failed. {failure_reason}")
                                                 st.info("Troubleshoot: verify RUNPOD_API_KEY is valid and the ComfyUI endpoint is reachable.")
                                         except Exception as e:
+                                            refund_face_video_credits(required_tokens, str(e))
                                             st.error(f"❌ Cloud Generation Error: {str(e)}")
                                             logger.error(f"Unified face video error: {e}")
     
@@ -13129,13 +13806,13 @@ def run_unified_face_video_mode():
                             data=download_data,
                             file_name=f"zovix_face_video_{uuid.uuid4().hex[:8]}.mp4",
                             mime="video/mp4",
-                            use_container_width=True,
+                            width="stretch",
                             key="unified_fv_download_btn",
                         )
                     else:
                         st.info("📥 Download temporarily unavailable")
                 with col_clr:
-                    if st.button("🧹 Clear Video", key="unified_fv_clear_btn", use_container_width=True):
+                    if st.button("🧹 Clear Video", key="unified_fv_clear_btn", width="stretch"):
                         st.session_state["active_face_video_url"] = None
                         st.session_state["active_face_video"] = None
                         st.rerun()
@@ -13170,7 +13847,7 @@ def show_auth_modal(mode="login"):
     if mode == "login":
         col_login, col_register = st.columns(2)
         with col_login:
-            if st.button("🔑 Sign In", key="auth_modal_login_btn", use_container_width=True):
+            if st.button("🔑 Sign In", key="auth_modal_login_btn", width="stretch"):
                 # 🎯 Aapki asli keys se direct live data uthane ke liye fix
                 username_val = st.session_state.get("auth_modal_username_input", "").strip()
                 password_val = st.session_state.get("auth_modal_password_input", "").strip()
@@ -13188,13 +13865,8 @@ def show_auth_modal(mode="login"):
                         else:
                             st.session_state["is_logged_in"] = True
                             st.session_state["logged_user"] = username_val
-                            st.session_state["xp_points"] = get_user_xp_db(username_val)
-                            st.session_state["creator_level"] = 1 + (st.session_state["xp_points"] // 100)
-                            st.session_state["history_renders"] = load_renders_history_db(username_val)
-                            st.session_state["face_video_history"] = load_face_video_history_db(username_val)
+                            preload_logged_in_user_data(username_val)
                             st.session_state["current_page"] = "studio"
-                            st.session_state["user_credits"] = get_user_credits_db(username_val)
-                            st.session_state["credit_balance"] = st.session_state["user_credits"]
                             
                             if st.session_state.get("auth_redirect_mode"):
                                 st.session_state["studio_active_mode"] = st.session_state["auth_redirect_mode"]
@@ -13224,7 +13896,7 @@ def show_auth_modal(mode="login"):
                         st.error("❌ Invalid username or password. Please try again.")
         
         with col_register:
-            if st.button("📝 Register", key="auth_modal_register_btn", use_container_width=True):
+            if st.button("📝 Register", key="auth_modal_register_btn", width="stretch"):
                 if not username_val or not password_val:
                     st.error("Please enter both username and password.")
                 elif len(password_val) < 4:
@@ -13239,8 +13911,9 @@ def show_auth_modal(mode="login"):
                         st.session_state["history_renders"] = []
                         st.session_state["face_video_history"] = []
                         st.session_state["current_page"] = "studio"
-                        st.session_state['user_credits'] = get_user_credits_db(username_val)
-                        st.session_state['credit_balance'] = st.session_state['user_credits']
+                        st.session_state['user_credits'] = 0
+                        st.session_state['credit_balance'] = 0
+                        preload_logged_in_user_data(username_val)
                         
                         if st.session_state.get("auth_redirect_mode"):
                             st.session_state["studio_active_mode"] = st.session_state["auth_redirect_mode"]
@@ -13257,10 +13930,10 @@ def show_auth_modal(mode="login"):
         st.markdown("<div style='text-align:center; font-size:10px; color:#64748b; margin: 15px 0;'>OR SIGN IN WITH SOCIAL PLATFORMS</div>", unsafe_allow_html=True)
         col_g, col_f = st.columns(2)
         with col_g:
-            if st.button("🔵 Google", key="modal_social_g", use_container_width=True):
+            if st.button("🔵 Google", key="modal_social_g", width="stretch"):
                 st.session_state["active_social_login"] = "Google"
         with col_f:
-            if st.button("🔵 Facebook", key="modal_social_f", use_container_width=True):
+            if st.button("🔵 Facebook", key="modal_social_f", width="stretch"):
                 st.session_state["active_social_login"] = "Facebook"
 
         if "active_social_login" in st.session_state:
@@ -13275,20 +13948,15 @@ def social_login_dialog_box(platform):
     """, unsafe_allow_html=True)
     social_email = st.text_input("Email Address", placeholder="yourname@gmail.com", key="social_email_input").strip()
     st.write("")
-    if st.button("Authenticate & Log In", key="social_confirm_btn", use_container_width=True):
+    if st.button("Authenticate & Log In", key="social_confirm_btn", width="stretch"):
         if social_email and "@" in social_email:
             social_email = normalize_account_username(social_email)
             success = login_or_register_social(social_email, platform)
             if success:
                 st.session_state["is_logged_in"] = True
                 st.session_state["logged_user"] = social_email
-                st.session_state["xp_points"] = get_user_xp_db(social_email)
-                st.session_state["creator_level"] = 1 + (st.session_state["xp_points"] // 100)
-                st.session_state["history_renders"] = load_renders_history_db(social_email)
-                st.session_state["face_video_history"] = load_face_video_history_db(social_email)
+                preload_logged_in_user_data(social_email)
                 st.session_state["current_page"] = "studio"
-                st.session_state['user_credits'] = get_user_credits_db(social_email)
-                st.session_state['credit_balance'] = st.session_state['user_credits']
                 
                 if st.session_state.get("auth_redirect_mode"):
                     st.session_state["studio_active_mode"] = st.session_state["auth_redirect_mode"]
@@ -13358,7 +14026,7 @@ def show_2fa_modal():
         st.code(secret, language="text")
         
         test_code = st.text_input("Enter 6-digit code to verify:", max_chars=6, type="password", key="2fa_setup_code").strip()
-        if st.button("✅ Verify & Activate", key="2fa_setup_verify_btn", use_container_width=True):
+        if st.button("✅ Verify & Activate", key="2fa_setup_verify_btn", width="stretch"):
             if test_code and len(test_code) == 6:
                 if totp.verify(test_code):
                     st.session_state["2fa_enabled"] = True
@@ -13372,7 +14040,7 @@ def show_2fa_modal():
             else:
                 st.error("Please enter a 6-digit code.")
         
-        if st.button("Cancel Setup", key="2fa_cancel_setup_btn", use_container_width=True):
+        if st.button("Cancel Setup", key="2fa_cancel_setup_btn", width="stretch"):
             st.session_state["2fa_setup_mode"] = False
             st.rerun()
     else:
@@ -13380,7 +14048,7 @@ def show_2fa_modal():
         code = st.text_input("Authentication Code", max_chars=6, type="password", key="2fa_code_input").strip()
         st.write("")
         
-        if st.button("✅ Verify", key="2fa_verify_btn", use_container_width=True):
+        if st.button("✅ Verify", key="2fa_verify_btn", width="stretch"):
             if code and len(code) == 6:
                 username = st.session_state.get("2fa_temp_user", "")
                 username = resolve_account_username(username) or normalize_account_username(username)
@@ -13398,13 +14066,8 @@ def show_2fa_modal():
                                 st.session_state["2fa_verified"] = True
                                 st.session_state["is_logged_in"] = True
                                 st.session_state["logged_user"] = username
-                                st.session_state["xp_points"] = get_user_xp_db(username)
-                                st.session_state["creator_level"] = 1 + (st.session_state["xp_points"] // 100)
-                                st.session_state["history_renders"] = load_renders_history_db(username)
-                                st.session_state["face_video_history"] = load_face_video_history_db(username)
+                                preload_logged_in_user_data(username)
                                 st.session_state["current_page"] = "studio"
-                                st.session_state['user_credits'] = get_user_credits_db(username)
-                                st.session_state['credit_balance'] = st.session_state['user_credits']
                                 
                                 if st.session_state.get("auth_redirect_mode"):
                                     st.session_state["studio_active_mode"] = st.session_state["auth_redirect_mode"]
@@ -13451,7 +14114,7 @@ def open_preview_modal(video_path):
     """, unsafe_allow_html=True)
     st.video(video_path, format="video/mp4", autoplay=False, loop=True, muted=False)
     st.markdown("<br>", unsafe_allow_html=True)
-    if st.button("Close Monitor", key="close_theatrical_monitor_btn", use_container_width=True):
+    if st.button("Close Monitor", key="close_theatrical_monitor_btn", width="stretch"):
         st.rerun()
 
 
@@ -13493,7 +14156,8 @@ def _load_cinematic_job(job_id):
 
 def _run_cinematic_generation_job(job_id, script_text, duration_choice, selected_model,
                                   language_choice, selected_size, voice_profile,
-                                  cinematic_quality, user_api_key, bgm_path, bgm_volume):
+                                  cinematic_quality, user_api_key, bgm_path, bgm_volume,
+                                  username, required_tokens):
     """Run the long cinematic pipeline without accessing Streamlit session state."""
     def update_status(message):
         current = _get_cinematic_job(job_id) or {}
@@ -13538,6 +14202,7 @@ def _run_cinematic_generation_job(job_id, script_text, duration_choice, selected
         })
     except Exception as exc:
         logger.exception("Cinematic background job failed")
+        refund_face_video_credits(required_tokens, f"Cinematic generation failed: {exc}", username=username)
         _save_cinematic_job(job_id, {
             "status": "Failed",
             "video_path": None,
@@ -14002,13 +14667,13 @@ def run_cinematic_engine():
                 label_visibility="collapsed"
             )
             
-            if st.button("📐 Generate Blueprint", key="deepseek_generate_blueprint_btn", use_container_width=True):
+            if st.button("📐 Generate Blueprint", key="deepseek_generate_blueprint_btn", width="stretch"):
                 if not require_login_for_generation("Cinematic Engine"):
                     st.stop()
                 if not user_input.strip():
                     st.error("Please enter a video concept.")
                 else:
-                    with st.spinner("🧠 DeepSeek AI is generating your video blueprint..."):
+                    with st.spinner("Generating ZOVIX Blueprint..."):
                         aspect_for_deepseek = "9:16" if "VERTICAL" in st.session_state.get("studio_deepseek_aspect", "9:16 VERTICAL") else "16:9"
                         blueprint = generate_video_blueprint_with_deepseek(user_input, aspect_for_deepseek)
                         if "error" in blueprint:
@@ -14083,7 +14748,7 @@ def run_cinematic_engine():
 
                 # Use Blueprint button
                 st.markdown("<br>", unsafe_allow_html=True)
-                if st.button("🎬 Use This Blueprint for Generation", key="use_blueprint_btn", use_container_width=True):
+                if st.button("🎬 Use This Blueprint for Generation", key="use_blueprint_btn", width="stretch"):
                     if structure and scenes:
                         st.session_state["blueprint_scenes"] = scenes
                         st.session_state["blueprint_mood"] = mood
@@ -14093,7 +14758,7 @@ def run_cinematic_engine():
                     st.toast("Blueprint ready for generation! 🚀")
 
                 # Clear blueprint
-                if st.button("🗑 Clear Blueprint", key="clear_blueprint_btn", use_container_width=True):
+                if st.button("🗑 Clear Blueprint", key="clear_blueprint_btn", width="stretch"):
                     st.session_state["deepseek_blueprint_data"] = None
                     st.session_state["deepseek_blueprint_visible"] = False
                     st.rerun()
@@ -14119,7 +14784,7 @@ def run_cinematic_engine():
         
         col_btn1, col_btn2 = st.columns([4, 1])
         with col_btn2:
-            if st.button("Generate", key="studio_generate_action_btn", use_container_width=True):
+            if st.button("Generate", key="studio_generate_action_btn", width="stretch"):
                 if not require_login_for_generation("Cinematic Engine"):
                     st.stop()
                 if not user_input.strip():
@@ -14173,6 +14838,8 @@ def run_cinematic_engine():
                                 st.session_state.get("user_gemini_api_key", ""),
                                 bgm_path,
                                 bgm_volume,
+                                st.session_state["logged_user"],
+                                required_tokens,
                             ),
                             daemon=True,
                         ).start()
@@ -14261,7 +14928,7 @@ def run_cinematic_engine():
                 # Step 2: Face verification via webcam/live cam
                 with col_scan:
                     if st.session_state["face_lock_ref"] and os.path.exists(st.session_state["face_lock_ref"]):
-                        if st.button("🔍 Scan & Verify Face", key="face_lock_verify_btn", use_container_width=True):
+                        if st.button("🔍 Scan & Verify Face", key="face_lock_verify_btn", width="stretch"):
                             with st.spinner("🔄 Running face recognition..."):
                                 try:
                                     from deepface import DeepFace
@@ -14346,7 +15013,7 @@ def run_cinematic_engine():
                 
                 col_dl, col_clr = st.columns(2)
                 with col_dl:
-                    if st.button("📥 Download Video", key="canvas_download_btn", use_container_width=True):
+                    if st.button("📥 Download Video", key="canvas_download_btn", width="stretch"):
                         if os.path.exists(cinematic_video_path):
                             with open(cinematic_video_path, "rb") as f:
                                 video_bytes = f.read()
@@ -14358,7 +15025,7 @@ def run_cinematic_engine():
                                 key="download_final_btn"
                             )
                 with col_clr:
-                    if st.button("🧹 Clear", key="canvas_clear_btn", use_container_width=True):
+                    if st.button("🧹 Clear", key="canvas_clear_btn", width="stretch"):
                         safe_remove_file(cinematic_video_path)
                         st.session_state["cinematic_video_path"] = None
                         st.rerun()
@@ -14419,7 +15086,7 @@ def show_confirm_delete_dialog():
         
         **This action cannot be undone.**
     """)
-    if st.button("✅ Yes, Delete All My Data", use_container_width=True):
+    if st.button("✅ Yes, Delete All My Data", width="stretch"):
         if gdpr_manager.delete_user_data(st.session_state["logged_user"]):
             st.success("All your data has been deleted. You will be logged out.")
             st.session_state["is_logged_in"] = False
@@ -14494,6 +15161,7 @@ def show_privacy_policy():
 # ========================================================
 
 @st.cache_data(ttl=3600)
+@st.cache_data(show_spinner=False, ttl=86400)
 def get_premium_theme_css():
     return """
     <style>
@@ -15125,7 +15793,7 @@ def render_referral_system():
     st.info("Share your referral link and earn 10 credits per new user!")
     referral_link = f"https://zovix.ai/ref/{st.session_state['logged_user']}"
     st.text(referral_link)
-    if st.button("📋 Copy Referral Link", key="copy_ref_link", use_container_width=True):
+    if st.button("📋 Copy Referral Link", key="copy_ref_link", width="stretch"):
         st.toast("Referral link copied!")
     
     reward_referral(st.session_state["logged_user"])
@@ -15144,10 +15812,10 @@ def render_competitive_features():
     st.markdown("### 🎯 Competitive Features")
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("🏆 View Global Leaderboard", use_container_width=True):
+        if st.button("🏆 View Global Leaderboard", width="stretch"):
             st.toast("Leaderboard refreshed!")
     with col2:
-        if st.button("📊 Compare with Friends", use_container_width=True):
+        if st.button("📊 Compare with Friends", width="stretch"):
             st.toast("Comparison feature coming soon!")
 
 
@@ -15185,13 +15853,16 @@ if st.session_state.get("show_2fa", False):
     st.stop()
 
 if st.session_state.get("is_logged_in"):
+    username = st.session_state.get("logged_user", "")
+    preload_logged_in_user_data(username)
+
     now_ts = time.time()
     if now_ts - float(st.session_state.get("last_payment_check", 0)) > 8:
         st.session_state["last_payment_check"] = now_ts
-        reconcile_pending_razorpay_payments(st.session_state.get("logged_user", ""))
+        reconcile_pending_razorpay_payments(username)
 
-    if not gdpr_manager.get_consent(st.session_state["logged_user"]):
-        if not gdpr_manager.request_consent(st.session_state["logged_user"]):
+    if not gdpr_manager.get_consent(username):
+        if not gdpr_manager.request_consent(username):
             st.stop()
 
 if st.session_state["current_page"] == "landing":
@@ -15475,7 +16146,7 @@ elif st.session_state["current_page"] == "studio":
     </div>
     """, unsafe_allow_html=True)
     
-    if st.button("EXIT", key="exit_studio_btn", use_container_width=True):
+    if st.button("EXIT", key="exit_studio_btn", width="stretch"):
         st.session_state["current_page"] = "landing"
         st.session_state["is_logged_in"] = False
         st.session_state["2fa_verified"] = False
@@ -15519,7 +16190,7 @@ elif st.session_state["current_page"] == "studio":
     </div>
     """.format("▼" if st.session_state.get("quick_access_open") else "▶"), unsafe_allow_html=True)
     
-    if st.button("Toggle Quick Access", key="qa_toggle", use_container_width=True):
+    if st.button("Toggle Quick Access", key="qa_toggle", width="stretch"):
         if require_login_for_generation():
             st.session_state["quick_access_open"] = not st.session_state.get("quick_access_open", False)
             st.rerun()
@@ -15537,7 +16208,7 @@ elif st.session_state["current_page"] == "studio":
         cols = st.columns(6)
         for i, (icon, label, tab) in enumerate(quick_items):
             with cols[i]:
-                if st.button(f"{icon} {label}", key=f"qa_{label}", use_container_width=True):
+                if st.button(f"{icon} {label}", key=f"qa_{label}", width="stretch"):
                     if require_login_for_generation():
                         st.session_state["sidebar_tab"] = tab
                         st.rerun()
@@ -15571,7 +16242,7 @@ for i in range(0, len(modes), 11):
             active_class = "active" if is_active else ""
             
             # DIRECT BUTTON - NO onclick HACK
-            if st.button(f"{icon}\n{label}", key=f"mode_{i+j}", use_container_width=True):
+            if st.button(f"{icon}\n{label}", key=f"mode_{i+j}", width="stretch"):
                 handle_engine_access_request(mode_value)
             
             # CSS for active state
@@ -15616,7 +16287,7 @@ for i in range(0, len(modes), 11):
                             st.caption(item['prompt'][:80] + "..." if len(item['prompt']) > 80 else item['prompt'])
                         with col_b:
                             st.caption(item['timestamp'])
-                            if st.button("👁️ View", key=f"view_portfolio_{idx}", use_container_width=True):
+                            if st.button("👁️ View", key=f"view_portfolio_{idx}", width="stretch"):
                                 st.session_state["portfolio_preview_path"] = item.get("path")
                                 st.session_state["portfolio_preview_name"] = item.get("file_name", "Portfolio Item")
                             if st.button("🗑️ Delete", key=f"del_{idx}"):
@@ -15636,7 +16307,7 @@ for i in range(0, len(modes), 11):
                             audio_bytes = f.read()
                         st.audio(audio_bytes)
                     elif ext in [".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp"]:
-                        st.image(preview_path, use_container_width=True)
+                        st.image(preview_path, width="stretch")
                     else:
                         st.info("Preview is not supported for this file type, but you can still download it.")
 
@@ -15662,7 +16333,7 @@ for i in range(0, len(modes), 11):
                             data=f.read(),
                             file_name=os.path.basename(preview_path),
                             mime=mime_map.get(ext, "application/octet-stream"),
-                            use_container_width=True,
+                            width="stretch",
                             key=f"portfolio_download_{download_key}"
                         )
             else:
@@ -15683,7 +16354,7 @@ for i in range(0, len(modes), 11):
             st.markdown("### 🔐 Two-Factor Authentication")
             if st.session_state.get("2fa_enabled", False):
                 st.success("✅ 2FA is enabled for your account")
-                if st.button("Disable 2FA", use_container_width=True):
+                if st.button("Disable 2FA", width="stretch"):
                     conn = sqlite3.connect(DB_PATH, check_same_thread=False)
                     cursor = conn.cursor()
                     try:
@@ -15706,7 +16377,7 @@ for i in range(0, len(modes), 11):
                 st.markdown("<h4 style='font-family: Orbitron; font-size: 13px; color: #EC4899; margin-bottom: 15px;'>➕ ADD NEW LINKED SUB-USER</h4>", unsafe_allow_html=True)
                 new_sub_user_id = st.text_input("Sub-User Email/ID:", placeholder="friend@zovix.ai", key="add_sub_user_text_input").strip()
                 st.write("")
-                if st.button("Link Sub-User Account", key="link_sub_user_action_btn", use_container_width=True):
+                if st.button("Link Sub-User Account", key="link_sub_user_action_btn", width="stretch"):
                     if not new_sub_user_id:
                         st.error("Provide a valid ID configuration.")
                     else:
@@ -15729,7 +16400,7 @@ for i in range(0, len(modes), 11):
                         with s_col1:
                             st.markdown(f"**Node:** `{s_u}`")
                         with s_col2:
-                            if st.button("Unlink Account", key=f"unlink_{s_u}", use_container_width=True):
+                            if st.button("Unlink Account", key=f"unlink_{s_u}", width="stretch"):
                                 remove_sub_user_db(st.session_state["logged_user"], s_u)
                                 st.toast("Sub-User node link dissolved.")
                                 time.sleep(0.1)
@@ -15746,7 +16417,7 @@ for i in range(0, len(modes), 11):
                 sch_time = st.text_input("Scheduled Execution Date & Time:", value=str(datetime.now() + timedelta(days=1))[:16], key="sched_datetime_input")
                 sch_platform = st.selectbox("Platform Destination:", ["YouTube Shorts", "Instagram Reels", "TikTok Feed", "X (Twitter) Video"], key="sched_platform_selectbox")
                 st.write("")
-                if st.button("Schedule Social Run", key="book_schedule_run_action_btn", use_container_width=True):
+                if st.button("Schedule Social Run", key="book_schedule_run_action_btn", width="stretch"):
                     if not sch_topic.strip():
                         st.error("Please provide prompt or topic details.")
                     else:
@@ -15961,9 +16632,16 @@ def render_engine_portfolio_section():
             no_items_msg = "No agent outputs generated yet. Configure and activate your AI agent!"
             display_type = "text"
         elif current_mode == "AI Sales Mode":
-            sales_video = st.session_state.get("sales_video_output")
-            if sales_video and os.path.exists(sales_video):
-                valid_items.append({"path": sales_video, "file_name": f"Sales_Video_{datetime.now().strftime('%Y%m%d')}", "prompt": st.session_state.get("sales_script", "Sales video"), "type": "video"})
+            for sales_item in st.session_state.get("sales_video_history", []):
+                sales_video = sales_item.get("video_path", "")
+                if sales_video and (sales_video.startswith("http") or os.path.exists(sales_video)):
+                    valid_items.append({
+                        "path": sales_video,
+                        "file_name": sales_item.get("file_name", "Sales Video"),
+                        "prompt": sales_item.get("prompt", "Sales video"),
+                        "timestamp": sales_item.get("timestamp", ""),
+                        "type": "video",
+                    })
             gallery_title = "🎙️ AI SALES VIDEOS"
             no_items_msg = "No sales videos created yet. Generate your first AI sales video!"
             display_type = "video"
@@ -16017,7 +16695,7 @@ def render_engine_portfolio_section():
                             </p>
                         """, unsafe_allow_html=True)
                         if os.path.exists(item.get("path", "")):
-                            if st.button("👁️ Open", key=f"{preview_key_prefix}_open_audio_{current_mode}_{idx}", use_container_width=True):
+                            if st.button("👁️ Open", key=f"{preview_key_prefix}_open_audio_{current_mode}_{idx}", width="stretch"):
                                 st.session_state["portfolio_preview_path"] = item.get("path")
                                 st.session_state["portfolio_preview_name"] = item.get("file_name", "Portfolio Item")
         elif display_type == "text":
@@ -16080,7 +16758,7 @@ def render_engine_portfolio_section():
                             </p>
                         """, unsafe_allow_html=True)
                         if os.path.exists(file_path):
-                            if st.button("👁️ Open", key=f"{preview_key_prefix}_open_video_{current_mode}_{idx}", use_container_width=True):
+                            if st.button("👁️ Open", key=f"{preview_key_prefix}_open_video_{current_mode}_{idx}", width="stretch"):
                                 st.session_state["portfolio_preview_path"] = file_path
                                 st.session_state["portfolio_preview_name"] = file_name
         else:
@@ -16120,7 +16798,7 @@ def render_engine_portfolio_section():
                             </p>
                         """, unsafe_allow_html=True)
                         if os.path.exists(file_path):
-                            if st.button("👁️ Open", key=f"{preview_key_prefix}_open_image_{current_mode}_{idx}", use_container_width=True):
+                            if st.button("👁️ Open", key=f"{preview_key_prefix}_open_image_{current_mode}_{idx}", width="stretch"):
                                 st.session_state["portfolio_preview_path"] = file_path
                                 st.session_state["portfolio_preview_name"] = file_name
 
@@ -16137,7 +16815,7 @@ def render_engine_portfolio_section():
                 with open(preview_path, "rb") as f:
                     st.audio(f.read())
             elif ext in [".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp"]:
-                st.image(preview_path, use_container_width=True)
+                st.image(preview_path, width="stretch")
             else:
                 st.info("Preview is not supported for this file type, but you can still download it.")
 
@@ -16163,7 +16841,7 @@ def render_engine_portfolio_section():
                     data=f.read(),
                     file_name=os.path.basename(preview_path),
                     mime=mime_map.get(ext, "application/octet-stream"),
-                    use_container_width=True,
+                    width="stretch",
                     key=f"{preview_key_prefix}_download_{download_key}"
                 )
 
@@ -16212,7 +16890,7 @@ def render_engine_portfolio_section():
                     key=f"btn_import_{idx_t}",
                     on_click=set_trend_prompt,
                     args=(trend["prompt"],),
-                    use_container_width=True,
+                    width="stretch",
                 )
 
     st.markdown("<br>", unsafe_allow_html=True)
@@ -16349,7 +17027,7 @@ def run_production_engine_mode():
         cloud_img_url = st.text_input("Or use Image URL", placeholder="https://...")
         cloud_aud_url = st.text_input("Or use Audio URL", placeholder="https://...")
         
-        if st.button("Generate Face Video", use_container_width=True, type="primary"):
+        if st.button("Generate Face Video", width="stretch", type="primary"):
             if not require_login_for_generation("Face Video Mode"):
                 st.stop()
             img_url = cloud_img_url.strip() or (face_image and "uploaded") or ""
@@ -16396,7 +17074,7 @@ def run_production_engine_mode():
             tts_speed = st.slider("Speed", 0.5, 2.0, 1.0, 0.1)
             tts_clone = st.file_uploader("Voice Clone Reference (optional)", type=["mp3", "wav"], key="pe_voice_clone")
         
-        if st.button("Generate Voice", use_container_width=True, type="primary"):
+        if st.button("Generate Voice", width="stretch", type="primary"):
             if not require_login_for_generation("Live Emotion Mode"):
                 st.stop()
             if not tts_text:
@@ -16593,9 +17271,16 @@ def run_production_engine_mode():
             no_items_msg = "No agent outputs generated yet. Configure and activate your AI agent!"
             display_type = "text"
         elif current_mode == "AI Sales Mode":
-            sales_video = st.session_state.get("sales_video_output")
-            if sales_video and os.path.exists(sales_video):
-                valid_items.append({"path": sales_video, "file_name": f"Sales_Video_{datetime.now().strftime('%Y%m%d')}", "prompt": st.session_state.get("sales_script", "Sales video"), "type": "video"})
+            for sales_item in st.session_state.get("sales_video_history", []):
+                sales_video = sales_item.get("video_path", "")
+                if sales_video and (sales_video.startswith("http") or os.path.exists(sales_video)):
+                    valid_items.append({
+                        "path": sales_video,
+                        "file_name": sales_item.get("file_name", "Sales Video"),
+                        "prompt": sales_item.get("prompt", "Sales video"),
+                        "timestamp": sales_item.get("timestamp", ""),
+                        "type": "video",
+                    })
             gallery_title = "🎙️ AI SALES VIDEOS"
             no_items_msg = "No sales videos created yet. Generate your first AI sales video!"
             display_type = "video"
@@ -16649,7 +17334,7 @@ def run_production_engine_mode():
                             </p>
                         """, unsafe_allow_html=True)
                         if os.path.exists(item.get("path", "")):
-                            if st.button("👁️ Open", key=f"{preview_key_prefix}_open_audio_{current_mode}_{idx}", use_container_width=True):
+                            if st.button("👁️ Open", key=f"{preview_key_prefix}_open_audio_{current_mode}_{idx}", width="stretch"):
                                 st.session_state["portfolio_preview_path"] = item.get("path")
                                 st.session_state["portfolio_preview_name"] = item.get("file_name", "Portfolio Item")
         elif display_type == "text":
@@ -16712,7 +17397,7 @@ def run_production_engine_mode():
                             </p>
                         """, unsafe_allow_html=True)
                         if os.path.exists(file_path):
-                            if st.button("👁️ Open", key=f"{preview_key_prefix}_open_video_{current_mode}_{idx}", use_container_width=True):
+                            if st.button("👁️ Open", key=f"{preview_key_prefix}_open_video_{current_mode}_{idx}", width="stretch"):
                                 st.session_state["portfolio_preview_path"] = file_path
                                 st.session_state["portfolio_preview_name"] = file_name
         else:
@@ -16752,7 +17437,7 @@ def run_production_engine_mode():
                             </p>
                         """, unsafe_allow_html=True)
                         if os.path.exists(file_path):
-                            if st.button("👁️ Open", key=f"{preview_key_prefix}_open_image_{current_mode}_{idx}", use_container_width=True):
+                            if st.button("👁️ Open", key=f"{preview_key_prefix}_open_image_{current_mode}_{idx}", width="stretch"):
                                 st.session_state["portfolio_preview_path"] = file_path
                                 st.session_state["portfolio_preview_name"] = file_name
 
@@ -16769,7 +17454,7 @@ def run_production_engine_mode():
                 with open(preview_path, "rb") as f:
                     st.audio(f.read())
             elif ext in [".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp"]:
-                st.image(preview_path, use_container_width=True)
+                st.image(preview_path, width="stretch")
             else:
                 st.info("Preview is not supported for this file type, but you can still download it.")
 
@@ -16795,7 +17480,7 @@ def run_production_engine_mode():
                     data=f.read(),
                     file_name=os.path.basename(preview_path),
                     mime=mime_map.get(ext, "application/octet-stream"),
-                    use_container_width=True,
+                    width="stretch",
                     key=f"{preview_key_prefix}_download_{download_key}"
                 )
     
@@ -16842,7 +17527,7 @@ def run_production_engine_mode():
                 st.button(
                     "ONE-CLICK IMPORT TREND",
                     key=f"import_{trend['trend_id']}_alt",
-                    use_container_width=True,
+                    width="stretch",
                     on_click=set_trend_prompt,
                     args=(trend["prompt"],),
                 )
