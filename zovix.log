@@ -20195,3 +20195,693 @@ version
 2026-09-26 13:39:07,828 - Zovix - INFO - Database initialized successfully
 2026-09-26 13:39:17,920 - Zovix - INFO - Using Supabase PostgreSQL database
 2026-09-26 13:39:56,993 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 13:38:49,432 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 13:38:52,293 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-03 13:38:52,301 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-03 13:38:52,302 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-03 13:38:54,120 - Zovix - INFO - Database initialized successfully
+2026-10-03 13:44:01,162 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 13:44:02,677 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-03 13:44:02,686 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-03 13:44:02,687 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-03 13:44:04,755 - Zovix - INFO - Database initialized successfully
+2026-10-03 13:56:19,717 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 13:56:21,420 - Zovix - INFO - Database initialized successfully
+2026-10-03 13:56:34,463 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 13:56:35,971 - Zovix - INFO - Database initialized successfully
+2026-10-03 13:56:38,633 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 13:57:06,803 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 14:02:22,739 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 14:02:24,205 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-03 14:02:24,212 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-03 14:02:24,213 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-03 14:02:26,046 - Zovix - INFO - Database initialized successfully
+2026-10-03 14:02:35,304 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 14:02:37,581 - Zovix - INFO - Database initialized successfully
+2026-10-03 14:02:37,838 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 14:03:05,792 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 14:03:28,754 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 14:03:34,332 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 14:05:12,078 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 14:07:00,316 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 14:07:12,222 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 14:07:27,650 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 14:07:40,783 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 14:08:02,185 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 14:08:09,816 - httpx - INFO - HTTP Request: POST https://api.replicate.com/v1/models/meta/meta-llama-3-70b-instruct/predictions "HTTP/1.1 201 Created"
+2026-10-03 14:08:10,701 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0afycgpzbhrna0d103mthe7n40 "HTTP/1.1 200 OK"
+2026-10-03 14:08:11,550 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0afycgpzbhrna0d103mthe7n40 "HTTP/1.1 200 OK"
+2026-10-03 14:08:12,470 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0afycgpzbhrna0d103mthe7n40 "HTTP/1.1 200 OK"
+2026-10-03 14:08:13,393 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0afycgpzbhrna0d103mthe7n40 "HTTP/1.1 200 OK"
+2026-10-03 14:08:14,314 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0afycgpzbhrna0d103mthe7n40 "HTTP/1.1 200 OK"
+2026-10-03 14:08:15,237 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0afycgpzbhrna0d103mthe7n40 "HTTP/1.1 200 OK"
+2026-10-03 14:08:16,157 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0afycgpzbhrna0d103mthe7n40 "HTTP/1.1 200 OK"
+2026-10-03 14:08:16,978 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0afycgpzbhrna0d103mthe7n40 "HTTP/1.1 200 OK"
+2026-10-03 14:08:17,899 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0afycgpzbhrna0d103mthe7n40 "HTTP/1.1 200 OK"
+2026-10-03 14:08:18,821 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0afycgpzbhrna0d103mthe7n40 "HTTP/1.1 200 OK"
+2026-10-03 14:08:19,743 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0afycgpzbhrna0d103mthe7n40 "HTTP/1.1 200 OK"
+2026-10-03 14:08:20,665 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0afycgpzbhrna0d103mthe7n40 "HTTP/1.1 200 OK"
+2026-10-03 14:08:21,586 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0afycgpzbhrna0d103mthe7n40 "HTTP/1.1 200 OK"
+2026-10-03 14:08:22,507 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/0afycgpzbhrna0d103mthe7n40 "HTTP/1.1 200 OK"
+2026-10-03 14:08:50,293 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 14:19:35,350 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 14:19:52,284 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 14:20:00,061 - httpx - INFO - HTTP Request: POST https://api.replicate.com/v1/models/lucataco/xtts-v2/predictions "HTTP/1.1 404 Not Found"
+2026-10-03 14:20:00,900 - httpx - INFO - HTTP Request: POST https://api.replicate.com/v1/models/lucataco/xtts-v2/predictions "HTTP/1.1 404 Not Found"
+2026-10-03 14:20:01,698 - httpx - INFO - HTTP Request: POST https://api.replicate.com/v1/models/lucataco/xtts-v2/predictions "HTTP/1.1 404 Not Found"
+2026-10-03 14:20:02,517 - httpx - INFO - HTTP Request: POST https://api.replicate.com/v1/models/lucataco/xtts-v2/predictions "HTTP/1.1 404 Not Found"
+2026-10-03 14:20:09,279 - httpx - INFO - HTTP Request: POST https://api.replicate.com/v1/models/prunaai/p-video-avatar/predictions "HTTP/1.1 201 Created"
+2026-10-03 14:20:10,199 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:20:11,120 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:20:12,041 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:20:12,963 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:20:14,399 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:20:15,420 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:20:16,445 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:20:17,469 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:20:19,006 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:20:19,925 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:20:20,833 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:20:21,735 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:20:22,691 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:20:24,227 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:20:25,149 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:20:26,174 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:20:27,094 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:20:28,528 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:20:29,442 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:20:30,474 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:20:31,397 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:20:32,319 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:20:33,340 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:20:34,364 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:20:35,285 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:20:36,310 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:20:37,230 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:20:38,256 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:20:39,791 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:20:40,713 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:20:41,636 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:20:42,556 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:20:43,478 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:20:44,911 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:20:45,832 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:20:46,754 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:20:47,676 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:20:48,598 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:20:49,622 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:20:50,647 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:20:51,670 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:20:52,591 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:20:53,513 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:20:54,537 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:20:55,459 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:20:56,380 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:20:57,301 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:20:58,224 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:20:59,130 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:21:00,067 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:21:01,194 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:21:02,115 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:21:03,140 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:21:04,060 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:21:05,085 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:21:06,108 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:21:07,032 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:21:07,951 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:21:08,863 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/cm9j96psqdrmy0d103tasw5nxw "HTTP/1.1 200 OK"
+2026-10-03 14:21:39,988 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 15:03:53,705 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 15:03:55,572 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-03 15:03:55,584 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-03 15:03:55,585 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-03 15:03:57,321 - Zovix - INFO - Database initialized successfully
+2026-10-03 15:03:57,718 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 15:03:59,266 - Zovix - INFO - Database initialized successfully
+2026-10-03 15:04:26,736 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 15:04:58,551 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 15:05:05,604 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 15:07:05,150 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 15:07:41,718 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 15:07:46,509 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 15:08:19,906 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 15:08:29,977 - httpx - INFO - HTTP Request: POST https://api.replicate.com/v1/models/meta/meta-llama-3-70b-instruct/predictions "HTTP/1.1 201 Created"
+2026-10-03 15:08:30,903 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/r3dyg4rwd5rna0d104gtktqjg4 "HTTP/1.1 200 OK"
+2026-10-03 15:08:31,825 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/r3dyg4rwd5rna0d104gtktqjg4 "HTTP/1.1 200 OK"
+2026-10-03 15:08:32,746 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/r3dyg4rwd5rna0d104gtktqjg4 "HTTP/1.1 200 OK"
+2026-10-03 15:08:33,666 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/r3dyg4rwd5rna0d104gtktqjg4 "HTTP/1.1 200 OK"
+2026-10-03 15:08:35,101 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/r3dyg4rwd5rna0d104gtktqjg4 "HTTP/1.1 200 OK"
+2026-10-03 15:08:36,022 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/r3dyg4rwd5rna0d104gtktqjg4 "HTTP/1.1 200 OK"
+2026-10-03 15:08:36,945 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/r3dyg4rwd5rna0d104gtktqjg4 "HTTP/1.1 200 OK"
+2026-10-03 15:08:37,865 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/r3dyg4rwd5rna0d104gtktqjg4 "HTTP/1.1 200 OK"
+2026-10-03 15:08:38,771 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/r3dyg4rwd5rna0d104gtktqjg4 "HTTP/1.1 200 OK"
+2026-10-03 15:08:39,708 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/r3dyg4rwd5rna0d104gtktqjg4 "HTTP/1.1 200 OK"
+2026-10-03 15:08:40,630 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/r3dyg4rwd5rna0d104gtktqjg4 "HTTP/1.1 200 OK"
+2026-10-03 15:08:41,552 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/r3dyg4rwd5rna0d104gtktqjg4 "HTTP/1.1 200 OK"
+2026-10-03 15:18:52,620 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 15:19:18,399 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 15:19:40,663 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 15:19:46,075 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 15:19:46,961 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 15:19:50,225 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 15:20:06,646 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 15:20:13,445 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 15:20:40,966 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 15:20:48,379 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 15:20:49,570 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 15:20:55,775 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 15:23:35,194 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 15:24:00,810 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 15:24:12,896 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 15:24:13,915 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 15:24:17,667 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 15:24:28,392 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 15:24:45,372 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 15:24:50,628 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 15:24:53,050 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 15:25:02,171 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 15:25:11,255 - httpx - INFO - HTTP Request: POST https://api.replicate.com/v1/models/meta/meta-llama-3-70b-instruct/predictions "HTTP/1.1 201 Created"
+2026-10-03 15:25:12,076 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/h06gwkv3y9rne0d104r98gsmam "HTTP/1.1 200 OK"
+2026-10-03 15:25:12,997 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/h06gwkv3y9rne0d104r98gsmam "HTTP/1.1 200 OK"
+2026-10-03 15:25:13,917 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/h06gwkv3y9rne0d104r98gsmam "HTTP/1.1 200 OK"
+2026-10-03 15:25:14,736 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/h06gwkv3y9rne0d104r98gsmam "HTTP/1.1 200 OK"
+2026-10-03 15:25:15,555 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/h06gwkv3y9rne0d104r98gsmam "HTTP/1.1 200 OK"
+2026-10-03 15:25:16,375 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/h06gwkv3y9rne0d104r98gsmam "HTTP/1.1 200 OK"
+2026-10-03 15:25:17,187 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/h06gwkv3y9rne0d104r98gsmam "HTTP/1.1 200 OK"
+2026-10-03 15:25:18,008 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/h06gwkv3y9rne0d104r98gsmam "HTTP/1.1 200 OK"
+2026-10-03 15:25:18,935 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/h06gwkv3y9rne0d104r98gsmam "HTTP/1.1 200 OK"
+2026-10-03 15:47:55,674 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 15:48:22,494 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 15:48:28,897 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 15:48:32,448 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 15:51:12,368 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 15:51:38,123 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 15:51:43,006 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 15:51:48,416 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 15:51:52,587 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 15:52:02,769 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 15:52:10,823 - httpx - INFO - HTTP Request: POST https://api.replicate.com/v1/models/meta/meta-llama-3-70b-instruct/predictions "HTTP/1.1 201 Created"
+2026-10-03 15:52:11,745 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/6t9hqggt2xrnc0d1054rr1wfb0 "HTTP/1.1 200 OK"
+2026-10-03 15:52:12,668 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/6t9hqggt2xrnc0d1054rr1wfb0 "HTTP/1.1 200 OK"
+2026-10-03 15:52:13,588 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/6t9hqggt2xrnc0d1054rr1wfb0 "HTTP/1.1 200 OK"
+2026-10-03 15:52:14,510 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/6t9hqggt2xrnc0d1054rr1wfb0 "HTTP/1.1 200 OK"
+2026-10-03 15:52:15,432 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/6t9hqggt2xrnc0d1054rr1wfb0 "HTTP/1.1 200 OK"
+2026-10-03 15:52:16,866 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/6t9hqggt2xrnc0d1054rr1wfb0 "HTTP/1.1 200 OK"
+2026-10-03 15:52:17,787 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/6t9hqggt2xrnc0d1054rr1wfb0 "HTTP/1.1 200 OK"
+2026-10-03 15:52:18,709 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/6t9hqggt2xrnc0d1054rr1wfb0 "HTTP/1.1 200 OK"
+2026-10-03 15:52:19,631 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/6t9hqggt2xrnc0d1054rr1wfb0 "HTTP/1.1 200 OK"
+2026-10-03 15:53:50,771 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 15:54:03,046 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 15:54:09,487 - httpx - INFO - HTTP Request: POST https://api.replicate.com/v1/models/lucataco/xtts-v2/predictions "HTTP/1.1 404 Not Found"
+2026-10-03 15:54:10,451 - httpx - INFO - HTTP Request: POST https://api.replicate.com/v1/models/lucataco/xtts-v2/predictions "HTTP/1.1 404 Not Found"
+2026-10-03 15:54:11,170 - httpx - INFO - HTTP Request: POST https://api.replicate.com/v1/models/lucataco/xtts-v2/predictions "HTTP/1.1 404 Not Found"
+2026-10-03 15:54:11,895 - httpx - INFO - HTTP Request: POST https://api.replicate.com/v1/models/lucataco/xtts-v2/predictions "HTTP/1.1 404 Not Found"
+2026-10-03 15:54:12,484 - Zovix - INFO - [TOKEN TXN] add_credits OK: +20 (standard) to 'zovixenterprises@gmail.com' -> new_total_balance=230
+2026-10-03 15:54:12,485 - Zovix - INFO - Refunded 20 credits to zovixenterprises@gmail.com: Replicate sales generation error: Voice generation failed. Replicate: Replicate voice generation failed: ReplicateError Details:
+status: 404
+detail: The requested resource could not be found.; Edge-TTS: Invalid pitch '0Hz'.
+2026-10-03 16:08:52,610 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 16:08:54,340 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-03 16:08:54,352 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-03 16:08:54,353 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-03 16:08:56,269 - Zovix - INFO - Database initialized successfully
+2026-10-03 16:08:58,209 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 16:09:00,290 - Zovix - INFO - Database initialized successfully
+2026-10-03 16:09:26,293 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 16:09:32,271 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 16:09:35,248 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 16:09:48,097 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 16:10:07,813 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 16:10:20,994 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 16:10:21,060 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 16:10:26,825 - httpx - INFO - HTTP Request: POST https://api.replicate.com/v1/models/meta/meta-llama-3-70b-instruct/predictions "HTTP/1.1 201 Created"
+2026-10-03 16:10:27,740 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/skfgbhyksnrna0d105csv4tzvg "HTTP/1.1 200 OK"
+2026-10-03 16:10:28,661 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/skfgbhyksnrna0d105csv4tzvg "HTTP/1.1 200 OK"
+2026-10-03 16:10:29,583 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/skfgbhyksnrna0d105csv4tzvg "HTTP/1.1 200 OK"
+2026-10-03 16:10:30,505 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/skfgbhyksnrna0d105csv4tzvg "HTTP/1.1 200 OK"
+2026-10-03 16:10:31,428 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/skfgbhyksnrna0d105csv4tzvg "HTTP/1.1 200 OK"
+2026-10-03 16:10:32,349 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/skfgbhyksnrna0d105csv4tzvg "HTTP/1.1 200 OK"
+2026-10-03 16:10:33,269 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/skfgbhyksnrna0d105csv4tzvg "HTTP/1.1 200 OK"
+2026-10-03 16:10:34,157 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/skfgbhyksnrna0d105csv4tzvg "HTTP/1.1 200 OK"
+2026-10-03 16:10:35,010 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/skfgbhyksnrna0d105csv4tzvg "HTTP/1.1 200 OK"
+2026-10-03 16:10:36,356 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/skfgbhyksnrna0d105csv4tzvg "HTTP/1.1 200 OK"
+2026-10-03 16:12:14,116 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 16:12:27,572 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 16:12:35,211 - httpx - INFO - HTTP Request: POST https://api.replicate.com/v1/models/lucataco/xtts-v2/predictions "HTTP/1.1 404 Not Found"
+2026-10-03 16:12:35,929 - httpx - INFO - HTTP Request: POST https://api.replicate.com/v1/models/lucataco/xtts-v2/predictions "HTTP/1.1 404 Not Found"
+2026-10-03 16:12:36,663 - httpx - INFO - HTTP Request: POST https://api.replicate.com/v1/models/lucataco/xtts-v2/predictions "HTTP/1.1 404 Not Found"
+2026-10-03 16:12:37,490 - httpx - INFO - HTTP Request: POST https://api.replicate.com/v1/models/lucataco/xtts-v2/predictions "HTTP/1.1 404 Not Found"
+2026-10-03 16:12:38,608 - Zovix - INFO - [TOKEN TXN] add_credits OK: +15 (standard) to 'zovixenterprises@gmail.com' -> new_total_balance=230
+2026-10-03 16:12:39,792 - Zovix - INFO - Refunded 15 credits to zovixenterprises@gmail.com: Replicate sales generation error: Voice generation failed. Replicate: Replicate voice generation failed: ReplicateError Details:
+status: 404
+detail: The requested resource could not be found.; Edge-TTS: Invalid pitch '0Hz'.
+2026-10-03 16:24:52,668 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 16:24:54,114 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-03 16:24:54,121 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-03 16:24:54,122 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-03 16:24:56,231 - Zovix - INFO - Database initialized successfully
+2026-10-03 16:24:56,906 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 16:24:59,784 - Zovix - INFO - Database initialized successfully
+2026-10-03 16:25:25,316 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 16:25:30,991 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 16:25:34,308 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 16:25:45,973 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 16:26:09,490 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 16:26:19,176 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 16:26:19,249 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 16:26:25,559 - httpx - INFO - HTTP Request: POST https://api.replicate.com/v1/models/meta/meta-llama-3-70b-instruct/predictions "HTTP/1.1 201 Created"
+2026-10-03 16:26:26,417 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/mj5qdwkmvdrna0d105mbg1vptg "HTTP/1.1 200 OK"
+2026-10-03 16:26:27,337 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/mj5qdwkmvdrna0d105mbg1vptg "HTTP/1.1 200 OK"
+2026-10-03 16:26:28,258 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/mj5qdwkmvdrna0d105mbg1vptg "HTTP/1.1 200 OK"
+2026-10-03 16:26:29,180 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/mj5qdwkmvdrna0d105mbg1vptg "HTTP/1.1 200 OK"
+2026-10-03 16:26:30,102 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/mj5qdwkmvdrna0d105mbg1vptg "HTTP/1.1 200 OK"
+2026-10-03 16:26:31,024 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/mj5qdwkmvdrna0d105mbg1vptg "HTTP/1.1 200 OK"
+2026-10-03 16:26:31,945 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/mj5qdwkmvdrna0d105mbg1vptg "HTTP/1.1 200 OK"
+2026-10-03 16:26:32,778 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/mj5qdwkmvdrna0d105mbg1vptg "HTTP/1.1 200 OK"
+2026-10-03 16:26:33,686 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/mj5qdwkmvdrna0d105mbg1vptg "HTTP/1.1 200 OK"
+2026-10-03 16:26:34,606 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/mj5qdwkmvdrna0d105mbg1vptg "HTTP/1.1 200 OK"
+2026-10-03 16:26:54,810 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 16:27:05,187 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 16:27:11,573 - httpx - INFO - HTTP Request: POST https://api.replicate.com/v1/models/lucataco/xtts-v2/predictions "HTTP/1.1 404 Not Found"
+2026-10-03 16:27:12,392 - httpx - INFO - HTTP Request: POST https://api.replicate.com/v1/models/lucataco/xtts-v2/predictions "HTTP/1.1 404 Not Found"
+2026-10-03 16:27:13,212 - httpx - INFO - HTTP Request: POST https://api.replicate.com/v1/models/lucataco/xtts-v2/predictions "HTTP/1.1 404 Not Found"
+2026-10-03 16:27:14,032 - httpx - INFO - HTTP Request: POST https://api.replicate.com/v1/models/lucataco/xtts-v2/predictions "HTTP/1.1 404 Not Found"
+2026-10-03 16:27:15,362 - Zovix - INFO - [TOKEN TXN] add_credits OK: +15 (standard) to 'zovixenterprises@gmail.com' -> new_total_balance=230
+2026-10-03 16:27:15,363 - Zovix - INFO - Refunded 15 credits to zovixenterprises@gmail.com: Replicate sales generation error: Voice generation failed. Replicate: Replicate voice generation failed: ReplicateError Details:
+status: 404
+detail: The requested resource could not be found.; Edge-TTS: Invalid pitch '0Hz'.
+2026-10-03 16:52:41,116 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 16:53:09,909 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 16:53:15,549 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 16:53:18,538 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 16:53:30,383 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 16:54:03,013 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 16:54:08,262 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 16:54:10,317 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 16:54:17,995 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 16:54:23,432 - httpx - INFO - HTTP Request: POST https://api.replicate.com/v1/models/meta/meta-llama-3-70b-instruct/predictions "HTTP/1.1 201 Created"
+2026-10-03 16:54:24,353 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/mkf9thgew9rne0d10619hc080m "HTTP/1.1 200 OK"
+2026-10-03 16:54:25,275 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/mkf9thgew9rne0d10619hc080m "HTTP/1.1 200 OK"
+2026-10-03 16:54:26,200 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/mkf9thgew9rne0d10619hc080m "HTTP/1.1 200 OK"
+2026-10-03 16:54:27,119 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/mkf9thgew9rne0d10619hc080m "HTTP/1.1 200 OK"
+2026-10-03 16:54:28,552 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/mkf9thgew9rne0d10619hc080m "HTTP/1.1 200 OK"
+2026-10-03 16:54:29,474 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/mkf9thgew9rne0d10619hc080m "HTTP/1.1 200 OK"
+2026-10-03 16:54:30,395 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/mkf9thgew9rne0d10619hc080m "HTTP/1.1 200 OK"
+2026-10-03 16:54:31,316 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/mkf9thgew9rne0d10619hc080m "HTTP/1.1 200 OK"
+2026-10-03 16:55:23,831 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 16:55:46,121 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 16:55:52,315 - Zovix - INFO - [TOKEN TXN] add_credits OK: +15 (standard) to 'zovixenterprises@gmail.com' -> new_total_balance=230
+2026-10-03 16:55:53,955 - Zovix - INFO - Refunded 15 credits to zovixenterprises@gmail.com: Replicate sales generation error: generate_sales_voice() got an unexpected keyword argument 'voice_id'
+2026-10-03 16:58:51,355 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 16:58:52,804 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-03 16:58:52,813 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-03 16:58:52,814 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-03 16:58:55,013 - Zovix - INFO - Database initialized successfully
+2026-10-03 16:58:55,181 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 16:58:57,010 - Zovix - INFO - Database initialized successfully
+2026-10-03 16:59:27,035 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 16:59:34,002 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 16:59:37,169 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 16:59:50,051 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 17:00:10,242 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 17:00:18,580 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 17:00:18,660 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 17:00:23,985 - httpx - INFO - HTTP Request: POST https://api.replicate.com/v1/models/meta/meta-llama-3-70b-instruct/predictions "HTTP/1.1 201 Created"
+2026-10-03 17:00:24,906 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/27yxakcf85rne0d1063r16naa0 "HTTP/1.1 200 OK"
+2026-10-03 17:00:25,729 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/27yxakcf85rne0d1063r16naa0 "HTTP/1.1 200 OK"
+2026-10-03 17:00:26,647 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/27yxakcf85rne0d1063r16naa0 "HTTP/1.1 200 OK"
+2026-10-03 17:00:27,568 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/27yxakcf85rne0d1063r16naa0 "HTTP/1.1 200 OK"
+2026-10-03 17:00:28,901 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/27yxakcf85rne0d1063r16naa0 "HTTP/1.1 200 OK"
+2026-10-03 17:00:29,822 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/27yxakcf85rne0d1063r16naa0 "HTTP/1.1 200 OK"
+2026-10-03 17:00:30,743 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/27yxakcf85rne0d1063r16naa0 "HTTP/1.1 200 OK"
+2026-10-03 17:00:31,664 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/27yxakcf85rne0d1063r16naa0 "HTTP/1.1 200 OK"
+2026-10-03 17:00:32,484 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/27yxakcf85rne0d1063r16naa0 "HTTP/1.1 200 OK"
+2026-10-03 17:00:33,293 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/27yxakcf85rne0d1063r16naa0 "HTTP/1.1 200 OK"
+2026-10-03 17:01:44,747 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 17:01:55,022 - Zovix.SalesVoice - WARNING - Sales ElevenLabs voice failed; trying Edge-TTS fallback: ElevenLabs returned HTTP 402: {"detail":{"type":"payment_required","code":"paid_plan_required","message":"Free users cannot use library voices via the API. Please upgrade your subscription to use this voice.","status":"payment_required","request_id":"8eb7fc31fbe89c7af1a
+2026-10-03 17:01:56,067 - Zovix - INFO - [TOKEN TXN] add_credits OK: +20 (standard) to 'zovixenterprises@gmail.com' -> new_total_balance=230
+2026-10-03 17:01:56,067 - Zovix - INFO - Refunded 20 credits to zovixenterprises@gmail.com: Replicate sales generation error: Voice generation failed. ElevenLabs: ElevenLabs returned HTTP 402: {"detail":{"type":"payment_required","code":"paid_plan_required","message":"Free users cannot use library voices via the API. Please upgrade your subscription to use this voice.","status":"payment_required","request_id":"8eb7fc31fbe89c7af1a; Edge-TTS fallback: Invalid pitch '0Hz'.
+2026-10-03 17:05:56,761 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 17:05:58,142 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-03 17:05:58,150 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-03 17:05:58,151 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-03 17:06:00,019 - Zovix - INFO - Database initialized successfully
+2026-10-03 17:06:00,720 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 17:06:02,395 - Zovix - INFO - Database initialized successfully
+2026-10-03 17:06:28,845 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 17:08:32,377 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 17:08:39,797 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 17:08:51,444 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 17:09:13,627 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 17:09:33,442 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 17:09:33,537 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 17:09:37,869 - httpx - INFO - HTTP Request: POST https://api.replicate.com/v1/models/meta/meta-llama-3-70b-instruct/predictions "HTTP/1.1 201 Created"
+2026-10-03 17:09:38,691 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/bbsx5tg34drna0d1068a2a919c "HTTP/1.1 200 OK"
+2026-10-03 17:09:39,610 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/bbsx5tg34drna0d1068a2a919c "HTTP/1.1 200 OK"
+2026-10-03 17:09:40,430 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/bbsx5tg34drna0d1068a2a919c "HTTP/1.1 200 OK"
+2026-10-03 17:09:41,249 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/bbsx5tg34drna0d1068a2a919c "HTTP/1.1 200 OK"
+2026-10-03 17:09:42,068 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/bbsx5tg34drna0d1068a2a919c "HTTP/1.1 200 OK"
+2026-10-03 17:09:43,093 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/bbsx5tg34drna0d1068a2a919c "HTTP/1.1 200 OK"
+2026-10-03 17:09:44,014 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/bbsx5tg34drna0d1068a2a919c "HTTP/1.1 200 OK"
+2026-10-03 17:09:44,936 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/bbsx5tg34drna0d1068a2a919c "HTTP/1.1 200 OK"
+2026-10-03 17:10:32,657 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 17:10:41,779 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 17:10:48,205 - Zovix.SalesVoice - WARNING - Sales ElevenLabs voice failed; trying Edge-TTS fallback: ElevenLabs returned HTTP 402: {"detail":{"type":"payment_required","code":"paid_plan_required","message":"Free users cannot use library voices via the API. Please upgrade your subscription to use this voice.","status":"payment_required","request_id":"1a4849593439a0eb7d1
+2026-10-03 17:10:48,777 - Zovix - INFO - [TOKEN TXN] add_credits OK: +15 (standard) to 'zovixenterprises@gmail.com' -> new_total_balance=230
+2026-10-03 17:10:48,778 - Zovix - INFO - Refunded 15 credits to zovixenterprises@gmail.com: Replicate sales generation error: Voice generation failed. ElevenLabs: ElevenLabs returned HTTP 402: {"detail":{"type":"payment_required","code":"paid_plan_required","message":"Free users cannot use library voices via the API. Please upgrade your subscription to use this voice.","status":"payment_required","request_id":"1a4849593439a0eb7d1; Edge-TTS fallback: Invalid pitch '0Hz'.
+2026-10-03 17:24:02,433 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 17:24:04,081 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-03 17:24:04,089 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-03 17:24:04,090 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-03 17:24:06,291 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 17:24:06,637 - Zovix - INFO - Database initialized successfully
+2026-10-03 17:24:08,328 - Zovix - INFO - Database initialized successfully
+2026-10-03 17:24:30,951 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 17:24:36,963 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 17:24:40,166 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 17:24:49,013 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 17:25:08,919 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 17:25:15,374 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 17:25:15,450 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 17:25:21,610 - httpx - INFO - HTTP Request: POST https://api.replicate.com/v1/models/meta/meta-llama-3-70b-instruct/predictions "HTTP/1.1 201 Created"
+2026-10-03 17:25:22,516 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/5w3j43k9f9rnc0d106faehxq9r "HTTP/1.1 200 OK"
+2026-10-03 17:25:23,438 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/5w3j43k9f9rnc0d106faehxq9r "HTTP/1.1 200 OK"
+2026-10-03 17:25:24,461 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/5w3j43k9f9rnc0d106faehxq9r "HTTP/1.1 200 OK"
+2026-10-03 17:25:25,373 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/5w3j43k9f9rnc0d106faehxq9r "HTTP/1.1 200 OK"
+2026-10-03 17:25:26,715 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/5w3j43k9f9rnc0d106faehxq9r "HTTP/1.1 200 OK"
+2026-10-03 17:25:27,637 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/5w3j43k9f9rnc0d106faehxq9r "HTTP/1.1 200 OK"
+2026-10-03 17:25:28,558 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/5w3j43k9f9rnc0d106faehxq9r "HTTP/1.1 200 OK"
+2026-10-03 17:25:29,479 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/5w3j43k9f9rnc0d106faehxq9r "HTTP/1.1 200 OK"
+2026-10-03 17:25:30,299 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/5w3j43k9f9rnc0d106faehxq9r "HTTP/1.1 200 OK"
+2026-10-03 17:25:31,221 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/5w3j43k9f9rnc0d106faehxq9r "HTTP/1.1 200 OK"
+2026-10-03 17:25:32,654 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/5w3j43k9f9rnc0d106faehxq9r "HTTP/1.1 200 OK"
+2026-10-03 17:26:10,434 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 17:26:20,489 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 17:26:24,684 - Zovix.SalesVoice - WARNING - Sales ElevenLabs voice failed; trying Edge-TTS fallback: ElevenLabs returned HTTP 402: {"detail":{"type":"payment_required","code":"paid_plan_required","message":"Free users cannot use library voices via the API. Please upgrade your subscription to use this voice.","status":"payment_required","request_id":"7a7c7b7ce1397131821
+2026-10-03 17:26:27,439 - Zovix - INFO - AI Sales: calling Replicate image model black-forest-labs/flux-kontext-pro for presenter frame
+2026-10-03 17:26:31,739 - httpx - INFO - HTTP Request: POST https://api.replicate.com/v1/models/black-forest-labs/flux-kontext-pro/predictions "HTTP/1.1 201 Created"
+2026-10-03 17:26:32,763 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/d6g2c3kttsrmw0d106fv53x4m0 "HTTP/1.1 200 OK"
+2026-10-03 17:26:33,787 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/d6g2c3kttsrmw0d106fv53x4m0 "HTTP/1.1 200 OK"
+2026-10-03 17:26:34,812 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/d6g2c3kttsrmw0d106fv53x4m0 "HTTP/1.1 200 OK"
+2026-10-03 17:26:36,243 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/d6g2c3kttsrmw0d106fv53x4m0 "HTTP/1.1 200 OK"
+2026-10-03 17:26:37,132 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/d6g2c3kttsrmw0d106fv53x4m0 "HTTP/1.1 200 OK"
+2026-10-03 17:26:38,088 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/d6g2c3kttsrmw0d106fv53x4m0 "HTTP/1.1 200 OK"
+2026-10-03 17:26:39,529 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/d6g2c3kttsrmw0d106fv53x4m0 "HTTP/1.1 200 OK"
+2026-10-03 17:26:40,345 - Zovix - INFO - AI Sales: calling Replicate video model prunaai/p-video-avatar
+2026-10-03 17:26:44,148 - httpx - INFO - HTTP Request: POST https://api.replicate.com/v1/models/prunaai/p-video-avatar/predictions "HTTP/1.1 201 Created"
+2026-10-03 17:26:45,677 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:26:47,082 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:26:47,989 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:26:48,943 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:26:49,841 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:26:50,736 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:26:51,709 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:26:53,142 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:26:54,062 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:26:54,984 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:26:55,908 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:26:57,341 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:26:58,273 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:26:59,184 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:27:00,117 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:27:01,129 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:27:02,152 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:27:03,081 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:27:03,996 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:27:04,918 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:27:05,828 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:27:06,750 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:27:07,784 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:27:08,705 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:27:09,640 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:27:10,550 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:27:11,473 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:27:12,391 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:27:13,320 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:27:14,337 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:27:15,250 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:27:16,186 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:27:17,205 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:27:18,229 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:27:19,140 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:27:20,061 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:27:20,990 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:27:21,931 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:27:22,938 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:27:23,963 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:27:25,396 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:27:26,421 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:27:27,344 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:27:28,329 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:27:29,288 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:27:30,518 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:27:31,438 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:27:32,462 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:27:33,383 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:27:34,408 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:27:35,329 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:27:36,355 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:27:37,275 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:27:38,197 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:27:39,118 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:27:40,040 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:27:40,963 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:27:41,883 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:27:42,906 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:27:43,809 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:27:44,734 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:27:45,672 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:27:46,696 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:27:47,720 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:27:48,744 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:27:49,674 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:27:50,639 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/7a20dtxbmdrmy0d106fvra0z5w "HTTP/1.1 200 OK"
+2026-10-03 17:28:15,527 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 18:17:20,123 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 18:17:21,529 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-03 18:17:21,537 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-03 18:17:21,538 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-03 18:17:24,911 - Zovix - INFO - Database initialized successfully
+2026-10-03 18:17:25,975 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 18:17:29,313 - Zovix - INFO - Database initialized successfully
+2026-10-03 18:17:52,302 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 18:18:01,244 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 18:18:04,933 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 18:18:09,582 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 18:18:13,302 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 18:46:36,860 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 18:46:38,375 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-03 18:46:38,383 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-03 18:46:38,385 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-03 18:46:40,226 - Zovix - INFO - Database initialized successfully
+2026-10-03 18:46:40,513 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 18:46:42,139 - Zovix - INFO - Database initialized successfully
+2026-10-03 18:47:09,523 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 18:47:28,920 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 18:47:33,652 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 18:51:02,090 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 18:51:27,677 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 18:54:23,592 - asyncio - ERROR - Exception in callback _ProactorBasePipeTransport._call_connection_lost(None)
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost(None)>
+Traceback (most recent call last):
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\asyncio\events.py", line 80, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\asyncio\proactor_events.py", line 162, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-10-03 18:54:23,646 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 18:54:42,131 - Zovix - INFO - New social user: zovixenterrprises@gmail.com via Google
+2026-10-03 18:54:48,126 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 18:55:25,819 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 18:55:50,008 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 18:56:26,324 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 18:56:28,448 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 18:56:35,263 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 18:56:38,463 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 18:56:43,303 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 18:56:46,218 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 18:56:51,347 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 18:56:55,499 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 18:57:04,018 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 18:57:11,959 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 18:57:15,084 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 18:57:24,437 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 18:57:29,019 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 18:57:29,037 - google_genai.models - INFO - AFC is enabled with max remote calls: 10.
+2026-10-03 18:57:33,566 - httpx - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-10-03 18:57:36,419 - Zovix - WARNING - ElevenLabs voice catalog request failed: HTTP 401
+2026-10-03 18:57:37,848 - Zovix - WARNING - ElevenLabs voice ID pNInz6obpgDQ5IdwJg7p rejected (404); retrying with default voice.
+2026-10-03 18:57:44,197 - httpx - INFO - HTTP Request: POST https://api.replicate.com/v1/models/google/veo-3/predictions "HTTP/1.1 201 Created"
+2026-10-03 18:57:45,119 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:57:46,041 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:57:46,963 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:57:47,883 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:57:48,805 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:57:49,794 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:57:50,744 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:57:51,672 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:57:52,697 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:57:53,618 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:57:54,524 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:57:55,462 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:57:56,486 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:57:57,408 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:57:58,329 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:57:59,251 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:00,991 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:02,425 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:03,448 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:04,371 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:05,293 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:06,930 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:07,854 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:09,080 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:10,106 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:11,027 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:12,154 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:13,075 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:14,424 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:15,339 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:16,249 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:17,174 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:18,603 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:19,526 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:20,447 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:21,363 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:22,284 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:23,212 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:24,235 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:25,158 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:26,079 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:26,999 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:28,434 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:29,357 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:30,465 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:31,404 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:32,326 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:33,453 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:34,374 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:35,360 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:36,407 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:37,344 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:38,267 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:39,422 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:40,415 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:41,332 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:42,360 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:43,384 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:44,306 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:45,228 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:46,253 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:47,276 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:48,299 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:49,221 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:50,142 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:51,576 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:52,499 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:53,420 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:54,341 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:55,263 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:56,492 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:57,414 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:58,341 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:58:59,256 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:59:00,280 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:59:01,201 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:59:02,123 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:59:03,044 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:59:03,966 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:59:04,990 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:59:06,014 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:59:06,936 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:59:07,960 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:59:08,984 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:59:09,906 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:59:10,929 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:59:11,953 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:59:13,182 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:59:14,206 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:59:15,231 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:59:16,254 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:59:17,149 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:59:18,097 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:59:19,122 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:59:20,043 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:59:20,965 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/qv1n4t7wdsrmr0d107s8rydzf0 "HTTP/1.1 200 OK"
+2026-10-03 18:59:39,021 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 19:05:01,625 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 19:05:26,202 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 19:05:50,242 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 19:05:50,337 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 19:05:55,051 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 19:05:59,489 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 19:06:05,609 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 19:06:13,563 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 19:06:18,872 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 19:06:25,172 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 19:06:31,544 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 19:06:36,422 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 19:06:51,277 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 19:06:57,626 - Zovix - WARNING - Could not persist cinematic job d6d80f5c08ae4094a05e1b7c4d130496: [WinError 5] Access is denied: 'temp_scenes\\cinematic_job_d6d80f5c08ae4094a05e1b7c4d130496.json.tmp' -> 'temp_scenes\\cinematic_job_d6d80f5c08ae4094a05e1b7c4d130496.json'
+2026-10-03 19:06:57,646 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 19:06:57,700 - google_genai.models - INFO - AFC is enabled with max remote calls: 10.
+2026-10-03 19:07:03,302 - httpx - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-10-03 19:07:03,977 - Zovix - WARNING - ElevenLabs voice catalog request failed: HTTP 401
+2026-10-03 19:07:03,979 - Zovix - WARNING - ElevenLabs voice catalog request failed: HTTP 401
+2026-10-03 19:07:05,137 - Zovix - WARNING - ElevenLabs voice ID pNInz6obpgDQ5IdwJg7p rejected (404); retrying with default voice.
+2026-10-03 19:07:05,229 - Zovix - WARNING - ElevenLabs voice ID pNInz6obpgDQ5IdwJg7p rejected (404); retrying with default voice.
+2026-10-03 19:07:05,881 - Zovix - WARNING - ElevenLabs voice catalog request failed: HTTP 401
+2026-10-03 19:07:07,052 - Zovix - WARNING - ElevenLabs voice ID pNInz6obpgDQ5IdwJg7p rejected (404); retrying with default voice.
+2026-10-03 19:10:44,711 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 19:10:47,703 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-03 19:10:47,719 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-03 19:10:47,721 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-03 19:10:50,628 - Zovix - INFO - Database initialized successfully
+2026-10-03 19:10:51,531 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 19:10:53,033 - Zovix - INFO - Database initialized successfully
+2026-10-03 19:11:15,522 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 19:17:14,272 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 19:17:20,808 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 19:17:34,635 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 19:17:36,790 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 19:17:58,231 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 19:18:05,456 - Zovix - INFO - [TOKEN TXN] deduct_credits_db OK: -2 from 'zovixenterprises@gmail.com' -> new_total_balance=123
+2026-10-03 19:18:20,186 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 19:19:49,415 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 19:19:58,064 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 19:19:59,052 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 19:20:14,816 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 19:20:14,894 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 19:20:21,809 - Zovix - INFO - [TOKEN TXN] deduct_credits_db OK: -3 from 'zovixenterprises@gmail.com' -> new_total_balance=120
+2026-10-03 19:21:23,947 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 19:21:52,664 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 19:25:24,644 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 19:25:31,560 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 19:27:11,833 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 19:27:17,269 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 19:27:17,358 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 19:27:20,388 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 19:27:20,441 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 19:27:24,217 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 19:27:26,538 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 19:27:29,482 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 19:27:34,095 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 19:27:37,382 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 19:27:44,580 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 19:27:52,349 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 19:27:52,367 - google_genai.models - INFO - AFC is enabled with max remote calls: 10.
+2026-10-03 19:27:59,552 - httpx - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-10-03 19:28:02,187 - Zovix - WARNING - ElevenLabs voice catalog request failed: HTTP 401
+2026-10-03 19:28:02,187 - Zovix - WARNING - ElevenLabs voice catalog request failed: HTTP 401
+2026-10-03 19:28:02,187 - Zovix - WARNING - ElevenLabs voice catalog request failed: HTTP 401
+2026-10-03 19:28:02,188 - Zovix - WARNING - ElevenLabs voice catalog request failed: HTTP 401
+2026-10-03 19:28:50,159 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 19:33:45,354 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 19:33:52,958 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 19:55:07,177 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 19:55:37,317 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 19:59:03,900 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 19:59:29,401 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 20:11:59,139 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 20:12:07,961 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-03 20:12:09,562 - Zovix - INFO - Database initialized successfully

@@ -47,6 +47,12 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
+_GENERATION_SUCCESS_MESSAGE = "Generated successfully by Zovix"
+
+
+def _show_generation_success():
+    st.toast(_GENERATION_SUCCESS_MESSAGE)
+
 # Serve crawler files at the standard root URLs instead of returning Streamlit's app shell.
 try:
     import tornado.web
@@ -77,9 +83,10 @@ import platform
 from production_engine import generate_production_face_video, generate_production_voice, generate_production_face_video_streamlit, generate_production_voice_streamlit, get_language_list, get_emotion_list, get_cost_estimate, check_endpoint_health
 from production_engine import generate_production_face_video, generate_production_voice
 from credits_engine import validate_and_deduct_tokens, get_face_video_token_cost
-from deepseek_engine import generate_sales_script
+import importlib
+import deepseek_engine
 from sales_funnel import build_sales_funnel
-from voice_engine import generate_sales_voice
+import voice_engine
 from video_composer import compose_sales_video
 
 # ========================================================
@@ -89,7 +96,7 @@ from video_composer import compose_sales_video
 # Fallback keeps the credit check available if the standalone credits module is unavailable.
 # taaki missing hone par bhi NameError na aaye aur generation proceed ho.
 if 'validate_and_deduct_tokens' not in globals():
-    def validate_and_deduct_tokens(mode_name: str = "", quality: str = "Standard", word_count=None):
+    def validate_and_deduct_tokens(mode_name: str = "", quality: str = "Standard", word_count=None, duration_choice=None):
         """
         Fallback token validation/deduction. Delegates to the real
         DB-backed implementation in deepinfra_engine.py so tokens
@@ -97,7 +104,7 @@ if 'validate_and_deduct_tokens' not in globals():
         """
         try:
             from credits_engine import validate_and_deduct_tokens as _real
-            return _real(mode_name, quality, word_count)
+            return _real(mode_name, quality, word_count, duration_choice)
         except Exception as e:
             logger.error(f"validate_and_deduct_tokens fallback error: {e}")
             return False, 0, "⚠️ Credit system unavailable. Please try again."
@@ -1091,6 +1098,8 @@ if "sales_video_thumbnail" not in st.session_state:
     st.session_state["sales_video_thumbnail"] = None
 if "sales_video_caption" not in st.session_state:
     st.session_state["sales_video_caption"] = None
+if "sales_video_quality" not in st.session_state:
+    st.session_state["sales_video_quality"] = None
 if "sales_video_history" not in st.session_state:
     st.session_state["sales_video_history"] = []
 
@@ -1887,6 +1896,7 @@ def preload_logged_in_user_data(username):
         st.session_state["sales_video_output"] = latest_sales.get("video_path")
         st.session_state["sales_video_thumbnail"] = latest_sales.get("thumbnail_path")
         st.session_state["sales_video_caption"] = latest_sales.get("caption_path")
+        st.session_state["sales_video_quality"] = latest_sales.get("quality", "Standard")
         st.session_state["sales_funnel"] = latest_sales.get("funnel", {})
         st.session_state["sales_script"] = latest_sales.get("prompt", "")
     st.session_state["user_credits"] = get_user_credits_db(username)
@@ -2178,6 +2188,40 @@ def has_active_subscription(username):
         return False, None
     except Exception as e:
         logger.error(f"Has subscription error: {e}")
+        return False, None
+    finally:
+        conn.close()
+
+def has_active_sales_video_subscription(username, minimum_amount=299):
+    """Require a verified ₹299-or-higher monthly payment within its 30-day term."""
+    normalized_username = normalize_account_username(username)
+    if not normalized_username:
+        return False, None
+
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            """SELECT pack_name, amount, timestamp FROM payment_history
+               WHERE username = ? AND status = 'success' AND plan_type = 'monthly'
+                 AND amount >= ?
+               ORDER BY timestamp DESC LIMIT 1""",
+            (normalized_username, float(minimum_amount)),
+        )
+        row = cursor.fetchone()
+        if not row:
+            return False, None
+
+        created_at = row[2]
+        if isinstance(created_at, str):
+            created_at = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
+        now = datetime.now(created_at.tzinfo) if getattr(created_at, "tzinfo", None) else datetime.now()
+        age = now - created_at
+        if timedelta(0) <= age < timedelta(days=30):
+            return True, str(row[0] or "Subscription")
+        return False, None
+    except Exception as exc:
+        logger.error("Sales subscription check failed for %s: %s", normalized_username, exc)
         return False, None
     finally:
         conn.close()
@@ -4552,6 +4596,13 @@ class VideoScriptBreakdown(BaseModel):
     scenes: List[SceneDetail]
     music_mood: str = Field(description="The emotional mood/vibe for background music: 'uplifting', 'dramatic', 'calm', 'energetic', 'mysterious', or 'cinematic'.")
 
+
+def get_cinematic_duration_config(duration_choice):
+    choice = str(duration_choice or "").lower()
+    if "1 minute" in choice:
+        return 60, 4, 15
+    return 15, 3, 5
+
 MOOD_TO_MUSIC_MAP = {
     "uplifting": "assets/music/uplifting.mp3",
     "dramatic": "assets/music/dramatic.mp3",
@@ -5083,7 +5134,7 @@ class ScriptingEngine:
         if has_genai and effective_api_key:
             try:
                 client_gen = genai.Client(api_key=effective_api_key)
-                num_scenes = 4 if "1 Minute" in duration_choice else 3
+                target_duration, num_scenes, scene_duration = get_cinematic_duration_config(duration_choice)
                 if "Hinglish" in language_choice:
                     lang_instruction = "fluent Hinglish (Hindi written in Latin script)"
                 elif "French" in language_choice:
@@ -5094,7 +5145,9 @@ class ScriptingEngine:
                     lang_instruction = "clear modern English"
                 prompt = (
                     f"Write a premium engaging short video script about '{topic}' in {lang_instruction}. "
-                    f"Divide the video into exactly {num_scenes} sequential scenes. "
+                    f"Target total runtime: exactly about {target_duration} seconds. Divide it into exactly {num_scenes} sequential scenes, "
+                    f"with narration sized to fit about {scene_duration} seconds per scene. "
+                    "For very short runtimes, use concise narration and do not add an introduction or outro. "
                     f"Each scene must contain unique descriptive text and a short English search keyword phrase (strictly 2 to 4 words) matching the visual context. "
                     f"Strictly avoid full sentences, verbs, or non-English words in the search_keyword field. "
                     f"Also, determine the overall emotional mood/vibe for background music for this video. "
@@ -5116,7 +5169,7 @@ class ScriptingEngine:
                     kw = item.get("search_keyword", "mystery").strip()
                     if len(kw.split()) > 5 or "." in kw:
                         kw = " ".join(kw.split()[:3]).replace(".", "")
-                    scenes_mapped.append({"scene_text": item.get("scene_text", "").strip(), "search_keyword": kw, "duration": item.get("duration", 5)})
+                    scenes_mapped.append({"scene_text": item.get("scene_text", "").strip(), "search_keyword": kw, "duration": scene_duration if target_duration <= 15 else item.get("duration", scene_duration)})
                 music_mood = data.get("music_mood", "cinematic").lower().strip()
                 if scenes_mapped:
                     return scenes_mapped, music_mood
@@ -5130,7 +5183,12 @@ class ScriptingEngine:
             fallback_text = f"[Scene 1: 宇宙] 科学では説明できない、{topic}を取り巻く信じられない謎を発見してください。\n\n[Scene 2: 歴史] 忘れ去られた記録の奥深くに、暗い秘密が隠されています。\n\n[Scene 3: 研究室] 今日、現代のテクノロジーがついに真実を明らかにします。"
         else:
             fallback_text = f"[Scene 1: universe] {topic} ke baare mein kuch aise hairan kar dene wale rahasya jo sabhi se chupaye gaye.\n\n[Scene 2: mystery] Purani dastawezon mein dabi ek aisi sachai jise koi nahi janta.\n\n[Scene 3: hologram] Aaj ke modern scientists is ghabrahat bhare sach ko bahar la rahe hain."
-        return parse_tagged_script(fallback_text), "cinematic"
+        fallback_scenes = parse_tagged_script(fallback_text)
+        target_duration, num_scenes, scene_duration = get_cinematic_duration_config(duration_choice)
+        fallback_scenes = fallback_scenes[:num_scenes]
+        for scene in fallback_scenes:
+            scene["duration"] = scene_duration
+        return fallback_scenes, "cinematic"
 
 class VisualEngine:
     @staticmethod
@@ -5290,7 +5348,7 @@ def get_scene_asset(description, output_filename, scene_text=None, idx=None, sta
     Smart Asset Sourcing Layer
     1. Search Pexels stock video clips
     2. If no match, search Pixabay stock video clips
-    3. If still no clip, fallback to AI Video Generation Pipeline:
+    3. If no clip is available, use the existing AI Video Generation Pipeline:
        a. Generate SD reference image from scene text
        b. Convert image to video via Stability AI I2V (SVD)
        c. If SVD fails, use zoompan fallback
@@ -5421,6 +5479,24 @@ def _extract_replicate_image_url(output):
     return None
 
 
+def _enhance_workshop_face_prompt(prompt, negative_prompt):
+    """Add face-fidelity guidance only when the requested subject includes a face."""
+    prompt_text = str(prompt or "").strip()
+    negative_text = str(negative_prompt or "").strip()
+    face_terms = ("face", "portrait", "headshot", "selfie", "person", "people", "woman", "man", "girl", "boy", "human")
+    if not any(re.search(rf"\b{term}\b", prompt_text, re.IGNORECASE) for term in face_terms):
+        return prompt_text, negative_text
+
+    prompt_text += (
+        ", clear expressive eyes, well-defined facial features, anatomically coherent face, "
+        "natural detailed skin texture appropriate to the requested style, sharp facial focus; "
+        "preserve the requested art style and subject"
+    )
+    face_negative = "distorted face, asymmetrical eyes, crossed eyes, deformed facial features, blurry face, plastic or over-smoothed skin"
+    negative_text = ", ".join(part for part in (negative_text, face_negative) if part)
+    return prompt_text, negative_text
+
+
 def _generate_replicate_workshop_image(prompt, aspect_ratio, negative_prompt, quality, output_dir):
     token = _get_replicate_image_token()
     if not token:
@@ -5443,9 +5519,9 @@ def _generate_replicate_workshop_image(prompt, aspect_ratio, negative_prompt, qu
         or quality_model_defaults.get(quality_name, quality_model_defaults["Standard"])
     )
     ratio = aspect_ratio if aspect_ratio in {"16:9", "9:16", "1:1", "21:9", "4:5", "3:2"} else "16:9"
-    effective_prompt = str(prompt).strip()
-    if str(negative_prompt or "").strip():
-        effective_prompt += f" Avoid these unwanted elements: {str(negative_prompt).strip()}"
+    effective_prompt, effective_negative_prompt = _enhance_workshop_face_prompt(prompt, negative_prompt)
+    if effective_negative_prompt:
+        effective_prompt += f" Avoid these unwanted elements: {effective_negative_prompt}"
     input_payload = {
         "prompt": effective_prompt,
         "aspect_ratio": ratio,
@@ -5457,7 +5533,7 @@ def _generate_replicate_workshop_image(prompt, aspect_ratio, negative_prompt, qu
     elif quality_name == "HD":
         input_payload.update({"megapixels": "1", "num_inference_steps": 28})
     else:
-        input_payload.update({"output_quality": 100, "prompt_upsampling": True, "safety_tolerance": 2})
+        input_payload.update({"megapixels": "2", "output_quality": 100, "prompt_upsampling": True, "safety_tolerance": 2})
     payload = {"input": input_payload}
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
     prediction_url = f"https://api.replicate.com/v1/models/{model_ref}/predictions"
@@ -7511,13 +7587,15 @@ def _extract_replicate_video_url(output):
     return None
 
 
-def _run_replicate_face_model(client, model_ref, image_path, audio_path, script_text):
+def _run_replicate_face_model(client, model_ref, image_path, audio_path, script_text, video_prompt=None, quality="Standard"):
     model_name = model_ref.lower()
     has_audio = bool(audio_path and os.path.isfile(audio_path) and os.path.getsize(audio_path) > 1024)
+    video_prompt = video_prompt or "real human talking head with natural lip movement and subtle eye blinks"
     if "p-video-avatar" in model_name:
+        video_resolution = "720p" if str(quality).strip() == "Standard" else "1080p"
         payloads = [
-            {"image": "image", "voice_script": script_text, "voice_prompt": "speak naturally", "video_prompt": "real human talking head with natural lip movement and subtle eye blinks", "resolution": "720p"},
-            {"image": "image", "voice_script": script_text, "resolution": "720p"},
+            {"image": "image", "voice_script": script_text, "voice_prompt": "speak naturally", "video_prompt": video_prompt, "resolution": video_resolution},
+            {"image": "image", "voice_script": script_text, "video_prompt": video_prompt, "resolution": video_resolution},
         ]
     elif "sadtalker" in model_name:
         payloads = [{"source_image": "image", "driven_audio": "audio", "preprocess": "full"}, {"source_image": "image", "driven_audio": "audio"}]
@@ -7593,49 +7671,171 @@ def _generate_replicate_face_video(prompt, face_image_path, duration, quality, v
             safe_remove_file(temp_audio)
 
 
-def _generate_replicate_sales_video(image_path, audio_path, script_text):
-    """Generate a sales avatar through Replicate, with ComfyUI RunPod fallback."""
+def _build_sales_presenter_prompt(product_name, product_category, language="English"):
+    category_backgrounds = {
+        "electronics": "a tidy modern electronics shop with softly focused display shelves and practical retail lighting",
+        "fashion": "a contemporary clothing boutique with softly focused garment rails and natural window light",
+        "food & beverage": "a clean cafe or kitchen counter with warm daylight and subtle food-service context",
+        "beauty": "a bright beauty counter or skincare studio with clean shelves and soft daylight",
+        "home & living": "a lived-in modern home interior with tasteful furniture and natural window light",
+        "sports": "a real fitness studio or sports training space with subtle equipment in the distance",
+        "other": "a neat small-business retail or workshop setting that naturally fits the product",
+    }
+    category = str(product_category or "Other").strip()
+    background = category_backgrounds.get(category.lower(), category_backgrounds["other"])
+    language_name = str(language or "English").strip()
+    language_presenters = {
+        "Hindi": "an adult Indian presenter with a natural contemporary South Asian appearance",
+        "Hinglish": "an adult Indian presenter with a natural contemporary South Asian appearance",
+        "Bhojpuri": "an adult Indian presenter with a natural North Indian appearance",
+        "English": "an adult native English-speaking presenter with a natural English-language-market appearance",
+        "French": "an adult native French-speaking presenter with a natural French appearance",
+        "Japanese": "an adult native Japanese-speaking presenter with a natural Japanese appearance",
+        "Spanish": "an adult native Spanish-speaking presenter with a natural Spanish-language-market appearance",
+        "German": "an adult native German-speaking presenter with a natural German appearance",
+    }
+    presenter_identity = language_presenters.get(
+        language_name,
+        f"an adult presenter whose natural appearance fits the {language_name}-speaking audience",
+    )
+    name = str(product_name or "the uploaded product").strip()
+    return (
+        "Edit the uploaded product reference into a photorealistic vertical 9:16 product-presentation portrait. "
+        f"Show {presenter_identity} from the waist up, facing the camera with warm direct eye contact. "
+        f"The presenter is speaking {language_name}; make the face and overall appearance feel natural for that language audience. "
+        "Give them a sincere approachable expression, relaxed shoulders, natural skin texture, and realistic proportions; "
+        "avoid a mannequin-like, plastic, or CGI appearance. Keep the face large and sharp in the upper third. "
+        "Show both forearms and both hands with anatomically natural fingers, comfortably holding the exact uploaded "
+        "product at chest height. Face the product toward camera and keep it fully visible without covering the face. "
+        "Preserve its recognizable shape, colors, packaging, and branding; do not replace it or add another product. "
+        f"Place the presenter in {background}. Make the setting credible and relevant, softly focused, uncluttered, "
+        "and naturally lit, not a generic empty studio. Keep the presenter and product crisp, with no added captions, "
+        "watermarks, flags, or invented logos. Avoid costumes or exaggerated cultural stereotypes. "
+        "Leave comfortable space around the head and shoulders for talking-head video. "
+        f"Product: {name}. Category: {category}."
+    )
+
+
+def _generate_sales_presenter_image(product_image_path, progress=None, language="English"):
+    """Create a talking-head reference frame with the uploaded product held visibly."""
+    token = _get_replicate_face_token()
+    if not token:
+        raise RuntimeError("REPLICATE_API_TOKEN is required to create the product-holding presenter frame.")
+    try:
+        import replicate
+    except ImportError as exc:
+        raise RuntimeError("Replicate package is required to create the product-holding presenter frame.") from exc
+
+    product_name = str(st.session_state.get("sales_product_name", "the uploaded product")).strip()
+    product_category = str(st.session_state.get("sales_category", "product")).strip()
+    model_ref = str(os.getenv("REPLICATE_SALES_IMAGE_MODEL", "black-forest-labs/flux-kontext-pro")).strip()
+    edit_prompt = _build_sales_presenter_prompt(product_name, product_category, language)
+    client = replicate.Client(api_token=token)
+    st.session_state["sales_video_engine_used"] = f"Replicate image ({model_ref})"
+    logger.info("AI Sales: calling Replicate image model %s for presenter frame", model_ref)
+    if progress is not None:
+        progress.update(label=f"Step 3/4: Calling Replicate image model ({model_ref})...", state="running")
+    with open(product_image_path, "rb") as product_file:
+        output = client.run(
+            model_ref,
+            input={
+                "input_image": product_file,
+                "prompt": edit_prompt,
+                "aspect_ratio": "9:16",
+                "output_format": "png",
+            },
+        )
+
+    image_url = _extract_replicate_image_url(output)
+    if not image_url:
+        raise RuntimeError(f"Replicate image model {model_ref} returned no presenter image.")
+    response = requests.get(image_url, timeout=90)
+    response.raise_for_status()
+    if len(response.content) < 10000:
+        raise RuntimeError("Replicate returned an empty presenter image.")
+
+    output_dir = Path("face_videos")
+    output_dir.mkdir(parents=True, exist_ok=True)
+    presenter_path = output_dir / f"sales_presenter_{uuid.uuid4().hex[:8]}.png"
+    presenter_path.write_bytes(response.content)
+    return str(presenter_path)
+
+
+def _generate_replicate_sales_video(image_path, audio_path, script_text, quality="Standard", progress=None, language="English"):
+    """Generate a sales avatar from a presenter frame that visibly holds the product."""
     token = _get_replicate_face_token()
     replicate_error = "Replicate was not configured."
-    if token:
-        try:
-            import replicate
-            model_ref = str(os.getenv("REPLICATE_SALES_MODEL", "prunaai/p-video-avatar")).strip()
-            client = replicate.Client(api_token=token)
-            result = _run_replicate_face_model(client, model_ref, image_path, audio_path, script_text)
-            if result:
-                video_url, predict_time = result
-                st.session_state["sales_video_engine_used"] = f"Replicate ({model_ref})"
-                st.session_state["sales_video_replicate_predict_time"] = predict_time
-                return video_url
-            replicate_error = f"Replicate model {model_ref} returned no video output."
-        except Exception as exc:
-            replicate_error = str(exc)
-            logger.warning("Replicate sales avatar failed; trying RunPod fallback: %s", exc)
+    presenter_image_path = None
+    try:
+        presenter_image_path = _generate_sales_presenter_image(
+            image_path,
+            progress=progress,
+            language=language,
+        )
+        if token:
+            try:
+                import replicate
+                model_ref = str(os.getenv("REPLICATE_SALES_MODEL", "prunaai/p-video-avatar")).strip()
+                client = replicate.Client(api_token=token)
+                st.session_state["sales_video_engine_used"] = f"Replicate video ({model_ref})"
+                logger.info("AI Sales: calling video model %s", model_ref)
+                if progress is not None:
+                    progress.update(label=f"Step 3/4: Calling video model ({model_ref})...", state="running")
+                result = _run_replicate_face_model(
+                    client,
+                    model_ref,
+                    presenter_image_path,
+                    audio_path,
+                    script_text,
+                    video_prompt=(
+                        "Present this like a real, warm, confident human product demonstration: natural blinking, "
+                        "subtle facial expressions, gentle conversational nods, and relaxed small upper-body motion. "
+                        "Maintain natural eye contact. Keep holding the same product with both hands at chest level "
+                        "throughout; keep both hands and the whole product visible and never cover the face. "
+                        "Preserve the same product-matched real-world background and steady chest-up framing. "
+                        f"The presenter speaks {language}; preserve the same language-appropriate appearance from the input image. "
+                        "Avoid robotic movement or exaggerated gestures."
+                    ),
+                    quality=quality,
+                )
+                if result:
+                    video_url, predict_time = result
+                    st.session_state["sales_video_engine_used"] = f"Replicate ({model_ref})"
+                    st.session_state["sales_video_replicate_predict_time"] = predict_time
+                    return video_url
+                replicate_error = f"Replicate model {model_ref} returned no video output."
+            except Exception as exc:
+                replicate_error = str(exc)
+                st.session_state["sales_video_engine_used"] = f"Replicate failed ({model_ref})"
+                logger.warning("Replicate sales avatar failed; trying RunPod fallback: %s", exc)
 
-    effective_runpod_key = (RUNPOD_API_KEY or os.getenv("RUNPOD_API_KEY", "") or get_system_secret("RUNPOD_API_KEY", "")).strip()
-    effective_endpoint = (RUNPOD_ENDPOINT_FACE or FACE_ENDPOINT_ID or os.getenv("RUNPOD_ENDPOINT_FACE", "") or os.getenv("COMFYUI_FACE_RUNPOD_ENDPOINT_ID", "")).strip()
-    if effective_runpod_key and effective_endpoint:
-        try:
-            from comfyui_engine import generate_face_video as runpod_generate_face_video
-            video_result = runpod_generate_face_video(
-                face_image_path=image_path,
-                audio_path=audio_path,
-                script_text=script_text,
-                duration=10,
-                quality="Standard",
-                api_key=effective_runpod_key,
-                endpoint_id=effective_endpoint,
-            )
-            if video_result:
-                st.session_state["sales_video_engine_used"] = "ComfyUI (RunPod)"
-                st.session_state["sales_video_runtime_mode"] = "Cloud Fallback"
-                return video_result
-            raise RuntimeError("RunPod returned no sales video output.")
-        except Exception as exc:
-            raise RuntimeError(f"Replicate failed: {replicate_error}; RunPod fallback failed: {exc}") from exc
+        effective_runpod_key = (RUNPOD_API_KEY or os.getenv("RUNPOD_API_KEY", "") or get_system_secret("RUNPOD_API_KEY", "")).strip()
+        effective_endpoint = (RUNPOD_ENDPOINT_FACE or FACE_ENDPOINT_ID or os.getenv("RUNPOD_ENDPOINT_FACE", "") or os.getenv("COMFYUI_FACE_RUNPOD_ENDPOINT_ID", "")).strip()
+        if effective_runpod_key and effective_endpoint:
+            try:
+                if progress is not None:
+                    progress.update(label="Step 3/4: Replicate failed; trying RunPod fallback...", state="running")
+                from comfyui_engine import generate_face_video as runpod_generate_face_video
+                video_result = runpod_generate_face_video(
+                    face_image_path=presenter_image_path,
+                    audio_path=audio_path,
+                    script_text=script_text,
+                    duration=10,
+                    quality=quality,
+                    api_key=effective_runpod_key,
+                    endpoint_id=effective_endpoint,
+                )
+                if video_result:
+                    st.session_state["sales_video_engine_used"] = "ComfyUI (RunPod)"
+                    st.session_state["sales_video_runtime_mode"] = "Cloud Fallback"
+                    return video_result
+                raise RuntimeError("RunPod returned no sales video output.")
+            except Exception as exc:
+                raise RuntimeError(f"Replicate failed: {replicate_error}; RunPod fallback failed: {exc}") from exc
 
-    raise RuntimeError(f"Replicate failed: {replicate_error}; RunPod fallback is not configured.")
+        raise RuntimeError(f"Replicate failed: {replicate_error}; RunPod fallback is not configured.")
+    finally:
+        safe_remove_file(presenter_image_path)
 
 
 def generate_world_face_video(prompt, face_image_path, duration=10, quality="HD", animation_style="Expressive Real Human (No Lip-Only Fallback)", backend_choice="Auto (LivePortrait → SadTalker → Wav2Lip)", motion_level="high", voice_language=None, voice_label=None, runpod_api_key=None):
@@ -8416,7 +8616,7 @@ def render_ai_agent_ui():
                             ad_text += f"📱 Contact: {schedule.get('whatsapp', 'N/A')}\n\n"
                             ad_text += "Visit us today! 🚀"
                             st.session_state["agent_generated_ad"] = ad_text
-                            st.toast("WhatsApp ad generated!")
+                            _show_generation_success()
                             st.rerun()
                 
                 with col_qa2:
@@ -8436,7 +8636,7 @@ def render_ai_agent_ui():
                                 caption += f"📱 WhatsApp: {schedule.get('whatsapp', 'N/A')}\n"
                                 caption += "\n#SmallBusiness #LocalShop #MadeWithZovix"
                                 st.session_state["agent_instagram_caption"] = caption
-                                st.toast("Instagram post generated!")
+                                _show_generation_success()
                                 st.rerun()
                             else:
                                 st.error("❌ Image generation failed. Try again.")
@@ -8653,7 +8853,18 @@ def render_ai_sales_ui():
                 placeholder="e.g. Make it funny, target young audience, emphasize quality...",
                 height=60,
                 key="sales_auto_prompt",
+                max_chars=400,
                 help="Extra guidance for the script generator"
+            )
+            st.caption(f"Prompt instructions: {len(sales_prompt)}/400 characters")
+
+            sales_personal_experience = st.text_area(
+                "Your real product experience (Optional)",
+                placeholder="Only if true: I have used this for 3 months; I took it with me to my sister's wedding...",
+                height=70,
+                key="sales_personal_experience",
+                max_chars=400,
+                help="Add only real product-use details or personal stories. The script will not invent them.",
             )
 
             if st.button("🧠 Generate 3 Script Variations", key="sales_generate_scripts_btn", width="stretch"):
@@ -8661,17 +8872,19 @@ def render_ai_sales_ui():
                     st.error("Please enter a product name before generating scripts.")
                 else:
                     try:
-                        variations = generate_sales_script(
+                        sales_script_generator = importlib.reload(deepseek_engine).generate_sales_script
+                        variations = sales_script_generator(
                             product_name=product_name,
                             price=product_price,
                             category=product_category,
                             language=sales_language,
                             extra_instructions=f"{sales_tone} tone. {sales_prompt}",
+                            personal_experience=sales_personal_experience,
                         )
                         st.session_state["sales_script_variations"] = variations
                         st.session_state["sales_selected_script_idx"] = 0
                         st.session_state["sales_script"] = variations[0]["script"]
-                        st.success("✅ 3 sales script variations generated successfully.")
+                        _show_generation_success()
                     except Exception as exc:
                         st.error(f"Script generation failed: {exc}")
 
@@ -8692,13 +8905,13 @@ def render_ai_sales_ui():
             else:
                 sales_script = st.text_area(
                     "📝 Custom Sales Script (Fallback)",
-                    placeholder="Write your sales script here... (Max 1000 characters)\n\nExample:\n'Introducing our premium wireless earbuds with 24-hour battery life and crystal clear sound. Perfect for music lovers and fitness enthusiasts. Get yours today at just Rs. 999!'",
+                    placeholder="Write your sales script here... (Max 400 characters)\n\nExample:\n'Introducing our premium wireless earbuds with clear sound. Perfect for everyday listening. Get yours today at just Rs. 999!'",
                     height=120,
                     key="sales_custom_script",
-                    max_chars=1000,
+                    max_chars=400,
                 )
-                st.caption(f"📝 {len(sales_script)}/1000 characters")
-                char_percent = min(100, (len(sales_script) / 1000) * 100)
+                st.caption(f"📝 {len(sales_script)}/400 characters")
+                char_percent = min(100, (len(sales_script) / 400) * 100)
                 if char_percent > 0:
                     color = "#10b981" if char_percent < 80 else "#f59e0b" if char_percent < 95 else "#ef4444"
                     st.progress(char_percent / 100, text=f"Character usage: {char_percent:.0f}%")
@@ -8712,8 +8925,9 @@ def render_ai_sales_ui():
             if product_image:
                 temp_path = f"temp_scenes/sales_product_{uuid.uuid4().hex[:8]}.png"
                 os.makedirs("temp_scenes", exist_ok=True)
-                with open(temp_path, "wb") as f:
-                    f.write(product_image.getbuffer())
+                with Image.open(product_image) as uploaded_image:
+                    uploaded_image.load()
+                    uploaded_image.save(temp_path, format="PNG")
                 st.session_state["sales_product_image"] = temp_path
                 st.image(temp_path, caption="Product Image", width="stretch")
 
@@ -8768,6 +8982,13 @@ def render_ai_sales_ui():
                 if not require_login_for_generation("AI Sales Mode"):
                     st.stop()
 
+                sales_username = normalize_account_username(st.session_state.get("logged_user", ""))
+                has_sales_plan, sales_plan_name = has_active_sales_video_subscription(sales_username)
+                if not has_sales_plan:
+                    st.error("Sales video generation requires an active monthly subscription of ₹299 or more. Please subscribe to Cinematic or Premium first.")
+                    st.stop()
+                st.caption(f"Active sales plan: {sales_plan_name}")
+
                 product_name = st.session_state.get("sales_product_name", "").strip()
                 product_price = st.session_state.get("sales_product_price", "").strip()
                 if not product_name:
@@ -8817,7 +9038,16 @@ def render_ai_sales_ui():
                         sales_progress.update(label="Step 2/4: Generating voice from selected script...", state="running")
                         progress_bar.progress(35, text="Step 2/4: Generating voice from selected script...")
                         audio_path = f"face_videos/sales_audio_{uuid.uuid4().hex[:8]}.mp3"
-                        if not generate_sales_voice(selected_script, sales_language, audio_path, tone=sales_tone):
+                        selected_voice_id = ELEVENLABS_VOICES.get(sales_voice, {}).get("id")
+                        sales_voice_generator = importlib.reload(voice_engine).generate_sales_voice
+                        if not sales_voice_generator(
+                            selected_script,
+                            sales_language,
+                            audio_path,
+                            tone=sales_tone,
+                            voice_id=selected_voice_id,
+                            progress=sales_progress,
+                        ):
                             refund_face_video_credits(required_tokens, "Sales audio generation failed")
                             st.error("Audio generation failed.")
                             st.stop()
@@ -8829,6 +9059,9 @@ def render_ai_sales_ui():
                             image_path=img_path,
                             audio_path=audio_path,
                             script_text=selected_script,
+                            quality=sales_quality,
+                            progress=sales_progress,
+                            language=sales_language,
                         )
 
                         if not output_path or (not output_path.startswith("http") and not (os.path.exists(output_path) and os.path.getsize(output_path) > 1000)):
@@ -8842,10 +9075,11 @@ def render_ai_sales_ui():
                         composed = compose_sales_video(
                             video_path=output_path,
                             audio_path=audio_path,
-                            product_image=img_path,
+                            product_image=None,
                             price=product_price,
                             script=selected_script,
                             language=sales_language,
+                            quality=sales_quality,
                         )
 
                         funnel = build_sales_funnel(
@@ -8863,6 +9097,7 @@ def render_ai_sales_ui():
                         st.session_state["sales_video_output"] = composed["video_path"]
                         st.session_state["sales_video_thumbnail"] = composed["thumbnail_path"]
                         st.session_state["sales_video_caption"] = composed["srt_path"]
+                        st.session_state["sales_video_quality"] = sales_quality
                         st.session_state["sales_script"] = selected_script
                         st.session_state["sales_script_variations"] = st.session_state.get("sales_script_variations", [])
                         sales_username = normalize_account_username(st.session_state.get("logged_user", ""))
@@ -8880,12 +9115,15 @@ def render_ai_sales_ui():
                             )
                             load_sales_video_history_db.clear()
                             st.session_state["sales_video_history"] = load_sales_video_history_db(sales_username)
-                        st.toast("✅ Talking sales avatar generated!")
+                        _show_generation_success()
                         st.rerun()
 
                     except Exception as e:
                         refund_face_video_credits(required_tokens, f"Replicate sales generation error: {e}")
                         st.error(f"Error: {str(e)}")
+                        last_engine = st.session_state.get("sales_video_engine_used")
+                        if last_engine:
+                            st.caption(f"Last generation stage: {last_engine}")
 
     with col2:
         with st.container(border=True):
@@ -8897,7 +9135,7 @@ def render_ai_sales_ui():
                     st.text(st.session_state["sales_script"])
                 variations = st.session_state.get("sales_script_variations", [])
                 if variations:
-                    with st.expander("🧠 Replicate Script Variations", expanded=False):
+                    with st.expander("🧠 Zovix Script Variations", expanded=False):
                         for variation in variations:
                             st.markdown(f"**{variation['tone'].replace('_', ' ').title()}**")
                             st.write(variation["script"])
@@ -8911,12 +9149,23 @@ def render_ai_sales_ui():
             is_local_sales_video = isinstance(sales_output, str) and os.path.exists(sales_output)
             if is_remote_sales_video or is_local_sales_video:
                 st.video(sales_output)
+                sales_engine_used = st.session_state.get("sales_video_engine_used")
+                if sales_engine_used:
+                    st.caption(f"Generated with: {sales_engine_used}")
+                quality_labels = {
+                    "Standard": "Standard export · 720p portrait",
+                    "HD": "HD export · 1080p portrait",
+                    "4K": "4K export · 2160p portrait, upscaled from native 1080p",
+                }
+                video_quality_label = quality_labels.get(st.session_state.get("sales_video_quality"))
+                if video_quality_label:
+                    st.caption(f"Export quality: {video_quality_label}")
                 if sales_thumbnail and os.path.exists(sales_thumbnail):
-                    st.image(sales_thumbnail, caption="Click below to play the generated video", use_container_width=True)
+                    st.image(sales_thumbnail, caption="Click below to play the generated video", width="stretch")
                     if is_remote_sales_video:
-                        st.link_button("▶ Play video", sales_output, use_container_width=True)
+                        st.link_button("▶ Play video", sales_output, width="stretch")
                     elif is_local_sales_video:
-                        st.link_button("▶ Play video", sales_output, use_container_width=True)
+                        st.link_button("▶ Play video", sales_output, width="stretch")
 
                 if sales_funnel:
                     st.markdown("### 📣 Caption")
@@ -8975,7 +9224,7 @@ def render_ai_sales_ui():
                                 width="stretch",
                             )
                     else:
-                        st.link_button("📥 Open Video", sales_output, use_container_width=True)
+                        st.link_button("📥 Open Video", sales_output, width="stretch")
                 with col_clr:
                     if st.button("Clear", key="sales_clear", width="stretch"):
                         if is_local_sales_video:
@@ -9309,7 +9558,7 @@ def render_live_emotion_voice():
                                 st.session_state["emotion_voice_output"] = actual_path
                                 st.session_state["emotion_voice_text"] = emotion_text
                                 st.session_state["emotion_voice_emotion"] = emotion
-                                st.toast(f"✅ {emotion.title()} voice generated!")
+                                _show_generation_success()
                                 st.rerun()
                             else:
                                 st.error("Voice generation failed. Check API keys and try again.")
@@ -9612,7 +9861,7 @@ def run_blueprints_mode():
                                             required_tokens
                                         )
                                         st.session_state["history_renders"] = load_renders_history_db(st.session_state["logged_user"])
-                                        st.toast("Blueprint generated successfully!")
+                                        _show_generation_success()
                                         st.rerun()
                                     else:
                                         refund_face_video_credits(required_tokens, "Blueprint generation returned no output")
@@ -10753,7 +11002,7 @@ def _draw_structural_layout(draw, room_specs, content_box, palette, fonts):
     bay_w = int((x2 - x1 - 60) / grid_cols)
     bay_h = int((y2 - y1 - 60) / grid_rows)
     # Structural grid + columns + beams
-    for row in range(grid_rows + 1):
+    for row in range(grid_rows + 1): 
         for col in range(grid_cols + 1):
             cx = int(x1) + 30 + col * bay_w
             cy = int(y1) + 30 + row * bay_h
@@ -11335,8 +11584,7 @@ def run_creative_workshop():
                                         )
                                         st.session_state["history_renders"] = load_renders_history_db(st.session_state["logged_user"])
 
-                                        engine_used = st.session_state.get("workshop_image_engine_used", "Image engine")
-                                        st.toast(f"✅ Image generated with {engine_used}!")
+                                        _show_generation_success()
                                         st.rerun()
                                     else:
                                         refund_face_video_credits(required_tokens, "Creative Workshop image generation returned no output")
@@ -11585,7 +11833,7 @@ def run_upscaler_mode():
                                 )
                                 st.session_state["history_renders"] = load_renders_history_db(st.session_state["logged_user"])
                                 
-                                st.toast(f"✅ Image upscaled {scale_factor}x successfully!")
+                                _show_generation_success()
                                 st.rerun()
                             else:
                                 refund_face_video_credits(required_tokens, "Upscaler returned no output")
@@ -11879,8 +12127,7 @@ def run_draw_mode():
                                     )
                                     st.session_state["history_renders"] = load_renders_history_db(st.session_state["logged_user"])
                                     
-                                    engine_used = st.session_state.get("draw_engine_used", "Unknown")
-                                    st.toast(f"✅ Drawing generated using {engine_used}!")
+                                    _show_generation_success()
                                     st.rerun()
                                 else:
                                     refund_face_video_credits(required_tokens, "Draw generation returned no output")
@@ -12687,7 +12934,7 @@ def run_video_editor_mode():
                                     required_tokens
                                 )
                                 st.session_state["history_renders"] = load_renders_history_db(st.session_state["logged_user"])
-                                st.toast("✅ Video edited successfully!")
+                                _show_generation_success()
                                 st.rerun()
                             else:
                                 st.error("❌ Video processing failed. Check uploaded files and try again.")
@@ -13051,7 +13298,7 @@ def run_face_video_mode():
                                 file_name = f"zovix_face_video_{quality.lower()}_{timestamp}.mp4"
                                 save_face_video_to_db(st.session_state["logged_user"], file_name, face_prompt, video_path, st.session_state["face_image_upload"], quality, required_tokens)
                                 st.session_state["face_video_history"] = load_face_video_history_db(st.session_state["logged_user"])
-                                st.toast(f"Face video generated successfully in {quality} quality!")
+                                _show_generation_success()
                                 st.rerun()
                             else:
                                 refund_face_video_credits(required_tokens, "RunPod face generation returned no video")
@@ -13237,7 +13484,7 @@ pip install gfpgan realesrgan""",
                                     required_tokens,
                                 )
                                 st.session_state["face_video_history"] = load_face_video_history_db(st.session_state["logged_user"])
-                                st.toast(f"Expressive face video generated in {efv_quality} quality!")
+                                _show_generation_success()
                                 st.rerun()
                             else:
                                 refund_face_video_credits(required_tokens, "Expressive face generation returned no video")
@@ -13752,7 +13999,7 @@ def run_unified_face_video_mode():
                                                 )
                                                 st.session_state["face_video_history"] = load_face_video_history_db(st.session_state.get("logged_user", "guest"))
                                                 st.balloons()
-                                                st.toast("✅ Face video generated successfully!")
+                                                _show_generation_success()
                                                 st.rerun()
                                             else:
                                                 refund_face_video_credits(required_tokens, "Cloud face generation returned no video")
@@ -14180,7 +14427,9 @@ def _run_cinematic_generation_job(job_id, script_text, duration_choice, selected
             bgm_path = get_music_path(music_mood) if music_mood else None
 
         update_status(f"Building {len(scenes_data)} scenes with visuals and voiceover...")
-        output_path = os.path.join("temp_scenes", f"cinematic_{job_id}.mp4")
+        output_dir = os.path.join("temp_scenes", job_id)
+        os.makedirs(output_dir, exist_ok=True)
+        output_path = os.path.join(output_dir, "Zovix Cinematic Video.mp4")
         success = StitcherEngine.build_scene_stitched_video_isolated(
             scenes_data=scenes_data,
             video_output=output_path,
@@ -14234,14 +14483,42 @@ if hasattr(st, "fragment"):
             st.session_state["cinematic_video_ready"] = True
             st.session_state["cinematic_video_path"] = job.get("video_path")
             st.session_state["cinematic_job_id"] = None
-            st.success("🎬 Cinematic video generated successfully!")
+            _show_generation_success()
             st.rerun()
         elif job["status"] == "Failed":
             st.session_state["cinematic_job_id"] = None
             st.error(f"❌ Cinematic Engine Error: {job.get('error', 'Unknown error')}")
             st.rerun()
         else:
-            st.info(f"⏳ Status: {job['status']}")
+            st.markdown(
+                """
+                <style>
+                    @keyframes cinematic-progress-slide {
+                        from { transform: translateX(-120%); }
+                        to { transform: translateX(300%); }
+                    }
+                    .cinematic-progress-track {
+                        height: 7px;
+                        overflow: hidden;
+                        border-radius: 4px;
+                        background: rgba(255,255,255,0.12);
+                        margin: 8px 0;
+                    }
+                    .cinematic-progress-bar {
+                        width: 35%;
+                        height: 100%;
+                        border-radius: 4px;
+                        background: linear-gradient(90deg, #EC4899, #45F3FF);
+                        animation: cinematic-progress-slide 1.4s ease-in-out infinite;
+                    }
+                </style>
+                <div class="cinematic-progress-track" role="progressbar" aria-label="Cinematic video generation in progress">
+                    <div class="cinematic-progress-bar"></div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+            st.info(f"🎬 Generating video... {job['status']}")
 else:
     def render_cinematic_job_status():
         job_id = st.session_state.get("cinematic_job_id")
@@ -14603,8 +14880,6 @@ def run_cinematic_engine():
         <p>Transform your ideas into professional cinematic videos with AI</p>
     </div>
     """, unsafe_allow_html=True)
-    render_cinematic_job_status()
-    
     # ============================================
     # TRANSLATION, KEYS & SHORTCUTS
     # ============================================
@@ -14653,11 +14928,11 @@ def run_cinematic_engine():
                 "Prompt Input",
                 placeholder="Explain video concept: e.g. Ek kisan ke paas do beej the...",
                 height=90,
-                max_chars=2000,
+                max_chars=600,
                 label_visibility="collapsed",
                 key="user_prompt"
             )
-            st.caption(f"✍️ Characters: **{len(user_input or '')}/2000**")
+            st.caption(f"✍️ Characters: **{len(user_input or '')}/600**")
             
             st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">📐 Aspect Ratio</p>', unsafe_allow_html=True)
             aspect_choice = st.selectbox(
@@ -14673,22 +14948,33 @@ def run_cinematic_engine():
                 if not user_input.strip():
                     st.error("Please enter a video concept.")
                 else:
-                    with st.spinner("Generating ZOVIX Blueprint..."):
-                        aspect_for_deepseek = "9:16" if "VERTICAL" in st.session_state.get("studio_deepseek_aspect", "9:16 VERTICAL") else "16:9"
-                        blueprint = generate_video_blueprint_with_deepseek(user_input, aspect_for_deepseek)
-                        if "error" in blueprint:
-                            st.error(f"❌ DeepSeek Error: {blueprint['error']}")
-                        else:
-                            st.session_state["deepseek_blueprint_data"] = blueprint
-                            st.session_state["deepseek_blueprint_visible"] = True
-                            st.session_state["studio_prompt_value"] = user_input
-                            # Do NOT directly mutate st.session_state["user_prompt"] here:
-                            # the text_area uses key="user_prompt", so Streamlit already
-                            # auto-syncs widget state to st.session_state["user_prompt"].
-                            # Use a local variable for all downstream logic instead.
-                            final_prompt = user_input or st.session_state.get("user_prompt", "")
-                            st.toast("✅ Blueprint generated successfully!")
-                            st.rerun()
+                    success, required_tokens, message = validate_and_deduct_tokens("DeepSeek AI Blueprint")
+                    if not success:
+                        st.error(message)
+                    else:
+                        username = st.session_state.get("logged_user")
+                        with st.spinner("Generating ZOVIX Blueprint..."):
+                            try:
+                                aspect_for_deepseek = "9:16" if "VERTICAL" in st.session_state.get("studio_deepseek_aspect", "9:16 VERTICAL") else "16:9"
+                                blueprint = generate_video_blueprint_with_deepseek(user_input, aspect_for_deepseek)
+                                if "error" in blueprint:
+                                    refund_face_video_credits(required_tokens, "DeepSeek blueprint generation failed", username=username)
+                                    st.error(f"❌ DeepSeek Error: {blueprint['error']}")
+                                else:
+                                    st.session_state["deepseek_blueprint_data"] = blueprint
+                                    st.session_state["deepseek_blueprint_visible"] = True
+                                    st.session_state["studio_prompt_value"] = user_input
+                                    # Do NOT directly mutate st.session_state["user_prompt"] here:
+                                    # the text_area uses key="user_prompt", so Streamlit already
+                                    # auto-syncs widget state to st.session_state["user_prompt"].
+                                    # Use a local variable for all downstream logic instead.
+                                    final_prompt = user_input or st.session_state.get("user_prompt", "")
+                                    _show_generation_success()
+                                    st.rerun()
+                            except Exception as exc:
+                                refund_face_video_credits(required_tokens, f"DeepSeek blueprint generation error: {exc}", username=username)
+                                logger.exception("DeepSeek blueprint generation failed")
+                                st.error(f"❌ DeepSeek Error: {exc}")
 
             if st.session_state.get("deepseek_blueprint_visible") and st.session_state.get("deepseek_blueprint_data"):
                 # Display the DeepSeek Blueprint
@@ -14769,6 +15055,7 @@ def run_cinematic_engine():
                 placeholder="Explain video concept: e.g. Bermuda triangle ka ansuljha rahasya jo kisi ko nahi pata tha." if input_mode == "💡 Autonomous AI Topic" 
                 else "Write a custom script separated by paragraph breaks...",
                 height=90,
+                max_chars=600,
                 label_visibility="collapsed",
                 key="user_prompt"
             )
@@ -14794,13 +15081,17 @@ def run_cinematic_engine():
                 else:
                     st.session_state["studio_prompt_value"] = user_input
                     try:
-                        success, required_tokens, message = validate_and_deduct_tokens("Cinematic Engine", cinematic_quality)
+                        dur_choice = st.session_state.get("duration_choice", "Quick Format Shorts (10-15s)")
+                        success, required_tokens, message = validate_and_deduct_tokens(
+                            "Cinematic Engine",
+                            cinematic_quality,
+                            duration_choice=dur_choice,
+                        )
                         if not success:
                             st.error(message)
                             st.stop()
 
                         selected_size = st.session_state.get("aspect_ratio", "9:16 Vertical (Shorts/Reels)")
-                        dur_choice = st.session_state.get("duration_choice", "Quick Format Shorts (10-15s)")
                         voice_profile = st.session_state.get("voice_profile", "Adam (Premium Male)")
                         lang_choice = st.session_state.get("language_choice", "🇮🇳 Hinglish (Fluent Hindi Mix)")
                         selected_model = "gemini-2.5-pro" if "gemini-2.5-pro" in st.session_state.get("model_choice", "") else "gemini-2.5-flash"
@@ -14850,6 +15141,8 @@ def run_cinematic_engine():
                         st.error(f"❌ Cinematic Engine Error: {str(e)}")
                         import traceback
                         st.error(traceback.format_exc())
+
+            render_cinematic_job_status()
     
     st.markdown("<br>", unsafe_allow_html=True)
     
@@ -14877,7 +15170,10 @@ def run_cinematic_engine():
             
             # Duration
             st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 10px 0 4px 0;">⏱️ Duration</p>', unsafe_allow_html=True)
-            render_premium_selection_cards("", ["⏱️ Quick Format Shorts (10-15s)", "⏱️ Expanded Long Format (1 Minute / 60s)"], "duration_choice")
+            duration_options = ["⏱️ Quick Format Shorts (10-15s)", "⏱️ Expanded Long Format (1 Minute / 60s)"]
+            if st.session_state.get("duration_choice") not in duration_options:
+                st.session_state["duration_choice"] = duration_options[0]
+            render_premium_selection_cards("", duration_options, "duration_choice")
             
             # Voice Profile
             st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 10px 0 4px 0;">🎤 Voice Profile</p>', unsafe_allow_html=True)
@@ -15009,6 +15305,7 @@ def run_cinematic_engine():
             
             cinematic_video_path = st.session_state.get("cinematic_video_path") or "final_shorts.mp4"
             if os.path.exists(cinematic_video_path) and os.path.getsize(cinematic_video_path) > 0:
+                st.markdown("**Zovix Cinematic Video**")
                 st.video(cinematic_video_path, format="video/mp4", autoplay=False, loop=True, muted=False)
                 
                 col_dl, col_clr = st.columns(2)
@@ -15020,7 +15317,7 @@ def run_cinematic_engine():
                             st.download_button(
                                 label="📥 Click to Save",
                                 data=video_bytes,
-                                file_name="zovix_video.mp4",
+                                file_name="Zovix Cinematic Video.mp4",
                                 mime="video/mp4",
                                 key="download_final_btn"
                             )
@@ -17042,7 +17339,7 @@ def run_production_engine_mode():
                     )
                     
                     if result and result.get("video_url"):
-                        st.success("Face video generated successfully!")
+                        _show_generation_success()
                         
                         col_meta1, col_meta2, col_meta3 = st.columns(3)
                         with col_meta1:
@@ -17086,7 +17383,7 @@ def run_production_engine_mode():
                     )
                     
                     if result and result.get("audio_url"):
-                        st.success("Voice generated successfully!")
+                        _show_generation_success()
                         st.audio(result["audio_url"])
                         
                         col_m1, col_m2, col_m3 = st.columns(3)

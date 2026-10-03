@@ -15,16 +15,24 @@ FACE_VIDEO_WORD_PRICES = {
     "HD": ((50, 20), (85, 26), (120, 40)),
     "4K": ((50, 25), (85, 32), (120, 50)),
 }
+SALES_VIDEO_QUALITY_COSTS = {"Standard": 70, "HD": 85, "4K": 100}
 
 
-def get_prompt_word_cost(engine_name, quality="Standard", word_count=0):
+def get_prompt_word_cost(engine_name, quality="Standard", word_count=0, duration_choice=None):
     """Return the word-band credit cost matching the face-video pricing rules."""
     engine_key = str(engine_name or "").strip().lower()
+    if engine_key == "deepseek ai blueprint":
+        return 4
+    if engine_key == "cinematic engine":
+        duration_key = str(duration_choice or "").lower()
+        return 50 if "1 minute" in duration_key or "60s" in duration_key else 20
+    if engine_key == "ai sales video":
+        return SALES_VIDEO_QUALITY_COSTS.get(quality, SALES_VIDEO_QUALITY_COSTS["Standard"])
+
     face_like_engines = {
         "face video generator",
         "face video studio",
         "expressive face video",
-        "ai sales video",
         "sales video",
         "sales prompt",
     }
@@ -50,9 +58,9 @@ def get_face_video_token_cost(quality="Standard", word_count=0):
     return get_prompt_word_cost("Face Video Generator", quality, word_count)
 
 
-def validate_and_deduct_tokens(engine_name, quality="Standard", word_count=None):
+def validate_and_deduct_tokens(engine_name, quality="Standard", word_count=None, duration_choice=None):
     # Face-video and sales prompt pricing follows the same quality and script word-count table.
-    required = get_prompt_word_cost(engine_name, quality, word_count)
+    required = get_prompt_word_cost(engine_name, quality, word_count, duration_choice)
     if required is None:
         return False, 0, "Prompt is limited to 120 words. Please shorten it."
     low_balance_threshold = 25

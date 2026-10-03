@@ -1,5 +1,5 @@
-run = "streamlit run replit_face_app.py --server.address 0.0.0.0 --server.port $PORT"
+run = "python -m uvicorn seo_entrypoint:app --host 0.0.0.0 --port $PORT"
 
 [deployment]
-run = ["streamlit", "run", "replit_face_app.py", "--server.address", "0.0.0.0", "--server.port", "$PORT"]
+run = ["python", "-m", "uvicorn", "seo_entrypoint:app", "--host", "0.0.0.0", "--port", "$PORT"]
 deploymentTarget = "cloudrun"

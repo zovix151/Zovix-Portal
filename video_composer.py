@@ -114,8 +114,8 @@ def _subtitle_filter(srt_path):
     return f"subtitles='{_ffmpeg_path(srt_path)}':{options}"
 
 
-def compose_sales_video(video_path, audio_path, product_image, price, script, output_dir="sales_outputs", language="en"):
-    """Create final MP4, burned captions, product overlay, price text, and thumbnail."""
+def compose_sales_video(video_path, audio_path, product_image, price, script, output_dir="sales_outputs", language="en", quality="Standard"):
+    """Create final MP4, captions, optional product overlay, price text, and thumbnail."""
     output_root = Path(output_dir)
     output_root.mkdir(parents=True, exist_ok=True)
     work_dir = Path(tempfile.mkdtemp(prefix="sales_compose_", dir=str(output_root)))
@@ -126,25 +126,48 @@ def compose_sales_video(video_path, audio_path, product_image, price, script, ou
     final_path = output_root / f"sales_final_{next(tempfile._get_candidate_names())}.mp4"
     thumbnail_path = output_root / f"sales_thumbnail_{next(tempfile._get_candidate_names())}.jpg"
     price_text = _drawtext_text(f"{price or 'Best Value'}")
-    filter_graph = (
-        f"[0:v]{_subtitle_filter(srt_path)}[captioned];"
-        "[1:v]scale=iw*0.22:-1[product];"
-        "[captioned][product]overlay=W-w-24:H-h-24[overlaid];"
-        f"[overlaid]drawtext=text='{price_text}':x=(w-text_w)/2:y=h-text_h-28:"
-        "fontsize=34:fontcolor=white:box=1:boxcolor=black@0.65:boxborderw=12[v]"
-    )
-    overlay_graph = (
-        "[1:v]scale=iw*0.22:-1[product];"
-        "[0:v][product]overlay=W-w-24:H-h-24[overlaid];"
-        f"[overlaid]drawtext=text='{price_text}':x=(w-text_w)/2:y=h-text_h-28:"
-        "fontsize=34:fontcolor=white:box=1:boxcolor=black@0.65:boxborderw=12[v]"
-    )
+    export_settings = {
+        "Standard": (720, 1280, "23", "6M", "12M"),
+        "HD": (1080, 1920, "20", "12M", "24M"),
+        "4K": (2160, 3840, "18", "30M", "60M"),
+    }
+    export_width, export_height, video_crf, video_maxrate, video_bufsize = export_settings.get(quality, export_settings["Standard"])
+    if product_image:
+        filter_graph = (
+            f"[0:v]{_subtitle_filter(srt_path)}[captioned];"
+            "[1:v]scale=iw*0.22:-1[product];"
+            "[captioned][product]overlay=W-w-24:H-h-24[overlaid];"
+            f"[overlaid]drawtext=text='{price_text}':x=(w-text_w)/2:y=h-text_h-28:"
+            "fontsize=34:fontcolor=white:box=1:boxcolor=black@0.65:boxborderw=12[v]"
+        )
+        overlay_graph = (
+            "[1:v]scale=iw*0.22:-1[product];"
+            "[0:v][product]overlay=W-w-24:H-h-24[overlaid];"
+            f"[overlaid]drawtext=text='{price_text}':x=(w-text_w)/2:y=h-text_h-28:"
+            "fontsize=34:fontcolor=white:box=1:boxcolor=black@0.65:boxborderw=12[v]"
+        )
+        input_args = ["-i", local_video, "-i", str(product_image), "-i", str(audio_path)]
+        audio_index = 2
+    else:
+        filter_graph = (
+            f"[0:v]{_subtitle_filter(srt_path)}[captioned];"
+            f"[captioned]drawtext=text='{price_text}':x=(w-text_w)/2:y=h-text_h-28:"
+            "fontsize=34:fontcolor=white:box=1:boxcolor=black@0.65:boxborderw=12[v]"
+        )
+        overlay_graph = (
+            f"[0:v]drawtext=text='{price_text}':x=(w-text_w)/2:y=h-text_h-28:"
+            "fontsize=34:fontcolor=white:box=1:boxcolor=black@0.65:boxborderw=12[v]"
+        )
+        input_args = ["-i", local_video, "-i", str(audio_path)]
+        audio_index = 1
 
     def run_composition(graph):
         _run([
-            "ffmpeg", "-y", "-i", local_video, "-i", str(product_image), "-i", str(audio_path),
-            "-filter_complex", graph, "-map", "[v]", "-map", "2:a:0",
-            "-c:v", "libx264", "-preset", "ultrafast", "-crf", "23", "-pix_fmt", "yuv420p",
+            "ffmpeg", "-y", *input_args,
+            "-filter_complex", graph, "-map", "[v]", "-map", f"{audio_index}:a:0",
+            "-c:v", "libx264", "-preset", "fast", "-crf", video_crf,
+            "-s:v", f"{export_width}x{export_height}", "-maxrate", video_maxrate,
+            "-bufsize", video_bufsize, "-pix_fmt", "yuv420p",
             "-c:a", "aac", "-b:a", "128k", "-shortest", str(final_path),
         ])
 

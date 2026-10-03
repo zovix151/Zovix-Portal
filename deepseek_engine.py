@@ -83,7 +83,30 @@ def _is_model_not_found_error(error):
     return "404" in message or "not found" in message or "does not exist" in message
 
 
-def generate_sales_script(product_name, price="", category="Other", language="English", extra_instructions=""):
+def _build_sales_script_prompt(product_name, price, category, language, tone, extra_instructions, personal_experience=""):
+    return f"""Return ONLY valid JSON. Create exactly three sales-script variations for this product.
+Product: {product_name}
+Price: {price or 'not provided'}
+Language: {language}
+Internal style guidance only (never say this in the script): {tone}
+Extra instructions: {extra_instructions or 'none'}
+Creator's real product experience: {personal_experience or 'none provided'}
+
+The JSON must have this exact shape:
+{{"scripts":[{{"script":"...","tone":"urgency","cta":"..."}},{{"script":"...","tone":"social_proof","cta":"..."}},{{"script":"...","tone":"emotional","cta":"..."}}]}}
+
+Write each script as spoken dialogue from one friendly, believable human presenter talking to a friend. Use informal, relaxed, everyday language; avoid formal or corporate wording. For Hindi or Hinglish, make it sound like natural spoken Hindustani/Hinglish, like a friend explaining something to a friend, not a narrator reading an ad. Use short varied sentences and natural transitions, and do not translate English marketing phrases literally. Add only one or two light, language-appropriate fillers per script, such as "dekho", "umm", or "actually" for Hindi/Hinglish. At most one small natural restart or hesitation; do not force repeated stutters or make the speaker sound unintelligible. Keep the requested tone only as a subtle flavor, never at the cost of the casual human voice.
+The category/tone is internal writing guidance only. Never announce, explain, or name the product category in the spoken script or CTA. Do not say what category the product belongs to or use category labels in either language. Talk naturally about the product itself instead.
+If a real product experience is supplied above, include one brief first-person anecdote using only those exact facts; do not embellish its duration, occasion, results, or feelings. If none is supplied, do not claim that the presenter bought, owns, used, or personally recommends the product, and do not invent a personal/family story. Instead, use a relatable everyday scenario framed honestly (for example, "socho" / "maan lo"), not as something that actually happened.
+Give the three scripts distinct angles:
+1. urgency: a gentle invitation to take the next step, with no pressure or invented deadline/scarcity.
+2. social_proof: earn trust through clear, practical, transparent wording; never imply popularity, reviews, or customer experience that was not provided.
+3. emotional: connect the product to a believable everyday need without melodrama or unsupported claims.
+Mention only product facts supplied above or in the extra instructions. Do not invent features, specifications, performance, materials, origin, certifications, reviews, discounts, guarantees, deadlines, scarcity, health benefits, or statistics. If details are limited, be honest and focus on the product name, category, price, and a reasonable use case without pretending to know more.
+Avoid robotic openings such as "Introducing our", "Look no further", or "Revolutionize your"; avoid slogans, hard-sell language, repeated exclamation marks, headings, bullet points, emojis, and stage directions. Each script must be concise, no more than 120 words, and end with a clear, conversational spoken CTA. The cta field must match that invitation. Use the requested language throughout."""
+
+
+def generate_sales_script(product_name, price="", category="Other", language="English", extra_instructions="", personal_experience=""):
     """Generate three sales scripts through Replicate, each capped at 120 words.
 
     Returns a list of JSON-compatible objects with script, tone, and cta keys.
@@ -103,21 +126,9 @@ def generate_sales_script(product_name, price="", category="Other", language="En
         if candidate and candidate not in model_candidates:
             model_candidates.append(candidate)
     tone = _CATEGORY_TONES.get(category, "clear, friendly, persuasive, and suitable for the product")
-    prompt = f"""Return ONLY valid JSON. Create exactly three sales-script variations for this product.
-Product: {product_name}
-Price: {price or 'not provided'}
-Category: {category}
-Language: {language}
-Required category tone: {tone}
-Extra instructions: {extra_instructions or 'none'}
-
-The JSON must have this exact shape:
-{{"scripts":[{{"script":"...","tone":"urgency","cta":"..."}},{{"script":"...","tone":"social_proof","cta":"..."}},{{"script":"...","tone":"emotional","cta":"..."}}]}}
-Create an A/B-testable set with these persuasion angles:
-1. urgency: encourage immediate action without inventing a deadline or false scarcity.
-2. social_proof: communicate trust and suitability without inventing reviews, customer counts, or statistics.
-3. emotional: connect the product to a relatable customer need and outcome.
-Use scarcity only when the product details explicitly provide real limited availability. Each script must be no more than 120 words, natural for voiceover, and include a clear CTA. Do not invent certifications, reviews, discounts, guarantees, deadlines, scarcity, or statistics. Use the requested language."""
+    prompt = _build_sales_script_prompt(
+        product_name, price, category, language, tone, extra_instructions, personal_experience
+    )
 
     client = replicate.Client(api_token=token)
     last_error = None
