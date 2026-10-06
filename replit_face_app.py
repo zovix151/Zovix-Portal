@@ -112,9 +112,37 @@ def video_bytes(video_value: str) -> bytes | None:
         raise RuntimeError(f"Invalid video data returned by RunPod: {exc}") from exc
 
 
-st.set_page_config(page_title="ZOVIX Face Engine Test", page_icon="🎬", layout="centered")
-st.title("ZOVIX Face Engine")
-st.caption("Replit testing UI -> RunPod GPU inference")
+st.set_page_config(
+    page_title="ZOVIX | AI Creative Studio",
+    page_icon="🎬",
+    layout="wide",
+)
+st.title("ZOVIX AI Creative Studio")
+st.markdown(
+    "ZOVIX is an online AI creative workspace for cinematic video, talking characters, "
+    "visual concepts, voice, design, drawing, editing, and AI-assisted marketing content. "
+    "Explore the [ZOVIX brand](/about) or see [what each AI tool can do](/engines)."
+)
+
+with st.expander("Explore ZOVIX tools"):
+    st.markdown(
+        """
+        - **Cinematic Engine:** Develop prompts and concepts into scene-based video projects.
+        - **Face Studio:** Create talking-character videos from portrait media and a script.
+        - **Creative Workshop:** Generate visual concepts and creative images.
+        - **Blueprints:** Explore architectural and product design concepts.
+        - **Upscaler:** Enhance and upscale image detail.
+        - **Draw:** Turn written ideas into art and illustrations.
+        - **Video Editor:** Edit and assemble uploaded media.
+        - **AI Agent:** Get help drafting creative and social content.
+        - **AI Sales:** Develop product-led sales video and marketing content.
+        - **Live Emotion:** Create expressive voice content from text and emotion settings.
+        """
+    )
+    st.markdown("[Read the full ZOVIX AI tools guide](/engines)")
+
+st.subheader("Face video workspace")
+st.caption("Create a talking-character video from a portrait and driving audio.")
 
 with st.sidebar:
     st.subheader("Endpoint")

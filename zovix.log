@@ -22176,3 +22176,8 @@ connection to server at "aws-0-ap-south-1.pooler.supabase.com" (65.0.195.55), po
 2026-10-06 14:23:44,091 - Zovix - INFO - Redis rate-limit client initialized lazily
 2026-10-06 14:23:44,099 - Zovix - INFO - Load balancer initialized with 4 workers
 2026-10-06 14:23:44,100 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-06 18:08:22,350 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 18:08:24,357 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-06 18:08:24,367 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-06 18:08:24,368 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-06 18:08:27,352 - Zovix - INFO - Database initialized successfully
