@@ -878,7 +878,16 @@ cache_manager = _get_cache_manager()
 if "current_page" not in st.session_state:
     st.session_state["current_page"] = "landing"
 requested_page = st.query_params.get("page")
-if requested_page in {"studio", "studio_mode", "payments", "profile", "scheduler", "subusers", "factory", "portfolio"} and not st.session_state.get("is_logged_in", False):
+if requested_page == "login":
+    if st.session_state.get("is_logged_in", False):
+        st.session_state["current_page"] = "studio"
+        st.session_state.pop("auth_redirect_mode", None)
+        st.query_params["page"] = "studio"
+    else:
+        st.session_state["current_page"] = "landing"
+        st.session_state["auth_redirect_mode"] = "Cinematic Engine"
+        st.query_params["page"] = "landing"
+elif requested_page in {"studio", "studio_mode", "payments", "profile", "scheduler", "subusers", "factory", "portfolio"} and not st.session_state.get("is_logged_in", False):
     st.session_state["current_page"] = "landing"
     st.session_state.pop("auth_redirect_mode", None)
     st.query_params["page"] = "landing"

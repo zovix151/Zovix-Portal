@@ -2399,8 +2399,8 @@ class WorldClassLandingPage:
             "<a href='#features'>Features</a><a href='#engines'>Engines<i class='zx-caret'></i></a><a href='#pricing'>Pricing</a>"
             "<a href='#engine-output-gallery'>Gallery</a><a href='#how-it-works'>Resources<i class='zx-caret'></i></a><a href='#about'>About</a>"
             "<span class='zx-nav-sep'></span><span class='zx-lang'><i class='zx-i'>language</i>EN<i class='zx-caret'></i></span>"
-            "<a class='zx-login' href='?page=studio' target='_self'>Login</a>"
-            "<a class='nav-cta-btn' href='?page=studio' target='_self'>Get Started</a>"
+            "<a class='zx-login' href='?page=login' target='_self'>Login</a>"
+            "<a class='nav-cta-btn' href='?page=login' target='_self'>Get Started</a>"
             "</div></nav>"
         )
 
@@ -2509,7 +2509,7 @@ class WorldClassLandingPage:
             f"<h1 class='zx-a zx-h1' style='{pos(160, 216, 340)}'>Zovix AI Studio.<br>Every <span class='zx-grad'>Creative</span><br>Possibility.</h1>"
             f"<div class='zx-a zx-sub' style='{pos(160, 378, 390)}'>Create cinematic videos, characters, images, voices, designs and more — powered by specialized AI engines in one workspace.</div>"
             f"<div class='zx-a zx-cta' style='{pos(160, 465, 440)}'>"
-            "<a class='zx-btn zx-btn-primary' href='?page=studio' target='_self'><i class='zx-i'>rocket_launch</i>Start Creating Free<i class='zx-i'>arrow_forward</i></a>"
+            "<a class='zx-btn zx-btn-primary' href='?page=login' target='_self'><i class='zx-i'>rocket_launch</i>Start Creating Free<i class='zx-i'>arrow_forward</i></a>"
             "<a class='zx-btn zx-btn-ghost' href='#how-it-works'><i class='zx-i'>play_arrow</i>Watch ZOVIX in Action</a></div>"
             f"<div class='zx-a zx-checks' style='{pos(160, 518, 440)}'><span>No Credit Card Required</span><span>Instant Access</span><span>Free Plan Available</span></div>"
             f"<a class='zx-a zx-demo' href='#how-it-works' aria-label='Watch the ZOVIX cinematic demo' style=\"{pos(690, 213, 394, 220)};background-image:url('{photo('1493246507139-91e8fad9978e', 1200)}');\">"
@@ -2574,7 +2574,7 @@ class WorldClassLandingPage:
                                 <div><h3>Generate and review</h3><p>Start the render and preview your finished cinematic video when it is ready.</p></div>
                             </article>
                         </div>
-                        <a class="cinematic-guide-cta" href="?page=studio" target="_self">Try the Cinematic Engine <span aria-hidden="true">→</span></a>
+                        <a class="cinematic-guide-cta" href="?page=login" target="_self">Try the Cinematic Engine <span aria-hidden="true">→</span></a>
                     </div>
                 </div>
             </section>
@@ -2619,7 +2619,7 @@ class WorldClassLandingPage:
                                 <div><h3>Generate and preview</h3><p>The AI creates speech and synchronizes the portrait's lip movements. Preview the finished clip in your studio.</p></div>
                             </article>
                         </div>
-                        <a class="cinematic-guide-cta" href="?page=studio" target="_self">Try Face Video Studio <span aria-hidden="true">→</span></a>
+                        <a class="cinematic-guide-cta" href="?page=login" target="_self">Try Face Video Studio <span aria-hidden="true">→</span></a>
                     </div>
                 </div>
             </section>
@@ -2664,7 +2664,7 @@ class WorldClassLandingPage:
                                 <div><h3>Animate and preview</h3><p>LivePortrait or SadTalker drives facial expressions and speech motion; preview and download your finished clip.</p></div>
                             </article>
                         </div>
-                        <a class="cinematic-guide-cta" href="?page=studio" target="_self">Try Expressive Face Video <span aria-hidden="true">→</span></a>
+                        <a class="cinematic-guide-cta" href="?page=login" target="_self">Try Expressive Face Video <span aria-hidden="true">→</span></a>
                     </div>
                 </div>
             </section>
@@ -2709,7 +2709,7 @@ class WorldClassLandingPage:
                                 <div><h3>Generate and use your image</h3><p>Generate the artwork, preview the result, and save it for thumbnails, posters, banners or concepts.</p></div>
                             </article>
                         </div>
-                        <a class="cinematic-guide-cta" href="?page=studio" target="_self">Try Creative Workshop <span aria-hidden="true">→</span></a>
+                        <a class="cinematic-guide-cta" href="?page=login" target="_self">Try Creative Workshop <span aria-hidden="true">→</span></a>
                     </div>
                 </div>
             </section>
@@ -2754,7 +2754,7 @@ class WorldClassLandingPage:
                                 <div><h3>Generate and listen</h3><p>Create your emotional voice audio, preview the result, and use it in your project.</p></div>
                             </article>
                         </div>
-                        <a class="cinematic-guide-cta" href="?page=studio" target="_self">Try Live Emotion Voice <span aria-hidden="true">→</span></a>
+                        <a class="cinematic-guide-cta" href="?page=login" target="_self">Try Live Emotion Voice <span aria-hidden="true">→</span></a>
                     </div>
                 </div>
             </section>
@@ -2799,7 +2799,7 @@ class WorldClassLandingPage:
                                 <div><h3>Generate and review</h3><p>Generate your blueprint, inspect the result in the viewer, and refine your description for another version. Have technical plans checked by a qualified professional before construction.</p></div>
                             </article>
                         </div>
-                        <a class="cinematic-guide-cta" href="?page=studio" target="_self">Try Blueprint Engine <span aria-hidden="true">→</span></a>
+                        <a class="cinematic-guide-cta" href="?page=login" target="_self">Try Blueprint Engine <span aria-hidden="true">→</span></a>
                     </div>
                 </div>
             </section>
@@ -2844,7 +2844,7 @@ class WorldClassLandingPage:
                                 <div><h3>Compare and download</h3><p>Generate your enlarged image, compare it side by side with the original, check its resolution and download the result.</p></div>
                             </article>
                         </div>
-                        <a class="cinematic-guide-cta" href="?page=studio" target="_self">Try AI Upscaler <span aria-hidden="true">→</span></a>
+                        <a class="cinematic-guide-cta" href="?page=login" target="_self">Try AI Upscaler <span aria-hidden="true">→</span></a>
                     </div>
                 </div>
             </section>
@@ -2889,7 +2889,7 @@ class WorldClassLandingPage:
                                 <div><h3>Process and export</h3><p>Choose 720p, 1080p or 4K resolution and Standard, HD or 4K quality, then process, preview and download your edited video.</p></div>
                             </article>
                         </div>
-                        <a class="cinematic-guide-cta" href="?page=studio" target="_self">Try Video Editor <span aria-hidden="true">→</span></a>
+                        <a class="cinematic-guide-cta" href="?page=login" target="_self">Try Video Editor <span aria-hidden="true">→</span></a>
                     </div>
                 </div>
             </section>
@@ -3029,7 +3029,7 @@ class WorldClassLandingPage:
             "<h3>Explore design ideas</h3><p>Use the Blueprint Engine to create architectural and technical drawing concepts, with options for drawing type, style and 2D or 3D view.</p></article>"
             "</div><div class='about-workflow'><h3>Made for a simple creative workflow</h3>"
             "<p>Choose the engine that fits your goal, describe your vision or upload media, set the options you need, then generate, review and refine your output. You stay in control of the prompt and creative direction.</p>"
-            "<a href='?page=studio' target='_self'>Explore the ZOVIX Studio →</a></div></section>",
+            "<a href='?page=login' target='_self'>Explore the ZOVIX Studio →</a></div></section>",
             unsafe_allow_html=True,
         )
 
@@ -3073,7 +3073,7 @@ class WorldClassLandingPage:
             "<p>Explore practical notes on prompting, choosing an AI engine and polishing the images, voices and videos you create.</p>"
             "</div></div>"
             f"<div class='blog-post-grid'>{cards}</div>"
-            "<a class='blog-studio-link' href='?page=studio' target='_self'>Put an idea into practice →</a>"
+            "<a class='blog-studio-link' href='?page=login' target='_self'>Put an idea into practice →</a>"
             "</section>",
             unsafe_allow_html=True,
         )
@@ -3118,7 +3118,7 @@ class WorldClassLandingPage:
             "<p>See what ZOVIX brings together for creators: more AI-powered engines, practical guides for each workflow and visual examples to spark your next project.</p>"
             "</div></div>"
             f"<div class='changelog-grid'>{cards}</div>"
-            "<a class='changelog-studio-link' href='?page=studio' target='_self'>Explore the creative studio →</a>"
+            "<a class='changelog-studio-link' href='?page=login' target='_self'>Explore the creative studio →</a>"
             "</section>",
             unsafe_allow_html=True,
         )
@@ -3164,7 +3164,7 @@ class WorldClassLandingPage:
             "</div></div>"
             f"<div class='roadmap-grid'>{cards}</div>"
             "<p class='roadmap-note'>These are product priorities, not promised delivery dates. Scope and timing may change as we learn from creators and improve the platform.</p>"
-            "<a class='roadmap-studio-link' href='?page=studio' target='_self'>Explore the creative studio →</a>"
+            "<a class='roadmap-studio-link' href='?page=login' target='_self'>Explore the creative studio →</a>"
             "</section>",
             unsafe_allow_html=True,
         )
@@ -3202,7 +3202,7 @@ class WorldClassLandingPage:
             "</div></div>"
             f"<div class='careers-focus-grid'>{cards}</div>"
             "<p class='careers-note'>These are areas of work that shape the product, not a list of currently open positions. No specific vacancies are published here.</p>"
-            "<a class='careers-studio-link' href='?page=studio' target='_self'>Explore what we are building →</a>"
+            "<a class='careers-studio-link' href='?page=login' target='_self'>Explore what we are building →</a>"
             "</section>",
             unsafe_allow_html=True,
         )
@@ -3289,7 +3289,7 @@ class WorldClassLandingPage:
                 f"<div class='price'>₹{int(plan['price']):,}<span>{period}</span></div>"
                 f"<div class='plan-token-summary'>{token_summary}</div>"
                 f"<ul class='features'>{features}</ul>"
-                f"<a class='pricing-btn' href='?page=studio' target='_self'>{button_label}</a>"
+                f"<a class='pricing-btn' href='?page=login' target='_self'>{button_label}</a>"
                 "</article>"
             )
 
@@ -3358,7 +3358,7 @@ class WorldClassLandingPage:
             "<article class='ready-create-step'><span>01 · CHOOSE</span><h3>Pick your engine</h3><p>Start with the tool that matches your idea, from cinematic video to image creation and editing.</p></article>"
             "<article class='ready-create-step'><span>02 · DESCRIBE</span><h3>Share your vision</h3><p>Write a prompt or add your media, then choose the style and settings that fit your project.</p></article>"
             "<article class='ready-create-step'><span>03 · CREATE</span><h3>Generate and refine</h3><p>Review your result, adjust your approach and download when it is ready to use.</p></article>"
-            "</div><div class='cta-buttons'><a class='hero-primary-btn' href='?page=studio' target='_self'>Start creating free →</a>"
+            "</div><div class='cta-buttons'><a class='hero-primary-btn' href='?page=login' target='_self'>Start creating free →</a>"
             "<a class='hero-secondary-btn' href='#engine-output-gallery'>Explore output ideas →</a></div></div></section>",
             unsafe_allow_html=True,
         )

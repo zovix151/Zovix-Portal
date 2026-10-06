@@ -22277,3 +22277,25 @@ connection to server at "aws-0-ap-south-1.pooler.supabase.com" (65.0.195.55), po
 2026-10-06 19:49:24,569 - Zovix - INFO - Redis rate-limit client initialized lazily
 2026-10-06 19:49:24,576 - Zovix - INFO - Load balancer initialized with 4 workers
 2026-10-06 19:49:24,577 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-06 20:01:57,358 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 20:01:58,862 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-06 20:01:58,870 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-06 20:01:58,871 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-06 20:02:07,990 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 20:02:08,936 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 20:02:23,381 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 20:02:55,197 - Zovix - ERROR - Authentication error: connection to server at "aws-0-ap-south-1.pooler.supabase.com" (65.0.195.55), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+connection to server at "aws-0-ap-south-1.pooler.supabase.com" (65.0.195.55), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+
+2026-10-06 20:02:55,277 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 20:03:52,270 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 20:03:53,783 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-06 20:03:53,791 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-06 20:03:53,792 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-06 20:03:55,849 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 20:03:56,732 - Zovix - INFO - Database initialized successfully
+2026-10-06 20:03:57,557 - Zovix - INFO - Database initialized successfully
+2026-10-06 20:04:00,123 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 20:04:02,427 - Zovix - INFO - Database initialized successfully
+2026-10-06 20:04:06,127 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 20:04:08,879 - Zovix - INFO - Database initialized successfully
