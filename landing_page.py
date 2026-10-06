@@ -2155,7 +2155,7 @@ class WorldClassLandingPage:
             .zx-hiw-title { width: auto; }
             .zx-hiw-text { width: 100% !important; }
         }
-        @media (max-aspect-ratio: 3/4) {
+        @media (max-aspect-ratio: 3/4) and (max-width: 1200px) {
             .landing-nav, .landing-nav.scrolled {
                 height: 60px;
                 padding: 0 12px;
@@ -2179,16 +2179,185 @@ class WorldClassLandingPage:
                 font-size: 11px;
             }
             .zx-stage {
-                height: calc(var(--p) * 1110) !important;
+                display: flex !important;
+                height: auto !important;
+                min-height: 0 !important;
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 14px !important;
+                padding: clamp(174px, 28cqw, 280px) 16px 24px !important;
             }
-            .zx-stage .zx-stats {
-                top: calc(var(--p) * 553) !important;
-            }
-            .zx-followup {
-                top: calc(var(--p) * 650) !important;
+            .zx-stage > .zx-strip {
+                position: absolute !important;
+                top: 68px !important;
                 left: 0 !important;
+                display: flex !important;
                 width: 100% !important;
-                height: calc(var(--p) * 460) !important;
+                height: clamp(92px, 18vw, 148px) !important;
+                margin: 0 !important;
+                padding: 6px !important;
+                gap: 7px !important;
+                border-radius: 0 0 28px 28px !important;
+            }
+            .zx-stage > .zx-strip .zx-tile {
+                position: relative !important;
+                inset: auto !important;
+                top: auto !important;
+                left: auto !important;
+                display: block !important;
+                flex: 0 0 31% !important;
+                width: auto !important;
+                height: 100% !important;
+                transform: none !important;
+            }
+            .zx-stage > .zx-strip .zx-tile.zx-sm {
+                display: none !important;
+            }
+            .zx-stage > .zx-waves,
+            .zx-stage > .zx-cube {
+                display: none !important;
+            }
+            .zx-stage > .zx-badge,
+            .zx-stage > .zx-sub,
+            .zx-stage > .zx-cta,
+            .zx-stage > .zx-checks,
+            .zx-stage > .zx-demo,
+            .zx-stage > .zx-stats,
+            .zx-stage > .zx-followup,
+            .zx-followup .zx-a {
+                position: relative !important;
+                inset: auto !important;
+                top: auto !important;
+                right: auto !important;
+                bottom: auto !important;
+                left: auto !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                height: auto !important;
+                margin: 0 !important;
+                transform: none !important;
+            }
+            .zx-stage > div:has(> .zx-h1) {
+                position: relative !important;
+                inset: auto !important;
+                width: 100% !important;
+                height: auto !important;
+                margin: 0 !important;
+            }
+            .zx-stage .zx-h1 {
+                position: static !important;
+                inset: auto !important;
+                width: 100% !important;
+                height: auto !important;
+                margin: 0 !important;
+            }
+            .zx-stage > .zx-badge {
+                align-self: flex-start !important;
+                width: fit-content !important;
+                white-space: normal !important;
+            }
+            .zx-stage .zx-h1 {
+                font-size: clamp(32px, 7vw, 52px) !important;
+                line-height: 1.05 !important;
+                white-space: normal !important;
+                overflow-wrap: anywhere !important;
+            }
+            .zx-stage .zx-sub {
+                font-size: clamp(15px, 2vw, 18px) !important;
+                line-height: 1.5 !important;
+            }
+            .zx-stage .zx-cta {
+                display: flex !important;
+                flex-wrap: wrap !important;
+                align-items: stretch !important;
+                gap: 9px !important;
+            }
+            .zx-stage .zx-cta .zx-btn {
+                flex: 1 1 175px !important;
+                width: auto !important;
+                min-width: 0 !important;
+                min-height: 44px !important;
+                height: auto !important;
+                padding: 10px 12px !important;
+                font-size: 11px !important;
+                line-height: 1.25 !important;
+                white-space: normal !important;
+                text-align: center !important;
+            }
+            .zx-stage > .zx-checks {
+                display: flex !important;
+                flex-wrap: wrap !important;
+                gap: 8px 12px !important;
+                white-space: normal !important;
+                font-size: 11px !important;
+                line-height: 1.4 !important;
+            }
+            .zx-stage > .zx-demo {
+                display: block !important;
+                aspect-ratio: 16 / 9 !important;
+                min-height: 0 !important;
+            }
+            .zx-stage > .zx-stats {
+                display: grid !important;
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                align-items: center !important;
+                row-gap: 8px !important;
+                padding: 10px !important;
+                border-radius: 14px !important;
+            }
+            .zx-stage .zx-stats .zx-stat {
+                min-width: 0 !important;
+                height: auto !important;
+                gap: 7px !important;
+                padding: 6px !important;
+                border: 0 !important;
+            }
+            .zx-stage .zx-stats .zx-stat-ico {
+                flex: 0 0 30px !important;
+                width: 30px !important;
+                height: 30px !important;
+            }
+            .zx-stage .zx-stats .zx-stat b {
+                font-size: 20px !important;
+            }
+            .zx-stage .zx-stats .zx-stat span {
+                font-size: 10px !important;
+                line-height: 1.25 !important;
+            }
+            .zx-stage .zx-stats .zx-tagline {
+                grid-column: 1 / -1 !important;
+                padding: 6px 10px !important;
+                font-size: 19px !important;
+            }
+            .zx-stage > .zx-followup {
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 12px !important;
+                padding: 8px 0 0 !important;
+            }
+            .zx-followup .zx-a {
+                flex: none !important;
+            }
+            .zx-followup .zx-hiw-title,
+            .zx-followup .zx-hiw-text {
+                width: 100% !important;
+            }
+            .zx-followup .zx-eng {
+                display: grid !important;
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                gap: 8px !important;
+            }
+            .zx-followup .zx-step {
+                min-height: 0 !important;
+            }
+        }
+        @media (max-aspect-ratio: 3/4) and (max-width: 520px) {
+            .zx-stage {
+                padding-right: 12px !important;
+                padding-left: 12px !important;
+            }
+            .zx-stage .zx-cta .zx-btn {
+                flex-basis: 100% !important;
             }
         }
         </style>
