@@ -1962,6 +1962,34 @@ class WorldClassLandingPage:
             font: 500 13px/1.2 'Inter', sans-serif;
         }
         .pricing-card .features { flex: 1; }
+        .pricing-card .plan-token-summary {
+            margin: 12px 0 4px;
+            padding: 12px 10px;
+            border: 1px solid rgba(32, 189, 181, .2);
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(32, 189, 181, .09), rgba(82, 115, 245, .07));
+            color: var(--landing-text);
+            text-align: center;
+            font: 800 18px/1.2 'Inter', sans-serif;
+        }
+        .pricing-card .plan-token-summary small {
+            display: block;
+            margin-top: 4px;
+            color: var(--landing-muted);
+            font: 500 11px/1.4 'Inter', sans-serif;
+        }
+        .pricing-note {
+            max-width: 920px;
+            margin: 22px auto 0;
+            padding: 14px 16px;
+            border: 1px solid var(--landing-line);
+            border-radius: 12px;
+            color: var(--landing-muted);
+            background: rgba(255, 255, 255, .68);
+            font: 400 13px/1.55 'Inter', sans-serif;
+            text-align: center;
+        }
+        .pricing-note strong { color: var(--landing-text); }
         .pricing-card .pricing-btn {
             display: inline-flex;
             align-items: center;
@@ -3202,16 +3230,52 @@ class WorldClassLandingPage:
             name = escape(plan["name"])
             description = escape(plan.get("description", ""))
             badge = escape(plan.get("badge", ""))
-            features = "".join(
-                f"<li><span class='check'>✅</span> {escape(str(feature))}</li>"
-                for feature in plan.get("features", [])
-            )
+            token_count = int(plan.get("tokens", 0))
             if one_time:
-                title = f"{int(plan['tokens']):,} Tokens"
+                title = f"{token_count:,} Tokens"
                 period = "one-time"
+                token_summary = (
+                    f"{token_count:,} tokens"
+                    "<small>One-time top-up · no recurring charge</small>"
+                )
+                features_list = [
+                    "Pay once",
+                    "Use tokens across supported AI tools",
+                    "No subscription required",
+                ]
             else:
                 title = name
                 period = "/month"
+                if token_count:
+                    token_summary = (
+                        f"{token_count:,} tokens"
+                        "<small>Included per 30-day subscription period</small>"
+                    )
+                    features_list = [
+                        (
+                            f"{token_count:,} tokens per 30-day subscription period"
+                            if "token" in str(feature).lower()
+                            else str(feature)
+                        )
+                        for feature in plan.get("features", [])
+                    ]
+                else:
+                    token_summary = (
+                        "Free"
+                        "<small>No recurring tokens included</small>"
+                    )
+                    features_list = [
+                        (
+                            "No recurring tokens included"
+                            if "token" in str(feature).lower()
+                            else str(feature)
+                        )
+                        for feature in plan.get("features", [])
+                    ]
+            features = "".join(
+                f"<li><span class='check'>✅</span> {escape(feature)}</li>"
+                for feature in features_list
+            )
             badge_html = f"<span class='plan-badge'>{badge}</span>" if badge else ""
             free_class = " free" if int(plan["price"]) == 0 else ""
             featured_class = (
@@ -3223,6 +3287,7 @@ class WorldClassLandingPage:
                 f"{badge_html}<div class='plan-name'>{escape(title)}</div>"
                 f"<p class='plan-description'>{description}</p>"
                 f"<div class='price'>₹{int(plan['price']):,}<span>{period}</span></div>"
+                f"<div class='plan-token-summary'>{token_summary}</div>"
                 f"<ul class='features'>{features}</ul>"
                 f"<a class='pricing-btn' href='?page=studio' target='_self'>{button_label}</a>"
                 "</article>"
@@ -3254,11 +3319,12 @@ class WorldClassLandingPage:
             for method in payment_methods
         )
         st.markdown(
-            "<section class='pricing-section' id='pricing'><div class='section-header'><div class='tag'>💰 Pricing</div><h2>Choose Your <span class='glow-text'>Plan</span></h2><p>Start free, upgrade anytime. No hidden charges.</p></div>"
+            "<section class='pricing-section' id='pricing'><div class='section-header'><div class='tag'>💰 Pricing</div><h2>Choose Your <span class='glow-text'>Plan</span></h2><p>Compare included tokens, plan features and one-time top-ups before choosing the option that fits your workflow.</p></div>"
             "<div class='pricing-subsection'><h3 class='pricing-subsection-title'>Monthly subscriptions</h3>"
             f"<div class='pricing-grid subscription-plans-grid'>{subscription_cards}</div></div>"
             "<div class='pricing-subsection'><h3 class='pricing-subsection-title'>One-time token top-ups</h3>"
             f"<div class='pricing-grid one-time-plans-grid'>{topup_cards}</div></div>"
+            "<p class='pricing-note'><strong>How tokens work:</strong> Subscription prices are shown in INR and billed monthly. Paid plans include the token amount shown for each 30-day subscription period. Top-ups are charged once. Token use varies by AI engine and selected settings, so the number of creations per plan can vary. The Free plan currently includes no recurring tokens.</p>"
             "<div class='payment-methods'><h3>Flexible payment options</h3>"
             "<p>Choose from cards, UPI, net banking, or your preferred cryptocurrency.</p>"
             f"<div class='payment-method-list'>{methods_html}</div></div></section>",
