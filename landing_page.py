@@ -3,7 +3,7 @@ from html import escape
 from plan_catalog import GLOBAL_PLANS
 
 st.set_page_config(
-    page_title="Zovix - Create Cinematic AI Videos in Minutes",
+    page_title="Zovix AI Studio | AI SaaS Platform",
     page_icon="🎬",
     layout="wide",
 )

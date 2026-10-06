@@ -43,7 +43,7 @@ from pydantic import BaseModel, Field
 import textwrap
 
 st.set_page_config(
-    page_title="ZOVIX - Create Cinematic AI Videos in Minutes",
+    page_title="Zovix AI Studio | AI SaaS Platform",
     page_icon="🎬",
     layout="wide",
     initial_sidebar_state="collapsed",
@@ -878,15 +878,10 @@ cache_manager = _get_cache_manager()
 if "current_page" not in st.session_state:
     st.session_state["current_page"] = "landing"
 requested_page = st.query_params.get("page")
-if requested_page == "studio" and not st.session_state.get("is_logged_in", False):
+if requested_page in {"studio", "studio_mode", "payments", "profile", "scheduler", "subusers", "factory", "portfolio"} and not st.session_state.get("is_logged_in", False):
     st.session_state["current_page"] = "landing"
-    st.session_state["auth_redirect_mode"] = "Cinematic Engine"
-elif requested_page == "studio_mode" and not st.session_state.get("is_logged_in", False):
-    st.session_state["current_page"] = "landing"
-    st.session_state["auth_redirect_mode"] = st.session_state.get("studio_active_mode", "Cinematic Engine")
-elif requested_page in {"payments", "profile", "scheduler", "subusers", "factory", "portfolio"} and not st.session_state.get("is_logged_in", False):
-    st.session_state["current_page"] = "landing"
-    st.session_state["auth_redirect_mode"] = "Cinematic Engine"
+    st.session_state.pop("auth_redirect_mode", None)
+    st.query_params["page"] = "landing"
 elif requested_page in {"landing", "studio"}:
     st.session_state["current_page"] = requested_page
 elif requested_page == "studio_mode":
@@ -16496,7 +16491,6 @@ elif st.session_state["current_page"] == "studio_mode":
     if not st.session_state.get("is_logged_in", False):
         st.session_state["current_page"] = "landing"
         st.query_params["page"] = "landing"
-        show_auth_modal("login")
         st.stop()
     if st.session_state.get("2fa_enabled", False) and not st.session_state.get("2fa_verified", False):
         show_2fa_modal()
@@ -16866,7 +16860,6 @@ elif st.session_state["current_page"] == "payments":
     if not st.session_state.get("is_logged_in", False):
         st.session_state["current_page"] = "landing"
         st.query_params["page"] = "landing"
-        show_auth_modal("login")
         st.stop()
     if st.session_state.get("2fa_enabled", False) and not st.session_state.get("2fa_verified", False):
         show_2fa_modal()
@@ -17081,7 +17074,6 @@ elif st.session_state["current_page"] == "profile":
     if not st.session_state.get("is_logged_in", False):
         st.session_state["current_page"] = "landing"
         st.query_params["page"] = "landing"
-        show_auth_modal("login")
         st.stop()
     if st.session_state.get("2fa_enabled", False) and not st.session_state.get("2fa_verified", False):
         show_2fa_modal()
@@ -17469,7 +17461,6 @@ elif st.session_state["current_page"] in {"scheduler", "subusers", "factory", "p
     if not st.session_state.get("is_logged_in", False):
         st.session_state["current_page"] = "landing"
         st.query_params["page"] = "landing"
-        show_auth_modal("login")
         st.stop()
     if st.session_state.get("2fa_enabled", False) and not st.session_state.get("2fa_verified", False):
         show_2fa_modal()

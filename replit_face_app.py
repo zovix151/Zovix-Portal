@@ -113,7 +113,7 @@ def video_bytes(video_value: str) -> bytes | None:
 
 
 st.set_page_config(
-    page_title="ZOVIX | AI Creative Studio",
+    page_title="Zovix AI Studio | AI SaaS Platform",
     page_icon="🎬",
     layout="wide",
 )
