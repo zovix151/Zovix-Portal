@@ -18123,9 +18123,18 @@ elif st.session_state["current_page"] == "studio":
             font: 750 13px/1.3 'Inter', sans-serif !important;
             letter-spacing: .04em !important;
         }
+        section[data-testid="stMain"] > div[data-testid="stMainBlockContainer"] {
+            box-sizing: border-box !important;
+            width: 100% !important;
+            max-width: none !important;
+            padding-right: 0 !important;
+            padding-left: 0 !important;
+        }
         section[data-testid="stMain"] .block-container {
-            max-width: 1480px !important;
-            padding: 1rem clamp(16px, 3vw, 42px) 2.5rem !important;
+            box-sizing: border-box !important;
+            width: 100% !important;
+            max-width: none !important;
+            padding: 1rem clamp(14px, 2.2vw, 32px) 2.5rem !important;
         }
         .studio-header {
             min-height: 300px !important;
