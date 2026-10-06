@@ -15148,7 +15148,7 @@ def run_cinematic_engine():
     with parameters_col:
         with st.container(border=True):
             st.markdown("""
-            <h4 style="font-family: 'Orbitron', sans-serif; font-size: 12px; color: #EC4899; margin-bottom: 12px; letter-spacing: 0.5px;">
+            <h4 class="engine-configurators-title" style="font-family: 'Orbitron', sans-serif; font-size: 12px; color: #EC4899; margin-bottom: 12px; letter-spacing: 0.5px;">
                 ⚙️ ENGINE CONFIGURATORS
             </h4>
             """, unsafe_allow_html=True)
@@ -15292,7 +15292,7 @@ def run_cinematic_engine():
     with video_canvas_col:
         with st.container(border=True):
             st.markdown("""
-            <h3 style="font-family: 'Orbitron', sans-serif; font-size: 13px; color:#EC4899; margin-bottom: 12px; letter-spacing: 0.5px;">
+            <h3 class="live-video-output-title" style="font-family: 'Orbitron', sans-serif; font-size: 13px; color:#EC4899; margin-bottom: 12px; letter-spacing: 0.5px;">
                 🎥 LIVE VIDEO OUTPUT BOX
             </h3>
             """, unsafe_allow_html=True)
@@ -15322,7 +15322,7 @@ def run_cinematic_engine():
                         st.rerun()
             else:
                 st.markdown("""
-                    <div style="height: 380px; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #64748b; background: rgba(10,10,12,0.4); border-radius: 12px; border: 1px dashed rgba(255,192,203,0.12); width: 100%;">
+                    <div class="live-video-empty-state" style="height: 380px; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #64748b; background: rgba(10,10,12,0.4); border-radius: 12px; border: 1px dashed rgba(255,192,203,0.12); width: 100%;">
                         <span style="font-size: 48px; margin-bottom: 10px;">🎬</span>
                         <p style="font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500; color: #EC4899;; margin: 0;">
                             Video will render here
@@ -16712,6 +16712,25 @@ elif st.session_state["current_page"] == "studio_mode":
             section[data-testid="stMain"] .studio-mode-photo-hero--sales {
                 min-height: 380px !important;
             }
+            section[data-testid="stMain"] .block-container
+            [data-testid="stHorizontalBlock"]:has(.engine-configurators-title):has(.live-video-output-title) {
+                display: flex !important;
+                flex-direction: column !important;
+                flex-wrap: nowrap !important;
+                gap: 14px !important;
+                width: 100% !important;
+            }
+            section[data-testid="stMain"] .block-container
+            [data-testid="stHorizontalBlock"]:has(.engine-configurators-title):has(.live-video-output-title)
+            > [data-testid="stColumn"] {
+                flex: 1 1 100% !important;
+                width: 100% !important;
+                min-width: 100% !important;
+            }
+            section[data-testid="stMain"] .live-video-empty-state {
+                height: clamp(220px, 62svh, 340px) !important;
+                min-height: 220px !important;
+            }
             section[data-testid="stMain"] [class*="st-key-studio_change_mode_btn"] button {
                 min-height: 40px !important;
                 padding: 0 14px !important;
@@ -17248,8 +17267,48 @@ elif st.session_state["current_page"] == "profile":
             .profile-avatar { flex-basis: 58px; width: 58px; height: 58px; font-size: 23px; }
             section[data-testid="stMain"] [data-testid="stHorizontalBlock"] { flex-wrap: wrap !important; }
             section[data-testid="stMain"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] {
-                min-width: min(100%, 190px) !important;
-                flex: 1 1 190px !important;
+                min-width: 0 !important;
+                width: 100% !important;
+                flex: 1 1 100% !important;
+            }
+            section[data-testid="stMain"] .profile-page-hero {
+                align-items: flex-start;
+                gap: 12px;
+                padding: 16px 14px;
+            }
+            section[data-testid="stMain"] .profile-page-hero-copy {
+                flex: 1 1 0;
+            }
+            section[data-testid="stMain"] .profile-page-hero-copy h1 {
+                font-size: clamp(18px, 5.6vw, 26px) !important;
+            }
+            section[data-testid="stMain"] .profile-page-hero-copy p {
+                color: rgba(255,255,255,.9) !important;
+                -webkit-text-fill-color: rgba(255,255,255,.9) !important;
+                font-size: 12px !important;
+            }
+            section[data-testid="stMain"] [data-testid="stHorizontalBlock"]:has(.profile-stat-card) {
+                display: grid !important;
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                gap: 10px !important;
+            }
+            section[data-testid="stMain"] [data-testid="stHorizontalBlock"]:has(.profile-stat-card)
+            > [data-testid="stColumn"] {
+                min-width: 0 !important;
+                width: auto !important;
+                flex: none !important;
+            }
+            section[data-testid="stMain"] .profile-stat-card {
+                min-height: 88px;
+                padding: 13px;
+            }
+            section[data-testid="stMain"] .profile-stat-card .value {
+                font-size: clamp(18px, 5.2vw, 23px);
+                overflow-wrap: anywhere;
+            }
+            section[data-testid="stMain"] .profile-detail-value {
+                overflow-wrap: anywhere;
+                word-break: break-word;
             }
         }
     </style>
@@ -19141,6 +19200,80 @@ elif st.session_state["current_page"] == "studio":
                 min-width: 135px !important;
             }
             section[data-testid="stMain"] .studio-featured-card { flex-basis: 140px !important; height: 108px !important; }
+            section[data-testid="stMain"] .studio-header {
+                display: flex !important;
+                min-height: 248px !important;
+                flex-direction: column !important;
+                justify-content: flex-start !important;
+                padding: 58px 18px 18px !important;
+                border-radius: 22px 22px 48px 22px !important;
+            }
+            section[data-testid="stMain"] .studio-header::before {
+                inset: 8px !important;
+                background:
+                    linear-gradient(90deg, rgba(240,248,243,.98) 0%, rgba(240,248,243,.92) 56%, rgba(240,248,243,.34) 100%),
+                    url("https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?auto=format&fit=crop&w=1200&q=88") 62% center / cover no-repeat !important;
+                border-radius: 18px 18px 40px 18px !important;
+            }
+            section[data-testid="stMain"] .studio-header .left {
+                width: 100% !important;
+                max-width: 100% !important;
+                align-self: flex-start !important;
+            }
+            section[data-testid="stMain"] .studio-header .left::before {
+                min-height: 21px !important;
+                margin-bottom: 8px !important;
+                padding: 0 9px !important;
+                color: #187c75 !important;
+                content: "YOUR CREATIVE STUDIO" !important;
+                background: rgba(61,179,155,.14) !important;
+                border-color: rgba(36,143,132,.2) !important;
+                font-size: 8px !important;
+                letter-spacing: .08em !important;
+            }
+            section[data-testid="stMain"] .studio-header .left h1 {
+                width: 80% !important;
+                max-width: 260px !important;
+                color: #18383a !important;
+                font-size: clamp(24px, 7vw, 28px) !important;
+                line-height: 1.05 !important;
+                white-space: normal !important;
+                text-shadow: none !important;
+            }
+            section[data-testid="stMain"] .studio-header .left p {
+                width: 74% !important;
+                max-width: 250px !important;
+                margin-top: 7px !important;
+                color: #405957 !important;
+                font-size: 11px !important;
+                line-height: 1.45 !important;
+                text-shadow: none !important;
+            }
+            section[data-testid="stMain"] .studio-header .right {
+                top: 12px !important;
+                right: 12px !important;
+            }
+            section[data-testid="stMain"] .studio-header .right .credits {
+                padding: 7px 10px !important;
+                font-size: 10px !important;
+            }
+            section[data-testid="stMain"] .block-container
+            [data-testid="stHorizontalBlock"]:has([class*="st-key-qa_"]) {
+                display: grid !important;
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                gap: 9px !important;
+            }
+            section[data-testid="stMain"] .block-container
+            [data-testid="stHorizontalBlock"]:has([class*="st-key-qa_"]) > [data-testid="stColumn"] {
+                flex: none !important;
+                width: auto !important;
+                min-width: 0 !important;
+            }
+            section[data-testid="stMain"] [class*="st-key-qa_"] button {
+                min-height: 44px !important;
+                padding: 7px 8px !important;
+                font-size: 11px !important;
+            }
         }
         section[data-testid="stMain"] [data-testid="stButton"] > button,
         section[data-testid="stMain"] [data-testid="stDownloadButton"] > button,
@@ -19935,6 +20068,80 @@ if st.session_state.get("current_page") == "studio_mode":
     active_studio_mode = st.session_state.get("studio_active_mode", "Cinematic Engine")
     render_active_studio_mode()
     render_engine_portfolio_section(include_discovery=active_studio_mode == "Cinematic Engine")
+    st.markdown("""
+    <style>
+        @media (max-width: 768px) {
+            section[data-testid="stMain"] .block-container {
+                width: 100% !important;
+                max-width: 100% !important;
+                padding: 12px !important;
+            }
+            section[data-testid="stMain"] .block-container [data-testid="stHorizontalBlock"] {
+                display: flex !important;
+                flex-direction: column !important;
+                flex-wrap: nowrap !important;
+                gap: 12px !important;
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+            section[data-testid="stMain"] .block-container [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] {
+                box-sizing: border-box !important;
+                flex: 1 1 100% !important;
+                width: 100% !important;
+                min-width: 0 !important;
+                max-width: 100% !important;
+            }
+            section[data-testid="stMain"] .block-container [data-testid="stVerticalBlockBorderWrapper"] {
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+            section[data-testid="stMain"] .block-container .empty-state,
+            section[data-testid="stMain"] .block-container .canvas-container-box,
+            section[data-testid="stMain"] .block-container [style*="height: 380px"] {
+                box-sizing: border-box !important;
+                width: 100% !important;
+                height: clamp(220px, 55svh, 360px) !important;
+                min-height: 220px !important;
+                max-height: 360px !important;
+            }
+            section[data-testid="stMain"] .block-container [data-testid="stFileUploader"],
+            section[data-testid="stMain"] .block-container [data-testid="stFileUploaderDropzone"],
+            section[data-testid="stMain"] .block-container [data-testid="stSelectbox"],
+            section[data-testid="stMain"] .block-container [data-testid="stTextArea"],
+            section[data-testid="stMain"] .block-container [data-testid="stTextInput"],
+            section[data-testid="stMain"] .block-container [data-testid="stSlider"],
+            section[data-testid="stMain"] .block-container [data-testid="stVideo"],
+            section[data-testid="stMain"] .block-container video,
+            section[data-testid="stMain"] .block-container iframe {
+                width: 100% !important;
+                max-width: 100% !important;
+                min-width: 0 !important;
+            }
+            section[data-testid="stMain"] .block-container .selected-opt-wrap button,
+            section[data-testid="stMain"] .block-container .unselected-opt-wrap button {
+                min-height: 42px !important;
+                height: auto !important;
+                padding: 9px 10px !important;
+                font-size: 12px !important;
+                line-height: 1.35 !important;
+                white-space: normal !important;
+                overflow-wrap: anywhere !important;
+            }
+            section[data-testid="stMain"] .block-container [data-testid="stRadio"] [role="radiogroup"] {
+                flex-wrap: wrap !important;
+                gap: 8px 12px !important;
+            }
+            section[data-testid="stMain"] .block-container [data-testid="stRadio"] label {
+                min-width: 0 !important;
+                white-space: normal !important;
+            }
+            section[data-testid="stMain"] .block-container [data-testid="stVideo"] video {
+                height: auto !important;
+                object-fit: contain !important;
+            }
+        }
+    </style>
+    """, unsafe_allow_html=True)
     st.stop()
 elif st.session_state.get("current_page") != "studio":
     render_engine_portfolio_section()

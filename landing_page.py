@@ -999,6 +999,9 @@ class WorldClassLandingPage:
             .zx-cta { flex-wrap: wrap; }
             .zx-checks { flex-wrap: wrap; gap: calc(var(--p) * 8) calc(var(--p) * 14); white-space: normal; }
             .zx-demo {
+                position: relative !important;
+                left: auto !important;
+                top: auto !important;
                 align-self: stretch;
                 width: 100%;
                 height: clamp(120px, 34vw, 155px);
