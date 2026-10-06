@@ -2155,6 +2155,42 @@ class WorldClassLandingPage:
             .zx-hiw-title { width: auto; }
             .zx-hiw-text { width: 100% !important; }
         }
+        @media (max-aspect-ratio: 3/4) {
+            .landing-nav, .landing-nav.scrolled {
+                height: 60px;
+                padding: 0 12px;
+            }
+            .landing-nav .nav-links {
+                gap: 8px;
+            }
+            .landing-nav .nav-links > a:not(.zx-login):not(.nav-cta-btn),
+            .landing-nav .zx-nav-sep,
+            .landing-nav .zx-lang {
+                display: none !important;
+            }
+            .landing-nav .nav-links a.zx-login {
+                min-height: 34px;
+                padding: 0 11px;
+                font-size: 11px;
+            }
+            .landing-nav .nav-links a.nav-cta-btn {
+                min-height: 34px;
+                padding: 0 12px;
+                font-size: 11px;
+            }
+            .zx-stage {
+                height: calc(var(--p) * 1110) !important;
+            }
+            .zx-stage .zx-stats {
+                top: calc(var(--p) * 553) !important;
+            }
+            .zx-followup {
+                top: calc(var(--p) * 650) !important;
+                left: 0 !important;
+                width: 100% !important;
+                height: calc(var(--p) * 460) !important;
+            }
+        }
         </style>
         """, unsafe_allow_html=True)
 

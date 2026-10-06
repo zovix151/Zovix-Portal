@@ -16655,12 +16655,19 @@ elif st.session_state["current_page"] == "studio_mode":
             color: #263638 !important;
             background: #f3f6f6 !important;
         }
+        section[data-testid="stMain"] > div[data-testid="stMainBlockContainer"] {
+            box-sizing: border-box !important;
+            width: 100% !important;
+            max-width: none !important;
+            padding-right: 0 !important;
+            padding-left: 0 !important;
+        }
         section[data-testid="stMain"] .block-container {
             width: 100% !important;
-            max-width: 1560px !important;
+            max-width: none !important;
             box-sizing: border-box !important;
-            margin-inline: auto !important;
-            padding: 1.25rem clamp(16px, 2.5vw, 40px) 2rem !important;
+            margin-inline: 0 !important;
+            padding: 1.25rem clamp(16px, 2vw, 32px) 2rem !important;
         }
         section[data-testid="stMain"] .block-container,
         section[data-testid="stMain"] .block-container * {
@@ -16720,6 +16727,8 @@ elif st.session_state["current_page"] == "studio_mode":
         }
         @media (max-width: 768px) {
             section[data-testid="stMain"] .block-container {
+                width: 100% !important;
+                max-width: none !important;
                 padding: 1rem 12px 1.5rem !important;
             }
             section[data-testid="stMain"] .block-container [data-testid="stHorizontalBlock"] {
@@ -17490,11 +17499,18 @@ elif st.session_state["current_page"] in {"scheduler", "subusers", "factory", "p
                 background: var(--standalone-bg) !important;
                 font-family: 'Inter', sans-serif !important;
             }
+            section[data-testid="stMain"] > div[data-testid="stMainBlockContainer"] {
+                box-sizing: border-box !important;
+                width: 100% !important;
+                max-width: none !important;
+                padding-right: 0 !important;
+                padding-left: 0 !important;
+            }
             section[data-testid="stMain"] .block-container {
                 width: 100% !important;
-                max-width: 1320px !important;
-                margin: 0 auto !important;
-                padding: 1.25rem clamp(16px, 3vw, 42px) 2.5rem !important;
+                max-width: none !important;
+                margin: 0 !important;
+                padding: 1.25rem clamp(16px, 2vw, 32px) 2.5rem !important;
             }
             .standalone-hero {
                 min-height: 142px;
@@ -17622,7 +17638,11 @@ elif st.session_state["current_page"] in {"scheduler", "subusers", "factory", "p
                 font: 750 18px/1.3 'Inter', sans-serif !important;
             }
             @media (max-width: 768px) {
-                section[data-testid="stMain"] .block-container { padding: .75rem 14px 1.75rem !important; }
+                section[data-testid="stMain"] .block-container {
+                    width: 100% !important;
+                    max-width: none !important;
+                    padding: .75rem 12px 1.75rem !important;
+                }
                 .standalone-hero { gap: 14px; min-height: 118px; padding: 18px 16px; border-radius: 16px; }
                 .standalone-hero-icon { flex-basis: 54px; width: 54px; height: 54px; border-radius: 16px; font-size: 24px; }
                 section[data-testid="stMain"] [data-testid="stHorizontalBlock"] { flex-wrap: wrap !important; }
