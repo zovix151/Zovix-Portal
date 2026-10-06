@@ -19444,6 +19444,71 @@ elif st.session_state["current_page"] == "studio":
             line-height: 1.35 !important;
             text-transform: none !important;
         }
+        @media (max-width: 768px) {
+            section[data-testid="stMain"] .studio-header {
+                display: flex !important;
+                min-height: 240px !important;
+                flex-direction: column !important;
+                align-items: stretch !important;
+                justify-content: flex-end !important;
+                padding: 70px 18px 20px !important;
+                border-radius: 22px !important;
+            }
+            section[data-testid="stMain"] .studio-header::before {
+                inset: 0 !important;
+                background:
+                    linear-gradient(90deg, rgba(244,249,246,.99) 0%, rgba(244,249,246,.97) 48%, rgba(244,249,246,.86) 72%, rgba(244,249,246,.56) 100%),
+                    url("https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?auto=format&fit=crop&w=1200&q=88") 68% center / cover no-repeat !important;
+                border-radius: 22px !important;
+            }
+            section[data-testid="stMain"] .studio-header .left {
+                display: flex !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                align-self: stretch !important;
+                margin: 0 !important;
+                text-align: left !important;
+            }
+            section[data-testid="stMain"] .studio-header .left::before {
+                display: inline-flex !important;
+                width: fit-content !important;
+                max-width: 100% !important;
+                min-height: 21px !important;
+                margin: 0 0 8px !important;
+                padding: 0 9px !important;
+                color: #176c68 !important;
+                background: rgba(255,255,255,.82) !important;
+                border: 1px solid rgba(36,143,132,.2) !important;
+                border-radius: 999px !important;
+                font-size: 8px !important;
+                letter-spacing: .08em !important;
+            }
+            section[data-testid="stMain"] .studio-header .left h1 {
+                width: 100% !important;
+                max-width: 100% !important;
+                color: #18383a !important;
+                font-size: clamp(23px, 6.8vw, 29px) !important;
+                line-height: 1.1 !important;
+                white-space: normal !important;
+                text-shadow: none !important;
+            }
+            section[data-testid="stMain"] .studio-header .left p {
+                width: 100% !important;
+                max-width: 360px !important;
+                margin: 8px 0 0 !important;
+                color: #405957 !important;
+                font-size: 12px !important;
+                line-height: 1.45 !important;
+                text-shadow: none !important;
+            }
+            section[data-testid="stMain"] .studio-header .right {
+                top: 12px !important;
+                right: 12px !important;
+                z-index: 2 !important;
+            }
+        }
     </style>
     """, unsafe_allow_html=True)
 
