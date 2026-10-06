@@ -1812,7 +1812,7 @@ def authenticate_user_db(username, password):
         conn = sqlite3.connect(DB_PATH, check_same_thread=False)
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT username, password, twofa_secret, last_login FROM users "
+            "SELECT username, password, twofa_secret FROM users "
             "WHERE LOWER(TRIM(username)) = LOWER(TRIM(?)) LIMIT 1",
             (candidate,)
         )
@@ -1822,7 +1822,6 @@ def authenticate_user_db(username, password):
 
         stored_username = row[0]
         twofa_secret = row[2] or ""
-        st.session_state["auth_account_returning"] = bool(row[3])
         twofa_enabled = bool(twofa_secret.strip())
         st.session_state["2fa_enabled"] = twofa_enabled
         if not twofa_enabled or not HAS_2FA:
@@ -14173,10 +14172,6 @@ def show_auth_modal(mode="login"):
                                 if not gdpr_manager.get_consent(username_val):
                                     gdpr_manager.set_consent(username_val)
 
-                                queue_studio_welcome(
-                                    username_val,
-                                    st.session_state.pop("auth_account_returning", False),
-                                )
                                 st.rerun()
                         elif auth_result is None:
                             st.error("Login service is unavailable. Please check the database connection and try again.")
@@ -14212,7 +14207,6 @@ def show_auth_modal(mode="login"):
                             check_and_refresh_subscription(username_val)
                             gdpr_manager.set_consent(username_val)
 
-                            queue_studio_welcome(username_val, returning=False)
                             st.rerun()
                         elif registration_result is None:
                             st.error("Registration service is unavailable. Please check the database connection and try again.")
@@ -14357,10 +14351,6 @@ def show_2fa_modal():
                                 
                                 st.session_state["2fa_temp_user"] = None
                                 st.session_state["show_2fa"] = False
-                                queue_studio_welcome(
-                                    username,
-                                    st.session_state.pop("auth_account_returning", False),
-                                )
                                 st.rerun()
                             else:
                                 st.error("Invalid code. Please try again.")
@@ -16192,88 +16182,6 @@ def render_competitive_features():
             st.toast("Comparison feature coming soon!")
 
 
-def queue_studio_welcome(username, returning):
-    st.session_state["studio_welcome_pending"] = {
-        "username": normalize_account_username(username),
-        "returning": bool(returning),
-    }
-
-
-def render_studio_welcome():
-    pending = st.session_state.pop("studio_welcome_pending", None)
-    if not pending or st.session_state.get("current_page") not in {"studio", "studio_mode"}:
-        return
-
-    greeting = "Welcome back" if pending["returning"] else "Welcome"
-    username = html_lib.escape(str(pending["username"]))
-    st.html(f"""
-        <style>
-            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&family=Orbitron:wght@600;700;800;900&display=swap');
-            .zovix-welcome-overlay {{
-                position: fixed;
-                z-index: 999999;
-                inset: 0;
-                display: grid;
-                place-items: center;
-                padding: 24px;
-                background:
-                    radial-gradient(ellipse at 50% 44%, rgba(20, 110, 127, .32), transparent 54%),
-                    rgba(5, 12, 22, .78);
-                backdrop-filter: blur(12px);
-                animation: zovix-welcome-exit 2.4s ease .35s forwards;
-                pointer-events: auto;
-            }}
-            .zovix-welcome-copy {{
-                max-width: 100%;
-                text-align: center;
-                animation: zovix-welcome-zoom 1.5s cubic-bezier(.16, .84, .28, 1.18) both;
-            }}
-            .zovix-welcome-title {{
-                margin: 0;
-                color: #dfffff;
-                background: linear-gradient(180deg, #ffffff 4%, #a8fff3 38%, #59d9ed 68%, #6e83ff 100%);
-                background-clip: text;
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                font: 900 clamp(38px, 8vw, 88px)/1.12 'Orbitron', 'Inter', sans-serif;
-                letter-spacing: -.045em;
-                filter: drop-shadow(0 0 8px rgba(98, 255, 235, .72))
-                        drop-shadow(0 0 24px rgba(63, 192, 255, .52));
-                text-shadow: 0 2px 0 #328d9f, 0 5px 0 #236577, 0 9px 18px rgba(0, 0, 0, .62);
-            }}
-            .zovix-welcome-user {{
-                display: block;
-                margin-top: 18px;
-                color: #fff;
-                font: 700 clamp(15px, 2.6vw, 22px)/1.45 'Inter', sans-serif;
-                letter-spacing: .02em;
-                overflow-wrap: anywhere;
-                text-shadow: 0 2px 12px rgba(0, 0, 0, .72), 0 0 18px rgba(91, 231, 226, .46);
-            }}
-            @keyframes zovix-welcome-zoom {{
-                0% {{ opacity: 0; transform: scale(.38) translateY(18px); filter: blur(9px); }}
-                62% {{ opacity: 1; transform: scale(1.09); filter: blur(0); }}
-                82% {{ transform: scale(.98); }}
-                100% {{ opacity: 1; transform: scale(1); filter: blur(0); }}
-            }}
-            @keyframes zovix-welcome-exit {{
-                0%, 68% {{ opacity: 1; visibility: visible; }}
-                100% {{ opacity: 0; visibility: hidden; }}
-            }}
-            @media (prefers-reduced-motion: reduce) {{
-                .zovix-welcome-overlay {{ animation-duration: .01ms; animation-delay: .7s; }}
-                .zovix-welcome-copy {{ animation-duration: .01ms; }}
-            }}
-        </style>
-        <div class="zovix-welcome-overlay" role="status" aria-live="polite">
-            <div class="zovix-welcome-copy">
-                <div class="zovix-welcome-title">{greeting}</div>
-                <span class="zovix-welcome-user">{username}</span>
-            </div>
-        </div>
-    """)
-
-
 def handle_engine_access_request(mode_value: str):
     if not st.session_state.get("is_logged_in", False):
         st.session_state["auth_redirect_mode"] = mode_value
@@ -16575,8 +16483,6 @@ if st.session_state.get("is_logged_in"):
     if not gdpr_manager.get_consent(username):
         if not gdpr_manager.request_consent(username):
             st.stop()
-
-render_studio_welcome()
 
 if st.session_state["current_page"] == "landing":
     from landing_page import WorldClassLandingPage
