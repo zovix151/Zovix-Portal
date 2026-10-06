@@ -11961,7 +11961,7 @@ def run_unified_face_video_mode():
     <div class="face-header">
         <span class="badge">👤 AI AVATAR</span>
         <h2>Global <span class="highlight">Face Video</span> Studio</h2>
-        <p>Upload photo • Enter script • Generate talking face video from cloud</p>
+        <p>Upload photo • Enter script • Generate talking face video from zovix </p>
     </div>
     """, unsafe_allow_html=True)
     

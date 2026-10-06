@@ -1,8 +1,17 @@
-﻿import os
+import os
+try:
+    from dotenv import load_dotenv
+    HAS_DOTENV = True
+except Exception:
+    HAS_DOTENV = False
+
+    def load_dotenv(*args, **kwargs):
+        return False
+
+load_dotenv()
 import cv2
 import time
 import uuid
-import postgres_db as sqlite3
 import asyncio
 import random
 import requests
@@ -18,6 +27,7 @@ import traceback
 import datetime
 import difflib
 import hashlib
+import html as html_lib
 import io
 import hmac
 import re
@@ -26,14 +36,6 @@ import logging
 import pickle
 import tempfile
 from pathlib import Path
-try:
-    from dotenv import load_dotenv
-    HAS_DOTENV = True
-except Exception:
-    HAS_DOTENV = False
-
-    def load_dotenv(*args, **kwargs):
-        return False
 from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageFont, ImageOps
 import streamlit as st
 import streamlit.components.v1 as components
@@ -77,6 +79,7 @@ from typing import List, Dict, Any, Tuple, Optional, Union
 from datetime import datetime, timedelta
 from functools import wraps
 from collections import defaultdict
+from plan_catalog import GLOBAL_PLANS
 import psutil
 import socket
 import platform
@@ -132,7 +135,7 @@ logger = logging.getLogger("Zovix")
 if not HAS_DOTENV:
     logger.warning("python-dotenv not installed. Continuing with OS environment variables only.")
 
-load_dotenv()
+import postgres_db as sqlite3
 
 def _clean_secret_value(value):
     """Remove dotenv whitespace/quote artifacts without logging secret contents."""
@@ -878,7 +881,17 @@ requested_page = st.query_params.get("page")
 if requested_page == "studio" and not st.session_state.get("is_logged_in", False):
     st.session_state["current_page"] = "landing"
     st.session_state["auth_redirect_mode"] = "Cinematic Engine"
+elif requested_page == "studio_mode" and not st.session_state.get("is_logged_in", False):
+    st.session_state["current_page"] = "landing"
+    st.session_state["auth_redirect_mode"] = st.session_state.get("studio_active_mode", "Cinematic Engine")
+elif requested_page in {"payments", "profile", "scheduler", "subusers", "factory", "portfolio"} and not st.session_state.get("is_logged_in", False):
+    st.session_state["current_page"] = "landing"
+    st.session_state["auth_redirect_mode"] = "Cinematic Engine"
 elif requested_page in {"landing", "studio"}:
+    st.session_state["current_page"] = requested_page
+elif requested_page == "studio_mode":
+    st.session_state["current_page"] = "studio_mode"
+elif requested_page in {"payments", "profile", "scheduler", "subusers", "factory", "portfolio"}:
     st.session_state["current_page"] = requested_page
 if "is_logged_in" not in st.session_state:
     st.session_state["is_logged_in"] = False
@@ -968,8 +981,6 @@ if "login_streak" not in st.session_state:
     st.session_state["login_streak"] = 0
 if "user_credits" not in st.session_state:
     st.session_state["user_credits"] = 101.0
-if "quick_access_open" not in st.session_state:
-    st.session_state["quick_access_open"] = False
 if "voucher_49_active" not in st.session_state:
     st.session_state["voucher_49_active"] = False
 if "voucher_49_expiry" not in st.session_state:
@@ -1443,141 +1454,6 @@ def convert_price(price_inr: float, to_currency: str = "USD") -> float:
 # 14. ALL PLANS - SUBSCRIPTIONS + ONE-TIME TOP-UPS
 # ========================================================
 
-GLOBAL_PLANS = {
-    "subscriptions": {
-        "free": {
-            "name": "Free",
-            "price": 0,
-            "tokens": 0,
-            "amount_paise": 0,
-            "emoji": "🆓",
-            "features": ["10 Free Tokens Monthly", "Watermark", "Basic AI Features"],
-            "type": "monthly",
-            "badge": "",
-            "color": "#64748b",
-            "description": "Free plan with limited features"
-
-        },
-        "standard": {
-            "name": "Standard",
-            "price": 99,
-            "tokens": 90+10,
-            "amount_paise": 9900,
-            "emoji": "🥇",
-            "features": ["70 Tokens Monthly", "No Watermark", "All AI Features"],
-            "type": "monthly",
-            "badge": "POPULAR",
-            "color": "#f59e0b",
-            "description": "Best value plan"
-        },
-        "cinematic": {
-            "name": "Cinematic",
-            "price": 299,
-            "tokens": 250+50,
-            "amount_paise": 29900,
-            "emoji": "🥈",
-            "features": ["230 Tokens Monthly", "No Watermark", "All AI Features"],
-            "type": "monthly",
-            "badge": "",
-            "color": "#8b5cf6",
-            "description": "For serious creators"
-        },
-        "premium": {
-            "name": "Premium",
-            "price": 499,
-            "tokens": 410+90,
-            "amount_paise": 49999,
-            "emoji": "💎",
-            "features": ["400 Tokens Monthly", "No Watermark", "All AI Features"],
-            "type": "monthly",
-            "badge": "",
-            "color": "#ec4899",
-            "description": "Professional creators"
-        },
-        "pro": {
-            "name": "Pro",
-            "price": 999,
-            "tokens": 780+220,
-            "amount_paise": 99900,
-            "emoji": "👑",
-            "features": ["850 Tokens Monthly", "No Watermark", "All AI Features"],
-            "type": "monthly",
-            "badge": "⭐ BEST VALUE",
-            "color": "#f43f5e",
-            "description": "Unlimited potential"
-        },
-        "enterprise": {
-            "name": "Enterprise",
-            "price": 1999,
-            "tokens": 1500+500,
-            "amount_paise": 199900,
-            "emoji": "🏢",
-            "features": ["1750 Tokens Monthly", "No Watermark", "All AI Features", "Priority Support", "Custom AI Models"],
-            "type": "monthly",
-            "badge": "⭐ ENTERPRISE",
-            "color": "#8b5cf6",
-            "description": "Complete business solution"
-        }
-    },
-    "one_time": {
-        "topup_99": {
-            "name": "Token Top-up",
-            "price": 99,
-            "tokens": 100,
-            "amount_paise": 9900,
-            "emoji": "🎯",
-            "type": "prepaid",
-            "badge": "💫 ONE-TIME",
-            "color": "#45f3ff",
-            "description": "One-time token purchase"
-        },
-        "topup_299": {
-            "name": "Token Top-up",
-            "price": 299,
-            "tokens": 300,
-            "amount_paise": 29900,
-            "emoji": "🎯",
-            "type": "prepaid",
-            "badge": "💫 ONE-TIME",
-            "color": "#45f3ff",
-            "description": "One-time token purchase"
-        },
-        "topup_499": {
-            "name": "Token Top-up",
-            "price": 499,
-            "tokens": 500,
-            "amount_paise": 49900,
-            "emoji": "🎯",
-            "type": "prepaid",
-            "badge": "💫 ONE-TIME",
-            "color": "#45f3ff",
-            "description": "One-time token purchase"
-        },
-        "topup_999": {
-            "name": "Token Top-up",
-            "price": 999,
-            "tokens": 1000,
-            "amount_paise": 99900,
-            "emoji": "🎯",
-            "type": "prepaid",
-            "badge": "💫 ONE-TIME",
-            "color": "#45f3ff",
-            "description": "One-time token purchase"
-        },
-        "topup_1999": {
-            "name": "Token Top-up",
-            "price": 1999,
-            "tokens": 2000,
-            "amount_paise": 199900,
-            "emoji": "🎯",
-            "type": "prepaid",
-            "badge": "💫 ONE-TIME",
-            "color": "#45f3ff",
-            "description": "One-time token purchase"
-        }
-    }
-}
-
 # ========================================================
 # 15. VOUCHER SYSTEM
 # ========================================================
@@ -1859,7 +1735,7 @@ def _initialize_database_once():
 
 
 _startup_requested_page = st.query_params.get("page")
-if _startup_requested_page == "studio":
+if _startup_requested_page == "studio" and st.session_state.get("is_logged_in", False):
     _initialize_database_once()
 elif not st.session_state.get("_database_init_started", False):
     st.session_state["_database_init_started"] = True
@@ -1928,90 +1804,67 @@ def resolve_account_username(username):
         conn.close()
 
 def authenticate_user_db(username, password):
-    if not username or not password:
+    candidate = normalize_account_username(username)
+    if not candidate or not password:
         return False, False
-    
-    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
-    cursor = conn.cursor()
+    conn = None
     try:
-        cursor.execute("SELECT password, twofa_secret FROM users WHERE username = ?", (username,))
+        conn = sqlite3.connect(DB_PATH, check_same_thread=False)
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT username, password, twofa_secret FROM users "
+            "WHERE LOWER(TRIM(username)) = LOWER(TRIM(?)) LIMIT 1",
+            (candidate,)
+        )
         row = cursor.fetchone()
-        
-        if row:
-            stored_password = row[0]
-            twofa_secret = row[1] if row[1] else ""
-            
-            if stored_password == password:
-                cursor.execute(
-                    "UPDATE users SET last_login = ? WHERE username = ?",
-                    (datetime.now().isoformat(), username)
-                )
-                conn.commit()
-                
-                if twofa_secret and twofa_secret.strip():
-                    st.session_state["2fa_enabled"] = True
-                    return True, True
-                else:
-                    st.session_state["2fa_enabled"] = False
-                    return True, False
-            else:
-                return False, False
-        else:
-            # ✅ User exist nahi karta, toh naya banao
-            register_user_db(username, password)
-            return True, False
+        if not row or row[1] != password:
+            return False, False
+
+        stored_username = row[0]
+        twofa_secret = row[2] or ""
+        cursor.execute(
+            "UPDATE users SET last_login = ? WHERE username = ?",
+            (datetime.now().isoformat(), stored_username)
+        )
+        conn.commit()
+
+        twofa_enabled = bool(twofa_secret.strip())
+        st.session_state["2fa_enabled"] = twofa_enabled
+        return True, twofa_enabled
             
     except Exception as e:
         logger.error(f"Authentication error: {e}")
-        return False, False
+        return None, False
     finally:
-        conn.close()
+        if conn:
+            conn.close()
 
 def register_user_db(username, password):
     """Register a new user with real password storage"""
     username = normalize_account_username(username)
     if not username or not password:
         return False
-    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
-    cursor = conn.cursor()
+    conn = None
     try:
+        conn = sqlite3.connect(DB_PATH, check_same_thread=False)
+        cursor = conn.cursor()
         cursor.execute(
             """INSERT OR IGNORE INTO users 
                (username, password, credits, xp_points, streak_count, last_claim_date, voucher_credits, voucher_expires_at, language) 
                VALUES (?, ?, 10.0, 10.0, 0, '', 0, NULL, 'en')""",
             (username, password)
         )
+        created = cursor.rowcount == 1
         conn.commit()
-        logger.info(f"New user registered: {username}")
-        return True
+        if created:
+            logger.info(f"New user registered: {username}")
+        return created
     except Exception as e:
         logger.error(f"Registration error: {e}")
-        return False
+        return None
     finally:
-        conn.close()
-
-def login_or_register_social(email, platform):
-    """Social login with email"""
-    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
-    cursor = conn.cursor()
-    try:
-        cursor.execute("SELECT username FROM users WHERE username = ?", (email,))
-        row = cursor.fetchone()
-        if not row:
-            cursor.execute(
-                """INSERT INTO users 
-                   (username, password, credits, xp_points, streak_count, last_claim_date, voucher_credits, voucher_expires_at, language) 
-                   VALUES (?, ?, 10.0, 10.0, 0, '', 0, NULL, 'en')""",
-                (email, f"social_{platform.lower()}")
-            )
-            conn.commit()
-            logger.info(f"New social user: {email} via {platform}")
-        return True
-    except Exception as e:
-        logger.error(f"Social login error: {e}")
-        return False
-    finally:
-        conn.close()
+        if conn:
+            conn.close()
 
 @st.cache_data(show_spinner=False, ttl=20)
 def get_user_credits_db(username):
@@ -2675,8 +2528,9 @@ def clear_payment_state():
     st.session_state["razorpay_processed_order_id"] = None
     st.session_state["payment_processing"] = False
 
-def render_enhanced_payment_ui():
-    st.markdown("<h4 style='font-family: Orbitron; color: #EC4899;'>💎 Buy Credits</h4>", unsafe_allow_html=True)
+def render_enhanced_payment_ui(show_title=True):
+    if show_title:
+        st.markdown("<h4 style='font-family: Orbitron; color: #EC4899;'>💎 Buy Credits</h4>", unsafe_allow_html=True)
 
     if st.session_state.get("razorpay_popup_requested", False):
         st.info("🪟 Razorpay checkout popup request was sent. If it did not open, please allow popups for this site.")
@@ -7505,7 +7359,8 @@ def _clamp_face_video_duration(duration):
 
 def generate_face_video(prompt, face_image_path, duration=30, emotion="neutral", 
                         camera_angle="front", quality="Standard", 
-                        voice_language=None, voice_label=None, runpod_api_key=None):
+                        voice_language=None, voice_label=None, runpod_api_key=None,
+                        audio_path=None):
     """Prefer configured RunPod face generation. Only use Replicate when RunPod is not configured."""
     print("=" * 60)
     print("🎬 generate_face_video() called - ComfyUI RunPod Cloud Mode")
@@ -7514,38 +7369,11 @@ def generate_face_video(prompt, face_image_path, duration=30, emotion="neutral",
     if not face_image_path or not os.path.exists(face_image_path):
         return None
 
-    # --- DeepFace Auto-Scan: Detect age & gender, auto-select voice --- #
-    try:
-        scan_result = deepface_scan_face_and_select_voice(face_image_path)
-        detected_category = scan_result.get("category", "Adult Male")
-        detected_age = scan_result.get("age", 25)
-        detected_gender = scan_result.get("gender", "Male")
-        
-        if voice_label is None or voice_label == "":
-            auto_voice = st.session_state.get("fv_auto_selected_voice")
-            if auto_voice:
-                voice_label = auto_voice
-            else:
-                voice_label = scan_result.get("voice_label", "Adam (Premium Male)")
-                st.session_state["fv_auto_selected_voice"] = voice_label
-            st.session_state["fv_auto_selected_category"] = detected_category
-        
-        st.session_state["fv_detected_gender"] = detected_gender
-        st.session_state["fv_detected_age"] = detected_age
-        st.session_state["fv_detected_category"] = detected_category
-        logger.info(f"DeepFace Auto-Voice: {detected_category} (Age:{detected_age}) -> {voice_label}")
-    except Exception as scan_e:
-        logger.warning(f"DeepFace auto-scan error (proceeding with default voice): {scan_e}")
-    # --- End DeepFace Auto-Scan --- #
-
-    # Resolve voice config
     voice_cfg = _resolve_face_voice_config(
-        voice_language=voice_language, 
-        voice_label=voice_label, 
-        preferred_gender=st.session_state.get('fv_detected_gender') if st.session_state.get('fv_gender_auto', False) else None
+        voice_language=voice_language,
+        voice_label=voice_label,
     )
 
-    # --- Cloud-Only: Directly call the ComfyUI-on-RunPod endpoint --- #
     video_result = generate_world_face_video(
         prompt=prompt,
         face_image_path=face_image_path,
@@ -7554,6 +7382,7 @@ def generate_face_video(prompt, face_image_path, duration=30, emotion="neutral",
         voice_language=voice_cfg.get("language", "English"),
         voice_label=voice_cfg.get("voice_label", "Adam (Premium Male)"),
         runpod_api_key=runpod_api_key,
+        audio_path=audio_path,
     )
     
     if video_result:
@@ -7628,7 +7457,7 @@ def _run_replicate_face_model(client, model_ref, image_path, audio_path, script_
     return None
 
 
-def _generate_replicate_face_video(prompt, face_image_path, duration, quality, voice_language, voice_label):
+def _generate_replicate_face_video(prompt, face_image_path, duration, quality, voice_language, voice_label, audio_path=None):
     token = _get_replicate_face_token()
     if not token:
         raise RuntimeError("Replicate fallback is not configured. Set REPLICATE_API_TOKEN.")
@@ -7637,27 +7466,40 @@ def _generate_replicate_face_video(prompt, face_image_path, duration, quality, v
     except ImportError as exc:
         raise RuntimeError("Replicate fallback package is not installed.") from exc
 
-    voice_cfg = _resolve_face_voice_config(voice_language=voice_language, voice_label=voice_label)
     temp_audio = None
     try:
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp_audio:
-            temp_audio = tmp_audio.name
-        _synthesize_face_audio_strict(prompt, temp_audio, voice_cfg, duration_hint=duration)
+        if audio_path:
+            if not os.path.isfile(audio_path) or os.path.getsize(audio_path) <= 1024:
+                raise ValueError("Uploaded recorded voice is missing or empty.")
+            source_audio_path = audio_path
+            model_candidates = [
+                "lucataco/sadtalker",
+                "cjwbw/sadtalker",
+                "gandhana/liveportrait",
+            ]
+        else:
+            voice_cfg = _resolve_face_voice_config(voice_language=voice_language, voice_label=voice_label)
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp_audio:
+                temp_audio = tmp_audio.name
+            if not _synthesize_face_audio_strict(prompt, temp_audio, voice_cfg, duration_hint=duration):
+                raise RuntimeError("Could not generate speech audio for the selected voice.")
+            source_audio_path = temp_audio
+            model_candidates = [
+                os.getenv("REPLICATE_FACE_MODEL", "prunaai/p-video-avatar"),
+                "prunaai/p-video-avatar",
+                "lucataco/sadtalker",
+                "cjwbw/sadtalker",
+                "gandhana/liveportrait",
+            ]
+
         client = replicate.Client(api_token=token)
-        model_candidates = [
-            os.getenv("REPLICATE_FACE_MODEL", "prunaai/p-video-avatar"),
-            "prunaai/p-video-avatar",
-            "lucataco/sadtalker",
-            "cjwbw/sadtalker",
-            "gandhana/liveportrait",
-        ]
         seen = set()
         for model_ref in model_candidates:
             model_ref = str(model_ref).strip()
             if not model_ref or model_ref.lower() in seen:
                 continue
             seen.add(model_ref.lower())
-            result = _run_replicate_face_model(client, model_ref, face_image_path, temp_audio, prompt)
+            result = _run_replicate_face_model(client, model_ref, face_image_path, source_audio_path, prompt)
             if result:
                 video_url, predict_time = result
                 st.session_state["face_video_replicate_predict_time"] = predict_time
@@ -7838,7 +7680,7 @@ def _generate_replicate_sales_video(image_path, audio_path, script_text, quality
         safe_remove_file(presenter_image_path)
 
 
-def generate_world_face_video(prompt, face_image_path, duration=10, quality="HD", animation_style="Expressive Real Human (No Lip-Only Fallback)", backend_choice="Auto (LivePortrait → SadTalker → Wav2Lip)", motion_level="high", voice_language=None, voice_label=None, runpod_api_key=None):
+def generate_world_face_video(prompt, face_image_path, duration=10, quality="HD", animation_style="Expressive Real Human (No Lip-Only Fallback)", backend_choice="Auto (LivePortrait → SadTalker → Wav2Lip)", motion_level="high", voice_language=None, voice_label=None, runpod_api_key=None, audio_path=None):
     """Generate with Replicate first, then fall back to RunPod if needed."""
     if not face_image_path or not os.path.exists(face_image_path):
         return None
@@ -7854,6 +7696,7 @@ def generate_world_face_video(prompt, face_image_path, duration=10, quality="HD"
             quality,
             voice_language,
             voice_label,
+            audio_path=audio_path,
         )
         if replicate_result:
             return replicate_result
@@ -7867,16 +7710,30 @@ def generate_world_face_video(prompt, face_image_path, duration=10, quality="HD"
 
     temp_audio = None
     try:
-        from comfyui_engine import generate_face_video as _runpod_generate_face_video
+        import comfyui_engine
 
-        voice_cfg = _resolve_face_voice_config(voice_language=voice_language, voice_label=voice_label, preferred_gender=st.session_state.get('fv_detected_gender') if st.session_state.get('fv_gender_auto', False) else None)
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp_aud:
-            temp_audio = tmp_aud.name
-        _synthesize_face_audio_strict(prompt, temp_audio, voice_cfg, duration_hint=duration)
+        _runpod_generate_face_video = comfyui_engine.generate_face_video
+
+        if audio_path:
+            if not os.path.isfile(audio_path) or os.path.getsize(audio_path) <= 1024:
+                raise ValueError("Uploaded recorded voice is missing or empty.")
+            if comfyui_engine.RUNPOD_FACE_MODE == "wan_prompt":
+                raise RuntimeError(
+                    "The configured RunPod text-to-video mode cannot use uploaded dialogue audio. "
+                    "Use a RunPod audio-driven face workflow or the configured audio-driven Replicate model."
+                )
+            source_audio_path = audio_path
+        else:
+            voice_cfg = _resolve_face_voice_config(voice_language=voice_language, voice_label=voice_label)
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp_aud:
+                temp_audio = tmp_aud.name
+            if not _synthesize_face_audio_strict(prompt, temp_audio, voice_cfg, duration_hint=duration):
+                raise RuntimeError("Could not generate speech audio for the selected voice.")
+            source_audio_path = temp_audio
 
         video_result = _runpod_generate_face_video(
             face_image_path=face_image_path,
-            audio_path=temp_audio,
+            audio_path=source_audio_path,
             script_text=prompt,
             duration=duration,
             quality=quality,
@@ -8724,7 +8581,7 @@ def generate_agent_ad(business_name, product_list, target_platform="Instagram"):
 def render_ai_agent_ui():
     """AI Agent Studio UI - Dark Theme Implementation"""
     st.markdown("""
-    <div style="background: linear-gradient(135deg, rgba(139,92,246,0.06), rgba(69,243,255,0.06));
+    <div class="studio-mode-photo-hero studio-mode-photo-hero--agent" style="background: linear-gradient(135deg, rgba(139,92,246,0.06), rgba(69,243,255,0.06));
         border-radius: 16px; border: 1px solid rgba(139,92,246,0.08);
         padding: 16px 20px; margin-bottom: 18px; text-align: center;">
         <span style="display: inline-block; background: rgba(139,92,246,0.12); color: #8B5CF6;
@@ -8817,7 +8674,7 @@ def render_ai_sales_ui():
     sales_prompt = st.session_state.get("sales_auto_prompt", "")
 
     st.markdown("""
-    <div style="
+    <div class="studio-mode-photo-hero studio-mode-photo-hero--sales" style="
         background: linear-gradient(135deg, rgba(236,72,153,0.06), rgba(69,243,255,0.06));
         border-radius: 16px; border: 1px solid rgba(69,243,255,0.08);
         padding: 16px 20px; margin-bottom: 18px; text-align: center;
@@ -9244,7 +9101,7 @@ def render_ai_sales_ui():
 def generate_dynamic_ui():
     """Dynamic UI Mode - AI-Powered Interface Customization"""
     st.markdown("""
-    <div style="
+    <div class="studio-mode-photo-hero studio-mode-photo-hero--dynamic" style="
         background: linear-gradient(135deg, rgba(236,72,153,0.06), rgba(69,243,255,0.06));
         border-radius: 16px; border: 1px solid rgba(69,243,255,0.08);
         padding: 16px 20px; margin-bottom: 18px; text-align: center;
@@ -9498,7 +9355,7 @@ def generate_emotion_voice(text, emotion="neutral", voice_type="male", output_pa
 def render_live_emotion_voice():
     """Live Emotion Voice Mode - Emotion-based TTS generation"""
     st.markdown("""
-    <div style="
+    <div class="studio-mode-photo-hero studio-mode-photo-hero--voice" style="
         background: linear-gradient(135deg, rgba(236,72,153,0.06), rgba(69,243,255,0.06));
         border-radius: 16px; border: 1px solid rgba(69,243,255,0.08);
         padding: 16px 20px; margin-bottom: 18px; text-align: center;
@@ -9649,7 +9506,7 @@ def analyze_blueprint(blueprint_path):
 def run_blueprints_mode():
     """Blueprints Mode - Professional Architectural Drawings"""
     st.markdown("""
-    <div style="
+    <div class="studio-mode-photo-hero studio-mode-photo-hero--blueprints" style="
         background: linear-gradient(135deg, rgba(236,72,153,0.06), rgba(69,243,255,0.06));
         border-radius: 16px;
         border: 1px solid rgba(69,243,255,0.08);
@@ -11440,7 +11297,7 @@ def upscale_image_fixed(image_path, scale_factor=2, enhancement_type="standard",
 def run_creative_workshop():
     """Creative Workshop - image generation for thumbnails, banners, posters, and concept art."""
     st.markdown("""
-    <div style="
+    <div class="studio-mode-photo-hero studio-mode-photo-hero--creative" style="
         background: linear-gradient(135deg, rgba(236,72,153,0.06), rgba(69,243,255,0.06));
         border-radius: 16px;
         border: 1px solid rgba(69,243,255,0.08);
@@ -11681,7 +11538,7 @@ def run_upscaler_mode():
     # HEADER
     # ========================================================
     st.markdown("""
-    <div style="
+    <div class="studio-mode-photo-hero studio-mode-photo-hero--upscaler" style="
         background: linear-gradient(135deg, rgba(236,72,153,0.06), rgba(69,243,255,0.06));
         border-radius: 16px;
         border: 1px solid rgba(69,243,255,0.08);
@@ -11967,7 +11824,7 @@ def run_draw_mode():
     """Draw Mode - 3-Tier Hybrid System"""
     
     st.markdown("""
-    <div style="
+    <div class="studio-mode-photo-hero studio-mode-photo-hero--draw" style="
         background: linear-gradient(135deg, rgba(236,72,153,0.06), rgba(69,243,255,0.06));
         border-radius: 16px;
         border: 1px solid rgba(69,243,255,0.08);
@@ -12530,18 +12387,18 @@ def run_video_editor_mode():
         }
         
         /* ============================================
-           SELECT BOX - DARK
+           SELECT BOX - LIGHT STUDIO THEME
            ============================================ */
         .stSelectbox > div,
         div[data-testid="stSelectbox"] > div {
-            background: #0a0a12 !important;
-            border: 1px solid rgba(255,255,255,0.06) !important;
+            background: #ffffff !important;
+            border: 1px solid #cbd8d5 !important;
             border-radius: 10px !important;
         }
         .stSelectbox select,
         div[data-testid="stSelectbox"] select {
-            background: #0a0a12 !important;
-            color: #e0e0e0 !important;
+            background: #ffffff !important;
+            color: #202b2c !important;
             border: none !important;
             border-radius: 10px !important;
             font-family: 'Inter', sans-serif !important;
@@ -12550,51 +12407,51 @@ def run_video_editor_mode():
         }
         .stSelectbox select:focus,
         div[data-testid="stSelectbox"] select:focus {
-            border-color: #EC4899 !important;
+            border-color: #36c7c1 !important;
             outline: none !important;
         }
         
         /* Selectbox Dropdown */
         div[data-baseweb="select"] {
-            background: #0a0a12 !important;
-            border: 1px solid rgba(255,255,255,0.06) !important;
+            background: #ffffff !important;
+            border: 1px solid #cbd8d5 !important;
             border-radius: 10px !important;
         }
         div[data-baseweb="select"] > div {
-            background: #0a0a12 !important;
+            background: #ffffff !important;
         }
         div[data-baseweb="select"] input {
-            background: #0a0a12 !important;
-            color: #e0e0e0 !important;
+            background: #ffffff !important;
+            color: #202b2c !important;
         }
         ul[data-baseweb="menu"] {
-            background: #0f0f1a !important;
-            border: 1px solid rgba(255,255,255,0.06) !important;
+            background: #ffffff !important;
+            border: 1px solid #dce5e2 !important;
             border-radius: 10px !important;
         }
         ul[data-baseweb="menu"] li {
-            background: #0f0f1a !important;
-            color: #e0e0e0 !important;
+            background: #ffffff !important;
+            color: #354345 !important;
             font-family: 'Inter', sans-serif !important;
             font-size: 13px !important;
         }
         ul[data-baseweb="menu"] li:hover {
-            background: rgba(236,72,153,0.1) !important;
-            color: #FFFFFF !important;
+            background: rgba(54,199,193,0.16) !important;
+            color: #153438 !important;
         }
         ul[data-baseweb="menu"] li[aria-selected="true"] {
-            background: rgba(236,72,153,0.15) !important;
-            color: #EC4899 !important;
+            background: rgba(54,199,193,0.2) !important;
+            color: #153438 !important;
         }
         
         /* ============================================
-           TEXT AREA - DARK
+           TEXT AREA - LIGHT STUDIO THEME
            ============================================ */
         .stTextArea textarea,
         div[data-testid="stTextArea"] textarea {
-            background: #0a0a12 !important;
-            color: #e0e0e0 !important;
-            border: 1px solid rgba(255,255,255,0.06) !important;
+            background: #ffffff !important;
+            color: #202b2c !important;
+            border: 1px solid #cbd8d5 !important;
             border-radius: 10px !important;
             font-family: 'Inter', sans-serif !important;
             font-size: 13px !important;
@@ -12603,12 +12460,12 @@ def run_video_editor_mode():
         }
         .stTextArea textarea::placeholder,
         div[data-testid="stTextArea"] textarea::placeholder {
-            color: #64748b !important;
+            color: #718082 !important;
         }
         .stTextArea textarea:focus,
         div[data-testid="stTextArea"] textarea:focus {
-            border-color: #EC4899 !important;
-            box-shadow: 0 0 20px rgba(236,72,153,0.08) !important;
+            border-color: #36c7c1 !important;
+            box-shadow: 0 0 0 1px #36c7c1 !important;
             outline: none !important;
         }
         
@@ -12764,7 +12621,7 @@ def run_video_editor_mode():
     # HEADER
     # ============================================
     st.markdown("""
-    <div class="editor-header">
+    <div class="editor-header studio-mode-photo-hero--editor">
         <span class="badge">🎞️ PRO EDITOR</span>
         <h2>Video <span class="highlight">Editor</span></h2>
         <p>1-2 Min Movie • AI-Powered Timeline • Auto-Stitching</p>
@@ -13162,106 +13019,24 @@ def run_face_video_mode():
                 key="fv_voice_language",
             )
             
-            # ---- Gender Auto-Detect Feature ----
-            if "fv_gender_auto" not in st.session_state:
-                st.session_state["fv_gender_auto"] = True
-            
-            face_uploaded = st.session_state.get("face_image_upload")
-            face_available = bool(face_uploaded and os.path.exists(face_uploaded))
-            
-            col_g1, col_g2 = st.columns([1, 1])
-            with col_g1:
-                gender_auto = st.toggle(
-                    "🎭 Auto-Detect Gender",
-                    value=st.session_state.get("fv_gender_auto", True),
-                    key="fv_gender_auto_toggle",
-                    help="Automatically detect gender from face image and suggest matching voice",
-                )
-            
-            if gender_auto and face_available:
-                with col_g2:
-                    if st.button("🔍 Detect Now", key="fv_detect_gender_btn", width="stretch"):
-                        with st.spinner("Analyzing face image for gender..."):
-                            detected = detect_gender_from_image(face_uploaded)
-                            if detected:
-                                st.session_state["fv_detected_gender"] = detected
-                                st.session_state["fv_gender_auto"] = True
-                                st.toast(f"Gender detected: {detected.title()}")
-                                st.rerun()
-                            else:
-                                st.warning("Could not detect gender. Please select manually.")
-                                st.session_state["fv_gender_auto"] = False
-            
-            detected_gender = st.session_state.get("fv_detected_gender")
-            if gender_auto and detected_gender and face_available:
-                auto_voice = get_default_face_voice_for_gender(st.session_state.get("fv_detected_age", 25), detected_gender)
-                st.session_state["fv_auto_selected_voice"] = auto_voice
-                st.session_state["face_voice_model"] = auto_voice
-                emoji = "👨" if detected_gender == 'male' else "👩"
-                st.markdown(f"""<div style='background: rgba(69,243,255,0.08); border: 1px solid rgba(69,243,255,0.2); 
-                    border-radius: 8px; padding: 8px 12px; margin: 5px 0; display: flex; align-items: center; gap: 8px;'>
-                    <span style='font-size: 18px;'>{emoji}</span>
-                    <span style='color: #45f3ff; font-size: 13px; font-weight: 500;'>
-                        Detected: <strong>{detected_gender.title()}</strong>
-                    </span>
-                </div>""", unsafe_allow_html=True)
-                
-                recommended_voices = get_gender_based_voice_recommendation(detected_gender, fv_voice_language)
-                if recommended_voices:
-                    fv_voice_options = recommended_voices
-                else:
-                    fv_voice_options = _resolve_face_voice_config(voice_language=fv_voice_language).get("available_voices", [])
-            else:
-                if gender_auto and not face_available:
-                    st.caption("📷 Upload a face image first to enable auto gender detection")
-                fv_voice_options = _resolve_face_voice_config(voice_language=fv_voice_language).get("available_voices", [])
-            
+            fv_voice_options = _resolve_face_voice_config(
+                voice_language=fv_voice_language
+            ).get("available_voices", [])
             fv_current_voice = st.session_state.get("face_voice_model")
             if fv_current_voice not in fv_voice_options:
                 fv_current_voice = fv_voice_options[0] if fv_voice_options else "Adam (Premium Male)"
-            
-            recommended_list = st.session_state.get("fv_voice_recommended_list", [])
-            rec_note = f" 💡 {st.session_state.get('fv_voice_module_key', '')} rec: {', '.join(recommended_list[:3])}" if (gender_auto and recommended_list) else ""
-            manual_label = "Voice Model (Manual Override)" if (gender_auto and detected_gender and face_available) else "Voice Model"
             fv_voice_model = st.selectbox(
-                manual_label,
+                "Voice Model",
                 fv_voice_options,
                 index=fv_voice_options.index(fv_current_voice) if fv_voice_options and fv_current_voice in fv_voice_options else 0,
                 key="fv_voice_model",
             )
-            
-            if gender_auto != st.session_state.get("fv_gender_auto", True):
-                st.session_state["fv_gender_auto"] = gender_auto
             st.markdown("---")
             face_prompt = st.text_area("Video Description / Script (for lip sync):", placeholder="Describe what the person should say: e.g. Hello everyone! Welcome to my channel. Today we're going to explore the mysteries of the universe...", height=100, key="fv_prompt")
             st.write("")
             if st.button("👤 Generate Face Video", key="fv_generate_btn", width="stretch"):
                 if not require_login_for_generation("Face Video Mode"):
                     st.stop()
-                # Validate face image before scanning
-                face_img_for_scan = st.session_state.get("face_image_upload")
-                if face_img_for_scan is not None:
-                    # Check if path exists (for string paths) or if file is UploadedFile
-                    is_valid = False
-                    if isinstance(face_img_for_scan, str):
-                        is_valid = os.path.exists(face_img_for_scan)
-                    else:
-                        is_valid = True  # UploadedFile objects are valid
-                    
-                    if is_valid and st.session_state.get("fv_gender_auto", True):
-                        with st.spinner("🔍 DeepFace AI scanning face (age + gender)..."):
-                            try:
-                                detected = detect_gender_from_image(face_img_for_scan)
-                                if detected:
-                                    cat = st.session_state.get("fv_detected_category", "Unknown")
-                                    age = st.session_state.get("fv_detected_age", "?")
-                                    voice = st.session_state.get("fv_auto_selected_voice", "Default")
-                                    st.toast(f"Scan: {cat} (Age: {age}) -> Voice: {voice}")
-                                else:
-                                    st.toast("Face scan fallback: Using default voice based on selection.", icon="🤖")
-                            except Exception as scan_err:
-                                logger.warning(f"Generate-time face scan error: {scan_err}")
-                                st.toast("Face scan unavailable. Using default voice.", icon="🤖")
                 
                 face_word_count = len(face_prompt.split())
                 if face_word_count > 120:
@@ -13582,18 +13357,18 @@ def run_unified_face_video_mode():
         }
         
         /* ============================================
-           SELECT BOX - DARK
+           SELECT BOX - LIGHT STUDIO THEME
            ============================================ */
         .stSelectbox > div,
         div[data-testid="stSelectbox"] > div {
-            background: #0a0a12 !important;
-            border: 1px solid rgba(255,255,255,0.06) !important;
+            background: #ffffff !important;
+            border: 1px solid #cbd8d5 !important;
             border-radius: 10px !important;
         }
         .stSelectbox select,
         div[data-testid="stSelectbox"] select {
-            background: #0a0a12 !important;
-            color: #e0e0e0 !important;
+            background: #ffffff !important;
+            color: #202b2c !important;
             border: none !important;
             border-radius: 10px !important;
             font-family: 'Inter', sans-serif !important;
@@ -13602,41 +13377,41 @@ def run_unified_face_video_mode():
         }
         .stSelectbox select:focus,
         div[data-testid="stSelectbox"] select:focus {
-            border-color: #EC4899 !important;
+            border-color: #36c7c1 !important;
             outline: none !important;
         }
         
         /* Selectbox Dropdown Menu */
         div[data-baseweb="select"] {
-            background: #0a0a12 !important;
-            border: 1px solid rgba(255,255,255,0.06) !important;
+            background: #ffffff !important;
+            border: 1px solid #cbd8d5 !important;
             border-radius: 10px !important;
         }
         div[data-baseweb="select"] > div {
-            background: #0a0a12 !important;
+            background: #ffffff !important;
         }
         div[data-baseweb="select"] input {
-            background: #0a0a12 !important;
-            color: #e0e0e0 !important;
+            background: #ffffff !important;
+            color: #202b2c !important;
         }
         ul[data-baseweb="menu"] {
-            background: #0f0f1a !important;
-            border: 1px solid rgba(255,255,255,0.06) !important;
+            background: #ffffff !important;
+            border: 1px solid #dce5e2 !important;
             border-radius: 10px !important;
         }
         ul[data-baseweb="menu"] li {
-            background: #0f0f1a !important;
-            color: #e0e0e0 !important;
+            background: #ffffff !important;
+            color: #354345 !important;
             font-family: 'Inter', sans-serif !important;
             font-size: 13px !important;
         }
         ul[data-baseweb="menu"] li:hover {
-            background: rgba(236,72,153,0.1) !important;
-            color: #FFFFFF !important;
+            background: rgba(54,199,193,0.16) !important;
+            color: #153438 !important;
         }
         ul[data-baseweb="menu"] li[aria-selected="true"] {
-            background: rgba(236,72,153,0.15) !important;
-            color: #EC4899 !important;
+            background: rgba(54,199,193,0.2) !important;
+            color: #153438 !important;
         }
         
         /* ============================================
@@ -13690,13 +13465,13 @@ def run_unified_face_video_mode():
         }
         
         /* ============================================
-           TEXT AREA - DARK
+           TEXT AREA - LIGHT STUDIO THEME
            ============================================ */
         .stTextArea textarea,
         div[data-testid="stTextArea"] textarea {
-            background: #0a0a12 !important;
-            color: #e0e0e0 !important;
-            border: 1px solid rgba(255,255,255,0.06) !important;
+            background: #ffffff !important;
+            color: #202b2c !important;
+            border: 1px solid #cbd8d5 !important;
             border-radius: 10px !important;
             font-family: 'Inter', sans-serif !important;
             font-size: 13px !important;
@@ -13705,12 +13480,12 @@ def run_unified_face_video_mode():
         }
         .stTextArea textarea::placeholder,
         div[data-testid="stTextArea"] textarea::placeholder {
-            color: #64748b !important;
+            color: #718082 !important;
         }
         .stTextArea textarea:focus,
         div[data-testid="stTextArea"] textarea:focus {
-            border-color: #EC4899 !important;
-            box-shadow: 0 0 20px rgba(236,72,153,0.08) !important;
+            border-color: #36c7c1 !important;
+            box-shadow: 0 0 0 1px #36c7c1 !important;
             outline: none !important;
         }
         
@@ -13837,10 +13612,10 @@ def run_unified_face_video_mode():
     # HEADER
     # ============================================
     st.markdown("""
-    <div class="face-header">
+    <div class="face-header studio-mode-photo-hero--face">
         <span class="badge">👤 AI AVATAR</span>
         <h2>Global <span class="highlight">Face Video</span> Studio</h2>
-        <p>Upload photo • Enter script • Generate talking face video from cloud</p>
+        <p>Upload photo • Enter script • Generate talking face video from zovix</p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -13855,7 +13630,7 @@ def run_unified_face_video_mode():
             st.markdown('<h4 class="face-title"><span style="color: #EC4899; !important;">🥶 ZOVIX FACE STUDIO</span></h4>', unsafe_allow_html=True)
             
             # Upload Face Photo
-            st.markdown('<p class="face-label">📷 Upload Face Photo</p>', unsafe_allow_html=True)
+            st.markdown('<p class="face-label">📷 Face Photo</p>', unsafe_allow_html=True)
             face_image_upload = st.file_uploader(
                 "Upload Face Photo",
                 type=['jpg', 'jpeg', 'png', 'webp'],
@@ -13868,18 +13643,37 @@ def run_unified_face_video_mode():
                 st.success(f"✅ {face_image_upload.name} uploaded successfully!")
                 st.image(st.session_state["unified_face_image_bytes"], caption="Uploaded Face", width="stretch")
             
-            # Script
-            st.markdown('<p class="face-label">📝 Dialogue / Script</p>', unsafe_allow_html=True)
-            face_prompt = st.text_area(
-                "Dialogue / Script",
-                placeholder="Type what the person should speak naturally...",
-                height=80,
-                max_chars=120,
-                key="unified_fv_prompt",
-                label_visibility="collapsed",
-                help="Starter plan allows max 120 characters (~10-12 seconds video)."
+            voice_source = st.radio(
+                "Dialogue voice source",
+                ["Generate voice from script", "Use my recorded voice"],
+                key="unified_fv_voice_source",
+                horizontal=True,
             )
-            st.caption(f"{len(face_prompt)}/120 characters")
+            recorded_voice_upload = None
+            if voice_source == "Generate voice from script":
+                st.markdown('<p class="face-label">📝 Dialogue / Script</p>', unsafe_allow_html=True)
+                face_prompt = st.text_area(
+                    "Dialogue / Script",
+                    placeholder="Type what the person should speak naturally...",
+                    height=80,
+                    max_chars=120,
+                    key="unified_fv_prompt",
+                    label_visibility="collapsed",
+                    help="Starter plan allows max 120 characters (~10-12 seconds video)."
+                )
+                st.caption(f"{len(face_prompt)}/120 characters")
+            else:
+                face_prompt = ""
+                st.markdown('<p class="face-label">🎙️ Upload your recorded dialogue</p>', unsafe_allow_html=True)
+                recorded_voice_upload = st.file_uploader(
+                    "Recorded voice audio",
+                    type=["mp3", "wav", "m4a", "ogg"],
+                    key="unified_fv_recorded_voice",
+                    label_visibility="collapsed",
+                    help="Upload your own spoken dialogue (MP3, WAV, M4A, or OGG; up to 10 seconds).",
+                )
+                if recorded_voice_upload:
+                    st.audio(recorded_voice_upload)
             
             # Duration & Quality
             col_f1, col_f2 = st.columns(2)
@@ -13906,110 +13700,162 @@ def run_unified_face_video_mode():
             # ============================================
             # 🎭 MANUAL VOICE SELECTION (Male/Female apne aap select karo)
             # ============================================
-            st.markdown('<p class="face-label">🎭 Voice Type (Choose Manually)</p>', unsafe_allow_html=True)
-            manual_voice_type = st.radio(
-                "Voice Type",
-                ["👨 Male Voice", "👩 Female Voice"],
-                index=0,
-                key="unified_fv_manual_voice_type",
-                label_visibility="collapsed",
-                horizontal=True
-            )
-            
-            if manual_voice_type == "👨 Male Voice":
-                male_voices = [v for v, m in ELEVENLABS_VOICES.items() if m.get('gender') == 'male']
-                manual_voice = st.selectbox(
-                    "Select Male Voice",
-                    male_voices,
-                    key="unified_fv_manual_voice",
-                    label_visibility="collapsed"
+            if voice_source == "Generate voice from script":
+                st.markdown('<p class="face-label">🎭 Choose voice manually</p>', unsafe_allow_html=True)
+                manual_voice_language = st.selectbox(
+                    "Voice language",
+                    ["English", "Hindi", "All Voices"],
+                    key="unified_fv_voice_language",
+                    label_visibility="collapsed",
                 )
-                st.session_state["fv_manual_voice_selected"] = manual_voice
-                st.session_state["fv_manual_voice_mode"] = "male"
-            elif manual_voice_type == "👩 Female Voice":
-                female_voices = [v for v, m in ELEVENLABS_VOICES.items() if m.get('gender') == 'female']
-                manual_voice = st.selectbox(
-                    "Select Female Voice",
-                    female_voices,
-                    key="unified_fv_manual_voice",
-                    label_visibility="collapsed"
+                manual_voice_type = st.radio(
+                    "Voice type",
+                    ["Male voice", "Female voice"],
+                    index=0,
+                    key="unified_fv_manual_voice_type",
+                    horizontal=True,
                 )
+                voice_options = _resolve_face_voice_config(
+                    voice_language=manual_voice_language
+                ).get("available_voices", [])
+                requested_gender = "male" if manual_voice_type == "Male voice" else "female"
+                gender_voice_options = [
+                    voice for voice in voice_options
+                    if ELEVENLABS_VOICES.get(voice, {}).get("gender") == requested_gender
+                ]
+                if not gender_voice_options:
+                    st.error(f"No {requested_gender} voices are available for {manual_voice_language}.")
+                    manual_voice = None
+                else:
+                    voice_widget_key = (
+                        "unified_fv_manual_voice_male"
+                        if requested_gender == "male"
+                        else "unified_fv_manual_voice_female"
+                    )
+                    manual_voice = st.selectbox(
+                        "Select voice",
+                        gender_voice_options,
+                        key=voice_widget_key,
+                        label_visibility="collapsed",
+                    )
                 st.session_state["fv_manual_voice_selected"] = manual_voice
-                st.session_state["fv_manual_voice_mode"] = "female"
+                st.session_state["fv_manual_voice_mode"] = requested_gender
+            else:
+                manual_voice_language = st.session_state.get("unified_fv_voice_language", "English")
+                manual_voice = None
             
-            st.markdown("<br>", unsafe_allow_html=True)
-
             st.markdown("<br>", unsafe_allow_html=True)
 
             # Generate Button - ComfyUI on RunPod Serverless ☁️
             if st.button("🌍 Generate Global Face Video", key="unified_fv_generate_btn", width="stretch"):
-                            if not require_login_for_generation("Face Video Mode"):
-                                st.stop()
-                            if not face_prompt or not face_prompt.strip():
-                                st.error("Kripya pehle text script likhein!")
-                            elif len(face_prompt.split()) > 120:
-                                st.error("Face video script maximum 120 words hai. Please script chhoti karein.")
-                            elif not face_image_upload:
-                                st.error("Please upload a face photo first.")
-                            else:
-                                # Save uploaded file to temp
-                                face_bytes = st.session_state.get("unified_face_image_bytes")
-                                temp_face_path = None
-                                if face_bytes:
-                                    temp_face_path = f"face_videos/temp_unified_face_{uuid.uuid4().hex[:8]}.png"
-                                    os.makedirs("face_videos", exist_ok=True)
-                                    with open(temp_face_path, 'wb') as f:
-                                        f.write(face_bytes)
-                    
-                                                                # Step 1: Token validation
-                                face_word_count = len(face_prompt.split())
-                                success, required_tokens, message = validate_and_deduct_tokens(
-                                    "Face Video Generator", quality, face_word_count
+                if not require_login_for_generation("Face Video Mode"):
+                    st.stop()
+                elif voice_source == "Generate voice from script" and not face_prompt.strip():
+                    st.error("Please enter dialogue or select recorded voice.")
+                elif voice_source == "Use my recorded voice" and not recorded_voice_upload:
+                    st.error("Please upload your recorded dialogue audio.")
+                elif voice_source == "Generate voice from script" and len(face_prompt.split()) > 120:
+                    st.error("Face video script maximum 120 words hai. Please script chhoti karein.")
+                elif not st.session_state.get("unified_face_image_bytes"):
+                    st.error("Please upload a face photo first.")
+                elif voice_source == "Generate voice from script" and not manual_voice:
+                    st.error("Please choose an available manual voice.")
+                else:
+                    os.makedirs("face_videos", exist_ok=True)
+                    temp_face_path = f"face_videos/temp_unified_face_{uuid.uuid4().hex[:8]}.png"
+                    temp_audio_path = None
+                    reserved_tokens = 0
+                    keep_face_file = False
+                    try:
+                        face_bytes = st.session_state["unified_face_image_bytes"]
+                        with open(temp_face_path, "wb") as face_file:
+                            face_file.write(face_bytes)
+
+                        prompt_for_history = face_prompt.strip()
+                        if voice_source == "Use my recorded voice":
+                            audio_suffix = os.path.splitext(recorded_voice_upload.name)[1].lower()
+                            if audio_suffix not in {".mp3", ".wav", ".m4a", ".ogg"}:
+                                raise ValueError("Use an MP3, WAV, M4A, or OGG recording.")
+                            temp_audio_path = f"face_videos/recorded_voice_{uuid.uuid4().hex[:8]}{audio_suffix}"
+                            with open(temp_audio_path, "wb") as audio_file:
+                                audio_file.write(recorded_voice_upload.getbuffer())
+                            if os.path.getsize(temp_audio_path) <= 1024:
+                                raise ValueError("The uploaded audio is empty or too small.")
+                            audio_duration = get_audio_duration(temp_audio_path)
+                            if audio_duration < 0.35:
+                                raise ValueError("The recording must be at least 0.35 seconds long.")
+                            if audio_duration > video_duration:
+                                raise ValueError(f"The recording must be {video_duration} seconds or shorter.")
+                            if not is_audio_audible(temp_audio_path):
+                                raise ValueError("No audible speech was detected in the uploaded recording.")
+                            prompt_for_history = f"Recorded voice: {recorded_voice_upload.name}"
+                            face_word_count = max(1, int(audio_duration * 5 + 0.999))
+                        else:
+                            face_word_count = len(face_prompt.split())
+
+                        success, required_tokens, message = validate_and_deduct_tokens(
+                            "Face Video Generator", quality, face_word_count
+                        )
+                        if not success:
+                            st.error(message)
+                        else:
+                            reserved_tokens = required_tokens
+                            st.success(f"✓ {message}")
+                            with st.spinner("Generating ZOVIX Face Video..."):
+                                video_url = generate_face_video(
+                                    prompt=face_prompt,
+                                    face_image_path=temp_face_path,
+                                    duration=video_duration,
+                                    quality=quality,
+                                    voice_language=manual_voice_language,
+                                    voice_label=manual_voice,
+                                    runpod_api_key=None,
+                                    audio_path=temp_audio_path,
                                 )
-                                if not success:
-                                    st.error(message)
-                                else:
-                                    st.success(f"✓ {message}")
-                        
-                                    # Step 2: Generate via ComfyUI on RunPod ☁️
-                                    with st.spinner("Generating ZOVIX Face Video..."):
-                                        try:
-                                                                                        # Manual voice only (auto voice type hata diya hai)
-                                            manual_voice_selected = st.session_state.get("fv_manual_voice_selected")
-                                            voice_to_use = manual_voice_selected or "Adam (Premium Male)"
-                                            video_url = generate_face_video(
-                                                prompt=face_prompt,
-                                                face_image_path=temp_face_path,
-                                                duration=video_duration,
-                                                quality=quality,
-                                                voice_language="English",
-                                                voice_label=voice_to_use,
-                                                runpod_api_key=None,
-                                            )
-                                
-                                            if video_url:
-                                                st.session_state["active_face_video_url"] = video_url
-                                                st.session_state["active_face_video"] = None  # Clear local path
-                                                timestamp = time.strftime("%Y%m%d_%H%M%S")
-                                                file_name = f"zovix_face_video_{quality.lower()}_{timestamp}.mp4"
-                                                save_face_video_to_db(
-                                                    st.session_state.get("logged_user", "guest"),
-                                                    file_name, face_prompt, video_url,
-                                                    temp_face_path or "", quality, required_tokens
-                                                )
-                                                st.session_state["face_video_history"] = load_face_video_history_db(st.session_state.get("logged_user", "guest"))
-                                                st.balloons()
-                                                _show_generation_success()
-                                                st.rerun()
-                                            else:
-                                                refund_face_video_credits(required_tokens, "Cloud face generation returned no video")
-                                                failure_reason = st.session_state.get("face_video_last_error", "Unknown generation error")
-                                                st.error(f"❌ Cloud generation failed. {failure_reason}")
-                                                st.info("Troubleshoot: verify RUNPOD_API_KEY is valid and the ComfyUI endpoint is reachable.")
-                                        except Exception as e:
-                                            refund_face_video_credits(required_tokens, str(e))
-                                            st.error(f"❌ Cloud Generation Error: {str(e)}")
-                                            logger.error(f"Unified face video error: {e}")
+
+                            if video_url:
+                                st.session_state["active_face_video_url"] = video_url
+                                st.session_state["active_face_video"] = None
+                                st.session_state["face_video_voice_source"] = (
+                                    f"Recorded voice: {recorded_voice_upload.name}"
+                                    if recorded_voice_upload
+                                    else f"AI voice: {manual_voice}"
+                                )
+                                timestamp = time.strftime("%Y%m%d_%H%M%S")
+                                file_name = f"zovix_face_video_{quality.lower()}_{timestamp}.mp4"
+                                save_face_video_to_db(
+                                    st.session_state["logged_user"],
+                                    file_name, prompt_for_history, video_url,
+                                    temp_face_path, quality, required_tokens
+                                )
+                                st.session_state["face_video_history"] = load_face_video_history_db(
+                                    st.session_state["logged_user"]
+                                )
+                                keep_face_file = True
+                                st.balloons()
+                                _show_generation_success()
+                                st.rerun()
+                            else:
+                                refund_face_video_credits(
+                                    reserved_tokens,
+                                    "Cloud face generation returned no video",
+                                )
+                                reserved_tokens = 0
+                                failure_reason = st.session_state.get(
+                                    "face_video_last_error", "Unknown generation error"
+                                )
+                                st.error(f"❌ Cloud generation failed. {failure_reason}")
+                                st.info("Troubleshoot: verify RUNPOD_API_KEY is valid and the ComfyUI endpoint is reachable.")
+                    except Exception as exc:
+                        if reserved_tokens:
+                            refund_face_video_credits(reserved_tokens, str(exc))
+                        st.error(f"❌ Face video generation error: {exc}")
+                        logger.exception("Unified face video generation failed")
+                    finally:
+                        if not keep_face_file:
+                            safe_remove_file(temp_face_path)
+                        if temp_audio_path:
+                            safe_remove_file(temp_audio_path)
     
     with fv_col2:
         with st.container(border=True):
@@ -14025,6 +13871,9 @@ def run_unified_face_video_mode():
                 engine_used = st.session_state.get("face_video_engine_used", "Unknown")
                 runtime_mode = st.session_state.get("face_video_runtime_mode", "Unknown")
                 st.caption(f"⚡ Engine: {engine_used} | Runtime: {runtime_mode}")
+                voice_source_used = st.session_state.get("face_video_voice_source")
+                if voice_source_used:
+                    st.caption(f"🎙️ {voice_source_used}")
                 st.video(video_to_show, format="video/mp4", autoplay=False, loop=True, muted=False)
                 
                 col_dl, col_clr = st.columns(2)
@@ -14076,161 +13925,299 @@ def run_unified_face_video_mode():
 # 38. AUTH MODALS - IMPROVED
 # ========================================================
 
-@st.dialog("🔐 Security Gateway Node Access", width="small")
+@st.dialog("Welcome to ZOVIX", width="large")
 def show_auth_modal(mode="login"):
-    st.markdown(f"""
-        <div style="text-align: center; margin-bottom: 15px;">
-            <div style="font-family: 'Orbitron', sans-serif; font-size: 16px; color: #EC4899; text-transform: uppercase; letter-spacing: 1.5px;">
-                { '🔑 Sign In Portal' if mode == 'login' else '📝 Register Identity' }
-            </div>
-            <p style="font-size: 11px; color: #94a3b8; margin-top: 5px;">Secure access nodes dynamically configured.</p>
-        </div>
+    st.markdown("""
+        <style>
+        .stDialog > div {
+            width: min(1000px, calc(100vw - 32px)) !important;
+            max-width: min(1000px, calc(100vw - 32px)) !important;
+            overflow: hidden !important;
+            border: 1px solid #e4e8ed !important;
+            border-radius: 20px !important;
+            background: #fff !important;
+            box-shadow: 0 28px 90px rgba(18, 27, 38, .24) !important;
+        }
+        .stDialog section[role="dialog"] {
+            overflow: hidden !important;
+            border-radius: 20px !important;
+            background: #fff !important;
+        }
+        .stDialog section[role="dialog"] > div:last-child {
+            padding: 12px 20px 20px !important;
+            background: #fff !important;
+        }
+        .stDialog section[role="dialog"] > h2 {
+            padding: 16px 24px 0 !important;
+            color: #17212b !important;
+            font: 700 15px/1.3 'Inter', sans-serif !important;
+        }
+        .stDialog section[role="dialog"] > button[aria-label="Close"] {
+            top: 17px !important;
+            right: 19px !important;
+            color: #475569 !important;
+            background: #f1f3f5 !important;
+            border: 0 !important;
+        }
+        .stDialog section[role="dialog"] {
+            color: #202b2c !important;
+            background: #ffffff !important;
+            font-family: 'Inter', sans-serif !important;
+        }
+        .stDialog .zovix-auth-brand {
+            margin: 0 0 30px;
+            color: #111827 !important;
+            font: 800 25px/1 'Inter', sans-serif !important;
+            letter-spacing: -.06em !important;
+        }
+        .stDialog .zovix-auth-brand span {
+            color: #11a99e;
+            font-size: 12px;
+            letter-spacing: .12em;
+        }
+        .stDialog .zovix-auth-heading {
+            margin: 0 0 7px;
+            color: #17212b !important;
+            font: 700 24px/1.2 'Inter', sans-serif !important;
+        }
+        .stDialog .zovix-auth-subheading {
+            margin: 0 0 24px;
+            color: #697586 !important;
+            font: 400 13px/1.55 'Inter', sans-serif !important;
+        }
+        .stDialog [data-testid="stTextInput"] label {
+            color: #354345 !important;
+            font: 600 12px/1.4 'Inter', sans-serif !important;
+        }
+        .stDialog input {
+            color: #202b2c !important;
+            background: #fff !important;
+            border: 1px solid #d4dae2 !important;
+            border-radius: 9px !important;
+            font: 400 14px 'Inter', sans-serif !important;
+        }
+        .stDialog input::placeholder {
+            color: #7b8491 !important;
+            opacity: 1 !important;
+        }
+        .stDialog input:focus {
+            border-color: #17b5a9 !important;
+            box-shadow: 0 0 0 1px #17b5a9 !important;
+        }
+        .stDialog button[kind="secondary"] {
+            color: #fff !important;
+            background: #13aa9e !important;
+            border: 1px solid #13aa9e !important;
+            border-radius: 9px !important;
+            font: 600 13px 'Inter', sans-serif !important;
+        }
+        .stDialog button[kind="secondary"]:hover {
+            color: #fff !important;
+            background: #0d9488 !important;
+            border-color: #0d9488 !important;
+        }
+        .stDialog [data-testid="stTextInput"] button {
+            color: #475569 !important;
+            background: transparent !important;
+            border: 0 !important;
+        }
+        .zovix-auth-photo {
+            position: relative;
+            min-height: 530px;
+            height: 100%;
+            overflow: hidden;
+            border-radius: 14px;
+            background: #1c262c;
+            isolation: isolate;
+        }
+        .zovix-auth-photo img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: 54% center;
+        }
+        .zovix-auth-photo::after {
+            position: absolute;
+            z-index: 1;
+            inset: 0;
+            content: "";
+            background: linear-gradient(180deg, rgba(10, 16, 23, .02) 32%, rgba(10, 16, 23, .68) 100%);
+        }
+        .zovix-auth-photo-copy {
+            position: absolute;
+            z-index: 2;
+            right: 26px;
+            bottom: 28px;
+            left: 26px;
+            color: #fff;
+            font: 600 22px/1.25 'Inter', sans-serif;
+        }
+        .zovix-auth-photo-copy small {
+            display: block;
+            margin-bottom: 9px;
+            color: rgba(255,255,255,.84);
+            font: 700 10px/1.4 'Inter', sans-serif;
+            letter-spacing: .16em;
+            text-transform: uppercase;
+        }
+        @media (max-width: 700px) {
+            .stDialog > div {
+                width: calc(100vw - 20px) !important;
+                max-width: calc(100vw - 20px) !important;
+                max-height: calc(100dvh - 24px) !important;
+            }
+            .stDialog section[role="dialog"] > div:last-child {
+                max-height: calc(100dvh - 90px) !important;
+                overflow-y: auto !important;
+                padding: 10px 14px 16px !important;
+            }
+            .stDialog .zovix-auth-brand { margin-bottom: 22px; }
+            .zovix-auth-photo { min-height: 220px; }
+            .zovix-auth-photo-copy { right: 18px; bottom: 18px; left: 18px; font-size: 18px; }
+        }
+        </style>
     """, unsafe_allow_html=True)
-    
-    username_val = st.text_input("Username / Email", placeholder="Enter your username or email", key="auth_modal_username_input").strip()
-    password_val = st.text_input("Password", type="password", placeholder="Enter your password", key="auth_modal_password_input").strip()
-    st.write("")
-    
-    if mode == "login":
-        col_login, col_register = st.columns(2)
-        with col_login:
-            if st.button("🔑 Sign In", key="auth_modal_login_btn", width="stretch"):
-                # 🎯 Aapki asli keys se direct live data uthane ke liye fix
-                username_val = st.session_state.get("auth_modal_username_input", "").strip()
-                password_val = st.session_state.get("auth_modal_password_input", "").strip()
-                
-                if not username_val or not password_val:
-                    st.error("Please enter both username and password.")
-                else:
-                    auth_result, twofa_enabled = authenticate_user_db(username_val, password_val)
-                    if auth_result:
-                        username_val = resolve_account_username(username_val) or normalize_account_username(username_val)
-                        if twofa_enabled and HAS_2FA:
-                            st.session_state["2fa_temp_user"] = username_val
-                            st.session_state["show_2fa"] = True
-                            st.rerun()
+
+    form_col, photo_col = st.columns([0.94, 1.06], gap="large")
+    with form_col:
+        st.markdown(
+            "<div class='zovix-auth-brand'>ZOVIX<span>.PRO</span></div>"
+            f"<h3 class='zovix-auth-heading'>{'Sign in to your account' if mode == 'login' else 'Create your account'}</h3>"
+            "<p class='zovix-auth-subheading'>Your creative studio is ready when you are.</p>",
+            unsafe_allow_html=True,
+        )
+
+        username_val = st.text_input(
+            "Username / Email",
+            placeholder="Enter your username or email",
+            key="auth_modal_username_input",
+        ).strip()
+        password_val = st.text_input(
+            "Password",
+            type="password",
+            placeholder="Enter your password",
+            key="auth_modal_password_input",
+        ).strip()
+        st.write("")
+
+        if mode == "login":
+            col_login, col_register = st.columns(2)
+            with col_login:
+                if st.button("Sign In", key="auth_modal_login_btn", width="stretch"):
+                    username_val = st.session_state.get("auth_modal_username_input", "").strip()
+                    password_val = st.session_state.get("auth_modal_password_input", "").strip()
+
+                    if not username_val or not password_val:
+                        st.error("Please enter both username and password.")
+                    else:
+                        auth_result, twofa_enabled = authenticate_user_db(username_val, password_val)
+                        if auth_result:
+                            username_val = resolve_account_username(username_val) or normalize_account_username(username_val)
+                            if twofa_enabled and HAS_2FA:
+                                st.session_state["2fa_temp_user"] = username_val
+                                st.session_state["show_2fa"] = True
+                                st.rerun()
+                            else:
+                                st.session_state["is_logged_in"] = True
+                                st.session_state["logged_user"] = username_val
+                                preload_logged_in_user_data(username_val)
+                                st.session_state["current_page"] = "studio"
+                                st.query_params["page"] = "studio"
+
+                                if st.session_state.get("auth_redirect_mode"):
+                                    st.session_state["studio_active_mode"] = st.session_state["auth_redirect_mode"]
+                                    st.session_state["current_workspace_mode"] = st.session_state["auth_redirect_mode"]
+
+                                check_and_refresh_subscription(username_val)
+
+                                if st.session_state.get("pending_credits", 0) > 0 and not st.session_state.get("pending_payment_callback"):
+                                    pending_amt = st.session_state["pending_credits"]
+                                    if add_credits(username_val, pending_amt):
+                                        st.session_state["user_credits"] = get_user_credits_db(username_val)
+                                        st.session_state["credit_balance"] = st.session_state["user_credits"]
+                                        st.success(f"✅ Added {pending_amt} credits from pending payment!")
+                                    else:
+                                        logger.error(f"[TOKEN TXN] Failed to reconcile pending_credits={pending_amt} for {username_val!r} on login")
+                                        st.warning("⚠️ Pending payment credits could not be saved. Please contact support.")
+                                    st.session_state["pending_credits"] = 0
+                                    st.session_state["pending_pack_name"] = ""
+                                    st.session_state["payment_verified"] = False
+
+                                if not gdpr_manager.get_consent(username_val):
+                                    gdpr_manager.set_consent(username_val)
+
+                                st.toast(f"Welcome back, {username_val}! 🎉")
+                                st.rerun()
+                        elif auth_result is None:
+                            st.error("Login service is unavailable. Please check the database connection and try again.")
                         else:
+                            st.error("❌ Invalid username or password. Please try again.")
+
+            with col_register:
+                if st.button("Register", key="auth_modal_register_btn", width="stretch"):
+                    if not username_val or not password_val:
+                        st.error("Please enter both username and password.")
+                    elif len(password_val) < 4:
+                        st.error("Password must be at least 4 characters long.")
+                    else:
+                        registration_result = register_user_db(username_val, password_val)
+                        if registration_result:
+                            username_val = normalize_account_username(username_val)
                             st.session_state["is_logged_in"] = True
                             st.session_state["logged_user"] = username_val
-                            preload_logged_in_user_data(username_val)
+                            st.session_state["xp_points"] = 0
+                            st.session_state["creator_level"] = 1
+                            st.session_state["history_renders"] = []
+                            st.session_state["face_video_history"] = []
                             st.session_state["current_page"] = "studio"
-                            
+                            st.query_params["page"] = "studio"
+                            st.session_state["user_credits"] = 0
+                            st.session_state["credit_balance"] = 0
+                            preload_logged_in_user_data(username_val)
+
                             if st.session_state.get("auth_redirect_mode"):
                                 st.session_state["studio_active_mode"] = st.session_state["auth_redirect_mode"]
                                 st.session_state["current_workspace_mode"] = st.session_state["auth_redirect_mode"]
-                            
-                            check_and_refresh_subscription(username_val)
-                            
-                            if st.session_state.get("pending_credits", 0) > 0 and not st.session_state.get("pending_payment_callback"):
-                                pending_amt = st.session_state["pending_credits"]
-                                if add_credits(username_val, pending_amt):
-                                    st.session_state['user_credits'] = get_user_credits_db(username_val)
-                                    st.session_state['credit_balance'] = st.session_state['user_credits']
-                                    st.success(f"✅ Added {pending_amt} credits from pending payment!")
-                                else:
-                                    logger.error(f"[TOKEN TXN] Failed to reconcile pending_credits={pending_amt} for {username_val!r} on login")
-                                    st.warning("⚠️ Pending payment credits could not be saved. Please contact support.")
-                                st.session_state["pending_credits"] = 0
-                                st.session_state["pending_pack_name"] = ""
-                                st.session_state["payment_verified"] = False
-                            
-                            if not gdpr_manager.get_consent(username_val):
-                                gdpr_manager.set_consent(username_val)
-                            
-                            st.toast(f"Welcome back, {username_val}! 🎉")
-                            st.rerun()
-                    else:
-                        st.error("❌ Invalid username or password. Please try again.")
-        
-        with col_register:
-            if st.button("📝 Register", key="auth_modal_register_btn", width="stretch"):
-                if not username_val or not password_val:
-                    st.error("Please enter both username and password.")
-                elif len(password_val) < 4:
-                    st.error("Password must be at least 4 characters long.")
-                else:
-                    if register_user_db(username_val, password_val):
-                        username_val = normalize_account_username(username_val)
-                        st.session_state["is_logged_in"] = True
-                        st.session_state["logged_user"] = username_val
-                        st.session_state["xp_points"] = 0
-                        st.session_state["creator_level"] = 1
-                        st.session_state["history_renders"] = []
-                        st.session_state["face_video_history"] = []
-                        st.session_state["current_page"] = "studio"
-                        st.session_state['user_credits'] = 0
-                        st.session_state['credit_balance'] = 0
-                        preload_logged_in_user_data(username_val)
-                        
-                        if st.session_state.get("auth_redirect_mode"):
-                            st.session_state["studio_active_mode"] = st.session_state["auth_redirect_mode"]
-                            st.session_state["current_workspace_mode"] = st.session_state["auth_redirect_mode"]
-                        
-                        check_and_refresh_subscription(username_val)
-                        gdpr_manager.set_consent(username_val)
-                        
-                        st.toast(f"Welcome to ZOVIX, {username_val}! 🚀")
-                        st.rerun()
-                    else:
-                        st.error("Registration failed. Please try a different username.")
-        
-        st.markdown("<div style='text-align:center; font-size:10px; color:#64748b; margin: 15px 0;'>OR SIGN IN WITH SOCIAL PLATFORMS</div>", unsafe_allow_html=True)
-        col_g, col_f = st.columns(2)
-        with col_g:
-            if st.button("🔵 Google", key="modal_social_g", width="stretch"):
-                st.session_state["active_social_login"] = "Google"
-        with col_f:
-            if st.button("🔵 Facebook", key="modal_social_f", width="stretch"):
-                st.session_state["active_social_login"] = "Facebook"
 
-        if "active_social_login" in st.session_state:
-            social_login_dialog_box(st.session_state["active_social_login"])
+                            check_and_refresh_subscription(username_val)
+                            gdpr_manager.set_consent(username_val)
+
+                            st.toast(f"Welcome to ZOVIX, {username_val}! 🚀")
+                            st.rerun()
+                        elif registration_result is None:
+                            st.error("Registration service is unavailable. Please check the database connection and try again.")
+                        else:
+                            st.error("Registration failed. Please try a different username.")
+
+            st.markdown(
+                "<div style='text-align:center; font-size:10px; color:#7b8491; margin: 18px 0 12px;'>OR CONTINUE WITH</div>",
+                unsafe_allow_html=True,
+            )
+            col_g, col_f = st.columns(2)
+            with col_g:
+                if st.button("Google", key="modal_social_g", width="stretch"):
+                    st.session_state["active_social_login"] = "Google"
+            with col_f:
+                if st.button("Facebook", key="modal_social_f", width="stretch"):
+                    st.session_state["active_social_login"] = "Facebook"
+
+            if "active_social_login" in st.session_state:
+                social_login_dialog_box(st.session_state["active_social_login"])
+
+    with photo_col:
+        st.markdown(
+            "<div class='zovix-auth-photo'>"
+            "<img src='https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?auto=format&amp;fit=crop&amp;w=1100&amp;q=90' "
+            "alt='Cinematic portrait for the ZOVIX creative studio'>"
+            "<div class='zovix-auth-photo-copy'><small>Imagine. Create. Share.</small>Make your next idea impossible to ignore.</div>"
+            "</div>",
+            unsafe_allow_html=True,
+        )
 
 def social_login_dialog_box(platform):
-    st.markdown(f"""
-        <div style="background: rgba(18, 19, 26, 0.95); padding: 5px; border-radius: 12px; text-align: center;">
-            <div style="font-family: 'Orbitron', sans-serif; font-size: 14px; color: #FFC0CB; margin-bottom: 10px; letter-spacing: 1px; text-transform: uppercase;">Login with {platform}</div>
-            <p style="font-size:12px; color:#94a3b8; margin-bottom:15px;">Enter your email to continue</p>
-        </div>
-    """, unsafe_allow_html=True)
-    social_email = st.text_input("Email Address", placeholder="yourname@gmail.com", key="social_email_input").strip()
-    st.write("")
-    if st.button("Authenticate & Log In", key="social_confirm_btn", width="stretch"):
-        if social_email and "@" in social_email:
-            social_email = normalize_account_username(social_email)
-            success = login_or_register_social(social_email, platform)
-            if success:
-                st.session_state["is_logged_in"] = True
-                st.session_state["logged_user"] = social_email
-                preload_logged_in_user_data(social_email)
-                st.session_state["current_page"] = "studio"
-                
-                if st.session_state.get("auth_redirect_mode"):
-                    st.session_state["studio_active_mode"] = st.session_state["auth_redirect_mode"]
-                    st.session_state["current_workspace_mode"] = st.session_state["auth_redirect_mode"]
-                
-                check_and_refresh_subscription(social_email)
-                
-                if st.session_state.get("pending_credits", 0) > 0 and not st.session_state.get("pending_payment_callback"):
-                    pending_amt = st.session_state["pending_credits"]
-                    if add_credits(social_email, pending_amt):
-                        st.session_state['user_credits'] = get_user_credits_db(social_email)
-                        st.session_state['credit_balance'] = st.session_state['user_credits']
-                        st.success(f"✅ Added {pending_amt} credits from pending payment!")
-                    else:
-                        logger.error(f"[TOKEN TXN] Failed to reconcile pending_credits={pending_amt} for {social_email!r} on social login")
-                        st.warning("⚠️ Pending payment credits could not be saved. Please contact support.")
-                    st.session_state["pending_credits"] = 0
-                    st.session_state["pending_pack_name"] = ""
-                    st.session_state["payment_verified"] = False
-                
-                gdpr_manager.set_consent(social_email)
-                st.toast(f"Logged in successfully via {platform}! 🎉")
-                st.rerun()
-            else:
-                st.error("Authentication failed. Please try again.")
-        else:
-            st.error("Please enter a valid email address.")
+    st.warning(f"{platform} sign-in is not configured. Verified {platform} OAuth credentials are required; entering an email alone cannot authenticate a provider account.")
 
 @st.dialog("🔐 Two-Factor Authentication", width="small")
 def show_2fa_modal():
@@ -14315,6 +14302,7 @@ def show_2fa_modal():
                                 st.session_state["logged_user"] = username
                                 preload_logged_in_user_data(username)
                                 st.session_state["current_page"] = "studio"
+                                st.query_params["page"] = "studio"
                                 
                                 if st.session_state.get("auth_redirect_mode"):
                                     st.session_state["studio_active_mode"] = st.session_state["auth_redirect_mode"]
@@ -14581,13 +14569,13 @@ def run_cinematic_engine():
         }
         
         /* ============================================
-           PROMPT BOX - DARK
+           PROMPT BOX - LIGHT STUDIO THEME
            ============================================ */
         .stTextArea textarea,
         div[data-testid="stTextArea"] textarea {
-            background: #0a0a12 !important;
-            color: #e0e0e0 !important;
-            border: 1px solid rgba(255,255,255,0.06) !important;
+            background: #ffffff !important;
+            color: #202b2c !important;
+            border: 1px solid #cbd8d5 !important;
             border-radius: 10px !important;
             font-family: 'Inter', sans-serif !important;
             font-size: 13px !important;
@@ -14596,28 +14584,28 @@ def run_cinematic_engine():
         }
         .stTextArea textarea::placeholder,
         div[data-testid="stTextArea"] textarea::placeholder {
-            color: #64748b !important;
+            color: #718082 !important;
         }
         .stTextArea textarea:focus,
         div[data-testid="stTextArea"] textarea:focus {
-            border-color: #EC4899 !important;
-            box-shadow: 0 0 20px rgba(236,72,153,0.08) !important;
+            border-color: #36c7c1 !important;
+            box-shadow: 0 0 0 1px #36c7c1 !important;
             outline: none !important;
         }
         
         /* ============================================
-           SELECT BOX (DROPDOWN) - DARK
+           SELECT BOX (DROPDOWN) - LIGHT STUDIO THEME
            ============================================ */
         .stSelectbox > div,
         div[data-testid="stSelectbox"] > div {
-            background: #0a0a12 !important;
-            border: 1px solid rgba(255,255,255,0.06) !important;
+            background: #ffffff !important;
+            border: 1px solid #cbd8d5 !important;
             border-radius: 10px !important;
         }
         .stSelectbox select,
         div[data-testid="stSelectbox"] select {
-            background: #0a0a12 !important;
-            color: #e0e0e0 !important;
+            background: #ffffff !important;
+            color: #202b2c !important;
             border: none !important;
             border-radius: 10px !important;
             font-family: 'Inter', sans-serif !important;
@@ -14626,41 +14614,41 @@ def run_cinematic_engine():
         }
         .stSelectbox select:focus,
         div[data-testid="stSelectbox"] select:focus {
-            border-color: #EC4899 !important;
+            border-color: #36c7c1 !important;
             outline: none !important;
         }
         
         /* Selectbox Dropdown Menu */
         div[data-baseweb="select"] {
-            background: #0a0a12 !important;
-            border: 1px solid rgba(255,255,255,0.06) !important;
+            background: #ffffff !important;
+            border: 1px solid #cbd8d5 !important;
             border-radius: 10px !important;
         }
         div[data-baseweb="select"] > div {
-            background: #0a0a12 !important;
+            background: #ffffff !important;
         }
         div[data-baseweb="select"] input {
-            background: #0a0a12 !important;
-            color: #e0e0e0 !important;
+            background: #ffffff !important;
+            color: #202b2c !important;
         }
         ul[data-baseweb="menu"] {
-            background: #0f0f1a !important;
-            border: 1px solid rgba(255,255,255,0.06) !important;
+            background: #ffffff !important;
+            border: 1px solid #dce5e2 !important;
             border-radius: 10px !important;
         }
         ul[data-baseweb="menu"] li {
-            background: #0f0f1a !important;
-            color: #e0e0e0 !important;
+            background: #ffffff !important;
+            color: #354345 !important;
             font-family: 'Inter', sans-serif !important;
             font-size: 13px !important;
         }
         ul[data-baseweb="menu"] li:hover {
-            background: rgba(236,72,153,0.1) !important;
-            color: #FFFFFF !important;
+            background: rgba(54,199,193,0.16) !important;
+            color: #153438 !important;
         }
         ul[data-baseweb="menu"] li[aria-selected="true"] {
-            background: rgba(236,72,153,0.15) !important;
-            color: #EC4899 !important;
+            background: rgba(54,199,193,0.2) !important;
+            color: #153438 !important;
         }
         
         /* ============================================
@@ -14826,12 +14814,18 @@ def run_cinematic_engine():
            COMPACT LABEL - DARK
            ============================================ */
         .compact-label {
-            font-family: 'Orbitron', sans-serif !important;
-            font-size: 11px !important;
-            color: #94a3b8 !important;
-            letter-spacing: 1.5px !important;
+            display: inline-block !important;
+            padding: 8px 12px !important;
+            color: #153438 !important;
+            background: rgba(54, 199, 193, .14) !important;
+            border-left: 4px solid #36c7c1 !important;
+            border-radius: 6px !important;
+            font-family: 'Inter', sans-serif !important;
+            font-size: 14px !important;
+            font-weight: 800 !important;
+            letter-spacing: .2px !important;
             text-transform: uppercase !important;
-            margin: 12px 0 6px 0 !important;
+            margin: 12px 0 10px 0 !important;
         }
         
         /* ============================================
@@ -14874,7 +14868,7 @@ def run_cinematic_engine():
     # HEADER
     # ============================================
     st.markdown("""
-    <div class="cinematic-header">
+    <div class="cinematic-header studio-mode-photo-hero--cinematic">
         <span class="badge">🎬 AI-POWERED</span>
         <h2>Cinematic <span class="highlight">Engine</span></h2>
         <p>Transform your ideas into professional cinematic videos with AI</p>
@@ -15391,6 +15385,54 @@ def show_confirm_delete_dialog():
             st.rerun()
         else:
             st.error("Failed to delete data. Please contact support.")
+
+
+def show_engine_technical_specs_and_policies():
+    st.markdown("<br>", unsafe_allow_html=True)
+    with st.expander("ℹ Engine Technical Specs & Policies", expanded=False):
+        st.markdown("<h4 style='font-family:Orbitron; font-size:13px; color:#ffffff; margin-bottom: 12px;'>🚀 INTEGRATED WORKFLOW PIPELINE</h4>", unsafe_allow_html=True)
+        col_step1, col_step2, col_step3 = st.columns(3)
+        with col_step1:
+            st.markdown("""
+                <div style="background: rgba(18, 19, 26, 0.85); border: 1px solid rgba(255, 192, 203, 0.12); border-radius: 12px; padding: 12px; height: 100%;">
+                    <div style="font-size: 16px; font-weight: bold; color: #ffd700; margin-bottom: 8px; font-family: 'Orbitron';">01</div>
+                    <h5 style="color: #ffffff; font-family: Orbitron; font-size: 11px; margin-bottom: 6px;">1. Structured Scripting</h5>
+                    <p style="color: #EC4899; font-size: 10px; line-height: 1.5;">Constructs structured scripts with scene-by-scene keyword parameters using the LLM engine.</p>
+                </div>
+            """, unsafe_allow_html=True)
+        with col_step2:
+            st.markdown("""
+                <div style="background: rgba(18, 19, 26, 0.85); border: 1px solid rgba(255, 192, 203, 0.12); border-radius: 12px; padding: 12px; height: 100%;">
+                    <div style="font-size: 16px; font-weight: bold; color: #ffd700; margin-bottom: 8px; font-family: 'Orbitron';">02</div>
+                    <h5 style="color: #ffffff; font-family: Orbitron; font-size: 11px; margin-bottom: 6px;">2. Voice Segment Synthetics</h5>
+                    <p style="color: #EC4899; font-size: 10px; line-height: 1.5;">Generates specific voice streams per scene block and calculates precise audio timelines.</p>
+                </div>
+            """, unsafe_allow_html=True)
+        with col_step3:
+            st.markdown("""
+                <div style="background: rgba(18, 19, 26, 0.85); border: 1px solid rgba(255, 192, 203, 0.12); border-radius: 12px; padding: 12px; height: 100%;">
+                    <div style="font-size: 16px; font-weight: bold; color: #ffd700; margin-bottom: 8px; font-family: 'Orbitron';">03</div>
+                    <h5 style="color: #ffffff; font-family: Orbitron; font-size: 11px; margin-bottom: 6px;">3. Multi-Scene Stitching</h5>
+                    <p style="color: #EC4899; font-size: 10px; line-height: 1.5;">Trims visual assets to matching segment runtimes and compiles them together into final outputs.</p>
+                </div>
+            """, unsafe_allow_html=True)
+        st.markdown("<hr style='border-color: rgba(255,255,255,0.06); margin: 15px 0;'>", unsafe_allow_html=True)
+        st.markdown("<h4 style='font-family:Orbitron; font-size:13px; color:#ffffff; margin-bottom: 12px;'>🚨 DISCLAIMER & PLATFORM POLICIES</h4>", unsafe_allow_html=True)
+        disc_col1, disc_col2 = st.columns(2)
+        with disc_col1:
+            st.markdown("""
+                <div style="background: rgba(18, 19, 26, 0.85); border: 1px solid rgba(255, 192, 203, 0.12); border-radius: 12px; padding: 12px; height: 100%;">
+                    <h5 style="color: #EC4899; font-family: Orbitron; font-size: 10px; margin-bottom: 8px;">Generative Media Policy</h5>
+                    <p style="color: #EC4899; font-size: 10px; line-height: 1.5;">ZOVIX operates as an automated synthesis tool. We do not claim ownership over stock materials retrieved from third-party APIs.</p>
+                </div>
+            """, unsafe_allow_html=True)
+        with disc_col2:
+            st.markdown("""
+                <div style="background: rgba(18, 19, 26, 0.85); border: 1px solid rgba(255, 192, 203, 0.12); border-radius: 12px; padding: 12px; height: 100%;">
+                    <h5 style="color: #EC4899; font-family: Orbitron; font-size: 10px; margin-bottom: 8px;">Usage & Credit Terms</h5>
+                    <p style="color: #EC4899; font-size: 10px; line-height: 1.5;">Access to processing nodes requires active credits. Standard 720p generations consume 1 credit.</p>
+                </div>
+            """, unsafe_allow_html=True)
 
 
 def show_privacy_policy():
@@ -16124,9 +16166,32 @@ def handle_engine_access_request(mode_value: str):
 
     st.session_state["studio_active_mode"] = mode_value
     st.session_state["current_workspace_mode"] = mode_value
+    st.session_state["current_page"] = "studio_mode"
+    st.query_params["page"] = "studio_mode"
     st.session_state["auth_redirect_mode"] = None
     st.rerun()
     return True
+
+
+def render_active_studio_mode():
+    active_mode = st.session_state["studio_active_mode"]
+    mode_renderers = {
+        "Cinematic Engine": run_cinematic_engine,
+        "Creative Workshop Mode": run_creative_workshop,
+        "Blueprints Mode": run_blueprints_mode,
+        "Upscaler Mode": run_upscaler_mode,
+        "Draw Mode": run_draw_mode,
+        "Video Editor Mode": run_video_editor_mode,
+        "Face Video Mode": run_unified_face_video_mode,
+        "Expressive Face Video Mode": run_unified_face_video_mode,
+        "AI Agent Mode": render_ai_agent_ui,
+        "AI Sales Mode": render_ai_sales_ui,
+        "Dynamic UI Mode": generate_dynamic_ui,
+        "Live Emotion Mode": render_live_emotion_voice,
+    }
+    renderer = mode_renderers.get(active_mode)
+    if renderer is not None:
+        renderer()
 
 
 def require_login_for_generation(mode_value: str = "") -> bool:
@@ -16137,6 +16202,239 @@ def require_login_for_generation(mode_value: str = "") -> bool:
         st.session_state["auth_redirect_mode"] = mode_value
     show_auth_modal("login")
     return False
+
+
+def render_sub_user_access_section():
+    st.markdown("<h4 style='font-family: Orbitron; color: #EC4899;'>👥 SUB-USER ACCESS MANAGEMENT</h4>", unsafe_allow_html=True)
+    sub_col1, sub_col2 = st.columns([1.1, 1.4], gap="medium")
+    with sub_col1:
+        with st.container(border=True):
+            st.markdown("<h4 style='font-family: Orbitron; font-size: 13px; color: #EC4899; margin-bottom: 15px;'>➕ ADD NEW LINKED SUB-USER</h4>", unsafe_allow_html=True)
+            new_sub_user_id = st.text_input("Sub-User Email/ID:", placeholder="friend@zovix.ai", key="add_sub_user_text_input").strip()
+            st.write("")
+            if st.button("Link Sub-User Account", key="link_sub_user_action_btn", width="stretch"):
+                if not new_sub_user_id:
+                    st.error("Provide a valid ID configuration.")
+                else:
+                    succ, msg = add_sub_user_db(st.session_state["logged_user"], new_sub_user_id)
+                    if succ:
+                        st.success(msg)
+                        time.sleep(0.1)
+                        st.rerun()
+                    else:
+                        st.error(msg)
+    with sub_col2:
+        with st.container(border=True):
+            st.markdown("<h4 style='font-family: Orbitron; font-size: 13px; color: #EC4899; margin-bottom: 15px;'>📋 CONNECTED ACTIVE SUB-USERS</h4>", unsafe_allow_html=True)
+            active_subs = get_sub_users(st.session_state["logged_user"])
+            if not active_subs:
+                st.info("No sub-users configured under this main node. You can link up to 2 sub-accounts.")
+            else:
+                for sub_user in active_subs:
+                    sub_user_html = html_lib.escape(str(sub_user))
+                    sub_user_key = re.sub(r"[^a-zA-Z0-9_]", "_", str(sub_user))
+                    sub_col, action_col = st.columns([2, 1])
+                    with sub_col:
+                        st.markdown(f"**Node:** `{sub_user_html}`")
+                    with action_col:
+                        if st.button("Unlink Account", key=f"unlink_{sub_user_key}", width="stretch"):
+                            remove_sub_user_db(st.session_state["logged_user"], sub_user)
+                            st.toast("Sub-User node link dissolved.")
+                            time.sleep(0.1)
+                            st.rerun()
+
+
+def render_scheduler_section():
+    st.markdown("<h4 style='font-family: Orbitron; color: #EC4899;'>📅 ADVANCED AI CONTENT SCHEDULER</h4>", unsafe_allow_html=True)
+    sch_col1, sch_col2 = st.columns([1.1, 1.4], gap="medium")
+    with sch_col1:
+        with st.container(border=True):
+            st.markdown("<h4 style='font-family: Orbitron; font-size: 13px; color: #EC4899; margin-bottom: 15px;'>📅 BOOK A SOCIAL RUN</h4>", unsafe_allow_html=True)
+            sch_category = st.selectbox("Social Channel Niche:", list(CATEGORY_POOL.keys()), key="sched_category_selectbox")
+            sch_topic = st.text_input("Short Prompt / Topic Parameters:", placeholder="e.g. Bizarre adapting biology inside boiling vents", key="sched_topic_input_val")
+            sch_time = st.text_input("Scheduled Execution Date & Time:", value=str(datetime.now() + timedelta(days=1))[:16], key="sched_datetime_input")
+            sch_platform = st.selectbox("Platform Destination:", ["YouTube Shorts", "Instagram Reels", "TikTok Feed", "X (Twitter) Video"], key="sched_platform_selectbox")
+            st.write("")
+            if st.button("Schedule Social Run", key="book_schedule_run_action_btn", width="stretch"):
+                if not sch_topic.strip():
+                    st.error("Please provide prompt or topic details.")
+                else:
+                    schedule_conn = sqlite3.connect(DB_PATH)
+                    try:
+                        schedule_conn.execute(
+                            "INSERT INTO social_schedule (username, category, topic, scheduled_time, platform, status) VALUES (?, ?, ?, ?, ?, ?)",
+                            (st.session_state["logged_user"], sch_category, sch_topic, sch_time, sch_platform, "Scheduled"),
+                        )
+                        schedule_conn.commit()
+                    finally:
+                        schedule_conn.close()
+                    st.toast("Success! Scheduled booking added to calendar.")
+                    st.rerun()
+    with sch_col2:
+        with st.container(border=True):
+            st.markdown("<h3 style='font-family: Orbitron; font-size: 14px; color: #EC4899; margin-bottom: 15px;'>📊 ACTIVE SCHEDULED JOBS CALENDAR</h3>", unsafe_allow_html=True)
+            schedule_conn = sqlite3.connect(DB_PATH)
+            try:
+                sch_rows = schedule_conn.execute(
+                    "SELECT category, topic, scheduled_time, platform, status FROM social_schedule WHERE username = ? ORDER BY id DESC LIMIT 5",
+                    (st.session_state["logged_user"],),
+                ).fetchall()
+            finally:
+                schedule_conn.close()
+            if not sch_rows:
+                st.info("No content scheduled yet.")
+            else:
+                for category, topic, scheduled_time, platform, status in sch_rows:
+                    st.markdown(
+                        f"""
+                        <div style="background:#f5faf9;border:1px solid #d9e7e4;border-radius:10px;padding:14px;margin-bottom:10px;">
+                            <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;">
+                                <span style="font:700 12px 'Inter',sans-serif;color:#176c6d;">{html_lib.escape(str(platform).upper())}</span>
+                                <span style="font:700 11px 'Inter',sans-serif;color:#14805e;">{html_lib.escape(str(status).upper())}</span>
+                            </div>
+                            <div style="font:650 14px 'Inter',sans-serif;color:#263638;margin-top:8px;">Category: {html_lib.escape(str(category).replace('_', ' '))}</div>
+                            <div style="font:500 13px 'Inter',sans-serif;color:#536467;margin-top:4px;">Topic: "{html_lib.escape(str(topic))}"</div>
+                            <div style="font:500 12px 'Inter',sans-serif;color:#536467;margin-top:7px;">📅 Execution: {html_lib.escape(str(scheduled_time))}</div>
+                        </div>
+                        """,
+                        unsafe_allow_html=True,
+                    )
+
+
+def render_user_portfolio_section():
+    username = st.session_state.get("logged_user", "")
+    if username.lower().strip() == "rajmehta886297@gmail.com":
+        show_admin_dashboard()
+        return
+
+    portfolio_items = []
+    for item in st.session_state.get("history_renders", []):
+        portfolio_items.append({**item, "portfolio_type": item.get("generation_type") or "Creative output"})
+    for item in st.session_state.get("face_video_history", []):
+        portfolio_items.append({**item, "portfolio_type": "Face Video"})
+    for item in st.session_state.get("sales_video_history", []):
+        portfolio_items.append(
+            {
+                **item,
+                "path": item.get("video_path", ""),
+                "file_name": item.get("file_name", "Sales video"),
+                "prompt": item.get("prompt", ""),
+                "timestamp": item.get("timestamp", ""),
+                "portfolio_type": "AI Sales",
+            }
+        )
+
+    portfolio_items.sort(key=lambda item: str(item.get("timestamp", "")), reverse=True)
+    portfolio_categories = sorted(
+        {str(item.get("portfolio_type") or "Creative output") for item in portfolio_items},
+        key=str.casefold,
+    )
+
+    summary_columns = st.columns(3, gap="small")
+    for summary_col, (summary_value, summary_label) in zip(
+        summary_columns,
+        [
+            (f"{len(portfolio_items):,}", "Total creations"),
+            (f"{len(portfolio_categories):,}", "Creative categories"),
+            (f"{sum(bool(item.get('path') and os.path.exists(str(item['path']))) for item in portfolio_items):,}", "Files ready to view"),
+        ],
+    ):
+        with summary_col:
+            st.markdown(
+                f'<div class="standalone-stat-card"><div class="value">{summary_value}</div><div class="label">{summary_label}</div></div>',
+                unsafe_allow_html=True,
+            )
+
+    st.markdown('<h3 class="standalone-section-title">Your creations</h3>', unsafe_allow_html=True)
+    filter_col, search_col = st.columns([1, 2], gap="medium")
+    with filter_col:
+        category_filter = st.selectbox(
+            "Filter by studio",
+            ["All creations", *portfolio_categories],
+            key="portfolio_category_filter",
+        )
+    with search_col:
+        search_query = st.text_input(
+            "Search your portfolio",
+            placeholder="Search file names or prompts",
+            key="portfolio_search_query",
+        ).strip().casefold()
+
+    visible_items = [
+        item
+        for item in portfolio_items
+        if (category_filter == "All creations" or item.get("portfolio_type") == category_filter)
+        and (
+            not search_query
+            or search_query in str(item.get("file_name", "")).casefold()
+            or search_query in str(item.get("prompt", "")).casefold()
+        )
+    ]
+    if not portfolio_items:
+        st.info("Your creations will appear here after you generate your first output.")
+        return
+    if not visible_items:
+        st.info("No creations match those filters. Try another studio or search term.")
+        return
+
+    media_columns = st.columns(3, gap="medium")
+    for index, item in enumerate(visible_items):
+        with media_columns[index % len(media_columns)]:
+            with st.container(border=True):
+                file_path = str(item.get("path") or "")
+                is_remote = file_path.startswith(("https://", "http://"))
+                is_available = is_remote or os.path.isfile(file_path)
+                file_name = str(item.get("file_name") or "Untitled creation")
+                prompt = str(item.get("prompt") or "")
+                media_ext = os.path.splitext(file_path.split("?", 1)[0])[1].lower()
+
+                st.write(file_name)
+                st.caption(f"{item.get('portfolio_type', 'Creative output')} · {item.get('timestamp') or 'Date unavailable'}")
+                if is_available and media_ext in {".mp4", ".mov", ".avi", ".mkv", ".webm"}:
+                    st.video(file_path)
+                elif is_available and media_ext in {".mp3", ".wav", ".m4a", ".ogg"}:
+                    st.audio(file_path)
+                elif is_available and media_ext in {".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp"}:
+                    st.image(file_path, width="stretch")
+                elif not is_available:
+                    st.warning("This output file is no longer available on this device.")
+                else:
+                    st.info("Preview is not available for this output type.")
+
+                if prompt:
+                    st.caption(prompt[:220] + ("…" if len(prompt) > 220 else ""))
+                if not is_remote and is_available:
+                    mime_types = {
+                        ".mp4": "video/mp4",
+                        ".mov": "video/quicktime",
+                        ".webm": "video/webm",
+                        ".mp3": "audio/mpeg",
+                        ".wav": "audio/wav",
+                        ".m4a": "audio/mp4",
+                        ".ogg": "audio/ogg",
+                        ".png": "image/png",
+                        ".jpg": "image/jpeg",
+                        ".jpeg": "image/jpeg",
+                        ".webp": "image/webp",
+                        ".gif": "image/gif",
+                    }
+                    try:
+                        with open(file_path, "rb") as output_file:
+                            output_bytes = output_file.read()
+                    except OSError:
+                        logger.exception("Unable to read portfolio output at %s", file_path)
+                        st.error("This output could not be opened for download.")
+                    else:
+                        download_id = hashlib.sha256(file_path.encode("utf-8")).hexdigest()[:16]
+                        st.download_button(
+                            "Download",
+                            data=output_bytes,
+                            file_name=os.path.basename(file_path),
+                            mime=mime_types.get(media_ext, "application/octet-stream"),
+                            key=f"portfolio_download_{download_id}",
+                            width="stretch",
+                        )
+
 
 # ========================================================
 # 44. MAIN APPLICATION FLOW
@@ -16170,25 +16468,1184 @@ if st.session_state["current_page"] == "landing":
         show_auth_modal("login")
     st.stop()  
 
+elif st.session_state["current_page"] == "studio_mode":
+    if not st.session_state.get("is_logged_in", False):
+        st.session_state["current_page"] = "landing"
+        st.query_params["page"] = "landing"
+        show_auth_modal("login")
+        st.stop()
+    if st.session_state.get("2fa_enabled", False) and not st.session_state.get("2fa_verified", False):
+        show_2fa_modal()
+        st.stop()
+
+    st.markdown(get_premium_theme_css(), unsafe_allow_html=True)
+    st.markdown("""
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        section[data-testid="stMain"] .studio-mode-photo-hero,
+        section[data-testid="stMain"] .cinematic-header,
+        section[data-testid="stMain"] .editor-header,
+        section[data-testid="stMain"] .face-header {
+            position: relative !important;
+            isolation: isolate !important;
+            display: flex !important;
+            min-height: 460px !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 8px !important;
+            overflow: hidden !important;
+            padding: 36px clamp(20px, 5vw, 64px) !important;
+            border: 0 !important;
+            border-radius: 0 !important;
+            background-position: center 48% !important;
+            background-size: cover !important;
+            box-shadow: none !important;
+            text-align: center !important;
+        }
+        section[data-testid="stMain"] .studio-mode-photo-hero::before,
+        section[data-testid="stMain"] .cinematic-header::before,
+        section[data-testid="stMain"] .editor-header::before,
+        section[data-testid="stMain"] .face-header::before {
+            position: absolute !important;
+            z-index: -1 !important;
+            inset: 0 !important;
+            content: "" !important;
+            background:
+                linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.02) 52%, rgba(8,20,27,.08)) !important;
+        }
+        section[data-testid="stMain"] .studio-mode-photo-hero h2,
+        section[data-testid="stMain"] .cinematic-header h2,
+        section[data-testid="stMain"] .editor-header h2,
+        section[data-testid="stMain"] .face-header h2 {
+            margin: 3px 0 !important;
+            color: #173b3e !important;
+            -webkit-text-fill-color: #173b3e !important;
+            font-size: clamp(26px, 3vw, 38px) !important;
+            font-weight: 800 !important;
+            text-shadow: 0 2px 16px rgba(255,255,255,.94), 0 0 28px rgba(255,255,255,.55) !important;
+        }
+        section[data-testid="stMain"] .studio-mode-photo-hero p,
+        section[data-testid="stMain"] .cinematic-header p,
+        section[data-testid="stMain"] .editor-header p,
+        section[data-testid="stMain"] .face-header p {
+            max-width: 760px !important;
+            margin: 0 !important;
+            color: #31464a !important;
+            -webkit-text-fill-color: #31464a !important;
+            font-size: 15px !important;
+            font-weight: 600 !important;
+        }
+        section[data-testid="stMain"] .studio-mode-photo-hero > span:first-child,
+        section[data-testid="stMain"] .cinematic-header .badge,
+        section[data-testid="stMain"] .editor-header .badge,
+        section[data-testid="stMain"] .face-header .badge {
+            position: relative !important;
+            z-index: 1 !important;
+            color: #145f60 !important;
+            -webkit-text-fill-color: #145f60 !important;
+            background: transparent !important;
+            border: 0 !important;
+            border-radius: 0 !important;
+            padding: 7px 0 !important;
+            font-size: 11px !important;
+            font-weight: 800 !important;
+            text-shadow: 0 1px 12px rgba(255,255,255,.98), 0 0 22px rgba(255,255,255,.7) !important;
+        }
+        section[data-testid="stMain"] .studio-mode-photo-hero h2 span,
+        section[data-testid="stMain"] .cinematic-header h2 span,
+        section[data-testid="stMain"] .editor-header h2 span,
+        section[data-testid="stMain"] .face-header h2 span {
+            color: #087f83 !important;
+            background-image: linear-gradient(135deg, #087f83, #b83280) !important;
+            -webkit-background-clip: text !important;
+            background-clip: text !important;
+            -webkit-text-fill-color: transparent !important;
+        }
+        section[data-testid="stMain"] .studio-mode-photo-hero--sales {
+            min-height: 520px !important;
+            padding-block: 84px !important;
+            background-image: url("https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=1800&q=88") !important;
+        }
+        section[data-testid="stMain"] [class*="st-key-studio_change_mode_btn"] {
+            position: relative !important;
+            display: flex !important;
+            justify-content: flex-end !important;
+            width: 100% !important;
+            margin: 0 0 14px !important;
+        }
+        section[data-testid="stMain"] [class*="st-key-studio_change_mode_btn"] button {
+            min-height: 42px !important;
+            padding: 0 17px !important;
+            color: #173b3e !important;
+            background: rgba(255, 255, 255, .96) !important;
+            border: 1px solid rgba(23, 59, 62, .14) !important;
+            border-radius: 12px !important;
+            box-shadow: 0 8px 24px rgba(24, 54, 56, .14) !important;
+            font-size: 13px !important;
+            white-space: nowrap !important;
+            transition: transform .18s ease, box-shadow .18s ease, background .18s ease !important;
+        }
+        section[data-testid="stMain"] [class*="st-key-studio_change_mode_btn"] button:hover {
+            transform: translateY(-1px) !important;
+            background: #ffffff !important;
+            box-shadow: 0 10px 26px rgba(24, 54, 56, .18) !important;
+        }
+        section[data-testid="stMain"] .studio-mode-photo-hero--agent {
+            background-image: url("https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=1800&q=88") !important;
+        }
+        section[data-testid="stMain"] .studio-mode-photo-hero--blueprints {
+            background-image: url("https://images.unsplash.com/photo-1511818966892-d7d671e672a2?auto=format&fit=crop&w=1800&q=88") !important;
+        }
+        section[data-testid="stMain"] .studio-mode-photo-hero--creative {
+            background-image: url("https://images.unsplash.com/photo-1549490349-8643362247b5?auto=format&fit=crop&w=2200&q=90") !important;
+        }
+        section[data-testid="stMain"] .studio-mode-photo-hero--upscaler {
+            background-image: url("https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?auto=format&fit=crop&w=1800&q=88") !important;
+        }
+        section[data-testid="stMain"] .studio-mode-photo-hero--draw {
+            background-image: url("https://images.unsplash.com/photo-1541961017774-22349e4a1262?auto=format&fit=crop&w=1800&q=88") !important;
+        }
+        section[data-testid="stMain"] .studio-mode-photo-hero--face {
+            background-position: center 32% !important;
+        }
+        section[data-testid="stMain"] .studio-mode-photo-hero--editor {
+            background-image: url("https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&fit=crop&w=1800&q=88") !important;
+        }
+        section[data-testid="stMain"] .studio-mode-photo-hero--cinematic {
+            background-image: url("https://images.unsplash.com/photo-1492619375914-88005aa9e8fb?auto=format&fit=crop&w=2200&q=90") !important;
+            background-position: center 48% !important;
+        }
+        section[data-testid="stMain"] .studio-mode-photo-hero--dynamic {
+            background-image: url("https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1800&q=88") !important;
+        }
+        section[data-testid="stMain"] .studio-mode-photo-hero--voice {
+            background-image: url("https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&w=1800&q=88") !important;
+        }
+        .stApp, section[data-testid="stMain"], section[data-testid="stMain"] .block-container {
+            color: #263638 !important;
+            background: #f3f6f6 !important;
+            font-family: 'Inter', sans-serif !important;
+        }
+        html, body, [data-testid="stAppViewContainer"] {
+            color: #263638 !important;
+            background: #f3f6f6 !important;
+        }
+        section[data-testid="stMain"] .block-container {
+            width: 100% !important;
+            max-width: 1560px !important;
+            box-sizing: border-box !important;
+            margin-inline: auto !important;
+            padding: 1.25rem clamp(16px, 2.5vw, 40px) 2rem !important;
+        }
+        section[data-testid="stMain"] .block-container,
+        section[data-testid="stMain"] .block-container * {
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif !important;
+        }
+        section[data-testid="stMain"] .block-container [data-testid="stFileUploader"] [data-testid="stIconMaterial"] {
+            display: none !important;
+        }
+        section[data-testid="stMain"] .block-container h1,
+        section[data-testid="stMain"] .block-container h2,
+        section[data-testid="stMain"] .block-container h3,
+        section[data-testid="stMain"] .block-container h4,
+        section[data-testid="stMain"] .block-container h5,
+        section[data-testid="stMain"] .block-container h6 {
+            color: #173b3e !important;
+            -webkit-text-fill-color: #173b3e !important;
+            font-family: 'Inter', sans-serif !important;
+            font-weight: 750 !important;
+            letter-spacing: -0.02em !important;
+            line-height: 1.3 !important;
+        }
+        section[data-testid="stMain"] .block-container p,
+        section[data-testid="stMain"] .block-container li,
+        section[data-testid="stMain"] .block-container label,
+        section[data-testid="stMain"] .block-container [data-testid="stCaptionContainer"],
+        section[data-testid="stMain"] .block-container [data-testid="stWidgetLabel"],
+        section[data-testid="stMain"] .block-container [data-testid="stMarkdownContainer"] {
+            color: #263638 !important;
+            -webkit-text-fill-color: #263638 !important;
+            font-family: 'Inter', sans-serif !important;
+            font-size: 14px !important;
+            font-weight: 600 !important;
+            line-height: 1.55 !important;
+        }
+        section[data-testid="stMain"] .block-container [style*="font-size: 8px"],
+        section[data-testid="stMain"] .block-container [style*="font-size: 9px"],
+        section[data-testid="stMain"] .block-container [style*="font-size: 10px"],
+        section[data-testid="stMain"] .block-container [style*="font-size: 11px"],
+        section[data-testid="stMain"] .block-container [style*="font-size: 12px"] {
+            font-size: 13px !important;
+            font-weight: 600 !important;
+            line-height: 1.45 !important;
+        }
+        section[data-testid="stMain"] .block-container img,
+        section[data-testid="stMain"] .block-container video,
+        section[data-testid="stMain"] .block-container iframe {
+            max-width: 100% !important;
+        }
+        section[data-testid="stMain"] .block-container [data-testid="stHorizontalBlock"],
+        section[data-testid="stMain"] .block-container [data-testid="stVerticalBlock"] {
+            min-width: 0 !important;
+            max-width: 100% !important;
+        }
+        section[data-testid="stMain"] .block-container [data-testid="stColumn"] {
+            min-width: 0 !important;
+        }
+        @media (max-width: 768px) {
+            section[data-testid="stMain"] .block-container {
+                padding: 1rem 12px 1.5rem !important;
+            }
+            section[data-testid="stMain"] .block-container [data-testid="stHorizontalBlock"] {
+                flex-wrap: wrap !important;
+            }
+            section[data-testid="stMain"] .studio-mode-photo-hero,
+            section[data-testid="stMain"] .cinematic-header,
+            section[data-testid="stMain"] .editor-header,
+            section[data-testid="stMain"] .face-header {
+                min-height: 340px !important;
+                padding: 40px 18px !important;
+                border-radius: 0 !important;
+            }
+            section[data-testid="stMain"] .studio-mode-photo-hero--sales {
+                min-height: 380px !important;
+            }
+            section[data-testid="stMain"] [class*="st-key-studio_change_mode_btn"] button {
+                min-height: 40px !important;
+                padding: 0 14px !important;
+                font-size: 12px !important;
+            }
+        }
+        section[data-testid="stMain"] [data-testid="stMarkdownContainer"] {
+            color: #263638 !important;
+        }
+        section[data-testid="stMain"] [data-testid="stVerticalBlockBorderWrapper"] {
+            background: #ffffff !important;
+            border-color: #d2dddb !important;
+            box-shadow: 0 6px 18px rgba(26, 55, 56, .075) !important;
+        }
+        section[data-testid="stMain"] input,
+        section[data-testid="stMain"] textarea,
+        section[data-testid="stMain"] [data-baseweb="select"] > div {
+            color: #263638 !important;
+            -webkit-text-fill-color: #263638 !important;
+            background: #ffffff !important;
+            border-color: #cbd8d5 !important;
+            font-family: 'Inter', sans-serif !important;
+            font-size: 14px !important;
+            font-weight: 500 !important;
+        }
+        section[data-testid="stMain"] [data-testid="stFileUploader"],
+        section[data-testid="stMain"] [data-testid="stFileUploaderDropzone"],
+        section[data-testid="stMain"] [data-testid="stFileUploaderDropzone"] > div,
+        section[data-testid="stMain"] [data-testid="stSlider"],
+        section[data-testid="stMain"] [data-testid="stSlider"] > div,
+        section[data-testid="stMain"] [data-testid="stRadioGroup"],
+        section[data-testid="stMain"] [data-testid="stAlert"] {
+            color: #263638 !important;
+            background: #ffffff !important;
+            border-color: #d9e4e2 !important;
+        }
+        section[data-testid="stMain"] [data-testid="stRadioGroup"] {
+            background: #f5f9f8 !important;
+            border: 1px solid #d9e4e2 !important;
+            border-radius: 10px !important;
+        }
+        section[data-testid="stMain"] [data-testid="stSlider"] [data-baseweb="slider"] > div:first-child {
+            background: #e4ecea !important;
+        }
+        section[data-testid="stMain"] .block-container [style*="background: rgba(10,10,12"],
+        section[data-testid="stMain"] .block-container [style*="background: rgba(10, 10, 12"],
+        section[data-testid="stMain"] .block-container [style*="background: rgba(18,19,26"],
+        section[data-testid="stMain"] .block-container [style*="background: rgba(18, 19, 26"],
+        section[data-testid="stMain"] .block-container [style*="background: rgba(10,10,15"],
+        section[data-testid="stMain"] .block-container [style*="background: rgba(10, 10, 15"],
+        section[data-testid="stMain"] .block-container [style*="background: #06070a"],
+        section[data-testid="stMain"] .block-container [style*="background:#06070a"] {
+            color: #263638 !important;
+            background: #f5f9f8 !important;
+            border-color: #d9e4e2 !important;
+        }
+        section[data-testid="stMain"] .block-container button {
+            font-family: 'Inter', sans-serif !important;
+            font-weight: 650 !important;
+            letter-spacing: 0 !important;
+        }
+        section[data-testid="stMain"] .block-container
+        :not(button):not(button *):not(svg):not(path):not(video):not(iframe) {
+            color: #263638 !important;
+            -webkit-text-fill-color: #263638 !important;
+        }
+        section[data-testid="stMain"] .block-container a {
+            color: #087f83 !important;
+            -webkit-text-fill-color: #087f83 !important;
+            text-decoration-color: currentColor !important;
+        }
+        section[data-testid="stMain"] .block-container input::placeholder,
+        section[data-testid="stMain"] .block-container textarea::placeholder {
+            color: #59696c !important;
+            -webkit-text-fill-color: #59696c !important;
+            opacity: 1 !important;
+        }
+        section[data-testid="stMain"] .block-container [data-testid="stRadio"] [role="radiogroup"] {
+            color: #263638 !important;
+            background: #f5f9f8 !important;
+            border: 1px solid #dce5e3 !important;
+            border-radius: 10px !important;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+    face_avatar_path = Path(__file__).resolve().parent / "static" / "face_studio_ai_avatar.svg"
+    face_avatar_data = base64.b64encode(face_avatar_path.read_bytes()).decode("ascii")
+    st.markdown(
+        '<style>section[data-testid="stMain"] .studio-mode-photo-hero--face {'
+        'background-image: url("data:image/svg+xml;base64,' + face_avatar_data + '") !important;'
+        'background-position: center 32% !important;}</style>',
+        unsafe_allow_html=True,
+    )
+    if st.button("← Back to Studio", key="studio_change_mode_btn", type="secondary"):
+        st.session_state["current_page"] = "studio"
+        st.query_params["page"] = "studio"
+        st.rerun()
+
+elif st.session_state["current_page"] == "payments":
+    if not st.session_state.get("is_logged_in", False):
+        st.session_state["current_page"] = "landing"
+        st.query_params["page"] = "landing"
+        show_auth_modal("login")
+        st.stop()
+    if st.session_state.get("2fa_enabled", False) and not st.session_state.get("2fa_verified", False):
+        show_2fa_modal()
+        st.stop()
+
+    st.markdown(get_premium_theme_css(), unsafe_allow_html=True)
+    st.markdown("""
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap');
+        :root {
+            --payment-page-bg: #f3f6f6;
+            --payment-page-text: #263638;
+            --payment-page-line: #d2dddb;
+        }
+        html, body, .stApp, [data-testid="stAppViewContainer"],
+        section[data-testid="stMain"] {
+            color: var(--payment-page-text) !important;
+            background: var(--payment-page-bg) !important;
+            font-family: 'Inter', sans-serif !important;
+        }
+        section[data-testid="stMain"] .block-container {
+            max-width: 1480px !important;
+            padding: 1.25rem clamp(20px, 3vw, 48px) 2.5rem !important;
+            margin: 0 auto !important;
+        }
+        .payment-page-hero {
+            min-height: 94px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            margin: 0 0 12px;
+            padding: 14px 24px;
+            color: #ffffff !important;
+            background:
+                radial-gradient(ellipse at 88% 12%, rgba(109, 235, 220, .22), transparent 38%),
+                linear-gradient(115deg, #123d43, #176c6d 62%, #248d83);
+            border: 1px solid rgba(13, 83, 82, .14);
+            border-radius: 18px;
+            box-shadow: 0 14px 32px rgba(24, 76, 76, .18);
+        }
+        section[data-testid="stMain"] .payment-page-hero h1 {
+            margin: 0 0 3px;
+            color: #ffffff !important;
+            font: 700 clamp(25px, 2.4vw, 34px)/1.12 'Space Grotesk', 'Inter', sans-serif !important;
+            letter-spacing: -.04em;
+            text-shadow: 0 2px 14px rgba(4, 31, 40, .2);
+        }
+        section[data-testid="stMain"] .payment-page-hero h1 .wallet-title-accent {
+            background: linear-gradient(100deg, #ffffff 5%, #9cf4e5 58%, #a8d8ff 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent !important;
+            -webkit-text-fill-color: transparent !important;
+        }
+        section[data-testid="stMain"] .payment-page-hero p {
+            margin: 0;
+            color: #d8f3ef !important;
+            font: 600 clamp(14px, 1.15vw, 16px)/1.5 'Manrope', 'Inter', sans-serif !important;
+            letter-spacing: .005em;
+        }
+        section[data-testid="stMain"] [data-testid="stVerticalBlockBorderWrapper"] {
+            background: #ffffff !important;
+            border-color: var(--payment-page-line) !important;
+            border-radius: 16px !important;
+            box-shadow: 0 8px 24px rgba(26, 55, 56, .075) !important;
+        }
+        section[data-testid="stMain"] [data-testid="stHorizontalBlock"] {
+            gap: 14px !important;
+        }
+        section[data-testid="stMain"] h1,
+        section[data-testid="stMain"] h2,
+        section[data-testid="stMain"] h3,
+        section[data-testid="stMain"] h4,
+        section[data-testid="stMain"] p,
+        section[data-testid="stMain"] label,
+        section[data-testid="stMain"] [data-testid="stCaptionContainer"],
+        section[data-testid="stMain"] [data-testid="stWidgetLabel"] {
+            color: var(--payment-page-text) !important;
+            -webkit-text-fill-color: var(--payment-page-text) !important;
+            font-family: 'Inter', sans-serif !important;
+        }
+        section[data-testid="stMain"] input,
+        section[data-testid="stMain"] [data-baseweb="select"] > div {
+            color: var(--payment-page-text) !important;
+            background: #ffffff !important;
+            border-color: var(--payment-page-line) !important;
+        }
+        section[data-testid="stMain"] [data-testid="stSelectbox"] {
+            max-width: 360px !important;
+        }
+        section[data-testid="stMain"] [style*="rgba(69, 243, 255, 0.08)"] {
+            min-height: 116px !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: center !important;
+            padding: 12px 16px !important;
+            background: linear-gradient(145deg, #ffffff, #f5fbfa) !important;
+            border: 1px solid var(--payment-page-line) !important;
+            border-radius: 16px !important;
+            box-shadow: 0 7px 18px rgba(26, 55, 56, .06) !important;
+        }
+        section[data-testid="stMain"] [style*="rgba(69, 243, 255, 0.08)"] h4 {
+            margin: 5px 0 3px !important;
+            color: #153f43 !important;
+            -webkit-text-fill-color: #153f43 !important;
+            font-size: 16px !important;
+        }
+        section[data-testid="stMain"] [style*="rgba(69, 243, 255, 0.08)"] p {
+            margin: 0 !important;
+            color: #536467 !important;
+            -webkit-text-fill-color: #536467 !important;
+            font-size: 12px !important;
+            line-height: 1.4 !important;
+        }
+        section[data-testid="stMain"] [data-testid="stVerticalBlockBorderWrapper"] h4 {
+            color: #153f43 !important;
+            -webkit-text-fill-color: #153f43 !important;
+            font-size: 16px !important;
+        }
+        section[data-testid="stMain"] [data-testid="stVerticalBlockBorderWrapper"] p {
+            color: #46575a !important;
+            -webkit-text-fill-color: #46575a !important;
+        }
+        section[data-testid="stMain"] [style*="color: #45f3ff"],
+        section[data-testid="stMain"] [style*="color:#45f3ff"] {
+            color: #087f83 !important;
+            -webkit-text-fill-color: #087f83 !important;
+        }
+        section[data-testid="stMain"] [style*="color: #94a3b8"],
+        section[data-testid="stMain"] [style*="color:#94a3b8"],
+        section[data-testid="stMain"] [style*="color: #c0c0c0"],
+        section[data-testid="stMain"] [style*="color:#c0c0c0"] {
+            color: #536467 !important;
+            -webkit-text-fill-color: #536467 !important;
+        }
+        section[data-testid="stMain"] [style*="font-size: 9px"],
+        section[data-testid="stMain"] [style*="font-size: 10px"],
+        section[data-testid="stMain"] [style*="font-size: 11px"] {
+            font-size: 12px !important;
+        }
+        section[data-testid="stMain"] [data-testid="stButton"] button {
+            color: #153438 !important;
+            background: #36c7c1 !important;
+            border-color: #36c7c1 !important;
+            font-family: 'Inter', sans-serif !important;
+            font-weight: 700 !important;
+        }
+        section[data-testid="stMain"] [class*="st-key-payments_back_to_studio"] button {
+            color: #153438 !important;
+            background: #ffffff !important;
+            border-color: var(--payment-page-line) !important;
+            border-radius: 12px !important;
+            min-height: 42px !important;
+            padding: 0 17px !important;
+            box-shadow: 0 8px 24px rgba(24, 54, 56, .14) !important;
+            font-size: 13px !important;
+            white-space: nowrap !important;
+            transition: transform .18s ease, box-shadow .18s ease, background .18s ease !important;
+        }
+        section[data-testid="stMain"] [class*="st-key-payments_back_to_studio"] {
+            display: flex !important;
+            justify-content: flex-end !important;
+            width: 100% !important;
+            margin: 0 0 14px !important;
+        }
+        section[data-testid="stMain"] [class*="st-key-payments_back_to_studio"] button:hover {
+            transform: translateY(-1px) !important;
+            background: #ffffff !important;
+            box-shadow: 0 10px 26px rgba(24, 54, 56, .18) !important;
+        }
+        @media (max-width: 768px) {
+            section[data-testid="stMain"] .block-container {
+                padding: .75rem 14px 1.75rem !important;
+            }
+            .payment-page-hero {
+                min-height: 82px;
+                padding: 12px 16px;
+                border-radius: 14px;
+            }
+            section[data-testid="stMain"] [data-testid="stHorizontalBlock"] {
+                flex-wrap: wrap !important;
+            }
+            section[data-testid="stMain"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] {
+                min-width: min(100%, 190px) !important;
+                flex: 1 1 190px !important;
+            }
+        }
+    </style>
+    """, unsafe_allow_html=True)
+    if st.button("← Back to Studio", key="payments_back_to_studio", type="secondary"):
+        previous_sidebar_tab = st.session_state.pop("payment_return_sidebar_tab", None)
+        if previous_sidebar_tab:
+            st.session_state["sidebar_tab"] = previous_sidebar_tab
+        elif st.session_state.get("sidebar_tab") == "💎 Buy Credits":
+            st.session_state["sidebar_tab"] = "🚀 Zovix Mass Factory"
+        st.session_state["current_page"] = "studio"
+        st.query_params["page"] = "studio"
+        st.rerun()
+    st.markdown(
+        """
+        <div class="payment-page-hero">
+            <h1>💎 <span class="wallet-title-accent">Credit wallet</span></h1>
+            <p>Choose a plan that fits your creative workflow.</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    render_enhanced_payment_ui(show_title=False)
+    st.stop()
+
+elif st.session_state["current_page"] == "profile":
+    if not st.session_state.get("is_logged_in", False):
+        st.session_state["current_page"] = "landing"
+        st.query_params["page"] = "landing"
+        show_auth_modal("login")
+        st.stop()
+    if st.session_state.get("2fa_enabled", False) and not st.session_state.get("2fa_verified", False):
+        show_2fa_modal()
+        st.stop()
+
+    profile_username = st.session_state.get("logged_user", "")
+    try:
+        profile_conn = sqlite3.connect(DB_PATH, check_same_thread=False)
+        profile_cursor = profile_conn.cursor()
+        profile_cursor.execute(
+            "SELECT username, created_at, last_login, language, twofa_secret FROM users WHERE username = ?",
+            (profile_username,),
+        )
+        profile_row = profile_cursor.fetchone()
+    except sqlite3.Error:
+        logger.exception("Unable to load account profile for %s", profile_username)
+        st.error("Your account details could not be loaded. Please refresh and try again.")
+        st.stop()
+    finally:
+        if "profile_conn" in locals():
+            profile_conn.close()
+
+    if not profile_row:
+        st.error("We couldn't find the signed-in account. Please sign in again.")
+        st.stop()
+
+    _, joined_at, last_login_at, account_language, stored_2fa_secret = profile_row
+    profile_credits = float(get_user_credits_db(profile_username) or 0)
+    profile_xp = int(st.session_state.get("xp_points", 0) or 0)
+    profile_level = int(st.session_state.get("creator_level", 1) or 1)
+    profile_videos = len(st.session_state.get("history_renders", [])) + len(
+        st.session_state.get("face_video_history", [])
+    )
+    profile_2fa_enabled = bool(str(stored_2fa_secret or "").strip())
+    has_profile_subscription, profile_subscription = has_active_subscription(profile_username)
+    profile_support_tier = get_support_tier(profile_username)
+    profile_initial = next((char.upper() for char in profile_username if char.isalnum()), "Z")
+    profile_username_html = html_lib.escape(str(profile_username))
+    profile_subscription_html = html_lib.escape(
+        str(profile_subscription if has_profile_subscription else "Free plan")
+    )
+    profile_support_html = html_lib.escape(str(profile_support_tier))
+
+    def format_profile_date(value):
+        if not value:
+            return "Not available"
+        try:
+            parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+            return parsed.strftime("%B %d, %Y")
+        except (TypeError, ValueError):
+            return str(value)
+
+    st.markdown(get_premium_theme_css(), unsafe_allow_html=True)
+    st.markdown("""
+    <style>
+        :root {
+            --profile-bg: #f3f6f6;
+            --profile-text: #263638;
+            --profile-muted: #536467;
+            --profile-line: #d2dddb;
+            --profile-accent: #168e89;
+        }
+        html, body, .stApp, [data-testid="stAppViewContainer"],
+        section[data-testid="stMain"] {
+            color: var(--profile-text) !important;
+            background: var(--profile-bg) !important;
+            font-family: 'Inter', sans-serif !important;
+        }
+        section[data-testid="stMain"] .block-container {
+            width: 100% !important;
+            max-width: 1320px !important;
+            margin: 0 auto !important;
+            padding: 1.25rem clamp(16px, 3vw, 42px) 2.5rem !important;
+        }
+        .profile-page-hero {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            min-height: 154px;
+            margin: 0 0 20px;
+            padding: 24px clamp(20px, 4vw, 40px);
+            color: #ffffff;
+            background:
+                radial-gradient(ellipse at 88% 8%, rgba(117, 238, 222, .2), transparent 40%),
+                linear-gradient(115deg, #123d43, #176c6d 62%, #248d83);
+            border: 1px solid rgba(13, 83, 82, .14);
+            border-radius: 20px;
+            box-shadow: 0 16px 36px rgba(24, 76, 76, .18);
+        }
+        .profile-avatar {
+            display: grid;
+            flex: 0 0 76px;
+            width: 76px;
+            height: 76px;
+            place-items: center;
+            color: #143c40;
+            background: linear-gradient(145deg, #ffffff, #d9f4ef);
+            border: 3px solid rgba(255,255,255,.66);
+            border-radius: 50%;
+            box-shadow: 0 8px 22px rgba(5, 32, 34, .2);
+            font: 800 30px/1 'Inter', sans-serif;
+        }
+        .profile-page-hero-copy { min-width: 0; }
+        .profile-page-hero-copy .eyebrow {
+            margin-bottom: 5px;
+            color: #b8eee5;
+            font: 750 11px/1.4 'Inter', sans-serif;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+        }
+        .profile-page-hero-copy h1 {
+            margin: 0 0 5px;
+            overflow-wrap: anywhere;
+            color: #ffffff !important;
+            font: 800 clamp(21px, 2.6vw, 30px)/1.2 'Inter', sans-serif !important;
+            letter-spacing: -.025em;
+        }
+        .profile-page-hero-copy p {
+            margin: 0;
+            color: rgba(255,255,255,.86) !important;
+            font: 500 14px/1.5 'Inter', sans-serif !important;
+        }
+        section[data-testid="stMain"] [data-testid="stVerticalBlockBorderWrapper"] {
+            background: #ffffff !important;
+            border: 1px solid var(--profile-line) !important;
+            border-radius: 16px !important;
+            box-shadow: 0 8px 24px rgba(26, 55, 56, .07) !important;
+        }
+        section[data-testid="stMain"] h2,
+        section[data-testid="stMain"] h3,
+        section[data-testid="stMain"] h4,
+        section[data-testid="stMain"] p,
+        section[data-testid="stMain"] label,
+        section[data-testid="stMain"] [data-testid="stCaptionContainer"],
+        section[data-testid="stMain"] [data-testid="stWidgetLabel"] {
+            color: var(--profile-text) !important;
+            -webkit-text-fill-color: var(--profile-text) !important;
+            font-family: 'Inter', sans-serif !important;
+        }
+        .profile-section-title {
+            margin: 8px 0 12px;
+            color: #173f43;
+            font: 750 18px/1.3 'Inter', sans-serif;
+        }
+        .profile-detail-label {
+            display: block;
+            margin-bottom: 4px;
+            color: var(--profile-muted);
+            font: 650 11px/1.4 'Inter', sans-serif;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+        }
+        .profile-detail-value {
+            display: block;
+            overflow-wrap: anywhere;
+            color: #203638;
+            font: 650 14px/1.45 'Inter', sans-serif;
+        }
+        .profile-stat-card {
+            min-height: 104px;
+            padding: 18px;
+            background: #ffffff;
+            border: 1px solid var(--profile-line);
+            border-radius: 14px;
+            box-shadow: 0 6px 18px rgba(26,55,56,.055);
+        }
+        .profile-stat-card .value {
+            color: #153f43;
+            font: 800 24px/1.2 'Inter', sans-serif;
+        }
+        .profile-stat-card .label {
+            margin-top: 6px;
+            color: var(--profile-muted);
+            font: 600 12px/1.4 'Inter', sans-serif;
+        }
+        section[data-testid="stMain"] [data-testid="stButton"] button {
+            color: #153438 !important;
+            background: #36c7c1 !important;
+            border-color: #36c7c1 !important;
+            font-family: 'Inter', sans-serif !important;
+            font-weight: 700 !important;
+        }
+        section[data-testid="stMain"] [class*="st-key-profile_back_to_studio"] button {
+            color: #153438 !important;
+            background: #ffffff !important;
+            border-color: var(--profile-line) !important;
+            border-radius: 12px !important;
+            min-height: 42px !important;
+            padding: 0 17px !important;
+            box-shadow: 0 8px 24px rgba(24, 54, 56, .14) !important;
+            font-size: 13px !important;
+            white-space: nowrap !important;
+            transition: transform .18s ease, box-shadow .18s ease, background .18s ease !important;
+        }
+        section[data-testid="stMain"] [class*="st-key-profile_back_to_studio"] {
+            display: flex !important;
+            justify-content: flex-end !important;
+            width: 100% !important;
+            margin: 0 0 14px !important;
+        }
+        section[data-testid="stMain"] [class*="st-key-profile_back_to_studio"] button:hover {
+            transform: translateY(-1px) !important;
+            background: #ffffff !important;
+            box-shadow: 0 10px 26px rgba(24, 54, 56, .18) !important;
+        }
+        @media (max-width: 768px) {
+            section[data-testid="stMain"] .block-container {
+                padding: .75rem 14px 1.75rem !important;
+            }
+            .profile-page-hero {
+                gap: 14px;
+                min-height: 124px;
+                padding: 18px 16px;
+                border-radius: 16px;
+            }
+            .profile-avatar { flex-basis: 58px; width: 58px; height: 58px; font-size: 23px; }
+            section[data-testid="stMain"] [data-testid="stHorizontalBlock"] { flex-wrap: wrap !important; }
+            section[data-testid="stMain"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] {
+                min-width: min(100%, 190px) !important;
+                flex: 1 1 190px !important;
+            }
+        }
+    </style>
+    """, unsafe_allow_html=True)
+
+    if st.button("← Back to Studio", key="profile_back_to_studio", type="secondary"):
+        previous_sidebar_tab = st.session_state.pop("profile_return_sidebar_tab", None)
+        if previous_sidebar_tab:
+            st.session_state["sidebar_tab"] = previous_sidebar_tab
+        st.session_state["current_page"] = "studio"
+        st.query_params["page"] = "studio"
+        st.rerun()
+    st.markdown(
+        f"""
+        <div class="profile-page-hero">
+            <div class="profile-avatar">{profile_initial}</div>
+            <div class="profile-page-hero-copy">
+                <div class="eyebrow">ZOVIX ACCOUNT · MEMBER PROFILE</div>
+                <h1>{profile_username_html}</h1>
+                <p>Your account details, creator activity, plan and security settings.</p>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    stat_columns = st.columns(4, gap="small")
+    profile_stats = [
+        ("⚡", f"{profile_credits:g}", "Available credits"),
+        ("✦", f"{profile_xp:,}", "Creator XP"),
+        ("🏅", f"Level {profile_level}", "Creator level"),
+        ("🎬", f"{profile_videos:,}", "Saved generations"),
+    ]
+    for stat_column, (icon, value, label) in zip(stat_columns, profile_stats):
+        with stat_column:
+            st.markdown(
+                f"""
+                <div class="profile-stat-card">
+                    <div class="value">{icon} {value}</div>
+                    <div class="label">{label}</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+    details_column, plan_column = st.columns([1.15, .85], gap="large")
+    with details_column:
+        with st.container(border=True):
+            st.markdown('<div class="profile-section-title">Account details</div>', unsafe_allow_html=True)
+            detail_columns = st.columns(2, gap="medium")
+            profile_details = [
+                ("Account email / username", profile_username),
+                ("Member since", format_profile_date(joined_at)),
+                ("Last sign-in", format_profile_date(last_login_at)),
+                ("Preferred language", str(account_language or "English").upper()),
+            ]
+            for index, (label, value) in enumerate(profile_details):
+                with detail_columns[index % 2]:
+                    st.markdown(
+                        f"""
+                        <div style="padding: 12px 0; border-bottom: 1px solid #e8efed;">
+                            <span class="profile-detail-label">{label}</span>
+                            <span class="profile-detail-value">{html_lib.escape(str(value))}</span>
+                        </div>
+                        """,
+                        unsafe_allow_html=True,
+                    )
+    with plan_column:
+        with st.container(border=True):
+            st.markdown('<div class="profile-section-title">Membership & support</div>', unsafe_allow_html=True)
+            st.markdown(
+                f"""
+                <div style="padding: 14px 16px; background: #f3faf9; border: 1px solid #dcebe8; border-radius: 12px;">
+                    <span class="profile-detail-label">Current plan</span>
+                    <span class="profile-detail-value">{profile_subscription_html}</span>
+                </div>
+                <div style="padding: 14px 16px; margin-top: 10px; background: #ffffff; border: 1px solid #e5ecea; border-radius: 12px;">
+                    <span class="profile-detail-label">Support tier</span>
+                    <span class="profile-detail-value">{profile_support_html}</span>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+    security_column, achievements_column = st.columns([1, 1], gap="large")
+    with security_column:
+        with st.container(border=True):
+            st.markdown('<div class="profile-section-title">🔐 Account security</div>', unsafe_allow_html=True)
+            if profile_2fa_enabled:
+                st.success("Two-factor authentication is enabled.")
+                if st.button("Disable two-factor authentication", key="profile_disable_2fa", type="secondary"):
+                    security_conn = sqlite3.connect(DB_PATH, check_same_thread=False)
+                    try:
+                        security_cursor = security_conn.cursor()
+                        security_cursor.execute(
+                            "UPDATE users SET twofa_secret = '' WHERE username = ?",
+                            (profile_username,),
+                        )
+                        security_conn.commit()
+                        st.session_state["2fa_enabled"] = False
+                        st.success("Two-factor authentication has been disabled.")
+                        st.rerun()
+                    except sqlite3.Error:
+                        logger.exception("Unable to disable 2FA for %s", profile_username)
+                        st.error("Two-factor authentication could not be disabled. Please try again.")
+                    finally:
+                        security_conn.close()
+            else:
+                st.info("Two-factor authentication is not enabled.")
+                if HAS_2FA and pyotp:
+                    if st.button("Set up two-factor authentication", key="profile_enable_2fa"):
+                        st.session_state["2fa_setup_mode"] = True
+                        st.rerun()
+                else:
+                    st.caption("Authenticator support is unavailable in this installation.")
+    with achievements_column:
+        with st.container(border=True):
+            render_achievements()
+
+    if st.session_state.get("2fa_setup_mode", False):
+        show_2fa_modal()
+    st.stop()
+
+elif st.session_state["current_page"] in {"scheduler", "subusers", "factory", "portfolio"}:
+    if not st.session_state.get("is_logged_in", False):
+        st.session_state["current_page"] = "landing"
+        st.query_params["page"] = "landing"
+        show_auth_modal("login")
+        st.stop()
+    if st.session_state.get("2fa_enabled", False) and not st.session_state.get("2fa_verified", False):
+        show_2fa_modal()
+        st.stop()
+
+    standalone_page = st.session_state["current_page"]
+    standalone_details = {
+        "scheduler": ("📅", "Content scheduler", "Plan upcoming social content and review your scheduled runs."),
+        "subusers": ("👥", "Sub-user access", "Manage the accounts linked to your ZOVIX workspace."),
+        "factory": ("🚀", "ZOVIX Mass Factory", "Choose a creative engine and start building your next piece of content."),
+        "portfolio": ("📂", "My portfolio", "A polished home for your generated videos, images and creative outputs."),
+    }
+    standalone_icon, standalone_title, standalone_description = standalone_details[standalone_page]
+    st.markdown(get_premium_theme_css(), unsafe_allow_html=True)
+    st.markdown(
+        """
+        <style>
+            :root {
+                --standalone-bg: #f3f6f6;
+                --standalone-text: #263638;
+                --standalone-muted: #536467;
+                --standalone-line: #d2dddb;
+                --standalone-accent: #168e89;
+            }
+            html, body, .stApp, [data-testid="stAppViewContainer"], section[data-testid="stMain"] {
+                color: var(--standalone-text) !important;
+                background: var(--standalone-bg) !important;
+                font-family: 'Inter', sans-serif !important;
+            }
+            section[data-testid="stMain"] .block-container {
+                width: 100% !important;
+                max-width: 1320px !important;
+                margin: 0 auto !important;
+                padding: 1.25rem clamp(16px, 3vw, 42px) 2.5rem !important;
+            }
+            .standalone-hero {
+                min-height: 142px;
+                display: flex;
+                align-items: center;
+                gap: 20px;
+                margin-bottom: 20px;
+                padding: 24px clamp(20px, 4vw, 40px);
+                color: #fff;
+                background:
+                    radial-gradient(ellipse at 88% 8%, rgba(117, 238, 222, .2), transparent 40%),
+                    linear-gradient(115deg, #123d43, #176c6d 62%, #248d83);
+                border: 1px solid rgba(13, 83, 82, .14);
+                border-radius: 20px;
+                box-shadow: 0 16px 36px rgba(24, 76, 76, .16);
+            }
+            .standalone-hero-icon {
+                display: grid;
+                flex: 0 0 66px;
+                width: 66px;
+                height: 66px;
+                place-items: center;
+                color: #143c40;
+                background: linear-gradient(145deg, #fff, #d9f4ef);
+                border: 3px solid rgba(255,255,255,.66);
+                border-radius: 20px;
+                font-size: 30px;
+            }
+            .standalone-hero-copy h1 {
+                margin: 0 0 6px;
+                color: #fff !important;
+                font: 800 clamp(22px, 2.5vw, 30px)/1.2 'Inter', sans-serif !important;
+                letter-spacing: -.025em;
+            }
+            .standalone-hero-copy p {
+                margin: 0;
+                color: rgba(255,255,255,.86) !important;
+                font: 500 14px/1.5 'Inter', sans-serif !important;
+            }
+            section[data-testid="stMain"] h2,
+            section[data-testid="stMain"] h3,
+            section[data-testid="stMain"] h4,
+            section[data-testid="stMain"] p,
+            section[data-testid="stMain"] label,
+            section[data-testid="stMain"] [data-testid="stCaptionContainer"],
+            section[data-testid="stMain"] [data-testid="stWidgetLabel"] {
+                color: var(--standalone-text) !important;
+                -webkit-text-fill-color: var(--standalone-text) !important;
+                font-family: 'Inter', sans-serif !important;
+            }
+            section[data-testid="stMain"] [data-testid="stVerticalBlockBorderWrapper"] {
+                background: #fff !important;
+                border: 1px solid var(--standalone-line) !important;
+                border-radius: 16px !important;
+                box-shadow: 0 8px 24px rgba(26, 55, 56, .07) !important;
+            }
+            section[data-testid="stMain"] [data-testid="stButton"] button {
+                color: #153438 !important;
+                background: #36c7c1 !important;
+                border-color: #36c7c1 !important;
+                font-family: 'Inter', sans-serif !important;
+                font-weight: 700 !important;
+            }
+            section[data-testid="stMain"] [class*="st-key-standalone_back_to_studio"] button {
+                color: #153438 !important;
+                background: #fff !important;
+                border-color: var(--standalone-line) !important;
+                border-radius: 12px !important;
+                min-height: 42px !important;
+                padding: 0 17px !important;
+                box-shadow: 0 8px 24px rgba(24, 54, 56, .14) !important;
+                font-size: 13px !important;
+                white-space: nowrap !important;
+                transition: transform .18s ease, box-shadow .18s ease, background .18s ease !important;
+            }
+            section[data-testid="stMain"] [class*="st-key-standalone_back_to_studio"] {
+                display: flex !important;
+                justify-content: flex-end !important;
+                width: 100% !important;
+                margin: 0 0 14px !important;
+            }
+            section[data-testid="stMain"] [class*="st-key-standalone_back_to_studio"] button:hover {
+                transform: translateY(-1px) !important;
+                background: #ffffff !important;
+                box-shadow: 0 10px 26px rgba(24, 54, 56, .18) !important;
+            }
+            .factory-engine-card {
+                min-height: 122px;
+                padding: 16px;
+                background: #fff;
+                border: 1px solid var(--standalone-line);
+                border-radius: 14px;
+                box-shadow: 0 6px 18px rgba(26,55,56,.055);
+            }
+            .factory-engine-card .engine-title {
+                margin: 0 0 7px;
+                color: #153f43;
+                font: 750 15px/1.3 'Inter', sans-serif;
+            }
+            .factory-engine-card .engine-description {
+                margin: 0;
+                color: var(--standalone-muted);
+                font: 500 12px/1.45 'Inter', sans-serif;
+            }
+            .standalone-stat-card {
+                min-height: 96px;
+                padding: 18px;
+                background: #fff;
+                border: 1px solid var(--standalone-line);
+                border-radius: 14px;
+                box-shadow: 0 6px 18px rgba(26,55,56,.055);
+            }
+            .standalone-stat-card .value {
+                color: #153f43;
+                font: 800 24px/1.2 'Inter', sans-serif;
+            }
+            .standalone-stat-card .label {
+                margin-top: 6px;
+                color: var(--standalone-muted);
+                font: 600 12px/1.4 'Inter', sans-serif;
+            }
+            .standalone-section-title {
+                margin: 20px 0 12px;
+                color: #173f43 !important;
+                font: 750 18px/1.3 'Inter', sans-serif !important;
+            }
+            @media (max-width: 768px) {
+                section[data-testid="stMain"] .block-container { padding: .75rem 14px 1.75rem !important; }
+                .standalone-hero { gap: 14px; min-height: 118px; padding: 18px 16px; border-radius: 16px; }
+                .standalone-hero-icon { flex-basis: 54px; width: 54px; height: 54px; border-radius: 16px; font-size: 24px; }
+                section[data-testid="stMain"] [data-testid="stHorizontalBlock"] { flex-wrap: wrap !important; }
+                section[data-testid="stMain"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] {
+                    min-width: min(100%, 210px) !important;
+                    flex: 1 1 210px !important;
+                }
+            }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+    if st.button("← Back to Studio", key="standalone_back_to_studio", type="secondary"):
+        st.session_state["sidebar_tab"] = "🚀 Zovix Mass Factory"
+        st.session_state.pop("standalone_return_sidebar_tab", None)
+        st.session_state["current_page"] = "studio"
+        st.query_params["page"] = "studio"
+        st.rerun()
+    st.markdown(
+        f"""
+        <div class="standalone-hero">
+            <div class="standalone-hero-icon">{standalone_icon}</div>
+            <div class="standalone-hero-copy">
+                <h1>{standalone_title}</h1>
+                <p>{standalone_description}</p>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    if standalone_page == "scheduler":
+        render_scheduler_section()
+    elif standalone_page == "subusers":
+        render_sub_user_access_section()
+    elif standalone_page == "portfolio":
+        render_user_portfolio_section()
+    else:
+        factory_history = st.session_state.get("history_renders", [])
+        factory_face_history = st.session_state.get("face_video_history", [])
+        factory_stats = st.columns(3, gap="small")
+        for stat_col, (stat_value, stat_label) in zip(
+            factory_stats,
+            [
+                (f"{float(get_user_credits_db(st.session_state['logged_user']) or 0):g}", "Available credits"),
+                (f"{len(factory_history) + len(factory_face_history):,}", "Saved generations"),
+                ("11", "Creative engines"),
+            ],
+        ):
+            with stat_col:
+                st.markdown(
+                f'<div class="standalone-stat-card"><div class="value">{stat_value}</div><div class="label">{stat_label}</div></div>',
+                    unsafe_allow_html=True,
+                )
+        st.markdown('<h3 class="standalone-section-title">Choose a creative engine</h3>', unsafe_allow_html=True)
+        engine_options = [
+            ("👤", "Face Video", "Face Video Mode", "Create portrait-led talking videos."),
+            ("🎬", "Cinematic", "Cinematic Engine", "Build cinematic scenes and story clips."),
+            ("🎨", "Creative Workshop", "Creative Workshop Mode", "Generate visual concepts and images."),
+            ("🎞️", "Video Editor", "Video Editor Mode", "Edit and transform your media."),
+            ("📐", "Blueprints", "Blueprints Mode", "Create architectural and design blueprints."),
+            ("⚡", "Upscaler", "Upscaler Mode", "Enhance and upscale your images."),
+            ("✏️", "Draw", "Draw Mode", "Turn ideas into illustrated artwork."),
+            ("🤖", "AI Agent", "AI Agent Mode", "Create marketing assets with AI assistance."),
+            ("🎙️", "AI Sales", "AI Sales Mode", "Generate AI-assisted sales videos."),
+            ("🧠", "Dynamic UI", "Dynamic UI Mode", "Personalize the creative workspace."),
+            ("🎤", "Live Voice", "Live Emotion Mode", "Create expressive voice outputs."),
+        ]
+        for row_start in range(0, len(engine_options), 3):
+            engine_row = engine_options[row_start:row_start + 3]
+            engine_cols = st.columns(3, gap="medium")
+            for engine_col, (icon, title, mode_name, description) in zip(engine_cols, engine_row):
+                with engine_col:
+                    st.markdown(
+                        f"""
+                        <div class="factory-engine-card">
+                            <div class="engine-title">{icon} {title}</div>
+                            <p class="engine-description">{description}</p>
+                        </div>
+                        """,
+                        unsafe_allow_html=True,
+                    )
+                    if st.button(f"Open {title}", key=f"factory_open_{mode_name}", width="stretch"):
+                        handle_engine_access_request(mode_name)
+        st.caption("Your generated outputs are retained in your account and remain available in the relevant engine gallery.")
+    st.stop()
+
 elif st.session_state["current_page"] == "studio":
     if st.session_state.get("2fa_enabled", False) and not st.session_state.get("2fa_verified", False):
         show_2fa_modal()
         st.stop()
-    
+
     st.markdown(get_premium_theme_css(), unsafe_allow_html=True)
     get_language_selector()
-    
+
     # ========================================================
     # STUDIO PAGE CSS - CLEAN PREMIUM STYLE
     # ========================================================
     st.markdown("""
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap');
-        
+
         /* GLOBAL */
         .stApp { font-family: 'Inter', sans-serif !important; color: #f8fafc !important; background: #06070a !important; }
         .block-container { padding-top: 0.5rem !important; }
-        
+
         /* HEADINGS */
         h1, h2, h3, h4, h5, h6 {
             font-family: 'Orbitron', sans-serif !important;
@@ -16200,7 +17657,7 @@ elif st.session_state["current_page"] == "studio":
             -webkit-text-fill-color: transparent !important;
             background-clip: text !important;
         }
-        
+
         /* HEADER */
         .studio-header {
             background: linear-gradient(135deg, rgba(236,72,153,0.06), rgba(69,243,255,0.06));
@@ -16254,7 +17711,7 @@ elif st.session_state["current_page"] == "studio":
             transition: all 0.3s ease;
         }
         .studio-header .right .exit-btn:hover { transform: scale(1.05); }
-        
+
         /* STATS */
         .stats-grid {
             display: grid;
@@ -16281,7 +17738,7 @@ elif st.session_state["current_page"] == "studio":
             color: #94a3b8 !important;
             margin-top: 2px !important;
         }
-        
+
         /* QUICK ACCESS */
         .quick-access {
             background: rgba(18,19,26,0.8);
@@ -16321,7 +17778,7 @@ elif st.session_state["current_page"] == "studio":
             color: #FFFFFF;
         }
         .quick-access .qa-grid .qa-btn .qa-icon { font-size: 16px; display: block; margin-bottom: 2px; }
-        
+
         /* MODE BUTTONS */
         .mode-label {
             font-family: 'Orbitron', sans-serif !important;
@@ -16361,7 +17818,7 @@ elif st.session_state["current_page"] == "studio":
             box-shadow: 0 0 20px rgba(236,72,153,0.15);
         }
         .mode-grid .mode-btn .mode-icon { font-size: 20px; display: block; margin-bottom: 3px; }
-        
+
         /* SECTION HEADERS */
         .section-header {
             font-family: 'Orbitron', sans-serif !important;
@@ -16371,7 +17828,7 @@ elif st.session_state["current_page"] == "studio":
             margin: 20px 0 8px 0 !important;
             text-transform: uppercase !important;
         }
-        
+
         /* COMPACT LABEL */
         .compact-label {
             font-family: 'Orbitron', sans-serif !important;
@@ -16381,7 +17838,7 @@ elif st.session_state["current_page"] == "studio":
             text-transform: uppercase !important;
             margin: 12px 0 6px 0 !important;
         }
-        
+
         /* BUTTONS */
         .stButton > button {
             font-family: 'Orbitron', sans-serif !important;
@@ -16396,28 +17853,1326 @@ elif st.session_state["current_page"] == "studio":
             transition: all 0.3s ease !important;
         }
         .stButton > button:hover {
-            background: #EC4899 !important;
-            color: #FFFFFF !important;
-            border-color: #EC4899 !important;
-            box-shadow: 0 0 20px rgba(236,72,153,0.2) !important;
+            background: #f4a581 !important;
+            color: #202b2c !important;
+            border-color: #f4a581 !important;
+            box-shadow: 0 6px 18px rgba(244,165,129,0.2) !important;
         }
-        
+
+        /* Match the landing page's light teal and coral visual theme. */
+        :root {
+            --studio-bg: #f3f6f6;
+            --studio-surface: #ffffff;
+            --studio-text: #202b2c;
+            --studio-muted: #46575a;
+            --studio-teal: #36c7c1;
+            --studio-coral: #f4a581;
+            --studio-line: #d2dddb;
+        }
+        html, body, .stApp, [data-testid="stAppViewContainer"],
+        section[data-testid="stMain"], section.main {
+            background: var(--studio-bg) !important;
+            color: var(--studio-text) !important;
+            font-family: 'Inter', sans-serif !important;
+        }
+        h1, h2, h3, h4, h5, h6,
+        [data-testid="stWidgetLabel"], [data-testid="stCaptionContainer"] {
+            color: var(--studio-text) !important;
+            font-family: 'Inter', sans-serif !important;
+            letter-spacing: 0 !important;
+        }
+        .studio-header {
+            position: relative !important;
+            isolation: isolate !important;
+            overflow: hidden !important;
+            width: 100% !important;
+            min-height: 320px !important;
+            align-items: stretch !important;
+            padding: clamp(24px, 3.6vw, 48px) !important;
+            margin: 0 0 12px !important;
+            background: transparent !important;
+            border: 0 !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+        }
+        .studio-header::before {
+            position: absolute !important;
+            z-index: 0 !important;
+            inset: 0 !important;
+            content: "" !important;
+            background:
+                linear-gradient(90deg, rgba(8,18,29,.76) 0%, rgba(8,18,29,.46) 42%, rgba(8,18,29,.08) 100%),
+                linear-gradient(0deg, rgba(9,24,33,.28), transparent 45%),
+                url("https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=2200&q=92") center 52% / cover no-repeat !important;
+            border: 1px solid rgba(232,255,255,.48) !important;
+            border-radius: 34px 38px 156px 34px / 34px 34px 34% 34px !important;
+            box-shadow:
+                inset 0 2px 0 rgba(255,255,255,.48),
+                inset 0 -32px 54px rgba(10,30,40,.28),
+                0 34px 68px rgba(19,49,60,.30),
+                0 10px 22px rgba(30,100,112,.14) !important;
+            pointer-events: none !important;
+        }
+        .studio-header::after {
+            position: absolute !important;
+            z-index: 0 !important;
+            right: -5% !important;
+            bottom: -58% !important;
+            width: 66% !important;
+            height: 92% !important;
+            content: "" !important;
+            background: radial-gradient(ellipse, rgba(80,221,215,.28), rgba(80,221,215,0) 68%) !important;
+            filter: blur(12px) !important;
+            pointer-events: none !important;
+        }
+        .studio-header .left,
+        .studio-header .right {
+            position: relative !important;
+            z-index: 1 !important;
+        }
+        .studio-header .left {
+            align-self: flex-end !important;
+            max-width: min(48%, 560px) !important;
+        }
+        .studio-header .right {
+            position: absolute !important;
+            top: clamp(24px, 3.6vw, 48px) !important;
+            right: clamp(24px, 3.6vw, 48px) !important;
+            margin-left: auto !important;
+        }
+        .studio-header .left h1 {
+            color: #ffffff !important;
+            font: 850 clamp(30px, 4vw, 52px)/1.08 'Inter', sans-serif !important;
+            letter-spacing: -.04em !important;
+            text-shadow: 0 3px 24px rgba(0,0,0,.48) !important;
+        }
+        .studio-header .left h1 .highlight {
+            background: linear-gradient(135deg, #9bf2eb, #ffffff) !important;
+            -webkit-background-clip: text !important;
+            background-clip: text !important;
+            -webkit-text-fill-color: transparent !important;
+        }
+        .studio-header .left p {
+            max-width: 440px !important;
+            margin-top: 12px !important;
+            color: rgba(255,255,255,.94) !important;
+            font: 650 13px/1.6 'Inter', sans-serif !important;
+            letter-spacing: .12em !important;
+            text-shadow: 0 2px 14px rgba(0,0,0,.56) !important;
+        }
+        .studio-header .right .credits {
+            color: #ffffff !important;
+            background: rgba(23,157,153,.82) !important;
+            border: 1px solid rgba(255,255,255,.72) !important;
+            backdrop-filter: blur(12px) !important;
+            font-family: 'Inter', sans-serif !important;
+            box-shadow: 0 8px 24px rgba(0,0,0,.25) !important;
+        }
+        section[data-testid="stMain"] [class*="st-key-exit_studio_btn"] {
+            position: relative !important;
+            z-index: 3 !important;
+            display: flex !important;
+            justify-content: flex-end !important;
+            width: 100% !important;
+            height: 0 !important;
+            margin: -68px 0 68px !important;
+            padding-right: clamp(24px, 3.6vw, 48px) !important;
+            pointer-events: none !important;
+        }
+        section[data-testid="stMain"] [class*="st-key-exit_studio_btn"] button {
+            min-height: 38px !important;
+            padding: 0 16px !important;
+            color: #ffffff !important;
+            background: rgba(17, 40, 48, .54) !important;
+            border: 1px solid rgba(255,255,255,.76) !important;
+            border-radius: 999px !important;
+            box-shadow: 0 6px 18px rgba(0,0,0,.2) !important;
+            font-size: 12px !important;
+            pointer-events: auto !important;
+            backdrop-filter: blur(12px) !important;
+        }
+        section[data-testid="stMain"] [class*="st-key-exit_studio_btn"] button:hover {
+            color: #153438 !important;
+            background: #ffffff !important;
+            border-color: #ffffff !important;
+        }
+        .stats-grid .stat {
+            position: relative !important;
+            overflow: hidden !important;
+            min-height: 88px !important;
+            padding: 13px 12px !important;
+            background:
+                linear-gradient(145deg, rgba(255,255,255,.88), rgba(244,250,249,.68)) !important;
+            border: 1px solid rgba(255,255,255,.94) !important;
+            border-radius: 16px !important;
+            box-shadow:
+                inset 0 1px 0 rgba(255,255,255,.96),
+                0 8px 22px rgba(36,72,75,.09) !important;
+            backdrop-filter: blur(14px) saturate(135%) !important;
+            -webkit-backdrop-filter: blur(14px) saturate(135%) !important;
+        }
+        .stats-grid {
+            gap: 10px !important;
+            margin: 8px 0 12px !important;
+        }
+        .stats-grid .stat .num {
+            color: #187f7d !important;
+            font: 800 25px/1.15 'Inter', sans-serif !important;
+        }
+        .stats-grid .stat .label {
+            margin-top: 5px !important;
+            color: #506366 !important;
+            font: 650 12px/1.3 'Inter', sans-serif !important;
+        }
+        .quick-access {
+            display: flex !important;
+            align-items: center !important;
+            min-height: 50px !important;
+            padding: 8px 14px !important;
+            background: rgba(255,255,255,.82) !important;
+            border: 1px solid rgba(210,221,219,.92) !important;
+            border-radius: 14px !important;
+            box-shadow: 0 6px 18px rgba(33,54,55,.055) !important;
+            backdrop-filter: blur(10px) !important;
+        }
+        .quick-access .qa-header {
+            color: #31535a !important;
+            font: 750 13px/1.3 'Inter', sans-serif !important;
+            letter-spacing: .04em !important;
+        }
+        section[data-testid="stMain"] .block-container {
+            max-width: 1480px !important;
+            padding: 1rem clamp(16px, 3vw, 42px) 2.5rem !important;
+        }
+        .studio-header {
+            min-height: 300px !important;
+            padding: clamp(24px, 3vw, 42px) !important;
+            margin-bottom: 8px !important;
+        }
+        .studio-header::before {
+            background:
+                linear-gradient(90deg, rgba(8,18,29,.78) 0%, rgba(8,18,29,.50) 38%, rgba(8,18,29,.08) 74%),
+                linear-gradient(0deg, rgba(9,24,33,.52), transparent 54%),
+                linear-gradient(140deg, rgba(255,255,255,.20), transparent 24%, transparent 76%, rgba(92,232,222,.15)),
+                url("https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=2200&q=92") center 52% / cover no-repeat !important;
+            border-radius: 34px 38px 156px 34px / 34px 34px 34% 34px !important;
+            border: 1px solid rgba(232,255,255,.48) !important;
+            box-shadow:
+                inset 0 2px 0 rgba(255,255,255,.5),
+                inset 0 -30px 52px rgba(10,30,40,.25),
+                0 34px 68px rgba(19,49,60,.3) !important;
+        }
+        .studio-header .left {
+            max-width: min(52%, 620px) !important;
+            padding-bottom: 6px !important;
+        }
+        .studio-header .left::before {
+            display: inline-flex;
+            align-items: center;
+            min-height: 26px;
+            margin-bottom: 13px;
+            padding: 0 11px;
+            color: #eafffd;
+            content: "YOUR CREATIVE COMMAND CENTER";
+            background: rgba(49, 194, 187, .24);
+            border: 1px solid rgba(220,255,252,.44);
+            border-radius: 999px;
+            font: 750 10px/1 'Inter', sans-serif;
+            letter-spacing: .13em;
+            text-shadow: 0 1px 10px rgba(0,0,0,.3);
+            backdrop-filter: blur(12px);
+        }
+        .studio-header .left h1 {
+            font-size: clamp(34px, 4.4vw, 58px) !important;
+            letter-spacing: -.055em !important;
+            line-height: 1.02 !important;
+        }
+        .studio-header .left p {
+            max-width: 400px !important;
+            margin-top: 10px !important;
+            font-size: 13px !important;
+            letter-spacing: .025em !important;
+            text-transform: none !important;
+        }
+        .studio-header .right .credits {
+            padding: 10px 16px !important;
+            border-radius: 999px !important;
+            font-size: 13px !important;
+            font-weight: 750 !important;
+            letter-spacing: .01em !important;
+        }
+        section[data-testid="stMain"] [class*="st-key-exit_studio_btn"] {
+            margin-top: -58px !important;
+            margin-bottom: 58px !important;
+            padding-right: clamp(24px, 3vw, 42px) !important;
+        }
+        section[data-testid="stMain"] [class*="st-key-exit_studio_btn"] button {
+            min-height: 36px !important;
+            padding: 0 13px !important;
+            font-size: 11px !important;
+            opacity: .92;
+        }
+        .stats-grid {
+            gap: 12px !important;
+            margin: 8px 0 12px !important;
+        }
+        .stats-grid .stat {
+            display: flex !important;
+            min-height: 82px !important;
+            flex-direction: column !important;
+            justify-content: center !important;
+            padding: 14px 18px !important;
+            text-align: left !important;
+            background: linear-gradient(145deg, rgba(255,255,255,.94), rgba(235,249,247,.72)) !important;
+            border: 1px solid rgba(255,255,255,.98) !important;
+            border-radius: 18px !important;
+            box-shadow: inset 0 1px 0 #fff, 0 10px 24px rgba(34,82,83,.075) !important;
+        }
+        .stats-grid .stat .num { font-size: 26px !important; }
+        .stats-grid .stat .label {
+            margin-top: 3px !important;
+            color: #58696b !important;
+            font-size: 12px !important;
+            font-weight: 650 !important;
+        }
+        .studio-free-plan-note {
+            display: none !important;
+        }
+        .studio-mode-label {
+            display: flex !important;
+            align-items: center !important;
+            gap: 10px !important;
+            margin: 18px 0 10px !important;
+            padding: 0 !important;
+            color: #183a3e !important;
+            background: transparent !important;
+            border: 0 !important;
+            font-size: 19px !important;
+            font-weight: 800 !important;
+            letter-spacing: -.025em !important;
+        }
+        .studio-mode-label::after {
+            color: #65787a;
+            content: "Pick a tool to start creating";
+            font: 500 12px/1.4 'Inter', sans-serif;
+            letter-spacing: 0;
+        }
+        section[data-testid="stMain"] [data-testid="stHorizontalBlock"]:has([class*="st-key-mode_"]) {
+            display: flex !important;
+            flex-wrap: wrap !important;
+            gap: 12px !important;
+            margin-bottom: 10px !important;
+        }
+        section[data-testid="stMain"] [data-testid="stHorizontalBlock"]:has([class*="st-key-mode_"]) > [data-testid="stColumn"] {
+            flex: 1 1 calc(25% - 12px) !important;
+            min-width: 180px !important;
+        }
+        section[data-testid="stMain"] [class*="st-key-mode_"] button {
+            display: flex !important;
+            min-height: 72px !important;
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            justify-content: center !important;
+            padding: 12px 16px !important;
+            color: #2d4a4d !important;
+            background: linear-gradient(145deg, #fff, #f8fbfa) !important;
+            border: 1px solid #dce8e5 !important;
+            border-radius: 15px !important;
+            box-shadow: 0 5px 16px rgba(29,66,66,.045) !important;
+            font: 750 13px/1.35 'Inter', sans-serif !important;
+            text-align: left !important;
+            white-space: pre-line !important;
+            transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease !important;
+        }
+        section[data-testid="stMain"] [class*="st-key-mode_"] button:hover {
+            transform: translateY(-2px) !important;
+            color: #174c4d !important;
+            background: linear-gradient(145deg, #fff, #effaf8) !important;
+            border-color: #8fd8d3 !important;
+            box-shadow: 0 10px 22px rgba(29,113,109,.1) !important;
+        }
+        section[data-testid="stMain"] [class*="st-key-mode_"] button[kind="primary"] {
+            color: #123e40 !important;
+            background: linear-gradient(145deg, #e0fbf7, #c9f1ec) !important;
+            border-color: #85d9d2 !important;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.9), 0 8px 20px rgba(39,153,147,.12) !important;
+        }
+        .studio-inspiration {
+            margin: 18px 0 20px !important;
+            padding: 16px 18px 10px !important;
+            background: linear-gradient(145deg, rgba(255,255,255,.86), rgba(239,248,247,.75)) !important;
+            border: 1px solid rgba(214,229,226,.9) !important;
+            border-radius: 18px !important;
+            box-shadow: 0 8px 22px rgba(36,72,75,.045) !important;
+        }
+        .studio-inspiration h2 {
+            margin-bottom: 8px !important;
+            font-size: 15px !important;
+            letter-spacing: -.01em !important;
+        }
+        .studio-featured-rail { gap: 10px !important; padding-bottom: 10px !important; }
+        .studio-featured-card {
+            flex-basis: 158px !important;
+            height: 120px !important;
+            border-radius: 13px !important;
+            box-shadow: 0 5px 14px rgba(33,54,55,.09) !important;
+        }
+        .studio-featured-copy { right: 10px !important; bottom: 9px !important; left: 10px !important; font-size: 11px !important; }
+        @media (max-width: 768px) {
+            section[data-testid="stMain"] .block-container { padding: .7rem 14px 1.5rem !important; }
+            .studio-header { min-height: 260px !important; padding: 24px 20px 32px !important; }
+            .studio-header .left { max-width: 100% !important; }
+            .studio-header .left h1 { font-size: clamp(30px, 8vw, 40px) !important; }
+            .studio-header .left p { max-width: 75% !important; font-size: 12px !important; }
+            section[data-testid="stMain"] [class*="st-key-exit_studio_btn"] {
+                margin-top: -58px !important;
+                margin-bottom: 58px !important;
+                padding-right: 20px !important;
+            }
+            section[data-testid="stMain"] [data-testid="stHorizontalBlock"]:has([class*="st-key-mode_"]) > [data-testid="stColumn"] {
+                flex: 1 1 calc(50% - 12px) !important;
+                min-width: 145px !important;
+            }
+        }
+        @media (max-width: 480px) {
+            .studio-header { min-height: 245px !important; padding: 20px 16px 28px !important; }
+            .studio-header .left::before { min-height: 23px; font-size: 8px; letter-spacing: .1em; }
+            .studio-header .left h1 { font-size: 29px !important; }
+            .studio-header .right { top: 16px !important; right: 16px !important; }
+            .studio-header .right .credits { padding: 8px 11px !important; font-size: 11px !important; }
+            section[data-testid="stMain"] [class*="st-key-exit_studio_btn"] {
+                margin-top: -52px !important;
+                margin-bottom: 52px !important;
+                padding-right: 16px !important;
+            }
+            .stats-grid .stat { min-height: 74px !important; padding: 11px 13px !important; }
+            .studio-mode-label { flex-wrap: wrap !important; font-size: 17px !important; }
+            .studio-mode-label::after { flex-basis: 100%; }
+            section[data-testid="stMain"] [data-testid="stHorizontalBlock"]:has([class*="st-key-mode_"]) > [data-testid="stColumn"] {
+                flex: 1 1 calc(50% - 8px) !important;
+                min-width: 135px !important;
+            }
+            .studio-featured-card { flex-basis: 140px !important; height: 108px !important; }
+        }
+        .studio-mode-label {
+            margin: 20px 0 10px !important;
+            color: #202b2c !important;
+            font: 750 17px/1.3 'Inter', sans-serif !important;
+        }
+        section[data-testid="stMain"] [data-testid="stHorizontalBlock"]:has(.st-key-mode_0) {
+            display: flex !important;
+            flex-wrap: nowrap !important;
+            gap: 10px !important;
+            overflow-x: auto !important;
+            overscroll-behavior-x: contain !important;
+            padding: 2px 2px 12px !important;
+            scrollbar-width: thin;
+            scrollbar-color: #cbd8d5 transparent;
+        }
+        section[data-testid="stMain"] [data-testid="stHorizontalBlock"]:has(.st-key-mode_0) > [data-testid="stColumn"] {
+            flex: 1 0 105px !important;
+            min-width: 105px !important;
+            scroll-snap-align: start;
+        }
+        section[data-testid="stMain"] [class*="st-key-mode_"] button {
+            min-height: 62px !important;
+            color: #354345 !important;
+            background: #ffffff !important;
+            border: 1px solid var(--studio-line) !important;
+            border-radius: 14px !important;
+            box-shadow: 0 5px 14px rgba(33,54,55,.06) !important;
+            font: 700 12px/1.25 'Inter', sans-serif !important;
+            white-space: pre-line !important;
+        }
+        section[data-testid="stMain"] [class*="st-key-mode_"] button:hover {
+            color: #153438 !important;
+            background: #effaf9 !important;
+            border-color: var(--studio-teal) !important;
+        }
+        section[data-testid="stMain"] [class*="st-key-mode_"] button[kind="primary"] {
+            color: #153438 !important;
+            background: var(--studio-teal) !important;
+            border-color: var(--studio-teal) !important;
+        }
+        .studio-inspiration {
+            margin: 16px 0 28px;
+            color: var(--studio-text);
+        }
+        .studio-inspiration h2 {
+            margin: 0 0 12px;
+            color: var(--studio-text);
+            font: 750 18px/1.3 'Inter', sans-serif;
+        }
+        .studio-featured-rail {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            padding: 2px 2px 14px;
+            scroll-snap-type: x mandatory;
+            scrollbar-width: thin;
+            scrollbar-color: #cbd8d5 transparent;
+        }
+        .studio-featured-card {
+            position: relative;
+            flex: 0 0 188px;
+            height: 224px;
+            overflow: hidden;
+            border: 1px solid var(--studio-line);
+            border-radius: 14px;
+            background: #eef2f1;
+            box-shadow: 0 8px 20px rgba(33,54,55,.08);
+            scroll-snap-align: start;
+        }
+        .studio-featured-card img,
+        .studio-community-card img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .studio-featured-card::after {
+            position: absolute;
+            inset: 35% 0 0;
+            content: "";
+            background: linear-gradient(transparent, rgba(12,23,25,.76));
+        }
+        .studio-featured-copy {
+            position: absolute;
+            z-index: 1;
+            right: 12px;
+            bottom: 12px;
+            left: 12px;
+            color: #ffffff;
+            font: 700 13px/1.3 'Inter', sans-serif;
+            text-shadow: 0 1px 4px rgba(0,0,0,.35);
+        }
+        .studio-featured-note {
+            margin: 0 2px 4px;
+            color: var(--studio-muted);
+            font: 400 11px/1.4 'Inter', sans-serif;
+        }
+        .studio-community-grid {
+            columns: 4 190px;
+            column-gap: 14px;
+        }
+        .studio-community-card {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+            overflow: hidden;
+            margin: 0 0 14px;
+            border: 1px solid var(--studio-line);
+            border-radius: 14px;
+            background: #eef2f1;
+            box-shadow: 0 7px 18px rgba(33,54,55,.07);
+            break-inside: avoid;
+        }
+        .studio-community-card img { height: auto; min-height: 170px; }
+        .studio-community-copy {
+            padding: 10px 12px 12px;
+            color: var(--studio-text);
+            background: #ffffff;
+            font: 700 12px/1.35 'Inter', sans-serif;
+        }
+        .studio-community-copy span {
+            display: block;
+            margin-top: 4px;
+            color: var(--studio-muted);
+            font: 500 11px/1.4 'Inter', sans-serif;
+        }
+        .studio-header .right .exit-btn {
+            color: #153438 !important;
+            background: var(--studio-coral) !important;
+            font-family: 'Inter', sans-serif !important;
+        }
+        .stats-grid .stat {
+            background: linear-gradient(145deg, rgba(255,255,255,.88), rgba(244,250,249,.68)) !important;
+            border: 1px solid rgba(255,255,255,.94) !important;
+            border-radius: 16px !important;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.96), 0 8px 22px rgba(36,72,75,.09) !important;
+            backdrop-filter: blur(14px) saturate(135%) !important;
+            -webkit-backdrop-filter: blur(14px) saturate(135%) !important;
+        }
+        .quick-access {
+            background: rgba(255,255,255,.82) !important;
+            border: 1px solid rgba(210,221,219,.92) !important;
+            border-radius: 14px !important;
+            box-shadow: 0 6px 18px rgba(33,54,55,.055) !important;
+            backdrop-filter: blur(10px) !important;
+        }
+        .ai-feature-card, .quick-access-panel, .face-control-item,
+        .editor-upload-box, .photo-slide-item {
+            background: #ffffff !important;
+            border: 1px solid var(--studio-line) !important;
+            border-radius: 10px !important;
+            box-shadow: 0 8px 20px rgba(33,54,55,.06) !important;
+        }
+        .ai-feature-card .title, .quick-access-panel .panel-header { color: #31535a !important; }
+        .ai-feature-card .desc, .face-control-item .label,
+        .editor-upload-box .label, .quick-access-panel .panel-header { font-family: 'Inter', sans-serif !important; }
+        .face-control-item .value, .editor-upload-box .count { color: #35bcb9 !important; }
+        .selected-opt-wrap button, .selected-opt-wrap .stButton > button,
+        .selected-opt-wrap div[data-testid="stButton"] button {
+            background: var(--studio-teal) !important;
+            background-color: var(--studio-teal) !important;
+            color: #153438 !important;
+            border-color: var(--studio-teal) !important;
+            box-shadow: 0 6px 18px rgba(54,199,193,.18) !important;
+            font-family: 'Inter', sans-serif !important;
+        }
+        .unselected-opt-wrap button, .unselected-opt-wrap .stButton > button,
+        .unselected-opt-wrap div[data-testid="stButton"] button {
+            background: #ffffff !important;
+            background-color: #ffffff !important;
+            color: #354345 !important;
+            border-color: #cbd8d5 !important;
+            font-family: 'Inter', sans-serif !important;
+        }
+        .stats-grid .stat .num {
+            color: #187f7d !important;
+            font: 800 25px/1.15 'Inter', sans-serif !important;
+        }
+        .stats-grid .stat .label {
+            margin-top: 5px !important;
+            color: #506366 !important;
+            font: 650 12px/1.3 'Inter', sans-serif !important;
+        }
+        .quick-access .qa-header {
+            color: #31535a !important;
+            font: 750 13px/1.3 'Inter', sans-serif !important;
+        }
+        .quick-access .qa-grid .qa-btn, .mode-grid .mode-btn {
+            color: #354345 !important;
+            background: #ffffff !important;
+            border: 1px solid var(--studio-line) !important;
+            border-radius: 8px !important;
+            font-family: 'Inter', sans-serif !important;
+        }
+        .quick-access .qa-grid .qa-btn:hover, .mode-grid .mode-btn:hover {
+            border-color: var(--studio-coral) !important;
+            color: #202b2c !important;
+        }
+        .mode-grid .mode-btn.active {
+            background: var(--studio-teal) !important;
+            border-color: var(--studio-teal) !important;
+            color: #153438 !important;
+            box-shadow: 0 6px 18px rgba(54,199,193,.2) !important;
+        }
+        .compact-label, .mode-label {
+            display: inline-block !important;
+            padding: 8px 12px !important;
+            color: #153438 !important;
+            background: rgba(54,199,193,.14) !important;
+            border-left: 4px solid var(--studio-teal) !important;
+            border-radius: 6px !important;
+            font-family: 'Inter', sans-serif !important;
+            font-size: 14px !important;
+            font-weight: 800 !important;
+            letter-spacing: .2px !important;
+        }
+        .section-header { color: var(--studio-muted) !important; }
+        .studio-free-plan-note {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 14px;
+            padding: 10px 12px;
+            color: #422617;
+            background: rgba(244,165,129,.2);
+            border: 1px solid rgba(244,165,129,.6);
+            border-radius: 8px;
+            font: 800 13px/1.4 'Inter', sans-serif;
+        }
+        .stButton > button {
+            color: #153438 !important;
+            background: var(--studio-teal) !important;
+            border: 1px solid var(--studio-teal) !important;
+            border-radius: 24px !important;
+            font-family: 'Inter', sans-serif !important;
+            letter-spacing: .2px !important;
+            text-transform: none !important;
+            box-shadow: 0 6px 18px rgba(54,199,193,.16) !important;
+        }
+        div[data-testid="stTextInput"] input, div[data-testid="stTextArea"] textarea,
+        div[data-testid="stNumberInput"] input, div[data-testid="stDateInput"] input,
+        div[data-testid="stTimeInput"] input, [data-baseweb="select"] > div {
+            color: var(--studio-text) !important;
+            background: #ffffff !important;
+            border-color: #cbd8d5 !important;
+            font-family: 'Inter', sans-serif !important;
+        }
+        div[data-testid="stTextInput"] input:focus, div[data-testid="stTextArea"] textarea:focus,
+        div[data-testid="stNumberInput"] input:focus, [data-baseweb="select"] > div:focus-within {
+            border-color: var(--studio-teal) !important;
+            box-shadow: 0 0 0 1px var(--studio-teal) !important;
+        }
+        div[data-testid="stTextInput"] input::placeholder,
+        div[data-testid="stTextArea"] textarea::placeholder { color: #59696c !important; }
+        div[data-testid="stVerticalBlockBorderWrapper"] {
+            background: #ffffff !important;
+            border-color: var(--studio-line) !important;
+            box-shadow: 0 6px 18px rgba(26,55,56,.07) !important;
+        }
+        [style*="background: rgba(18,19,26"],
+        [style*="background:rgba(18,19,26"],
+        [style*="background: rgba(10,10,15"],
+        [style*="background:rgba(10,10,15"],
+        [style*="background: rgba(18, 19, 26"],
+        [style*="background:rgba(18, 19, 26"],
+        [style*="background: rgba(10, 10, 15"],
+        [style*="background:rgba(10, 10, 15"],
+        [style*="background: #06070a"],
+        [style*="background:#06070a"],
+        [style*="background-color: #06070a"] {
+            background: #ffffff !important;
+            border-color: var(--studio-line) !important;
+            color: var(--studio-text) !important;
+        }
+        [style*="color: #45f3ff"], [style*="color:#45f3ff"],
+        [style*="color: #EC4899"], [style*="color:#EC4899"],
+        [style*="color: #FFC0CB"], [style*="color:#FFC0CB"] {
+            color: #35bcb9 !important;
+        }
+        [style*="color: #94a3b8"], [style*="color:#94a3b8"],
+        [style*="color: #e0e0e0"], [style*="color:#e0e0e0"],
+        [style*="color: #f8fafc"], [style*="color:#f8fafc"] {
+            color: var(--studio-muted) !important;
+        }
+
         /* RESPONSIVE */
         @media (max-width: 768px) {
-            .studio-header { flex-direction: column; text-align: center; gap: 10px; }
-            .studio-header .left h1 { font-size: 18px !important; }
+            .studio-header {
+                min-height: 300px !important;
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                justify-content: flex-end !important;
+                gap: 14px !important;
+                padding: 28px 22px 42px !important;
+            }
+            .studio-header::before {
+                background:
+                    linear-gradient(0deg, rgba(8,18,29,.78) 0%, rgba(8,18,29,.34) 58%, rgba(8,18,29,.04) 100%),
+                    url("https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1600&q=90") center 52% / cover no-repeat !important;
+                border-radius: 30px 34px 126px 30px / 30px 30px 30% 30px !important;
+            }
+            .studio-header::after { display: none !important; }
+            .studio-header .left { max-width: 100% !important; }
+            .studio-header .left h1 { font-size: 34px !important; }
+            .studio-header .right {
+                top: 20px !important;
+                right: 20px !important;
+                margin: 0 !important;
+            }
+            section[data-testid="stMain"] [class*="st-key-exit_studio_btn"] {
+                margin-top: -64px !important;
+                margin-bottom: 64px !important;
+                padding-right: 22px !important;
+            }
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
             .quick-access .qa-grid { grid-template-columns: repeat(3, 1fr); }
             .mode-grid { grid-template-columns: repeat(3, 1fr); }
         }
         @media (max-width: 480px) {
+            .studio-header { min-height: 270px !important; padding: 22px 18px 34px !important; }
+            .studio-header .left h1 { font-size: 29px !important; }
             .stats-grid { grid-template-columns: 1fr; }
             .quick-access .qa-grid { grid-template-columns: repeat(2, 1fr); }
             .mode-grid { grid-template-columns: repeat(2, 1fr); }
         }
+        div[data-testid="stButton"] > button,
+        div[data-testid="stDownloadButton"] > button,
+        div[data-testid="stFormSubmitButton"] > button {
+            min-height: 42px !important;
+            padding: 9px 14px !important;
+            color: #102829 !important;
+            font-family: 'Inter', sans-serif !important;
+            font-size: 15px !important;
+            font-weight: 800 !important;
+            letter-spacing: .15px !important;
+            line-height: 1.25 !important;
+            text-shadow: none !important;
+        }
+        div[data-testid="stButton"] > button p,
+        div[data-testid="stDownloadButton"] > button p,
+        div[data-testid="stFormSubmitButton"] > button p {
+            color: #102829 !important;
+            font-size: inherit !important;
+            font-weight: 800 !important;
+            line-height: inherit !important;
+        }
+        div[data-testid="stMarkdownContainer"] p,
+        div[data-testid="stMarkdownContainer"] li,
+        div[data-testid="stCaptionContainer"],
+        div[data-testid="stWidgetLabel"],
+        div[data-testid="stTextInput"] label,
+        div[data-testid="stTextArea"] label,
+        div[data-testid="stSelectbox"] label,
+        div[data-testid="stNumberInput"] label,
+        div[data-testid="stSlider"] label,
+        div[data-testid="stRadio"] label,
+        div[data-testid="stCheckbox"] label,
+        div[data-testid="stToggle"] label {
+            color: #354345 !important;
+            font-family: 'Inter', sans-serif !important;
+            font-size: 14px !important;
+            font-weight: 600 !important;
+            line-height: 1.5 !important;
+        }
+        div[data-testid="stCaptionContainer"] {
+            color: #46575a !important;
+            font-size: 13px !important;
+        }
+        div[data-testid="stMarkdownContainer"] p[style*="font-size: 6px"],
+        div[data-testid="stMarkdownContainer"] p[style*="font-size: 7px"],
+        div[data-testid="stMarkdownContainer"] p[style*="font-size: 8px"],
+        div[data-testid="stMarkdownContainer"] p[style*="font-size: 9px"],
+        div[data-testid="stMarkdownContainer"] p[style*="font-size: 10px"],
+        div[data-testid="stMarkdownContainer"] p[style*="font-size: 11px"],
+        div[data-testid="stMarkdownContainer"] p[style*="font-size: 12px"],
+        div[data-testid="stMarkdownContainer"] label[style*="font-size: 10px"],
+        div[data-testid="stMarkdownContainer"] label[style*="font-size: 11px"],
+        div[data-testid="stMarkdownContainer"] label[style*="font-size: 12px"] {
+            font-size: 14px !important;
+            line-height: 1.5 !important;
+            font-weight: 600 !important;
+            color: #354345 !important;
+        }
+        .quick-access .qa-grid .qa-btn,
+        .mode-grid .mode-btn {
+            min-height: 58px !important;
+            padding: 10px 6px !important;
+            color: #102829 !important;
+            font-family: 'Inter', sans-serif !important;
+            font-size: 14px !important;
+            font-weight: 800 !important;
+            line-height: 1.25 !important;
+            text-shadow: none !important;
+        }
+        .mode-grid .mode-btn.active {
+            background: #36c7c1 !important;
+            border-color: #36c7c1 !important;
+            color: #102829 !important;
+            box-shadow: 0 6px 18px rgba(54,199,193,.24) !important;
+        }
+        .quick-access .qa-grid .qa-btn:hover,
+        .mode-grid .mode-btn:hover {
+            background: #f4a581 !important;
+            border-color: #f4a581 !important;
+            color: #102829 !important;
+        }
+        div[data-testid="stSelectbox"] div[data-baseweb="select"],
+        div[data-testid="stSelectbox"] div[data-baseweb="select"] > div,
+        div[data-testid="stMultiSelect"] div[data-baseweb="select"],
+        div[data-testid="stMultiSelect"] div[data-baseweb="select"] > div {
+            color: #202b2c !important;
+            background: #ffffff !important;
+            background-color: #ffffff !important;
+            border-color: #cbd8d5 !important;
+        }
+        div[data-testid="stSelectbox"] [data-baseweb="select"] input,
+        div[data-testid="stMultiSelect"] [data-baseweb="select"] input,
+        div[data-testid="stSelectbox"] [data-baseweb="select"] [data-testid="stMarkdownContainer"],
+        div[data-testid="stMultiSelect"] [data-baseweb="select"] [data-testid="stMarkdownContainer"] {
+            color: #202b2c !important;
+            background: #ffffff !important;
+            background-color: #ffffff !important;
+        }
+        div[data-baseweb="popover"] > div,
+        div[data-baseweb="popover"] ul[data-baseweb="menu"],
+        ul[data-baseweb="menu"],
+        ul[role="listbox"] {
+            color: #202b2c !important;
+            background: #ffffff !important;
+            background-color: #ffffff !important;
+            border: 1px solid #dce5e2 !important;
+            border-radius: 10px !important;
+            box-shadow: 0 12px 30px rgba(33,54,55,.14) !important;
+        }
+        [data-testid="stSelectboxVirtualDropdown"],
+        [data-testid="stMultiSelectVirtualDropdown"],
+        [data-testid="stSelectboxVirtualDropdown"] [role="listbox"],
+        [data-testid="stMultiSelectVirtualDropdown"] [role="listbox"] {
+            color: #202b2c !important;
+            background: #ffffff !important;
+            background-color: #ffffff !important;
+            border: 1px solid #dce5e2 !important;
+            border-radius: 10px !important;
+            box-shadow: 0 12px 30px rgba(33,54,55,.14) !important;
+        }
+        ul[data-baseweb="menu"] li,
+        ul[role="listbox"] [role="option"],
+        div[data-baseweb="popover"] [role="option"],
+        [data-testid="stSelectboxVirtualDropdown"] [role="option"],
+        [data-testid="stMultiSelectVirtualDropdown"] [role="option"] {
+            color: #354345 !important;
+            background: #ffffff !important;
+            font-family: 'Inter', sans-serif !important;
+        }
+        [data-testid="stSelectboxVirtualDropdown"] [role="option"] *,
+        [data-testid="stMultiSelectVirtualDropdown"] [role="option"] * {
+            color: inherit !important;
+        }
+        ul[data-baseweb="menu"] li:hover,
+        ul[data-baseweb="menu"] li[aria-selected="true"],
+        ul[role="listbox"] [role="option"]:hover,
+        div[data-baseweb="popover"] [role="option"]:hover,
+        div[data-baseweb="popover"] [role="option"][aria-selected="true"],
+        [data-testid="stSelectboxVirtualDropdown"] [role="option"]:hover,
+        [data-testid="stSelectboxVirtualDropdown"] [role="option"][aria-selected="true"],
+        [data-testid="stMultiSelectVirtualDropdown"] [role="option"]:hover,
+        [data-testid="stMultiSelectVirtualDropdown"] [role="option"][aria-selected="true"] {
+            color: #153438 !important;
+            background: rgba(54,199,193,.16) !important;
+        }
+        section[data-testid="stMain"] div[data-testid="stRadio"],
+        section[data-testid="stMain"] div[data-testid="stSlider"],
+        section[data-testid="stMain"] div[data-testid="stFileUploader"],
+        section[data-testid="stMain"] .stAlert {
+            color: var(--studio-text) !important;
+            background: #ffffff !important;
+            background-color: #ffffff !important;
+            border-color: var(--studio-line) !important;
+        }
+        section[data-testid="stMain"] div[data-testid="stSlider"] > div,
+        section[data-testid="stMain"] div[data-testid="stFileUploader"] > div,
+        section[data-testid="stMain"] div[data-testid="stFileUploader"] [data-testid="stFileUploaderDropzone"] {
+            color: var(--studio-text) !important;
+            background: #ffffff !important;
+            background-color: #ffffff !important;
+            border-color: var(--studio-line) !important;
+        }
+        section[data-testid="stMain"] button[data-testid="stBaseButton-secondary"] {
+            color: #354345 !important;
+            background: #ffffff !important;
+            background-color: #ffffff !important;
+            border-color: var(--studio-line) !important;
+        }
+        section[data-testid="stMain"] .block-container {
+            max-width: 1480px !important;
+            padding: 1rem clamp(16px, 3vw, 42px) 2.5rem !important;
+        }
+        section[data-testid="stMain"] .studio-header {
+            transform: perspective(1800px) rotateX(.45deg) !important;
+            transform-origin: center top !important;
+            min-height: 258px !important;
+            padding: clamp(26px, 3.5vw, 42px) !important;
+            margin-bottom: 10px !important;
+            background: linear-gradient(112deg, #f5f8f1 0%, #edf4ee 52%, #f5eee3 100%) !important;
+            border: 1px solid rgba(255,255,255,.95) !important;
+            border-radius: 28px 26px 74px 28px !important;
+            box-shadow: 0 22px 54px rgba(37,65,65,.14), inset 0 1px 0 #fff !important;
+        }
+        section[data-testid="stMain"] .studio-header::before {
+            inset: 9px 9px 9px 46% !important;
+            background:
+                linear-gradient(90deg, rgba(23,52,52,.22), rgba(23,52,52,.02) 48%, rgba(23,52,52,.1)),
+                linear-gradient(0deg, rgba(16,40,42,.18), transparent 58%),
+                url("https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?auto=format&fit=crop&w=1800&q=90") center 48% / cover no-repeat !important;
+            border-radius: 46% 24px 68px 42% / 48% 24px 44% 44% !important;
+            border: 1px solid rgba(255,255,255,.76) !important;
+            transform: perspective(1300px) rotateY(-3deg) scale(1.015) !important;
+            transform-origin: right center !important;
+            box-shadow:
+                inset 0 1px 0 rgba(255,255,255,.42),
+                0 16px 34px rgba(24,53,51,.18) !important;
+        }
+        section[data-testid="stMain"] .studio-header .left {
+            max-width: min(56%, 660px) !important;
+            padding-bottom: 0 !important;
+        }
+        section[data-testid="stMain"] .studio-header .left::before {
+            display: inline-flex;
+            align-items: center;
+            min-height: 27px;
+            margin-bottom: 15px;
+            padding: 0 12px;
+            color: #187c75;
+            content: "YOUR CREATIVE COMMAND CENTER";
+            background: rgba(61,179,155,.11);
+            border: 1px solid rgba(36,143,132,.18);
+            border-radius: 999px;
+            font: 750 10px/1 'Inter', sans-serif;
+            letter-spacing: .1em;
+        }
+        section[data-testid="stMain"] .studio-header .left h1 {
+            color: #18383a !important;
+            font-size: clamp(32px, 3.8vw, 50px) !important;
+            letter-spacing: -.045em !important;
+            line-height: 1.06 !important;
+            text-shadow: none !important;
+            white-space: nowrap !important;
+        }
+        section[data-testid="stMain"] .studio-header .left h1 .highlight {
+            background: linear-gradient(110deg, #178f83, #b2c991 58%, #ee956f) !important;
+            -webkit-background-clip: text !important;
+            background-clip: text !important;
+            -webkit-text-fill-color: transparent !important;
+        }
+        section[data-testid="stMain"] .studio-header .left p {
+            max-width: 430px !important;
+            margin-top: 12px !important;
+            color: #586b68 !important;
+            font-size: 13px !important;
+            line-height: 1.6 !important;
+            letter-spacing: .01em !important;
+            text-transform: none !important;
+            text-shadow: none !important;
+        }
+        section[data-testid="stMain"] .studio-header .right .credits {
+            padding: 10px 15px !important;
+            color: #176d68 !important;
+            background: rgba(255,255,255,.88) !important;
+            border: 1px solid rgba(43,145,132,.2) !important;
+            border-radius: 999px !important;
+            font-size: 13px !important;
+            font-weight: 750 !important;
+            box-shadow: 0 8px 22px rgba(32,73,68,.14) !important;
+            backdrop-filter: blur(12px) !important;
+        }
+        section[data-testid="stMain"] [class*="st-key-exit_studio_btn"] {
+            margin-top: -58px !important;
+            margin-bottom: 58px !important;
+            padding-right: clamp(24px, 3vw, 42px) !important;
+        }
+        section[data-testid="stMain"] [class*="st-key-exit_studio_btn"] button {
+            min-height: 36px !important;
+            padding: 0 13px !important;
+            font-size: 11px !important;
+            opacity: .92;
+        }
+        section[data-testid="stMain"] .stats-grid {
+            gap: 12px !important;
+            margin: 8px 0 12px !important;
+        }
+        section[data-testid="stMain"] .stats-grid .stat {
+            position: relative !important;
+            display: flex !important;
+            min-height: 82px !important;
+            flex-direction: column !important;
+            justify-content: center !important;
+            padding: 14px 18px !important;
+            text-align: left !important;
+            background: linear-gradient(145deg, rgba(255,255,255,.94), rgba(235,249,247,.72)) !important;
+            border: 1px solid rgba(255,255,255,.98) !important;
+            border-radius: 18px !important;
+            box-shadow: inset 0 1px 0 #fff, 0 10px 24px rgba(34,82,83,.075) !important;
+        }
+        section[data-testid="stMain"] .stats-grid .stat-icon {
+            position: absolute;
+            top: 50%;
+            right: 16px;
+            display: grid;
+            width: 38px;
+            height: 38px;
+            place-items: center;
+            color: #187f7d;
+            background: rgba(54,199,193,.13);
+            border: 1px solid rgba(54,199,193,.18);
+            border-radius: 12px;
+            font-size: 17px;
+            transform: translateY(-50%);
+        }
+        section[data-testid="stMain"] .stats-grid .stat .num {
+            color: #187f7d !important;
+            font-size: 26px !important;
+        }
+        section[data-testid="stMain"] .stats-grid .stat .label {
+            margin-top: 3px !important;
+            color: #58696b !important;
+            font-size: 12px !important;
+            font-weight: 650 !important;
+        }
+        section[data-testid="stMain"] .studio-free-plan-note { display: none !important; }
+        section[data-testid="stMain"] .studio-usage-line {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            margin: -2px 2px 12px;
+            color: #607174;
+            font: 550 11px/1.4 'Inter', sans-serif;
+        }
+        section[data-testid="stMain"] .studio-usage-line .usage-dot {
+            width: 7px;
+            height: 7px;
+            background: #47bdb4;
+            border-radius: 50%;
+        }
+        section[data-testid="stMain"] .studio-shortcuts-label {
+            margin: 12px 0 7px !important;
+            color: #647678 !important;
+            font: 600 11px/1.4 'Inter', sans-serif !important;
+            letter-spacing: .02em !important;
+        }
+        section[data-testid="stMain"] [class*="st-key-qa_"] button {
+            min-height: 42px !important;
+            padding: 8px 10px !important;
+            color: #2d4a4d !important;
+            background: linear-gradient(145deg, #fff, #f8fbfa) !important;
+            border: 1px solid #dce8e5 !important;
+            border-radius: 13px !important;
+            box-shadow: 0 5px 14px rgba(29,66,66,.045) !important;
+            font: 600 11px/1.35 'Inter', sans-serif !important;
+            letter-spacing: 0 !important;
+            white-space: normal !important;
+            transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease !important;
+        }
+        section[data-testid="stMain"] [class*="st-key-qa_"] button:hover {
+            color: #174c4d !important;
+            background: linear-gradient(145deg, #fff, #effaf8) !important;
+            border-color: #8fd8d3 !important;
+            box-shadow: 0 8px 18px rgba(29,113,109,.08) !important;
+            transform: translateY(-1px) !important;
+        }
+        section[data-testid="stMain"] .studio-mode-label {
+            display: flex !important;
+            align-items: center !important;
+            gap: 10px !important;
+            margin: 20px 0 10px !important;
+            padding: 0 !important;
+            color: #183a3e !important;
+            background: transparent !important;
+            border: 0 !important;
+            font-size: 19px !important;
+            font-weight: 800 !important;
+            letter-spacing: -.025em !important;
+        }
+        section[data-testid="stMain"] .studio-mode-label::after {
+            color: #65787a;
+            content: "Pick a tool to start creating";
+            font: 500 12px/1.4 'Inter', sans-serif;
+            letter-spacing: 0;
+        }
+        section[data-testid="stMain"] [data-testid="stHorizontalBlock"]:has([class*="st-key-mode_"]) {
+            display: flex !important;
+            flex-wrap: wrap !important;
+            gap: 12px !important;
+            margin-bottom: 10px !important;
+        }
+        section[data-testid="stMain"] [data-testid="stHorizontalBlock"]:has([class*="st-key-mode_"]) > [data-testid="stColumn"] {
+            flex: 1 1 calc(25% - 12px) !important;
+            min-width: 180px !important;
+        }
+        section[data-testid="stMain"] [class*="st-key-mode_"] button {
+            min-height: 74px !important;
+            padding: 12px 14px !important;
+            color: #2d4a4d !important;
+            background: linear-gradient(145deg, #fff, #f8fbfa) !important;
+            border: 1px solid #dce8e5 !important;
+            border-radius: 15px !important;
+            box-shadow: 0 5px 16px rgba(29,66,66,.045) !important;
+            font: 700 12px/1.4 'Inter', sans-serif !important;
+            text-align: left !important;
+            white-space: pre-line !important;
+            transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease !important;
+        }
+        section[data-testid="stMain"] [class*="st-key-mode_"] button:hover {
+            transform: translateY(-2px) !important;
+            color: #174c4d !important;
+            background: linear-gradient(145deg, #fff, #effaf8) !important;
+            border-color: #8fd8d3 !important;
+            box-shadow: 0 10px 22px rgba(29,113,109,.1) !important;
+        }
+        section[data-testid="stMain"] [class*="st-key-mode_"] button[kind="primary"] {
+            color: #123e40 !important;
+            background: linear-gradient(145deg, #e0fbf7, #c9f1ec) !important;
+            border-color: #85d9d2 !important;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.9), 0 8px 20px rgba(39,153,147,.12) !important;
+        }
+        section[data-testid="stMain"] [class*="st-key-mode_"] button {
+            font-family: 'Inter', sans-serif !important;
+            font-size: 12px !important;
+            font-weight: 500 !important;
+            letter-spacing: 0 !important;
+            line-height: 1.4 !important;
+            white-space: normal !important;
+        }
+        section[data-testid="stMain"] [class*="st-key-mode_"] button p {
+            margin: 0 !important;
+            font: 500 12px/1.4 'Inter', sans-serif !important;
+            letter-spacing: 0 !important;
+        }
+        section[data-testid="stMain"] [class*="st-key-mode_"] button p + p {
+            margin-top: 3px !important;
+            color: #647678 !important;
+            font-size: 11px !important;
+            font-weight: 400 !important;
+            line-height: 1.35 !important;
+        }
+        section[data-testid="stMain"] [class*="st-key-mode_"] button strong {
+            color: #203b3d !important;
+            font-weight: 700 !important;
+        }
+        section[data-testid="stMain"] .studio-inspiration {
+            margin: 16px 0 20px !important;
+            padding: 14px 16px 8px !important;
+            background: linear-gradient(145deg, rgba(255,255,255,.86), rgba(239,248,247,.75)) !important;
+            border: 1px solid rgba(214,229,226,.9) !important;
+            border-radius: 18px !important;
+            box-shadow: 0 8px 22px rgba(36,72,75,.045) !important;
+        }
+        section[data-testid="stMain"] .studio-inspiration h2 {
+            margin-bottom: 8px !important;
+            font-size: 15px !important;
+        }
+        section[data-testid="stMain"] .studio-featured-rail { gap: 10px !important; padding-bottom: 8px !important; }
+        section[data-testid="stMain"] .studio-featured-card {
+            flex-basis: 158px !important;
+            height: 120px !important;
+            border-radius: 13px !important;
+            box-shadow: 0 5px 14px rgba(33,54,55,.09) !important;
+        }
+        section[data-testid="stMain"] .studio-featured-copy {
+            right: 10px !important;
+            bottom: 9px !important;
+            left: 10px !important;
+            font-size: 11px !important;
+        }
+        section[data-testid="stMain"] .studio-featured-note {
+            margin-top: 2px !important;
+            font-size: 10px !important;
+        }
+        @media (max-width: 768px) {
+            section[data-testid="stMain"] .block-container { padding: .7rem 14px 1.5rem !important; }
+            section[data-testid="stMain"] .studio-header {
+                min-height: 240px !important;
+                padding: 24px 22px 30px !important;
+                transform: none !important;
+            }
+            section[data-testid="stMain"] .studio-header::before {
+                inset: 8px 8px 8px 47% !important;
+                border-radius: 46% 20px 58px 40% / 48% 20px 42% 42% !important;
+            }
+            section[data-testid="stMain"] .studio-header .left { max-width: 58% !important; }
+            section[data-testid="stMain"] .studio-header .left h1 { font-size: clamp(27px, 5vw, 38px) !important; }
+            section[data-testid="stMain"] .studio-header .left p { max-width: 100% !important; font-size: 11px !important; }
+            section[data-testid="stMain"] [class*="st-key-exit_studio_btn"] {
+                margin-top: -58px !important;
+                margin-bottom: 58px !important;
+                padding-right: 20px !important;
+            }
+            section[data-testid="stMain"] [data-testid="stHorizontalBlock"]:has([class*="st-key-mode_"]) > [data-testid="stColumn"] {
+                flex: 1 1 calc(50% - 12px) !important;
+                min-width: 145px !important;
+            }
+            div[data-testid="stButton"] > button,
+            div[data-testid="stDownloadButton"] > button,
+            div[data-testid="stFormSubmitButton"] > button {
+                min-height: 40px !important;
+                padding: 8px 10px !important;
+                font-size: 14px !important;
+            }
+            .quick-access .qa-grid .qa-btn,
+            .mode-grid .mode-btn {
+                min-height: 54px !important;
+                font-size: 13px !important;
+            }
+            div[data-testid="stMarkdownContainer"] p,
+            div[data-testid="stMarkdownContainer"] li,
+            div[data-testid="stWidgetLabel"],
+            div[data-testid="stTextInput"] label,
+            div[data-testid="stTextArea"] label,
+            div[data-testid="stSelectbox"] label,
+            div[data-testid="stNumberInput"] label,
+            div[data-testid="stSlider"] label,
+            div[data-testid="stRadio"] label,
+            div[data-testid="stCheckbox"] label,
+            div[data-testid="stToggle"] label {
+                font-size: 14px !important;
+            }
+        }
+        @media (max-width: 480px) {
+            section[data-testid="stMain"] .studio-header {
+                min-height: 225px !important;
+                padding: 20px 18px 26px !important;
+                transform: none !important;
+            }
+            section[data-testid="stMain"] .studio-header::before {
+                inset: 0 !important;
+                background:
+                    linear-gradient(90deg, rgba(14,38,43,.76), rgba(14,38,43,.36) 72%, rgba(14,38,43,.22)),
+                    url("https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?auto=format&fit=crop&w=1200&q=88") center 48% / cover no-repeat !important;
+                border-radius: 24px 24px 62px 24px !important;
+                transform: none !important;
+            }
+            section[data-testid="stMain"] .studio-header .left { max-width: 100% !important; }
+            section[data-testid="stMain"] .studio-header .left::before {
+                min-height: 23px;
+                color: #eafff8;
+                background: rgba(39,154,139,.28);
+                border-color: rgba(255,255,255,.42);
+                font-size: 8px;
+                letter-spacing: .1em;
+            }
+            section[data-testid="stMain"] .studio-header .left h1 {
+                color: #ffffff !important;
+                font-size: 29px !important;
+                white-space: normal !important;
+                text-shadow: 0 2px 18px rgba(0,0,0,.42) !important;
+            }
+            section[data-testid="stMain"] .studio-header .left h1 .highlight {
+                background: linear-gradient(110deg, #a6f0db, #ffffff 60%, #ffd0ab) !important;
+                -webkit-background-clip: text !important;
+                background-clip: text !important;
+                -webkit-text-fill-color: transparent !important;
+            }
+            section[data-testid="stMain"] .studio-header .left p {
+                max-width: 80% !important;
+                color: rgba(255,255,255,.92) !important;
+                font-size: 11px !important;
+                text-shadow: 0 2px 14px rgba(0,0,0,.52) !important;
+            }
+            section[data-testid="stMain"] .studio-header .right { top: 16px !important; right: 16px !important; }
+            section[data-testid="stMain"] .studio-header .right .credits {
+                padding: 8px 11px !important;
+                color: #176d68 !important;
+                background: rgba(255,255,255,.9) !important;
+                font-size: 11px !important;
+            }
+            section[data-testid="stMain"] [class*="st-key-exit_studio_btn"] {
+                margin-top: -52px !important;
+                margin-bottom: 52px !important;
+                padding-right: 16px !important;
+            }
+            section[data-testid="stMain"] .stats-grid .stat { min-height: 74px !important; padding: 11px 13px !important; }
+            section[data-testid="stMain"] .studio-mode-label { flex-wrap: wrap !important; font-size: 17px !important; }
+            section[data-testid="stMain"] .studio-mode-label::after { flex-basis: 100%; }
+            section[data-testid="stMain"] [data-testid="stHorizontalBlock"]:has([class*="st-key-mode_"]) > [data-testid="stColumn"] {
+                flex: 1 1 calc(50% - 8px) !important;
+                min-width: 135px !important;
+            }
+            section[data-testid="stMain"] .studio-featured-card { flex-basis: 140px !important; height: 108px !important; }
+        }
+        section[data-testid="stMain"] [data-testid="stButton"] > button,
+        section[data-testid="stMain"] [data-testid="stDownloadButton"] > button,
+        section[data-testid="stMain"] [data-testid="stFormSubmitButton"] > button,
+        section[data-testid="stMain"] [data-testid="stLinkButton"] > a,
+        section[data-testid="stSidebar"] [data-testid="stButton"] > button,
+        section[data-testid="stSidebar"] [data-testid="stDownloadButton"] > button,
+        section[data-testid="stSidebar"] [data-testid="stFormSubmitButton"] > button,
+        section[data-testid="stSidebar"] [data-testid="stLinkButton"] > a {
+            font-family: 'Inter', sans-serif !important;
+            font-size: 12px !important;
+            font-weight: 600 !important;
+            font-style: normal !important;
+            letter-spacing: 0 !important;
+            line-height: 1.35 !important;
+            text-transform: none !important;
+        }
+        section[data-testid="stMain"] [class*="st-key-mode_"] button p,
+        section[data-testid="stMain"] [class*="st-key-mode_"] button strong,
+        section[data-testid="stMain"] [class*="st-key-qa_"] button p,
+        section[data-testid="stMain"] [class*="st-key-qa_"] button strong {
+            font-family: 'Inter', sans-serif !important;
+            font-size: 12px !important;
+            font-weight: 600 !important;
+            font-style: normal !important;
+            letter-spacing: 0 !important;
+            line-height: 1.35 !important;
+            text-transform: none !important;
+        }
     </style>
     """, unsafe_allow_html=True)
-    
+
     with st.sidebar.expander("🟢 System Health", expanded=False):
         health = system_health_check()
         for check in health["checks"]:
@@ -16435,20 +19190,13 @@ elif st.session_state["current_page"] == "studio":
     <div class="studio-header">
         <div class="left">
             <h1><span class="highlight">ZOVIX</span> TO CREATE</h1>
-            <p>ACTIVE GENERATION PIPELINE WORKSPACE</p>
+            <p>Create cinematic video, artwork, voice and more — all in one studio.</p>
         </div>
         <div class="right">
-            <span class="credits">⚡ {credits}</span>
+            <span class="credits">⚡ {credits} Credits</span>
         </div>
     </div>
     """, unsafe_allow_html=True)
-    
-    if st.button("EXIT", key="exit_studio_btn", width="stretch"):
-        st.session_state["current_page"] = "landing"
-        st.session_state["is_logged_in"] = False
-        st.session_state["2fa_verified"] = False
-        st.query_params.clear()
-        st.rerun()
     
     # ========================================================
     # STATS
@@ -16461,13 +19209,16 @@ elif st.session_state["current_page"] == "studio":
     
     st.markdown(f"""
     <div class="stats-grid">
-        <div class="stat"><div class="num">{total_videos}</div><div class="label">Total Videos</div></div>
-        <div class="stat"><div class="num">{len(history)}</div><div class="label">Cinematic</div></div>
-        <div class="stat"><div class="num">{len(face_history)}</div><div class="label">Face Videos</div></div>
-        <div class="stat"><div class="num">{xp}</div><div class="label">XP Points</div></div>
+        <div class="stat"><div class="stat-icon">✦</div><div class="stat-copy"><div class="num">{total_videos}</div><div class="label">Total creations</div></div></div>
+        <div class="stat"><div class="stat-icon">🎬</div><div class="stat-copy"><div class="num">{len(history)}</div><div class="label">Cinematic videos</div></div></div>
+        <div class="stat"><div class="stat-icon">👤</div><div class="stat-copy"><div class="num">{len(face_history)}</div><div class="label">Face videos</div></div></div>
+        <div class="stat"><div class="stat-icon">✧</div><div class="stat-copy"><div class="num">{xp}</div><div class="label">Creator XP</div></div></div>
     </div>
     """, unsafe_allow_html=True)
-    st.caption(f"Face Video credits spent: {total_credits_spent}")
+    st.markdown(
+        f'<div class="studio-usage-line"><span class="usage-dot"></span> {total_credits_spent:,} Face Video credits used</div>',
+        unsafe_allow_html=True,
+    )
     
     # ========================================================
     # VOUCHER CHECK
@@ -16476,88 +19227,189 @@ elif st.session_state["current_page"] == "studio":
         st.info(f"🎫 ₹49 Voucher Active! 50 Credits added. Valid for: {st.session_state.get('voucher_49_expiry', datetime.now() + timedelta(hours=24)).strftime('%H:%M:%S')} remaining")
     
     # ========================================================
-    # QUICK ACCESS
+    # STUDIO WORKSPACE: MODES AND QUICK ACCESS
     # ========================================================
-    st.markdown("""
-    <div class="quick-access">
-        <div class="qa-header" onclick="document.getElementById('qa_toggle').click()">
-            <span style="color:#EC4899; !important; font-weight: bold;">⚡ QUICK ACCESS MODES</span>
-            <span>{}</span>
-        </div>
-    </div>
-    """.format("▼" if st.session_state.get("quick_access_open") else "▶"), unsafe_allow_html=True)
-    
-    if st.button("Toggle Quick Access", key="qa_toggle", width="stretch"):
-        if require_login_for_generation():
-            st.session_state["quick_access_open"] = not st.session_state.get("quick_access_open", False)
-            st.rerun()
-    
-    if st.session_state.get("quick_access_open", False):
-        st.markdown('<div class="qa-grid">', unsafe_allow_html=True)
-        quick_items = [
-            ("🚀", "FACTORY", "🚀 Zovix Mass Factory"),
-            ("💎", "CREDITS", "💎 Buy Credits"),
-            ("📂", "PORTFOLIO", "📂 My Portfolio"),
-            ("👤", "PROFILE", "👤 My Premium Profile"),
-            ("👥", "SUB-USERS", "👥 SUB-USER ACCESS MANAGEMENT"),
-            ("📅", "SCHEDULER", "📅 ADVANCED AI CONTENT SCHEDULER")
-        ]
-        cols = st.columns(6)
-        for i, (icon, label, tab) in enumerate(quick_items):
-            with cols[i]:
-                if st.button(f"{icon} {label}", key=f"qa_{label}", width="stretch"):
+    quick_items = [
+        ("🚀", "Factory", "🚀 Zovix Mass Factory"),
+        ("💎", "Credits", "💎 Buy Credits"),
+        ("📂", "Portfolio", "📂 My Portfolio"),
+        ("👤", "Profile", "👤 My Premium Profile"),
+        ("👥", "Sub-users", "👥 SUB-USER ACCESS MANAGEMENT"),
+        ("📅", "Scheduler", "📅 ADVANCED AI CONTENT SCHEDULER"),
+        ("↩️", "Log out", "__logout__"),
+    ]
+    st.markdown(
+        '<p class="studio-shortcuts-label">Workspace shortcuts</p>',
+        unsafe_allow_html=True,
+    )
+    for i in range(0, len(quick_items), 4):
+        shortcut_cols = st.columns(4, gap="small")
+        for j, (icon, label, tab) in enumerate(quick_items[i:i + 4]):
+            with shortcut_cols[j]:
+                if st.button(f"{icon}  {label}", key=f"qa_{label}", width="stretch"):
+                    if tab == "__logout__":
+                        st.session_state["current_page"] = "landing"
+                        st.session_state["is_logged_in"] = False
+                        st.session_state["2fa_verified"] = False
+                        st.query_params.clear()
+                        st.rerun()
                     if require_login_for_generation():
+                        if tab == "💎 Buy Credits":
+                            st.session_state["current_page"] = "payments"
+                            st.session_state["payment_return_sidebar_tab"] = st.session_state.get(
+                                "sidebar_tab", "🚀 Zovix Mass Factory"
+                            )
+                            st.query_params["page"] = "payments"
+                            st.rerun()
+                        if tab == "👤 My Premium Profile":
+                            st.session_state["current_page"] = "profile"
+                            st.session_state["profile_return_sidebar_tab"] = "🚀 Zovix Mass Factory"
+                            st.query_params["page"] = "profile"
+                            st.rerun()
+                        standalone_routes = {
+                            "🚀 Zovix Mass Factory": "factory",
+                            "📂 My Portfolio": "portfolio",
+                            "👥 SUB-USER ACCESS MANAGEMENT": "subusers",
+                            "📅 ADVANCED AI CONTENT SCHEDULER": "scheduler",
+                        }
+                        if tab in standalone_routes:
+                            st.session_state["sidebar_tab"] = "🚀 Zovix Mass Factory"
+                            st.session_state["standalone_return_sidebar_tab"] = "🚀 Zovix Mass Factory"
+                            st.session_state["current_page"] = standalone_routes[tab]
+                            st.query_params["page"] = standalone_routes[tab]
+                            st.rerun()
                         st.session_state["sidebar_tab"] = tab
                         st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
-    
-    # ========================================================
-# MODE SELECTOR - PREMIUM (SIRF YAHI RAKHNA HAI)
-# ========================================================
-st.markdown('<p class="mode-label">🎯 ACTIVE STUDIO WORKSPACE MODE</p>', unsafe_allow_html=True)
 
-modes = [
-    ("👤", "FACE VIDEO", "Face Video Mode"),
-    ("🎬", "CINEMATIC", "Cinematic Engine"),
-    ("🎨", "CREATIVE", "Creative Workshop Mode"),
-    ("🎞️", "EDITOR", "Video Editor Mode"),
-    ("📐", "BLUEPRINTS", "Blueprints Mode"),
-    ("⚡", "UPSCALER", "Upscaler Mode"),
-    ("✏️", "DRAW", "Draw Mode"),
-    ("🤖", "AI AGENT", "AI Agent Mode"),
-    ("🎙️", "SALES", "AI Sales Mode"),
-    ("🧠", "DYNAMIC UI", "Dynamic UI Mode"),
-    ("🎤", "LIVE VOICE", "Live Emotion Mode")
-]
+    st.markdown('<p class="studio-mode-label">🎯 Choose a mode to start creating</p>', unsafe_allow_html=True)
 
-for i in range(0, len(modes), 11):
-    row_modes = modes[i:i+11]
-    cols = st.columns(len(row_modes))
-    for j, (icon, label, mode_value) in enumerate(row_modes):
-        with cols[j]:
-            is_active = (st.session_state["studio_active_mode"] == mode_value)
-            active_class = "active" if is_active else ""
-            
-            # DIRECT BUTTON - NO onclick HACK
-            if st.button(f"{icon}\n{label}", key=f"mode_{i+j}", width="stretch"):
-                handle_engine_access_request(mode_value)
-            
-            # CSS for active state
-            if is_active:
-                st.markdown(f"""
-                <style>
-                    div[data-testid="stButton"] button[key="mode_{i+j}"] {{
-                        background: #EC4899 !important;
-                        color: #FFFFFF !important;
-                        border-color: #EC4899 !important;
-                        box-shadow: 0 0 25px rgba(236,72,153,0.2) !important;
-                        font-family: 'Orbitron', sans-serif !important;
-                        font-weight: 700 !important;
-                        letter-spacing: 0.5px !important;
-                    }}
-                </style>
-                """, unsafe_allow_html=True)
-    
+    modes = [
+        ("🎬", "Cinematic", "Cinematic Engine", "Build a story, frame by frame"),
+        ("👤", "Face video", "Face Video Mode", "Bring portraits to life"),
+        ("🎨", "Creative workshop", "Creative Workshop Mode", "Generate campaign-ready visuals"),
+        ("🎞️", "Video editor", "Video Editor Mode", "Polish clips and media"),
+        ("📐", "Blueprints", "Blueprints Mode", "Shape spaces and concepts"),
+        ("⚡", "Upscaler", "Upscaler Mode", "Enhance image detail"),
+        ("✏️", "Draw", "Draw Mode", "Turn ideas into illustrations"),
+        ("🤖", "AI agent", "AI Agent Mode", "Create content with an AI copilot"),
+        ("🎙️", "AI sales", "AI Sales Mode", "Create product-led sales videos"),
+        ("🧠", "Dynamic UI", "Dynamic UI Mode", "Adapt your creative workspace"),
+        ("🎤", "Live voice", "Live Emotion Mode", "Give words an expressive voice")
+    ]
+
+    for i in range(0, len(modes), 4):
+        row_modes = modes[i:i + 4]
+        cols = st.columns(4, gap="small")
+        for j, (icon, label, mode_value, description) in enumerate(row_modes):
+            with cols[j]:
+                is_active = (st.session_state["studio_active_mode"] == mode_value)
+
+                if st.button(
+                    f"{icon} **{label}**\n\n{description}",
+                    key=f"mode_{i+j}",
+                    width="stretch",
+                    type="primary" if is_active else "secondary",
+                ):
+                    handle_engine_access_request(mode_value)
+
+    st.markdown("""
+    <section class="studio-inspiration" aria-label="Studio visual inspiration">
+      <h2>Featured</h2>
+      <div class="studio-featured-rail">
+        <article class="studio-featured-card">
+          <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&amp;fit=crop&amp;w=560&amp;q=82" alt="Cinematic mountain landscape" loading="lazy">
+          <div class="studio-featured-copy">Cinematic storytelling</div>
+        </article>
+        <article class="studio-featured-card">
+          <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&amp;fit=crop&amp;w=560&amp;q=82" alt="Portrait photography inspiration" loading="lazy">
+          <div class="studio-featured-copy">Portraits with a point of view</div>
+        </article>
+        <article class="studio-featured-card">
+          <img src="https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&amp;fit=crop&amp;w=560&amp;q=82" alt="Expressive character portrait" loading="lazy">
+          <div class="studio-featured-copy">Characters that tell a story</div>
+        </article>
+        <article class="studio-featured-card">
+          <img src="https://images.unsplash.com/photo-1549490349-8643362247b5?auto=format&amp;fit=crop&amp;w=560&amp;q=82" alt="Colorful abstract artwork" loading="lazy">
+          <div class="studio-featured-copy">Colorful creative concepts</div>
+        </article>
+        <article class="studio-featured-card">
+          <img src="https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&amp;fit=crop&amp;w=560&amp;q=82" alt="Voiceover recording studio" loading="lazy">
+          <div class="studio-featured-copy">Set the scene with sound</div>
+        </article>
+        <article class="studio-featured-card">
+          <img src="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&amp;fit=crop&amp;w=560&amp;q=82" alt="Architectural design concept" loading="lazy">
+          <div class="studio-featured-copy">Explore architectural ideas</div>
+        </article>
+        <article class="studio-featured-card">
+          <img src="https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?auto=format&amp;fit=crop&amp;w=560&amp;q=82" alt="Golden sunrise landscape" loading="lazy">
+          <div class="studio-featured-copy">Golden-hour landscapes</div>
+        </article>
+        <article class="studio-featured-card">
+          <img src="https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&amp;fit=crop&amp;w=560&amp;q=82" alt="Video editing production setup" loading="lazy">
+          <div class="studio-featured-copy">Shape your next film edit</div>
+        </article>
+        <article class="studio-featured-card">
+          <img src="https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?auto=format&amp;fit=crop&amp;w=560&amp;q=82" alt="City skyline at dusk" loading="lazy">
+          <div class="studio-featured-copy">City stories after dark</div>
+        </article>
+        <article class="studio-featured-card">
+          <img src="https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&amp;fit=crop&amp;w=560&amp;q=82" alt="Creative studio workspace" loading="lazy">
+          <div class="studio-featured-copy">A workspace for new ideas</div>
+        </article>
+      </div>
+      <p class="studio-featured-note">Creative inspiration photography from Unsplash. These are reference images, not generated creations.</p>
+    </section>
+    """, unsafe_allow_html=True)
+
+    st.markdown("""
+    <section class="studio-inspiration" aria-label="Community creations">
+      <h2>Community Creations</h2>
+      <div class="studio-community-grid">
+        <article class="studio-community-card">
+          <img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&amp;fit=crop&amp;w=560&amp;q=82" alt="Community landscape artwork with rolling hills" loading="lazy">
+          <div class="studio-community-copy">Into the wild<span>Landscape inspiration</span></div>
+        </article>
+        <article class="studio-community-card">
+          <img src="https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&amp;fit=crop&amp;w=560&amp;q=82" alt="Community-inspired lake between alpine mountains" loading="lazy">
+          <div class="studio-community-copy">Quiet reflections<span>Travel visual concept</span></div>
+        </article>
+        <article class="studio-community-card">
+          <img src="https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&amp;fit=crop&amp;w=560&amp;q=82" alt="Community mountain lake at sunset" loading="lazy">
+          <div class="studio-community-copy">The last light<span>Cinematic scene idea</span></div>
+        </article>
+        <article class="studio-community-card">
+          <img src="https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&amp;fit=crop&amp;w=560&amp;q=82" alt="Community nature scene with a mountain valley" loading="lazy">
+          <div class="studio-community-copy">Open horizons<span>Nature story frame</span></div>
+        </article>
+        <article class="studio-community-card">
+          <img src="https://images.unsplash.com/photo-1518837695005-2083093ee35b?auto=format&amp;fit=crop&amp;w=560&amp;q=82" alt="Community ocean wave and deep blue sea" loading="lazy">
+          <div class="studio-community-copy">Blue in motion<span>Ocean-inspired visual</span></div>
+        </article>
+        <article class="studio-community-card">
+          <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&amp;fit=crop&amp;w=560&amp;q=82" alt="Community tropical beach beneath a clear sky" loading="lazy">
+          <div class="studio-community-copy">Somewhere warm<span>Summer campaign concept</span></div>
+        </article>
+        <article class="studio-community-card">
+          <img src="https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&amp;fit=crop&amp;w=560&amp;q=82" alt="Community night sky over a snowy mountain" loading="lazy">
+          <div class="studio-community-copy">Under the stars<span>Night-sky story frame</span></div>
+        </article>
+        <article class="studio-community-card">
+          <img src="https://images.unsplash.com/photo-1518495973542-4542c06a5843?auto=format&amp;fit=crop&amp;w=560&amp;q=82" alt="Community sunlight filtering through a green forest" loading="lazy">
+          <div class="studio-community-copy">Forest light<span>Atmospheric scene idea</span></div>
+        </article>
+        <article class="studio-community-card">
+          <img src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&amp;fit=crop&amp;w=560&amp;q=82" alt="Community woodland path beneath tall trees" loading="lazy">
+          <div class="studio-community-copy">The hidden trail<span>Adventure concept</span></div>
+        </article>
+        <article class="studio-community-card">
+          <img src="https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&amp;fit=crop&amp;w=560&amp;q=82" alt="Community scenic landscape under dramatic clouds" loading="lazy">
+          <div class="studio-community-copy">After the rain<span>Landscape moodboard</span></div>
+        </article>
+      </div>
+      <p class="studio-featured-note">Community inspiration photography from Unsplash. These are reference images, not member-submitted creations.</p>
+    </section>
+    """, unsafe_allow_html=True)
+
     # ========================================================
     # SIDEBAR TABS
     # ========================================================
@@ -16636,146 +19488,14 @@ for i in range(0, len(modes), 11):
             else:
                 st.info("No items in portfolio yet. Start creating!")
     
-    elif st.session_state["sidebar_tab"] == "👤 My Premium Profile":
-        st.markdown("<h4 style='font-family: Orbitron; color: #EC4899;'>👤 My Premium Profile</h4>", unsafe_allow_html=True)
-        if st.session_state["is_logged_in"]:
-            st.markdown(f"**Username:** {st.session_state['logged_user']}")
-            st.markdown(f"**XP Points:** {st.session_state.get('xp_points', 0)}")
-            st.markdown(f"**Creator Level:** {st.session_state.get('creator_level', 1)}")
-            st.markdown(f"**Credits:** {get_user_credits_db(st.session_state['logged_user'])}")
-            st.markdown(f"**Support Tier:** {get_support_tier(st.session_state['logged_user'])}")
-            render_subscription_badge()
-            render_achievements()
-            
-            st.markdown("---")
-            st.markdown("### 🔐 Two-Factor Authentication")
-            if st.session_state.get("2fa_enabled", False):
-                st.success("✅ 2FA is enabled for your account")
-                if st.button("Disable 2FA", width="stretch"):
-                    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
-                    cursor = conn.cursor()
-                    try:
-                        cursor.execute(
-                            "UPDATE users SET twofa_secret = '' WHERE username = ?",
-                            (st.session_state["logged_user"],)
-                        )
-                        conn.commit()
-                        st.session_state["2fa_enabled"] = False
-                        st.success("2FA disabled successfully!")
-                        st.rerun()
-                    finally:
-                        conn.close()
-    
     if st.session_state["sidebar_tab"] == "👥 SUB-USER ACCESS MANAGEMENT":
-        st.markdown("<h4 style='font-family: Orbitron; color: #EC4899;'>👥 SUB-USER ACCESS MANAGEMENT</h4>", unsafe_allow_html=True)
-        sub_col1, sub_col2 = st.columns([1.1, 1.4], gap="medium")
-        with sub_col1:
-            with st.container(border=True):
-                st.markdown("<h4 style='font-family: Orbitron; font-size: 13px; color: #EC4899; margin-bottom: 15px;'>➕ ADD NEW LINKED SUB-USER</h4>", unsafe_allow_html=True)
-                new_sub_user_id = st.text_input("Sub-User Email/ID:", placeholder="friend@zovix.ai", key="add_sub_user_text_input").strip()
-                st.write("")
-                if st.button("Link Sub-User Account", key="link_sub_user_action_btn", width="stretch"):
-                    if not new_sub_user_id:
-                        st.error("Provide a valid ID configuration.")
-                    else:
-                        succ, msg = add_sub_user_db(st.session_state["logged_user"], new_sub_user_id)
-                        if succ:
-                            st.success(msg)
-                            time.sleep(0.1)
-                            st.rerun()
-                        else:
-                            st.error(msg)
-        with sub_col2:
-            with st.container(border=True):
-                st.markdown("<h4 style='font-family: Orbitron; font-size: 13px; color: #EC4899; margin-bottom: 15px;'>📋 CONNECTED ACTIVE SUB-USERS</h4>", unsafe_allow_html=True)
-                active_subs = get_sub_users(st.session_state["logged_user"])
-                if not active_subs:
-                    st.info("No sub-users configured under this main node. You can link up to 2 sub-accounts.")
-                else:
-                    for s_u in active_subs:
-                        s_col1, s_col2 = st.columns([2, 1])
-                        with s_col1:
-                            st.markdown(f"**Node:** `{s_u}`")
-                        with s_col2:
-                            if st.button("Unlink Account", key=f"unlink_{s_u}", width="stretch"):
-                                remove_sub_user_db(st.session_state["logged_user"], s_u)
-                                st.toast("Sub-User node link dissolved.")
-                                time.sleep(0.1)
-                                st.rerun()
+        render_sub_user_access_section()
     
     elif st.session_state["sidebar_tab"] == "📅 ADVANCED AI CONTENT SCHEDULER":
-        st.markdown("<h4 style='font-family: Orbitron; color: #EC4899;'>📅 ADVANCED AI CONTENT SCHEDULER</h4>", unsafe_allow_html=True)
-        sch_col1, sch_col2 = st.columns([1.1, 1.4], gap="medium")
-        with sch_col1:
-            with st.container(border=True):
-                st.markdown("<h4 style='font-family: Orbitron; font-size: 13px; color: #EC4899; margin-bottom: 15px;'>📅 BOOK A SOCIAL RUN</h4>", unsafe_allow_html=True)
-                sch_category = st.selectbox("Social Channel Niche:", list(CATEGORY_POOL.keys()), key="sched_category_selectbox")
-                sch_topic = st.text_input("Short Prompt / Topic Parameters:", placeholder="e.g. Bizarre adapting biology inside boiling vents", key="sched_topic_input_val")
-                sch_time = st.text_input("Scheduled Execution Date & Time:", value=str(datetime.now() + timedelta(days=1))[:16], key="sched_datetime_input")
-                sch_platform = st.selectbox("Platform Destination:", ["YouTube Shorts", "Instagram Reels", "TikTok Feed", "X (Twitter) Video"], key="sched_platform_selectbox")
-                st.write("")
-                if st.button("Schedule Social Run", key="book_schedule_run_action_btn", width="stretch"):
-                    if not sch_topic.strip():
-                        st.error("Please provide prompt or topic details.")
-                    else:
-                        conn_sch = sqlite3.connect(DB_PATH)
-                        cur_sch = conn_sch.cursor()
-                        cur_sch.execute("INSERT INTO social_schedule (username, category, topic, scheduled_time, platform, status) VALUES (?, ?, ?, ?, ?, ?)", (st.session_state["logged_user"], sch_category, sch_topic, sch_time, sch_platform, 'Scheduled'))
-                        conn_sch.commit()
-                        conn_sch.close()
-                        st.toast("Success! Scheduled booking added to calendar.")
-                        st.rerun()
-        with sch_col2:
-            with st.container(border=True):
-                st.markdown("<h3 style='font-family: Orbitron; font-size: 14px; color: #EC4899; margin-bottom: 15px;'>📊 ACTIVE SCHEDULED JOBS CALENDAR</h3>", unsafe_allow_html=True)
-                conn_list = sqlite3.connect(DB_PATH)
-                cur_list = conn_list.cursor()
-                cur_list.execute("SELECT category, topic, scheduled_time, platform, status FROM social_schedule WHERE username = ? ORDER BY id DESC LIMIT 5", (st.session_state["logged_user"],))
-                sch_rows = cur_list.fetchall()
-                conn_list.close()
-                if not sch_rows:
-                    st.info("No content scheduled yet.")
-                else:
-                    for idx_s, r_sch in enumerate(sch_rows):
-                        st.markdown(f"""
-                            <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 10px; margin-bottom: 10px;">
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <span style="font-family:'Orbitron'; font-size: 11px; color:#EC4899; font-weight:bold;">{r_sch[3].upper()}</span>
-                                    <span style="font-size:10px; color:#10b981; font-weight:bold; background:rgba(16,185,129,0.15); padding:2px 6px; border-radius:12px;">{r_sch[4].upper()}</span>
-                                </div>
-                                <div style="font-size: 13px; font-weight: bold; color: #ffffff; margin-top: 5px;">Category: {r_sch[0].replace('_', ' ')}</div>
-                                <div style="font-size:11px; color:#94a3b8; margin-top:2px;">Topic: "{r_sch[1]}"</div>
-                                <div style="font-size:11px; color:#A0AEC0; font-family: monospace; margin-top: 4px;">📅 Execution Run: {r_sch[2]}</div>
-                            </div>
-                        """, unsafe_allow_html=True)
-    
-    # ========================================================
-    # ENGINE OUTPUT
-    # ========================================================
-    if st.session_state["studio_active_mode"] == "Cinematic Engine":
-        run_cinematic_engine()
-    elif st.session_state["studio_active_mode"] == "Creative Workshop Mode":
-        run_creative_workshop()
-    elif st.session_state["studio_active_mode"] == "Blueprints Mode":
-        run_blueprints_mode()
-    elif st.session_state["studio_active_mode"] == "Upscaler Mode":
-        run_upscaler_mode()
-    elif st.session_state["studio_active_mode"] == "Draw Mode":
-        run_draw_mode()
-    elif st.session_state["studio_active_mode"] == "Video Editor Mode":
-        run_video_editor_mode()
-    elif st.session_state["studio_active_mode"] == "Face Video Mode":
-        run_unified_face_video_mode()
-    elif st.session_state["studio_active_mode"] == "Expressive Face Video Mode":
-        run_unified_face_video_mode()
-    elif st.session_state["studio_active_mode"] == "AI Agent Mode":
-        render_ai_agent_ui()
-    elif st.session_state["studio_active_mode"] == "AI Sales Mode":
-        render_ai_sales_ui()
-    elif st.session_state["studio_active_mode"] == "Dynamic UI Mode":
-        generate_dynamic_ui()
-    elif st.session_state["studio_active_mode"] == "Live Emotion Mode":
-        render_live_emotion_voice()
+        render_scheduler_section()
+
+    show_engine_technical_specs_and_policies()
+    show_privacy_policy()
 
 # ========================================================
 # PRODUCTION ENGINE MODE - RunPod Infrastructure
@@ -16812,7 +19532,7 @@ def get_voice_client():
     })()
 
 
-def render_engine_portfolio_section():
+def render_engine_portfolio_section(include_discovery=True):
     """Render the shared portfolio, history, trending, and footer section below any engine page."""
     if "user_prompt" not in st.session_state:
         st.session_state["user_prompt"] = st.session_state.get("studio_prompt_value", "")
@@ -16889,7 +19609,10 @@ def render_engine_portfolio_section():
             for item in portfolio_renders_list:
                 file_path = item.get("path", "")
                 gen_type = item.get("generation_type", "")
-                if gen_type and gen_type != "General":
+                file_name = item.get("file_name", "").lower()
+                if gen_type not in {"Blueprints", "General", ""} and not file_name.startswith("blueprint_"):
+                    continue
+                if gen_type in {"General", ""} and not file_name.startswith("blueprint_"):
                     continue
                 if os.path.exists(file_path):
                     valid_items.append(item)
@@ -16900,7 +19623,10 @@ def render_engine_portfolio_section():
             for item in portfolio_renders_list:
                 file_path = item.get("path", "")
                 gen_type = item.get("generation_type", "")
-                if gen_type and gen_type != "General":
+                file_name = item.get("file_name", "").lower()
+                if gen_type not in {"Upscaler", "General", ""} and not file_name.startswith("upscaled_"):
+                    continue
+                if gen_type in {"General", ""} and not file_name.startswith("upscaled_"):
                     continue
                 if os.path.exists(file_path):
                     valid_items.append(item)
@@ -16911,7 +19637,10 @@ def render_engine_portfolio_section():
             for item in portfolio_renders_list:
                 file_path = item.get("path", "")
                 gen_type = item.get("generation_type", "")
-                if gen_type and gen_type != "General":
+                file_name = item.get("file_name", "").lower()
+                if gen_type not in {"Draw", "General", ""} and not file_name.startswith("drawing_"):
+                    continue
+                if gen_type in {"General", ""} and not file_name.startswith("drawing_"):
                     continue
                 if os.path.exists(file_path):
                     valid_items.append(item)
@@ -17142,101 +19871,54 @@ def render_engine_portfolio_section():
                     key=f"{preview_key_prefix}_download_{download_key}"
                 )
 
-    st.markdown("<hr style='border-color: rgba(255,255,255,0.06); margin: 25px 0;'>", unsafe_allow_html=True)
-    st.markdown("<h3 style='font-family: Orbitron; font-size: 16px; color: #EC4899; margin-bottom: 15px; letter-spacing: 0.5px;'>📈 GLOBAL TRENDING HOT TOPICS (ONE-CLICK IMPORT)</h3>", unsafe_allow_html=True)
-    trend_cols = st.columns(3)
-    mock_trends = [
-        {
-            "trend_id": "InterstellarVoid",
-            "hashtag": "#InterstellarVoid",
-            "category": "Space Mysteries",
-            "title": "Astronomers record unexplained radio whispers emitting from interstellar coordinates.",
-            "clicks": "142K views/hr",
-            "prompt": "Create a high-retention cinematic documentary script on #InterstellarVoid. Hook in first 3 seconds with an impossible radio signal from deep space. Build 4 scenes: discovery timeline, decoded frequency patterns, expert conflict, and chilling unresolved conclusion. Use dramatic Hinglish narration, curiosity loops, and CTA: 'Signal kisne bheja?'."
-        },
-        {
-            "trend_id": "DwarkaRuins",
-            "hashtag": "#DwarkaRuins",
-            "category": "Mythology Mysteries",
-            "title": "Submerged architectural monoliths matching descriptions of Dwarka found near seafloor.",
-            "clicks": "98K views/hr",
-            "prompt": "Generate a viral mytho-history cinematic script for #DwarkaRuins. Start with a powerful hook about city beneath the sea. Cover sonar evidence, scripture references, archaeologist viewpoints, and debate between faith vs science. Tone should be epic, emotional, and suspenseful with scene-ready visual cues."
-        },
-        {
-            "trend_id": "PratfallEffect",
-            "hashtag": "#PratfallEffect",
-            "category": "Dark Psychology",
-            "title": "Why flawed charismatic leaders trigger obsessive loyalty inside digital echo chambers.",
-            "clicks": "210K views/hr",
-            "prompt": "Write a sharp dark-psychology explainer on #PratfallEffect for short-form video. Open with a shocking example, then break down why visible flaws increase trust, how echo chambers amplify obedience, and how audiences can detect manipulation. Keep language punchy, evidence-based, and ending actionable."
-        }
-    ]
-    for idx_t, trend in enumerate(mock_trends):
-        with trend_cols[idx_t]:
-            with st.container(border=True):
-                st.markdown(f"""
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                        <span style="font-family:'Orbitron'; font-size: 10px; font-weight:bold; color:#fbbf24;">{trend["hashtag"]}</span>
-                        <span style="font-size: 9px; color:#EC4899; font-weight:bold;">🔥 {trend["clicks"]}</span>
-                    </div>
-                    <div style="font-size: 11px; color:#ffffff; font-weight:bold; height: 38px; overflow:hidden;">{trend["title"]}</div>
-                    <div style="font-size: 10px; color: #EC4899; margin-bottom: 10px;">Channel: {trend["category"]}</div>
-                """, unsafe_allow_html=True)
-                st.button(
-                    "ONE-CLICK IMPORT TREND",
-                    key=f"btn_import_{idx_t}",
-                    on_click=set_trend_prompt,
-                    args=(trend["prompt"],),
-                    width="stretch",
-                )
-
-    st.markdown("<br>", unsafe_allow_html=True)
-    with st.expander("ℹ Engine Technical Specs & Policies", expanded=False):
-        st.markdown("<h4 style='font-family:Orbitron; font-size:13px; color:#ffffff; margin-bottom: 12px;'>🚀 INTEGRATED WORKFLOW PIPELINE</h4>", unsafe_allow_html=True)
-        col_step1, col_step2, col_step3 = st.columns(3)
-        with col_step1:
-            st.markdown("""
-                <div style="background: rgba(18, 19, 26, 0.85); border: 1px solid rgba(255, 192, 203, 0.12); border-radius: 12px; padding: 12px; height: 100%;">
-                    <div style="font-size: 16px; font-weight: bold; color: #ffd700; margin-bottom: 8px; font-family: 'Orbitron';">01</div>
-                    <h5 style="color: #ffffff; font-family: Orbitron; font-size: 11px; margin-bottom: 6px;">1. Structured Scripting</h5>
-                    <p style="color: #EC4899; font-size: 10px; line-height: 1.5;">Constructs structured scripts with scene-by-scene keyword parameters using the LLM engine.</p>
-                </div>
-            """, unsafe_allow_html=True)
-        with col_step2:
-            st.markdown("""
-                <div style="background: rgba(18, 19, 26, 0.85); border: 1px solid rgba(255, 192, 203, 0.12); border-radius: 12px; padding: 12px; height: 100%;">
-                    <div style="font-size: 16px; font-weight: bold; color: #ffd700; margin-bottom: 8px; font-family: 'Orbitron';">02</div>
-                    <h5 style="color: #ffffff; font-family: Orbitron; font-size: 11px; margin-bottom: 6px;">2. Voice Segment Synthetics</h5>
-                    <p style="color: #EC4899; font-size: 10px; line-height: 1.5;">Generates specific voice streams per scene block and calculates precise audio timelines.</p>
-                </div>
-            """, unsafe_allow_html=True)
-        with col_step3:
-            st.markdown("""
-                <div style="background: rgba(18, 19, 26, 0.85); border: 1px solid rgba(255, 192, 203, 0.12); border-radius: 12px; padding: 12px; height: 100%;">
-                    <div style="font-size: 16px; font-weight: bold; color: #ffd700; margin-bottom: 8px; font-family: 'Orbitron';">03</div>
-                    <h5 style="color: #ffffff; font-family: Orbitron; font-size: 11px; margin-bottom: 6px;">3. Multi-Scene Stitching</h5>
-                    <p style="color: #EC4899; font-size: 10px; line-height: 1.5;">Trims visual assets to matching segment runtimes and compiles them together into final outputs.</p>
-                </div>
-            """, unsafe_allow_html=True)
-        st.markdown("<hr style='border-color: rgba(255,255,255,0.06); margin: 15px 0;'>", unsafe_allow_html=True)
-        st.markdown("<h4 style='font-family:Orbitron; font-size:13px; color:#ffffff; margin-bottom: 12px;'>🚨 DISCLAIMER & PLATFORM POLICIES</h4>", unsafe_allow_html=True)
-        disc_col1, disc_col2 = st.columns(2)
-        with disc_col1:
-            st.markdown("""
-                <div style="background: rgba(18, 19, 26, 0.85); border: 1px solid rgba(255, 192, 203, 0.12); border-radius: 12px; padding: 12px; height: 100%;">
-                    <h5 style="color: #EC4899; font-family: Orbitron; font-size: 10px; margin-bottom: 8px;">Generative Media Policy</h5>
-                    <p style="color:  #EC4899; font-size: 10px; line-height: 1.5;">ZOVIX operates as an automated synthesis tool. We do not claim ownership over stock materials retrieved from third-party APIs.</p>
-                </div>
-            """, unsafe_allow_html=True)
-        with disc_col2:
-            st.markdown("""
-                <div style="background: rgba(18, 19, 26, 0.85); border: 1px solid rgba(255, 192, 203, 0.12); border-radius: 12px; padding: 12px; height: 100%;">
-                    <h5 style="color: #EC4899; font-family: Orbitron; font-size: 10px; margin-bottom: 8px;">Usage & Credit Terms</h5>
-                    <p style="color: #EC4899; font-size: 10px; line-height: 1.5;">Access to processing nodes requires active credits. Standard 720p generations consume 1 credit.</p>
-                </div>
-            """, unsafe_allow_html=True)
-
-    show_privacy_policy()
+    if include_discovery:
+        st.markdown("<hr style='border-color: rgba(255,255,255,0.06); margin: 25px 0;'>", unsafe_allow_html=True)
+        st.markdown("<h3 style='font-family: Orbitron; font-size: 16px; color: #EC4899; margin-bottom: 15px; letter-spacing: 0.5px;'>📈 GLOBAL TRENDING HOT TOPICS (ONE-CLICK IMPORT)</h3>", unsafe_allow_html=True)
+        trend_cols = st.columns(3)
+        mock_trends = [
+            {
+                "trend_id": "InterstellarVoid",
+                "hashtag": "#InterstellarVoid",
+                "category": "Space Mysteries",
+                "title": "Astronomers record unexplained radio whispers emitting from interstellar coordinates.",
+                "clicks": "142K views/hr",
+                "prompt": "Create a high-retention cinematic documentary script on #InterstellarVoid. Hook in first 3 seconds with an impossible radio signal from deep space. Build 4 scenes: discovery timeline, decoded frequency patterns, expert conflict, and chilling unresolved conclusion. Use dramatic Hinglish narration, curiosity loops, and CTA: 'Signal kisne bheja?'."
+            },
+            {
+                "trend_id": "DwarkaRuins",
+                "hashtag": "#DwarkaRuins",
+                "category": "Mythology Mysteries",
+                "title": "Submerged architectural monoliths matching descriptions of Dwarka found near seafloor.",
+                "clicks": "98K views/hr",
+                "prompt": "Generate a viral mytho-history cinematic script for #DwarkaRuins. Start with a powerful hook about city beneath the sea. Cover sonar evidence, scripture references, archaeologist viewpoints, and debate between faith vs science. Tone should be epic, emotional, and suspenseful with scene-ready visual cues."
+            },
+            {
+                "trend_id": "PratfallEffect",
+                "hashtag": "#PratfallEffect",
+                "category": "Dark Psychology",
+                "title": "Why flawed charismatic leaders trigger obsessive loyalty inside digital echo chambers.",
+                "clicks": "210K views/hr",
+                "prompt": "Write a sharp dark-psychology explainer on #PratfallEffect for short-form video. Open with a shocking example, then break down why visible flaws increase trust, how echo chambers amplify obedience, and how audiences can detect manipulation. Keep language punchy, evidence-based, and ending actionable."
+            }
+        ]
+        for idx_t, trend in enumerate(mock_trends):
+            with trend_cols[idx_t]:
+                with st.container(border=True):
+                    st.markdown(f"""
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <span style="font-family:'Orbitron'; font-size: 10px; font-weight:bold; color:#fbbf24;">{trend["hashtag"]}</span>
+                            <span style="font-size: 9px; color:#EC4899; font-weight:bold;">🔥 {trend["clicks"]}</span>
+                        </div>
+                        <div style="font-size: 11px; color:#ffffff; font-weight:bold; height: 38px; overflow:hidden;">{trend["title"]}</div>
+                        <div style="font-size: 10px; color: #EC4899; margin-bottom: 10px;">Channel: {trend["category"]}</div>
+                    """, unsafe_allow_html=True)
+                    st.button(
+                        "ONE-CLICK IMPORT TREND",
+                        key=f"btn_import_{idx_t}",
+                        on_click=set_trend_prompt,
+                        args=(trend["prompt"],),
+                        width="stretch",
+                    )
 
     st.markdown("<hr style='border-color: rgba(255,255,255,0.06); margin: 30px 0 15px 0;'>", unsafe_allow_html=True)
     st.markdown("""
@@ -17249,9 +19931,15 @@ def render_engine_portfolio_section():
             </div>
         </div>
     """, unsafe_allow_html=True)
-
-
-render_engine_portfolio_section()
+if st.session_state.get("current_page") == "studio_mode":
+    active_studio_mode = st.session_state.get("studio_active_mode", "Cinematic Engine")
+    render_active_studio_mode()
+    render_engine_portfolio_section(include_discovery=active_studio_mode == "Cinematic Engine")
+    st.stop()
+elif st.session_state.get("current_page") != "studio":
+    render_engine_portfolio_section()
+else:
+    st.stop()
 
 
 def run_production_engine_mode():
@@ -17828,54 +20516,6 @@ def run_production_engine_mode():
                     on_click=set_trend_prompt,
                     args=(trend["prompt"],),
                 )
-    
-    st.markdown("<br>", unsafe_allow_html=True)
-    with st.expander("ℹ Engine Technical Specs & Policies", expanded=False):
-        st.markdown("<h4 style='font-family:Orbitron; font-size:13px; color:#ffffff; margin-bottom: 12px;'>🚀 INTEGRATED WORKFLOW PIPELINE</h4>", unsafe_allow_html=True)
-        col_step1, col_step2, col_step3 = st.columns(3)
-        with col_step1:
-            st.markdown("""
-                <div style="background: rgba(18, 19, 26, 0.85); border: 1px solid rgba(255, 192, 203, 0.12); border-radius: 12px; padding: 12px; height: 100%;">
-                    <div style="font-size: 16px; font-weight: bold; color: #ffd700; margin-bottom: 8px; font-family: 'Orbitron';">01</div>
-                    <h5 style="color: #ffffff; font-family: Orbitron; font-size: 11px; margin-bottom: 6px;">1. Structured Scripting</h5>
-                    <p style="color: #EC4899; font-size: 10px; line-height: 1.5;">Constructs structured scripts with scene-by-scene keyword parameters using the LLM engine.</p>
-                </div>
-            """, unsafe_allow_html=True)
-        with col_step2:
-            st.markdown("""
-                <div style="background: rgba(18, 19, 26, 0.85); border: 1px solid rgba(255, 192, 203, 0.12); border-radius: 12px; padding: 12px; height: 100%;">
-                    <div style="font-size: 16px; font-weight: bold; color: #ffd700; margin-bottom: 8px; font-family: 'Orbitron';">02</div>
-                    <h5 style="color: #ffffff; font-family: Orbitron; font-size: 11px; margin-bottom: 6px;">2. Voice Segment Synthetics</h5>
-                    <p style="color: #EC4899; font-size: 10px; line-height: 1.5;">Generates specific voice streams per scene block and calculates precise audio timelines.</p>
-                </div>
-            """, unsafe_allow_html=True)
-        with col_step3:
-            st.markdown("""
-                <div style="background: rgba(18, 19, 26, 0.85); border: 1px solid rgba(255, 192, 203, 0.12); border-radius: 12px; padding: 12px; height: 100%;">
-                    <div style="font-size: 16px; font-weight: bold; color: #ffd700; margin-bottom: 8px; font-family: 'Orbitron';">03</div>
-                    <h5 style="color: #ffffff; font-family: Orbitron; font-size: 11px; margin-bottom: 6px;">3. Multi-Scene Stitching</h5>
-                    <p style="color: #EC4899; font-size: 10px; line-height: 1.5;">Trims visual assets to matching segment runtimes and compiles them together into final outputs.</p>
-                </div>
-            """, unsafe_allow_html=True)
-        st.markdown("<hr style='border-color: rgba(255,255,255,0.06); margin: 15px 0;'>", unsafe_allow_html=True)
-        st.markdown("<h4 style='font-family:Orbitron; font-size:13px; color:#ffffff; margin-bottom: 12px;'>🚨 DISCLAIMER & PLATFORM POLICIES</h4>", unsafe_allow_html=True)
-        disc_col1, disc_col2 = st.columns(2)
-        with disc_col1:
-            st.markdown("""
-                <div style="background: rgba(18, 19, 26, 0.85); border: 1px solid rgba(255, 192, 203, 0.12); border-radius: 12px; padding: 12px; height: 100%;">
-                    <h5 style="color: #EC4899; font-family: Orbitron; font-size: 10px; margin-bottom: 8px;">Generative Media Policy</h5>
-                    <p style="color:  #EC4899; font-size: 10px; line-height: 1.5;">ZOVIX operates as an automated synthesis tool. We do not claim ownership over stock materials retrieved from third-party APIs.</p>
-                </div>
-            """, unsafe_allow_html=True)
-        with disc_col2:
-            st.markdown("""
-                <div style="background: rgba(18, 19, 26, 0.85); border: 1px solid rgba(255, 192, 203, 0.12); border-radius: 12px; padding: 12px; height: 100%;">
-                    <h5 style="color: #EC4899; font-family: Orbitron; font-size: 10px; margin-bottom: 8px;">Usage & Credit Terms</h5>
-                    <p style="color: #EC4899; font-size: 10px; line-height: 1.5;">Access to processing nodes requires active credits. Standard 720p generations consume 1 credit.</p>
-                </div>
-            """, unsafe_allow_html=True)
-    
-    show_privacy_policy()
     
     st.markdown("<hr style='border-color: rgba(255,255,255,0.06); margin: 30px 0 15px 0;'>", unsafe_allow_html=True)
     st.markdown("""
