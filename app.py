@@ -65,6 +65,11 @@ components.html(
         if (!isMobile || !viewport) return;
 
         const desktopWidth = 1440;
+        const workspacePages = new Set([
+            "studio", "studio_mode", "payments", "profile", "scheduler",
+            "subusers", "factory", "portfolio", "tutorials",
+            "documentation", "community", "support"
+        ]);
         host.document.body.classList.add("zovix-desktop-mobile");
         if (!host.document.getElementById("zovix-mobile-desktop-spacing")) {
             const style = host.document.createElement("style");
@@ -84,13 +89,35 @@ components.html(
             `;
             host.document.head.appendChild(style);
         }
+        const getPage = () => new URLSearchParams(host.location.search).get("page") || "landing";
         const updateViewport = () => {
+            const page = getPage();
+            const lockZoom = workspacePages.has(page);
             const width = host.screen.width || host.innerWidth;
             const scale = Math.min(1, width / desktopWidth);
-            const content = `width=${desktopWidth}, initial-scale=1, maximum-scale=5, user-scalable=yes`;
-            if (viewport.getAttribute("content") !== content) {
+            const content = `width=${desktopWidth}, initial-scale=1, maximum-scale=${lockZoom ? 1 : 5}, user-scalable=${lockZoom ? "no" : "yes"}`;
+            const previousPage = host.__zovixViewportPage;
+            const needsZoomReset = lockZoom
+                && (previousPage !== page || (host.visualViewport && host.visualViewport.scale > 1.01));
+            host.__zovixViewportPage = page;
+
+            if (needsZoomReset && !host.__zovixViewportResetPending) {
+                host.__zovixViewportResetPending = true;
+                viewport.setAttribute(
+                    "content",
+                    `width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no`
+                );
+                host.setTimeout(() => {
+                    if (getPage() === page) {
+                        viewport.setAttribute("content", content);
+                    }
+                    host.__zovixViewportResetPending = false;
+                    updateViewport();
+                }, 80);
+            } else if (!host.__zovixViewportResetPending && viewport.getAttribute("content") !== content) {
                 viewport.setAttribute("content", content);
             }
+
             host.document.body.style.width = `${desktopWidth}px`;
             host.document.body.style.height = `${host.innerHeight}px`;
             host.document.body.style.transformOrigin = "top left";
@@ -98,10 +125,15 @@ components.html(
         };
 
         updateViewport();
+        host.__zovixUpdateMobileDesktopViewport = updateViewport;
         if (!host.__zovixDesktopViewportListener) {
             host.__zovixDesktopViewportListener = true;
-            host.addEventListener("orientationchange", updateViewport);
-            host.addEventListener("resize", updateViewport);
+            host.addEventListener("orientationchange", () => host.__zovixUpdateMobileDesktopViewport());
+            host.addEventListener("resize", () => host.__zovixUpdateMobileDesktopViewport());
+            host.__zovixDesktopViewportPoll = host.setInterval(
+                () => host.__zovixUpdateMobileDesktopViewport(),
+                250
+            );
         }
     })();
     </script>
