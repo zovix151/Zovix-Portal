@@ -15782,7 +15782,7 @@ def get_premium_theme_css():
         position: relative !important;
         width: 100% !important;
         height: 450px !important;
-        background-image: linear-gradient(rgba(6, 7, 10, 0.5), rgba(6, 7, 10, 0.95)), url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1964&auto=format&fit=crop') !important;
+        background-image: linear-gradient(rgba(6, 7, 10, 0.5), rgba(6, 7, 10, 0.95)), url('/app/static/studio_hero.webp') !important;
         background-size: cover !important;
         background-position: center !important;
         border-radius: 20px !important;
@@ -16092,75 +16092,83 @@ def get_premium_theme_css():
         .photo-slide-item img { height: 150px !important; }
     }
     @media (max-width: 768px) {
-        .block-container { padding-left: 0.5rem !important; padding-right: 0.5rem !important; padding-top: 0.3rem !important; }
-        [data-testid="stSidebar"] { min-width: 160px !important; max-width: 200px !important; }
-        [data-testid="stSidebar"] .stButton button { font-size: 8px !important; padding: 4px 6px !important; min-height: 28px !important; }
-        .main-header { flex-wrap: wrap !important; gap: 6px !important; padding: 6px 0 10px 0 !important; }
-        .header-left .title { font-size: 16px !important; letter-spacing: 0.5px !important; }
-        .header-left .subtitle { font-size: 8px !important; letter-spacing: 1px !important; }
-        .z-logo { width: 38px !important; height: 38px !important; font-size: 18px !important; border-radius: 50% !important; }
-        .exit-btn-wrap .stButton button { font-size: 8px !important; padding: 4px 12px !important; height: 30px !important; min-height: 30px !important; }
-        .leonardo-hero { height: 200px !important; margin-bottom: 16px !important; border-radius: 12px !important; }
-        .leonardo-title { font-size: 22px !important; letter-spacing: 2px !important; padding: 0 10px !important; margin-bottom: 10px !important; }
-        .leonardo-hero p { font-size: 10px !important; letter-spacing: 1px !important; }
+        .block-container { padding-left: 0.75rem !important; padding-right: 0.75rem !important; padding-top: 0.5rem !important; }
+        [data-testid="stSidebar"] { min-width: 0 !important; max-width: 100% !important; }
+        [data-testid="stSidebar"] .stButton button { font-size: 12px !important; padding: 8px 10px !important; min-height: 42px !important; }
+        .main-header { flex-wrap: wrap !important; gap: 10px !important; padding: 8px 0 12px 0 !important; }
+        .header-left .title { font-size: 18px !important; letter-spacing: 0.5px !important; }
+        .header-left .subtitle { font-size: 10px !important; letter-spacing: 1px !important; }
+        .z-logo { width: 42px !important; height: 42px !important; font-size: 20px !important; border-radius: 50% !important; }
+        .exit-btn-wrap .stButton button { font-size: 12px !important; padding: 8px 12px !important; height: auto !important; min-height: 40px !important; }
+        .leonardo-hero { height: clamp(190px, 52vw, 280px) !important; margin-bottom: 18px !important; border-radius: 14px !important; }
+        .leonardo-title { font-size: clamp(24px, 6vw, 32px) !important; letter-spacing: 1px !important; padding: 0 12px !important; margin-bottom: 10px !important; }
+        .leonardo-hero p { font-size: 12px !important; letter-spacing: 0.5px !important; }
         .leonardo-icons-row { gap: 6px !important; margin-top: 12px !important; }
-        .leonardo-icon-tab { min-width: 50px !important; padding: 4px 8px !important; border-radius: 8px !important; }
-        .leonardo-icon-tab span { font-size: 14px !important; margin-bottom: 2px !important; }
-        .leonardo-icon-tab p { font-size: 6px !important; letter-spacing: 0.5px !important; }
+        .leonardo-icon-tab { min-width: 64px !important; padding: 7px 9px !important; border-radius: 9px !important; }
+        .leonardo-icon-tab span { font-size: 17px !important; margin-bottom: 3px !important; }
+        .leonardo-icon-tab p { font-size: 10px !important; letter-spacing: 0.2px !important; }
         div[data-testid="stVerticalBlockBorder"] { padding: 10px !important; border-radius: 10px !important; margin-bottom: 8px !important; }
-        .stButton > button { font-size: 9px !important; padding: 4px 8px !important; min-height: 32px !important; border-radius: 6px !important; }
-        .selected-opt-wrap button, .selected-opt-wrap .stButton > button, .selected-opt-wrap div[data-testid="stButton"] button { font-size: 8px !important; height: 34px !important; border-radius: 6px !important; padding: 4px 6px !important; min-height: 34px !important; }
-        .unselected-opt-wrap button, .unselected-opt-wrap .stButton > button, .unselected-opt-wrap div[data-testid="stButton"] button { font-size: 8px !important; height: 34px !important; border-radius: 6px !important; padding: 4px 6px !important; min-height: 34px !important; }
-        .canvas-container-box { height: 220px !important; min-height: 220px !important; max-height: 220px !important; border-radius: 10px !important; padding: 8px !important; }
-        div[data-testid="stVideo"] { max-height: 220px !important; }
-        div[data-testid="stVideo"], div[data-testid="stVideo"] video, .stVideo { max-height: 220px !important; border-radius: 10px !important; }
-        .compact-label { font-size: 8px !important; letter-spacing: 1px !important; margin-top: 10px !important; margin-bottom: 4px !important; }
-        .photo-slider-container { gap: 10px !important; padding: 8px 0 !important; }
-        .photo-slide-item { flex: 0 0 120px !important; border-radius: 8px !important; }
-        .photo-slide-item img { height: 90px !important; }
-        .photo-slide-item .caption { font-size: 8px !important; padding: 6px !important; }
+        .stButton > button { font-size: 12px !important; padding: 9px 12px !important; min-height: 42px !important; border-radius: 9px !important; }
+        .selected-opt-wrap button, .selected-opt-wrap .stButton > button, .selected-opt-wrap div[data-testid="stButton"] button,
+        .unselected-opt-wrap button, .unselected-opt-wrap .stButton > button, .unselected-opt-wrap div[data-testid="stButton"] button {
+            box-sizing: border-box !important; font-size: 11px !important; height: auto !important;
+            min-height: 40px !important; border-radius: 8px !important; padding: 8px 9px !important;
+            line-height: 1.3 !important; white-space: normal !important;
+        }
+        .canvas-container-box { height: clamp(220px, 62vw, 360px) !important; min-height: 220px !important; max-height: 360px !important; border-radius: 12px !important; padding: 10px !important; }
+        div[data-testid="stVideo"] { max-height: 360px !important; }
+        div[data-testid="stVideo"], div[data-testid="stVideo"] video, .stVideo { max-height: 360px !important; border-radius: 12px !important; }
+        .compact-label { font-size: 10px !important; letter-spacing: 0.8px !important; margin-top: 12px !important; margin-bottom: 6px !important; }
+        .photo-slider-container { gap: 10px !important; padding: 10px 0 !important; }
+        .photo-slide-item { flex: 0 0 150px !important; border-radius: 10px !important; }
+        .photo-slide-item img { height: 110px !important; }
+        .photo-slide-item .caption { font-size: 10px !important; padding: 8px !important; }
         .face-controls-grid { grid-template-columns: 1fr 1fr !important; gap: 6px !important; margin-bottom: 8px !important; }
-        .face-control-item { padding: 6px !important; border-radius: 6px !important; }
-        .face-control-item .label { font-size: 7px !important; letter-spacing: 0.5px !important; }
-        .face-control-item .value { font-size: 11px !important; margin-top: 2px !important; }
+        .face-control-item { padding: 9px !important; border-radius: 8px !important; }
+        .face-control-item .label { font-size: 10px !important; letter-spacing: 0.3px !important; }
+        .face-control-item .value { font-size: 13px !important; margin-top: 3px !important; }
         .editor-upload-grid { grid-template-columns: 1fr !important; gap: 8px !important; margin-bottom: 10px !important; }
-        .editor-upload-box { padding: 14px !important; min-height: 80px !important; border-radius: 10px !important; }
+        .editor-upload-box { padding: 16px !important; min-height: 96px !important; border-radius: 12px !important; }
         .editor-upload-box .icon { font-size: 24px !important; margin-bottom: 4px !important; }
-        .editor-upload-box .label { font-size: 10px !important; }
-        .editor-upload-box .count { font-size: 12px !important; }
+        .editor-upload-box .label { font-size: 12px !important; }
+        .editor-upload-box .count { font-size: 13px !important; }
         .setup-compact-row { flex-direction: column !important; gap: 8px !important; }
         .setup-compact-row > div { min-width: 100% !important; }
-        .ai-feature-card { padding: 16px !important; border-radius: 12px !important; }
+        .ai-feature-card { padding: 18px !important; border-radius: 14px !important; }
         .ai-feature-card .icon { font-size: 36px !important; margin-bottom: 8px !important; }
-        .ai-feature-card .title { font-size: 13px !important; margin-bottom: 6px !important; }
-        .ai-feature-card .desc { font-size: 10px !important; line-height: 1.4 !important; }
-        .quick-access-panel { padding: 10px !important; border-radius: 10px !important; margin-bottom: 12px !important; }
-        .quick-access-panel .panel-header { font-size: 10px !important; margin-bottom: 8px !important; letter-spacing: 0.5px !important; }
-        .quick-access-panel .stButton button { font-size: 7px !important; padding: 3px 4px !important; min-height: 24px !important; }
-        .sidebar-tabs-container .stButton button { font-size: 7px !important; padding: 3px 4px !important; min-height: 24px !important; }
-        .stDialog { max-width: 95% !important; margin: 10px auto !important; }
-        .row-widget.stColumns { gap: 6px !important; }
-        .sh_cols .stContainer { padding: 8px !important; }
-        .sh_cols img { height: 90px !important; }
+        .ai-feature-card .title { font-size: 15px !important; margin-bottom: 7px !important; }
+        .ai-feature-card .desc { font-size: 12px !important; line-height: 1.55 !important; }
+        .quick-access-panel { padding: 14px !important; border-radius: 12px !important; margin-bottom: 14px !important; }
+        .quick-access-panel .panel-header { font-size: 12px !important; margin-bottom: 10px !important; letter-spacing: 0.4px !important; }
+        .quick-access-panel .stButton button, .sidebar-tabs-container .stButton button {
+            font-size: 11px !important; padding: 8px 9px !important; min-height: 40px !important;
+            white-space: normal !important; line-height: 1.3 !important;
+        }
+        .stDialog { width: calc(100vw - 24px) !important; max-width: calc(100vw - 24px) !important; margin: 12px !important; }
+        .row-widget.stColumns { gap: 8px !important; }
+        .sh_cols .stContainer { padding: 10px !important; }
+        .sh_cols img { height: 120px !important; }
+        input, textarea, select { font-size: 16px !important; }
+        img, video, iframe { max-width: 100%; }
     }
     @media (max-width: 480px) {
-        .block-container { padding-left: 0.3rem !important; padding-right: 0.3rem !important; }
-        [data-testid="stSidebar"] { min-width: 130px !important; max-width: 160px !important; }
-        .header-left .title { font-size: 13px !important; }
-        .z-logo { width: 30px !important; height: 30px !important; font-size: 14px !important; border-radius: 50% !important; }
-        .leonardo-title { font-size: 16px !important; letter-spacing: 1px !important; }
-        .leonardo-hero { height: 160px !important; }
-        .leonardo-icon-tab { min-width: 40px !important; padding: 3px 5px !important; }
-        .leonardo-icon-tab span { font-size: 10px !important; }
-        .leonardo-icon-tab p { font-size: 5px !important; }
-        .stButton > button { font-size: 7px !important; padding: 3px 6px !important; min-height: 26px !important; }
-        .canvas-container-box { height: 180px !important; min-height: 180px !important; max-height: 180px !important; }
-        div[data-testid="stVideo"] { max-height: 180px !important; }
-        .photo-slide-item { flex: 0 0 90px !important; }
-        .photo-slide-item img { height: 70px !important; }
-        .face-controls-grid { grid-template-columns: 1fr 1fr !important; gap: 4px !important; }
-        .face-control-item .label { font-size: 6px !important; }
-        .face-control-item .value { font-size: 9px !important; }
+        .block-container { padding-left: 0.65rem !important; padding-right: 0.65rem !important; }
+        [data-testid="stSidebar"] { min-width: 0 !important; max-width: 100% !important; }
+        .header-left .title { font-size: 16px !important; }
+        .z-logo { width: 36px !important; height: 36px !important; font-size: 17px !important; border-radius: 50% !important; }
+        .leonardo-title { font-size: clamp(22px, 7vw, 28px) !important; letter-spacing: 0.5px !important; }
+        .leonardo-hero { height: clamp(185px, 58vw, 245px) !important; }
+        .leonardo-icon-tab { min-width: 58px !important; padding: 6px 7px !important; }
+        .leonardo-icon-tab span { font-size: 15px !important; }
+        .leonardo-icon-tab p { font-size: 9px !important; }
+        .stButton > button { font-size: 12px !important; padding: 9px 10px !important; min-height: 42px !important; }
+        .canvas-container-box { height: clamp(210px, 68vw, 300px) !important; min-height: 210px !important; max-height: 300px !important; }
+        div[data-testid="stVideo"] { max-height: 300px !important; }
+        .photo-slide-item { flex: 0 0 132px !important; }
+        .photo-slide-item img { height: 96px !important; }
+        .face-controls-grid { grid-template-columns: 1fr 1fr !important; gap: 6px !important; }
+        .face-control-item .label { font-size: 9px !important; }
+        .face-control-item .value { font-size: 12px !important; }
     }
     </style>
     """
@@ -16670,7 +16678,7 @@ elif st.session_state["current_page"] == "studio_mode":
         section[data-testid="stMain"] .studio-mode-photo-hero--sales {
             min-height: 520px !important;
             padding-block: 84px !important;
-            background-image: url("https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=1800&q=88") !important;
+            background-image: url("/app/static/studio_sales_engine.webp") !important;
         }
         section[data-testid="stMain"] [class*="st-key-studio_change_mode_btn"] {
             position: relative !important;
@@ -16697,35 +16705,35 @@ elif st.session_state["current_page"] == "studio_mode":
             box-shadow: 0 10px 26px rgba(24, 54, 56, .18) !important;
         }
         section[data-testid="stMain"] .studio-mode-photo-hero--agent {
-            background-image: url("https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=1800&q=88") !important;
+            background-image: url("/app/static/studio_ai_agent_engine.webp") !important;
         }
         section[data-testid="stMain"] .studio-mode-photo-hero--blueprints {
-            background-image: url("https://images.unsplash.com/photo-1511818966892-d7d671e672a2?auto=format&fit=crop&w=1800&q=88") !important;
+            background-image: url("/app/static/studio_blueprint_engine.webp") !important;
         }
         section[data-testid="stMain"] .studio-mode-photo-hero--creative {
-            background-image: url("https://images.unsplash.com/photo-1549490349-8643362247b5?auto=format&fit=crop&w=2200&q=90") !important;
+            background-image: url("/app/static/studio_creative_workshop_engine.webp") !important;
         }
         section[data-testid="stMain"] .studio-mode-photo-hero--upscaler {
-            background-image: url("https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?auto=format&fit=crop&w=1800&q=88") !important;
+            background-image: url("/app/static/studio_dynamic_ui_engine.webp") !important;
         }
         section[data-testid="stMain"] .studio-mode-photo-hero--draw {
-            background-image: url("https://images.unsplash.com/photo-1541961017774-22349e4a1262?auto=format&fit=crop&w=1800&q=88") !important;
+            background-image: url("/app/static/studio_draw_engine.webp") !important;
         }
         section[data-testid="stMain"] .studio-mode-photo-hero--face {
             background-position: center 32% !important;
         }
         section[data-testid="stMain"] .studio-mode-photo-hero--editor {
-            background-image: url("https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&fit=crop&w=1800&q=88") !important;
+            background-image: url("/app/static/studio_editor_engine.webp") !important;
         }
         section[data-testid="stMain"] .studio-mode-photo-hero--cinematic {
-            background-image: url("https://images.unsplash.com/photo-1492619375914-88005aa9e8fb?auto=format&fit=crop&w=2200&q=90") !important;
+            background-image: url("/app/static/studio_cinematic_engine.webp") !important;
             background-position: center 48% !important;
         }
         section[data-testid="stMain"] .studio-mode-photo-hero--dynamic {
-            background-image: url("https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1800&q=88") !important;
+            background-image: url("/app/static/studio_dynamic_ui_engine.webp") !important;
         }
         section[data-testid="stMain"] .studio-mode-photo-hero--voice {
-            background-image: url("https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&w=1800&q=88") !important;
+            background-image: url("/app/static/studio_live_emotions_engine.webp") !important;
         }
         .stApp, section[data-testid="stMain"], section[data-testid="stMain"] .block-container {
             color: #263638 !important;
@@ -18244,25 +18252,25 @@ elif st.session_state["current_page"] in {"scheduler", "subusers", "factory", "p
             key="studio_community_search",
         ).strip().casefold()
         community_ideas = [
-            ("Into the wild", "Landscape · Cinematic", "Cinematic Engine", "photo-1500530855697-b586d89ba3ee",
+            ("Into the wild", "Landscape · Cinematic", "Cinematic Engine", "studio_cinematic_engine.webp",
              "A wide cinematic landscape with layered green hills, soft morning mist, a winding trail, natural light, and a calm sense of exploration."),
-            ("Quiet reflections", "Travel · Creative Workshop", "Creative Workshop Mode", "photo-1470770841072-f978cf4d019e",
+            ("Quiet reflections", "Travel · Creative Workshop", "Creative Workshop Mode", "studio_creative_workshop_engine.webp",
              "A quiet alpine lake reflecting distant mountains at dawn, cool muted colors, gentle atmospheric haze, balanced composition, and a peaceful travel-editorial mood."),
-            ("The last light", "Story frame · Cinematic", "Cinematic Engine", "photo-1501785888041-af3ef285b470",
+            ("The last light", "Story frame · Cinematic", "Cinematic Engine", "studio_cinematic_story_background.webp",
              "A lone mountain lake at sunset, warm last light on the peaks, subtle water reflections, wide establishing shot, and a thoughtful cinematic atmosphere."),
-            ("Open horizons", "Nature · Draw", "Draw Mode", "photo-1469474968028-56623f02e42e",
+            ("Open horizons", "Nature · Draw", "Draw Mode", "studio_draw_engine.webp",
              "Illustrate an expansive mountain valley beneath dramatic clouds, with clear foreground shapes, layered distant ridges, and a refined painterly travel-poster style."),
-            ("Blue in motion", "Ocean · Creative Workshop", "Creative Workshop Mode", "photo-1518837695005-2083093ee35b",
+            ("Blue in motion", "Ocean · Creative Workshop", "Creative Workshop Mode", "studio_live_emotion_voice_background.webp",
              "An expressive ocean wave in deep blue tones, crisp water texture, directional natural light, minimal composition, and a premium editorial image style."),
-            ("Somewhere warm", "Campaign · Draw", "Draw Mode", "photo-1507525428034-b723cf961d3e",
+            ("Somewhere warm", "Campaign · Draw", "Draw Mode", "studio_sales_engine.webp",
              "Illustrate a bright summer coastal escape as a polished campaign concept, with warm sunlight, inviting colors, a clear focal subject, and clean editorial composition."),
-            ("Under the stars", "Night sky · Cinematic", "Cinematic Engine", "photo-1519681393784-d120267933ba",
+            ("Under the stars", "Night sky · Cinematic", "Cinematic Engine", "studio_hero.webp",
              "A snow-covered mountain beneath a vivid starry night, a small foreground silhouette for scale, cool blue atmosphere, and a slow cinematic push-in."),
-            ("Forest light", "Atmosphere · Creative Workshop", "Creative Workshop Mode", "photo-1518495973542-4542c06a5843",
+            ("Forest light", "Atmosphere · Creative Workshop", "Creative Workshop Mode", "studio_expressive_face_background.webp",
              "Sunbeams filtering through a lush forest canopy, delicate floating mist, deep natural greens, layered composition, and a quiet, immersive mood."),
-            ("The hidden trail", "Adventure · Blueprint", "Blueprints Mode", "photo-1441974231531-c6227db76b6e",
+            ("The hidden trail", "Adventure · Blueprint", "Blueprints Mode", "studio_blueprint_guide_background.webp",
              "Plan a nature-walk visitor route through a dense woodland, with a clearly marked winding trail, safe resting points, gentle slopes, and minimal environmental impact."),
-            ("After the rain", "Moodboard · Draw", "Draw Mode", "photo-1500534623283-312aade485b7",
+            ("After the rain", "Moodboard · Draw", "Draw Mode", "studio_dynamic_ui_engine.webp",
              "Create a soft landscape moodboard after rainfall, with luminous cloud breaks, reflective ground, subdued earth tones, and an optimistic sense of renewal."),
         ]
         visible_community_ideas = [
@@ -18278,11 +18286,11 @@ elif st.session_state["current_page"] in {"scheduler", "subusers", "factory", "p
                 visible_community_ideas[row_start:row_start + 3],
             )):
                 title, category, mode_name, image_id, prompt = idea
-                image_url = f"https://images.unsplash.com/{image_id}?auto=format&fit=crop&w=900&q=82"
+                image_url = f"/app/static/{image_id}"
                 with community_col:
                     st.markdown(
                         f"<article class='community-card'><img src='{html_lib.escape(image_url, quote=True)}' "
-                        f"alt='{html_lib.escape(title, quote=True)} creative inspiration' loading='lazy'>"
+                        f"alt='{html_lib.escape(title, quote=True)} creative inspiration' loading='eager' decoding='async'>"
                         f"<div class='community-card-copy'><span class='community-card-tag'>"
                         f"{html_lib.escape(category)}</span><h3>{html_lib.escape(title)}</h3>"
                         f"<p>Starter prompt</p><blockquote>{html_lib.escape(prompt)}</blockquote></div></article>",
@@ -18754,7 +18762,7 @@ elif st.session_state["current_page"] == "studio":
             background:
                 linear-gradient(90deg, rgba(8,18,29,.76) 0%, rgba(8,18,29,.46) 42%, rgba(8,18,29,.08) 100%),
                 linear-gradient(0deg, rgba(9,24,33,.28), transparent 45%),
-                url("https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=2200&q=92") center 52% / cover no-repeat !important;
+                url("/app/static/studio_hero.webp") center 52% / cover no-repeat !important;
             border: 1px solid rgba(232,255,255,.48) !important;
             border-radius: 34px 38px 156px 34px / 34px 34px 34% 34px !important;
             box-shadow:
@@ -18914,7 +18922,7 @@ elif st.session_state["current_page"] == "studio":
                 linear-gradient(90deg, rgba(8,18,29,.78) 0%, rgba(8,18,29,.50) 38%, rgba(8,18,29,.08) 74%),
                 linear-gradient(0deg, rgba(9,24,33,.52), transparent 54%),
                 linear-gradient(140deg, rgba(255,255,255,.20), transparent 24%, transparent 76%, rgba(92,232,222,.15)),
-                url("https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=2200&q=92") center 52% / cover no-repeat !important;
+                url("/app/static/studio_hero.webp") center 52% / cover no-repeat !important;
             border-radius: 34px 38px 156px 34px / 34px 34px 34% 34px !important;
             border: 1px solid rgba(232,255,255,.48) !important;
             box-shadow:
@@ -19412,7 +19420,7 @@ elif st.session_state["current_page"] == "studio":
             .studio-header::before {
                 background:
                     linear-gradient(0deg, rgba(8,18,29,.78) 0%, rgba(8,18,29,.34) 58%, rgba(8,18,29,.04) 100%),
-                    url("https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1600&q=90") center 52% / cover no-repeat !important;
+                    url("/app/static/studio_hero.webp") center 52% / cover no-repeat !important;
                 border-radius: 30px 34px 126px 30px / 30px 30px 30% 30px !important;
             }
             .studio-header::after { display: none !important; }
@@ -19627,7 +19635,7 @@ elif st.session_state["current_page"] == "studio":
             background:
                 linear-gradient(90deg, rgba(23,52,52,.22), rgba(23,52,52,.02) 48%, rgba(23,52,52,.1)),
                 linear-gradient(0deg, rgba(16,40,42,.18), transparent 58%),
-                url("https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?auto=format&fit=crop&w=1800&q=90") center 48% / cover no-repeat !important;
+                url("/app/static/studio_draw_engine.webp") center 48% / cover no-repeat !important;
             border-radius: 46% 24px 68px 42% / 48% 24px 44% 44% !important;
             border: 1px solid rgba(255,255,255,.76) !important;
             transform: perspective(1300px) rotateY(-3deg) scale(1.015) !important;
@@ -19950,7 +19958,7 @@ elif st.session_state["current_page"] == "studio":
                 inset: 0 !important;
                 background:
                     linear-gradient(90deg, rgba(14,38,43,.76), rgba(14,38,43,.36) 72%, rgba(14,38,43,.22)),
-                    url("https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?auto=format&fit=crop&w=1200&q=88") center 48% / cover no-repeat !important;
+                    url("/app/static/studio_draw_engine.webp") center 48% / cover no-repeat !important;
                 border-radius: 24px 24px 62px 24px !important;
                 transform: none !important;
             }
@@ -20015,7 +20023,7 @@ elif st.session_state["current_page"] == "studio":
                 inset: 0 !important;
                 background:
                     linear-gradient(90deg, rgba(240,248,243,.99) 0%, rgba(240,248,243,.96) 48%, rgba(240,248,243,.70) 69%, rgba(240,248,243,.18) 100%),
-                    url("https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?auto=format&fit=crop&w=1200&q=88") 66% center / cover no-repeat !important;
+                    url("/app/static/studio_draw_engine.webp") 66% center / cover no-repeat !important;
                 border-radius: 22px 22px 46px 22px !important;
             }
             section[data-testid="stMain"] .studio-header .left {
@@ -20141,7 +20149,7 @@ elif st.session_state["current_page"] == "studio":
                 inset: 0 !important;
                 background:
                     linear-gradient(90deg, rgba(244,249,246,.99) 0%, rgba(244,249,246,.97) 48%, rgba(244,249,246,.86) 72%, rgba(244,249,246,.56) 100%),
-                    url("https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?auto=format&fit=crop&w=1200&q=88") 68% center / cover no-repeat !important;
+                    url("/app/static/studio_draw_engine.webp") 68% center / cover no-repeat !important;
                 border-radius: 22px !important;
             }
             section[data-testid="stMain"] .studio-header .left {
@@ -20413,7 +20421,7 @@ elif st.session_state["current_page"] == "studio":
         .zd-action-list { display:grid; gap:6px; margin-top:9px; }
         .zd-action-list a { display:flex; align-items:center; gap:8px; min-height:31px; padding:0 8px; color:#394961; border:1px solid #e8edf4; border-radius:8px; font-size:9px; font-weight:650; text-decoration:none; }
         .zd-action-list a:hover { background:#f6f8ff; border-color:#cfd8f2; }
-        .zd-promo { min-height:105px; overflow:hidden; color:#fff; border:0; background:linear-gradient(90deg,rgba(20,25,59,.93),rgba(30,35,82,.28)),url('https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=640&q=82') center/cover; }
+        .zd-promo { min-height:105px; overflow:hidden; color:#fff; border:0; background:linear-gradient(90deg,rgba(20,25,59,.93),rgba(30,35,82,.28)),url('/app/static/studio_hero.webp') center/cover; }
         .zd-promo strong { display:block; max-width:140px; font-size:13px; line-height:1.15; }
         .zd-promo p { max-width:155px; margin:6px 0 9px; color:#e4e7f6; font-size:8px; line-height:1.4; }
         .zd-promo a { display:inline-flex; padding:6px 9px; color:#fff; border-radius:99px; background:#554be8; font-size:8px; font-weight:750; text-decoration:none; }
@@ -20427,29 +20435,40 @@ elif st.session_state["current_page"] == "studio":
             .zd-promo { min-height:120px; }
         }
         @media (max-width:760px) {
-            .zovix-dashboard { grid-template-columns:minmax(0,1fr); gap:10px; padding:6px 10px 10px; }
-            .zd-sidebar { min-height:0; padding:0 0 9px; border-right:0; border-bottom:1px solid #edf0f5; }
+            .zovix-dashboard { grid-template-columns:minmax(0,1fr); gap:12px; padding:10px 14px 16px; overflow-x:hidden; }
+            .zd-sidebar { min-height:0; padding:0 0 10px; border-right:0; border-bottom:1px solid #edf0f5; }
             .zd-brand { margin:1px 0 9px; }
             .zd-studio-brand { min-height:38px; margin:0 0 9px; padding-right:0; }
             .zd-nav-label, .zd-nav-rule, .zd-sidebar-promo { display:none; }
-            .zd-nav { display:flex; gap:5px; overflow-x:auto; padding-bottom:2px; }
-            .zd-nav a { flex:0 0 auto; min-height:31px; padding:0 8px; background:#f7f9fc; font-size:9px; }
-            .zd-topbar { min-height:30px; margin-bottom:8px; }
-            .zd-hero { min-height:205px; padding:17px; background-position:62% center; }
-            .zd-hero h1 { max-width:450px; font-size:clamp(22px,6vw,31px); }
-            .zd-engine-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; }
-            .zd-engine-card { min-height:82px; }
-            .zd-recent-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+            .zd-nav { display:flex; gap:7px; overflow-x:auto; padding:2px 2px 7px; scrollbar-width:thin; }
+            .zd-nav a { flex:0 0 auto; min-height:40px; padding:0 12px; background:#f7f9fc; font-size:11px; }
+            .zd-nav-icon { width:auto; font-size:15px; }
+            .zd-topbar { flex-wrap:wrap; min-height:38px; margin-bottom:10px; }
+            .zd-hero { min-height:220px; padding:20px; background-position:62% center; }
+            .zd-hero h1 { max-width:450px; font-size:clamp(24px,6vw,32px); }
+            .zd-hero p { font-size:12px; }
+            .zd-hero-actions a { min-height:40px; padding:0 13px; font-size:11px; }
+            .zd-hero-tags span { font-size:9px; }
+            .zd-section-head { align-items:flex-start; margin-top:20px; }
+            .zd-section-head h2 { font-size:17px; }
+            .zd-section-head p, .zd-section-head a { font-size:11px; }
+            .zd-engine-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; }
+            .zd-engine-card { min-height:100px; padding:12px; }
+            .zd-engine-copy strong { font-size:11px; }
+            .zd-engine-copy small { font-size:9px; }
+            .zd-recent-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; }
             .zd-right { grid-column:auto; grid-template-columns:repeat(2,minmax(0,1fr)); }
         }
-        @media (max-width:430px) {
+        @media (max-width:520px) {
             .zd-right { grid-template-columns:minmax(0,1fr); }
-            .zd-hero { min-height:195px; }
-            .zd-hero-tags span { font-size:7px; }
-            .zd-engine-copy small { font-size:7px; }
+        }
+        @media (max-width:380px) {
+            .zovix-dashboard { padding-right:10px; padding-left:10px; }
+            .zd-hero { min-height:205px; padding:16px; }
+            .zd-hero h1 { font-size:24px; }
             .zd-future-grid { grid-template-columns:minmax(0,1fr); }
-            .zd-future-card { display:grid; grid-template-columns:100px minmax(0,1fr); }
-            .zd-future-card img { width:100px; height:100%; min-height:92px; }
+            .zd-future-card { display:grid; grid-template-columns:88px minmax(0,1fr); }
+            .zd-future-card img { width:88px; height:100%; min-height:92px; }
             .zd-community-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
         }
         html, body, .stApp, [data-testid="stAppViewContainer"],
@@ -20740,7 +20759,7 @@ elif st.session_state["current_page"] == "studio":
             border-radius:15px;
             background:
                 linear-gradient(90deg,rgba(239,246,255,.84) 0%,rgba(239,246,255,.72) 38%,rgba(239,246,255,.38) 50%,rgba(239,246,255,0) 58%,rgba(239,246,255,0) 100%),
-                url('/app/static/studio_hero.png') center 45%/cover no-repeat;
+                url('/app/static/studio_hero.webp') center 45%/cover no-repeat;
             box-shadow:0 8px 22px rgba(33,57,91,.14);
         }
         .st-key-studio_hero_container [data-testid="stVerticalBlock"] {
@@ -21463,7 +21482,7 @@ elif st.session_state["current_page"] == "studio":
       </aside>
       <main class="zd-main">
         <header class="zd-topbar"><span class="zd-breadcrumb">Workspace&nbsp; / &nbsp;Dashboard</span><a class="zd-user" href="?page=profile">{avatar_initials}<span>{safe_name}<small style="display:block;color:#FFFFFF;font-size:8px;font-weight:500;margin-top:2px">{plan_name}</small></span>⌄</a></header>
-        <section class="zd-hero" style="background-image:url('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&amp;fit=crop&amp;w=1600&amp;q=88')">
+        <section class="zd-hero" style="background-image:url('/app/static/studio_hero.webp')">
           <div class="zd-hero-copy"><div class="zd-hero-kicker">Welcome back, {safe_name} 👋</div><h1>What do you want to<br><span>create</span> today?</h1>
           <p>Turn your imagination into stunning visuals, videos, characters and voices — all with the power of ZOVIX AI.</p>
           <div class="zd-hero-actions"><a class="primary" href="?page=studio_mode&amp;mode=Cinematic%20Engine">✦&nbsp; Create New Project</a><a href="?page=portfolio">▣&nbsp; My Creations</a></div>
@@ -21485,9 +21504,9 @@ elif st.session_state["current_page"] == "studio":
         <section class="zd-lower-section" id="studio-community">
           <div class="zd-lower-head"><div><h2>Community Inspiration</h2><p>Ideas and visual references to spark your next creation.</p></div><a href="?page=studio#engines">Explore AI engines&nbsp; →</a></div>
           <div class="zd-community-grid">
-            <a class="zd-community-card" href="?page=studio_mode&amp;mode=Cinematic%20Engine" style="--community-image:url('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&amp;fit=crop&amp;w=560&amp;q=80')"><strong>Into the wild · Cinematic</strong></a>
-            <a class="zd-community-card" href="?page=studio_mode&amp;mode=Creative%20Workshop%20Mode" style="--community-image:url('https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&amp;fit=crop&amp;w=560&amp;q=80')"><strong>Quiet reflections · Visual concept</strong></a>
-            <a class="zd-community-card" href="?page=studio_mode&amp;mode=Blueprints%20Mode" style="--community-image:url('https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&amp;fit=crop&amp;w=560&amp;q=80')"><strong>The last light · Scene idea</strong></a>
+            <a class="zd-community-card" href="?page=studio_mode&amp;mode=Cinematic%20Engine" style="--community-image:url('/app/static/studio_cinematic_engine.webp')"><strong>Into the wild · Cinematic</strong></a>
+            <a class="zd-community-card" href="?page=studio_mode&amp;mode=Creative%20Workshop%20Mode" style="--community-image:url('/app/static/studio_hero.webp')"><strong>Quiet reflections · Visual concept</strong></a>
+            <a class="zd-community-card" href="?page=studio_mode&amp;mode=Blueprints%20Mode" style="--community-image:url('/app/static/studio_cinematic_story_background.webp')"><strong>The last light · Scene idea</strong></a>
           </div>
           <p class="zd-community-note">Illustrative inspiration photography, not user-submitted community creations. Try one of the <a href="?page=studio#engines">AI engines above</a> to start your own project.</p>
         </section>
@@ -21709,16 +21728,16 @@ elif st.session_state["current_page"] == "studio":
                 icon, title, mode, description, image = card
                 with column:
                     supplied_image = {
-                        0: "studio_cinematic_engine.png",
-                        1: "studio_face_generate.png",
-                        2: "studio_creative_workshop_engine.png",
-                        3: "studio_blueprint_engine.jpg",
-                        4: "studio_draw_engine.png",
-                        5: "studio_editor_engine.png",
-                        7: "studio_sales_engine.png",
-                        6: "studio_ai_agent_engine.jpg",
-                        9: "studio_live_emotions_engine.png",
-                        8: "studio_dynamic_ui_engine.jpg",
+                        0: "studio_cinematic_engine.webp",
+                        1: "studio_face_generate.webp",
+                        2: "studio_creative_workshop_engine.webp",
+                        3: "studio_blueprint_engine.webp",
+                        4: "studio_draw_engine.webp",
+                        5: "studio_editor_engine.webp",
+                        7: "studio_sales_engine.webp",
+                        6: "studio_ai_agent_engine.webp",
+                        9: "studio_live_emotions_engine.webp",
+                        8: "studio_dynamic_ui_engine.webp",
                     }.get(engine_cards.index(card))
                     image_source = (
                         f"/app/static/{supplied_image}"
@@ -21730,7 +21749,7 @@ elif st.session_state["current_page"] == "studio":
                         f"<a class='zd-engine-photo-card' href='?page=studio_mode&amp;mode={engine_mode_url}' "
                         f"aria-label='{html_lib.escape(title, quote=True)}: "
                         f"{html_lib.escape(description, quote=True)}'>"
-                        f"<img src='{html_lib.escape(image_source, quote=True)}' alt='' loading='lazy'>"
+                        f"<img src='{html_lib.escape(image_source, quote=True)}' alt='' loading='eager' decoding='async'>"
                         f"<span class='zd-engine-photo-icon' aria-hidden='true'>{html_lib.escape(icon)}</span>"
                         "<span class='zd-engine-photo-copy'>"
                         f"<strong>{html_lib.escape(title)}</strong>"
@@ -21853,9 +21872,9 @@ elif st.session_state["current_page"] == "studio":
                 <a href="?page=studio#engines">Explore AI engines&nbsp; →</a>
               </div>
               <div class="zd-community-grid">
-                <a class="zd-community-card" href="?page=studio_mode&amp;mode=Cinematic%20Engine" style="--community-image:url('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&amp;fit=crop&amp;w=560&amp;q=80')"><strong>Into the wild · Cinematic</strong></a>
-                <a class="zd-community-card" href="?page=studio_mode&amp;mode=Creative%20Workshop%20Mode" style="--community-image:url('https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&amp;fit=crop&amp;w=560&amp;q=80')"><strong>Quiet reflections · Visual concept</strong></a>
-                <a class="zd-community-card" href="?page=studio_mode&amp;mode=Blueprints%20Mode" style="--community-image:url('https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&amp;fit=crop&amp;w=560&amp;q=80')"><strong>The last light · Scene idea</strong></a>
+                <a class="zd-community-card" href="?page=studio_mode&amp;mode=Cinematic%20Engine" style="--community-image:url('/app/static/studio_cinematic_engine.webp')"><strong>Into the wild · Cinematic</strong></a>
+                <a class="zd-community-card" href="?page=studio_mode&amp;mode=Creative%20Workshop%20Mode" style="--community-image:url('/app/static/studio_hero.webp')"><strong>Quiet reflections · Visual concept</strong></a>
+                <a class="zd-community-card" href="?page=studio_mode&amp;mode=Blueprints%20Mode" style="--community-image:url('/app/static/studio_cinematic_story_background.webp')"><strong>The last light · Scene idea</strong></a>
               </div>
               <p class="zd-community-note">Illustrative inspiration photography, not member-submitted creations. Start your own project with one of the <a href="?page=studio#engines">AI engines above</a>.</p>
             </section>
@@ -22819,9 +22838,43 @@ if st.session_state.get("current_page") == "studio_mode":
                 min-width: 0 !important;
                 white-space: normal !important;
             }
+            section[data-testid="stMain"] .block-container [data-testid="stButton"] > button {
+                box-sizing: border-box !important;
+                min-height: 44px !important;
+                height: auto !important;
+                padding: 10px 12px !important;
+                font-size: 13px !important;
+                line-height: 1.35 !important;
+                white-space: normal !important;
+                overflow-wrap: anywhere !important;
+            }
+            section[data-testid="stMain"] .block-container input,
+            section[data-testid="stMain"] .block-container textarea,
+            section[data-testid="stMain"] .block-container select {
+                box-sizing: border-box !important;
+                min-width: 0 !important;
+                max-width: 100% !important;
+                font-size: 16px !important;
+            }
+            section[data-testid="stMain"] .block-container label,
+            section[data-testid="stMain"] .block-container [data-testid="stCaptionContainer"] {
+                font-size: 12px !important;
+                line-height: 1.45 !important;
+            }
             section[data-testid="stMain"] .block-container [data-testid="stVideo"] video {
                 height: auto !important;
                 object-fit: contain !important;
+            }
+            section[data-testid="stMain"] .block-container {
+                overflow-x: clip !important;
+            }
+        }
+        @media (max-width: 420px) {
+            section[data-testid="stMain"] .block-container {
+                padding: 10px !important;
+            }
+            section[data-testid="stMain"] .block-container [data-testid="stHorizontalBlock"] {
+                gap: 10px !important;
             }
         }
     </style>

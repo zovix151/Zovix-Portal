@@ -285,11 +285,15 @@ class WorldClassLandingPage:
             .footer-content { gap: 26px; }
         }
         @media (max-width: 380px) {
-            .hero-section { padding-right: 16px; padding-left: 16px; }
-            h1.hero-title { font-size: 26px !important; }
+            .landing-nav { padding-right: 12px; padding-left: 12px; }
+            .nav-logo { gap: 7px; }
+            .nav-logo .logo-text { font-size: 16px; }
+            .hero-section { padding-right: 12px; padding-left: 12px; }
+            h1.hero-title { font-size: 28px !important; }
             .hero-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
             .features-section, .how-it-works, .stats-section, .testimonials-section,
-            .pricing-section, .cta-section, .landing-footer { padding-right: 16px; padding-left: 16px; }
+            .pricing-section, .cta-section, .landing-footer { padding-right: 12px; padding-left: 12px; }
+            .stats-grid { grid-template-columns: 1fr; }
         }
 
         :root {
@@ -421,7 +425,7 @@ class WorldClassLandingPage:
         .hero-demo::before {
             position: absolute; z-index: -1; inset: -10px; content: "";
             background: linear-gradient(rgba(10, 24, 27, .34), rgba(10, 24, 27, .42)),
-                url('https://images.unsplash.com/photo-1492619375914-88005aa9e8fb?auto=format&fit=crop&w=1200&q=85') center/cover;
+                url('/app/static/studio_cinematic_engine.webp') center/cover;
             filter: blur(4px); transform: scale(1.04);
         }
         .hero-demo::after {
@@ -545,26 +549,27 @@ class WorldClassLandingPage:
             .stat-item .label { font-size: 14px; }
         }
         @media (max-width: 640px) {
-            .landing-nav { padding: 10px 18px; }
-            .nav-links { display: flex; gap: 0; }
+            .landing-nav { padding: 10px 16px; }
+            .nav-links { display: flex; gap: 0; flex: 0 0 auto; }
             .nav-links a { display: none; }
-            .nav-cta-btn { padding: 9px 14px; font-size: 12px; }
-            .hero-section { padding: 158px 20px 24px; }
+            .nav-cta-btn { min-height: 42px; padding: 9px 14px; font-size: 12px; }
+            .hero-section { padding: 150px 16px 28px; overflow: hidden; }
             .hero-gallery { top: 14px; left: 0; width: 100%; height: 126px; mask-image: none; }
             .hero-gallery img:first-child { left: 0; top: 0; width: 39%; height: 116px; }
             .hero-gallery img:nth-child(2) { left: 24%; top: 14px; width: 31%; height: 94px; }
             .hero-gallery img:nth-child(3) { left: 48%; top: 28px; width: 25%; height: 76px; }
             .hero-gallery img:nth-child(4) { left: 67%; top: 48px; width: 19%; height: 59px; }
             .hero-gallery img:nth-child(5) { left: 82%; top: 74px; width: 15%; height: 46px; }
-            .hero-content { transform: none; margin: 0 auto; grid-template-columns: 1fr; gap: 18px; }
+            .hero-content { width: 100%; min-width: 0; transform: none; margin: 0 auto; grid-template-columns: minmax(0, 1fr); gap: 18px; }
             .hero-left { margin-left: 0; }
-            h1.hero-title { font-size: 37px !important; line-height: 1.08 !important; }
+            h1.hero-title { font-size: clamp(29px, 9vw, 37px) !important; line-height: 1.08 !important; overflow-wrap: anywhere; }
             .hero-subtitle { font-size: 15px; }
-            .hero-actions { gap: 8px; }
-            .hero-primary-btn, .hero-secondary-btn { min-height: 44px; padding: 11px 16px; font-size: 11px; }
+            .hero-actions { gap: 9px; }
+            .hero-primary-btn, .hero-secondary-btn { min-height: 46px; padding: 12px 14px; font-size: 11px; }
+            .hero-actions > * { flex: 1 1 145px; text-align: center; }
             .hero-demo { min-height: 190px; aspect-ratio: 1.7; }
             .stats-section { max-width: 1120px; padding: 0 20px 34px; transform: none; }
-            .stats-grid { grid-template-columns: 1fr; gap: 10px; }
+            .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
             .stat-item { min-height: 76px; }
             .stat-item .number { font-size: 26px; }
             .stat-item .label { font-size: 14px; }
@@ -635,7 +640,7 @@ class WorldClassLandingPage:
         }
         .hero-demo::before {
             background: linear-gradient(rgba(10, 24, 27, .22), rgba(10, 24, 27, .38)),
-                url('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=90') center/cover;
+                url('/app/static/studio_hero.webp') center/cover;
             filter: none;
         }
         .hero-benefits {
@@ -1174,7 +1179,7 @@ class WorldClassLandingPage:
             background:
                 linear-gradient(90deg, rgba(11, 20, 27, .86), rgba(11, 20, 27, .42) 72%, rgba(11, 20, 27, .2)),
                 linear-gradient(0deg, rgba(8, 13, 18, .58), transparent 75%),
-                url('https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1800&q=88') center 48%/cover;
+                url('/app/static/studio_creative_workshop_engine.webp') center 48%/cover;
             box-shadow: 0 26px 60px rgba(20, 42, 57, .2);
         }
         .about-section .section-header {
@@ -1277,7 +1282,7 @@ class WorldClassLandingPage:
             background:
                 linear-gradient(90deg, rgba(11, 20, 27, .86), rgba(11, 20, 27, .38) 70%, rgba(11, 20, 27, .16)),
                 linear-gradient(0deg, rgba(8, 13, 18, .58), transparent 75%),
-                url('https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1800&q=88') center 48%/cover;
+                url('/app/static/studio_creative_workshop_engine.webp') center 48%/cover;
             box-shadow: 0 26px 60px rgba(20, 42, 57, .2);
         }
         .blog-hero-copy { position: relative; max-width: 760px; }
@@ -1370,7 +1375,7 @@ class WorldClassLandingPage:
             background:
                 linear-gradient(90deg, rgba(11, 20, 27, .86), rgba(11, 20, 27, .38) 70%, rgba(11, 20, 27, .16)),
                 linear-gradient(0deg, rgba(8, 13, 18, .58), transparent 75%),
-                url('https://images.unsplash.com/photo-1553877522-43269d4ea984?auto=format&fit=crop&w=1800&q=88') center 48%/cover;
+                url('/app/static/studio_dynamic_ui_engine.webp') center 48%/cover;
             box-shadow: 0 26px 60px rgba(20, 42, 57, .2);
         }
         .changelog-hero-copy, .roadmap-hero-copy { position: relative; max-width: 760px; }
@@ -1475,7 +1480,7 @@ class WorldClassLandingPage:
             background:
                 linear-gradient(90deg, rgba(12, 19, 30, .86), rgba(12, 19, 30, .40) 70%, rgba(12, 19, 30, .18)),
                 linear-gradient(0deg, rgba(8, 13, 18, .58), transparent 75%),
-                url('https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=1800&q=88') center 48%/cover;
+                url('/app/static/studio_ai_agent_engine.webp') center 48%/cover;
             box-shadow: 0 26px 60px rgba(20, 42, 57, .2);
         }
         .careers-hero-copy { position: relative; max-width: 760px; }
@@ -1640,7 +1645,7 @@ class WorldClassLandingPage:
             border-radius: 28px 120px 28px 120px;
             background:
                 linear-gradient(180deg, rgba(9, 20, 31, .08) 10%, rgba(9, 20, 31, .22) 42%, rgba(9, 20, 31, .88) 100%),
-                url('/app/static/studio_cinematic_story_background.png') center 48%/cover;
+                url('/app/static/studio_cinematic_story_background.webp') center 48%/cover;
             box-shadow: 0 34px 70px rgba(20, 42, 57, .24), 0 0 0 10px rgba(255, 255, 255, .28);
             transform: perspective(1200px) rotateY(-7deg) rotateX(2deg);
             transition: transform .4s ease, box-shadow .4s ease;
@@ -1659,7 +1664,7 @@ class WorldClassLandingPage:
         .face-video-guide .cinematic-guide-visual {
             min-height: 0;
             aspect-ratio: 16 / 9;
-            background: #11182a url('/app/static/studio_face_video_guide.png') center/contain no-repeat;
+            background: #11182a url('/app/static/studio_face_video_guide.webp') center/contain no-repeat;
             box-shadow: 0 34px 70px rgba(96, 36, 78, .2), 0 0 0 10px rgba(255, 255, 255, .28);
         }
         .face-video-guide .cinematic-guide-visual::after { display: none; }
@@ -1680,7 +1685,7 @@ class WorldClassLandingPage:
         .expressive-face-guide .cinematic-guide-visual {
             background:
                 linear-gradient(180deg, rgba(17, 16, 36, .04) 8%, rgba(17, 16, 36, .18) 42%, rgba(17, 16, 36, .91) 100%),
-                url('/app/static/studio_expressive_face_background.png') center 30%/cover;
+                url('/app/static/studio_expressive_face_background.webp') center 30%/cover;
             box-shadow: 0 34px 70px rgba(78, 48, 129, .22), 0 0 0 10px rgba(255, 255, 255, .28);
         }
         .expressive-face-guide .cinematic-visual-copy .eyebrow { color: #ded0ff; }
@@ -1700,7 +1705,7 @@ class WorldClassLandingPage:
         .creative-workshop-guide .cinematic-guide-visual {
             background:
                 linear-gradient(180deg, rgba(25, 18, 18, .04) 8%, rgba(25, 18, 18, .16) 42%, rgba(25, 18, 18, .9) 100%),
-                url('/app/static/studio_creative_workshop_background.png') center 50%/cover;
+                url('/app/static/studio_creative_workshop_background.webp') center 50%/cover;
             box-shadow: 0 34px 70px rgba(141, 83, 44, .2), 0 0 0 10px rgba(255, 255, 255, .28);
         }
         .creative-workshop-guide .cinematic-visual-copy .eyebrow { color: #ffdfbd; }
@@ -1720,7 +1725,7 @@ class WorldClassLandingPage:
         .live-emotion-voice-guide .cinematic-guide-visual {
             background:
                 linear-gradient(180deg, rgba(9, 18, 33, .06) 8%, rgba(9, 18, 33, .18) 42%, rgba(9, 18, 33, .91) 100%),
-                url('/app/static/studio_live_emotion_voice_background.png') center 48%/cover;
+                url('/app/static/studio_live_emotion_voice_background.webp') center 48%/cover;
             box-shadow: 0 34px 70px rgba(40, 68, 130, .22), 0 0 0 10px rgba(255, 255, 255, .28);
         }
         .live-emotion-voice-guide .cinematic-visual-copy .eyebrow { color: #b5fff0; }
@@ -1740,7 +1745,7 @@ class WorldClassLandingPage:
         .blueprint-engine-guide .cinematic-guide-visual {
             background:
                 linear-gradient(180deg, rgba(8, 20, 42, .06) 8%, rgba(8, 20, 42, .18) 42%, rgba(8, 20, 42, .92) 100%),
-                url('/app/static/studio_blueprint_guide_background.jpg') center 50%/cover;
+                url('/app/static/studio_blueprint_guide_background.webp') center 50%/cover;
             box-shadow: 0 34px 70px rgba(40, 68, 130, .22), 0 0 0 10px rgba(255, 255, 255, .28);
         }
         .blueprint-engine-guide .cinematic-visual-copy .eyebrow { color: #c7ddff; }
@@ -1760,7 +1765,7 @@ class WorldClassLandingPage:
         .ai-upscaler-guide .cinematic-guide-visual {
             background:
                 linear-gradient(180deg, rgba(30, 23, 14, .04) 8%, rgba(30, 23, 14, .18) 42%, rgba(30, 23, 14, .91) 100%),
-                url('https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?auto=format&fit=crop&w=1500&q=90') center 50%/cover;
+                url('/app/static/studio_draw_engine.webp') center 50%/cover;
             box-shadow: 0 34px 70px rgba(141, 83, 44, .2), 0 0 0 10px rgba(255, 255, 255, .28);
         }
         .ai-upscaler-guide .cinematic-visual-copy .eyebrow { color: #ffe0a3; }
@@ -1780,7 +1785,7 @@ class WorldClassLandingPage:
         .video-editor-guide .cinematic-guide-visual {
             min-height: 0;
             aspect-ratio: 16 / 9;
-            background: #11182a url('/app/static/studio_video_editor_guide.png') center/contain no-repeat;
+            background: #11182a url('/app/static/studio_video_editor_guide.webp') center/contain no-repeat;
             box-shadow: 0 34px 70px rgba(94, 52, 130, .22), 0 0 0 10px rgba(255, 255, 255, .28);
         }
         .video-editor-guide .cinematic-guide-visual::after { display: none; }
@@ -2407,8 +2412,22 @@ class WorldClassLandingPage:
         )
 
     def _render_showcase(self):
-        def photo(photo_id, width=700):
-            return f"https://images.unsplash.com/photo-{photo_id}?auto=format&fit=crop&w={width}&q=80"
+        photo_assets = {
+            "1506905925346-21bda4d32df4": "studio_cinematic_engine.webp",
+            "1524504388940-b1c1722653e1": "studio_face_generate.webp",
+            "1497366754035-f200968a6e72": "studio_creative_workshop_engine.webp",
+            "1518709268805-4e9042af9f23": "studio_blueprint_engine.webp",
+            "1460661419201-fd4cecdf8a8b": "studio_draw_engine.webp",
+            "1517502884422-41eaead166d4": "studio_editor_engine.webp",
+            "1494790108377-be9c29b29330": "studio_expressive_face_background.webp",
+            "1469474968028-56623f02e42e": "studio_hero.webp",
+            "1472214103451-9374bd1c798e": "studio_dynamic_ui_engine.webp",
+            "1480714378408-67cf0d13bc1b": "studio_ai_agent_engine.webp",
+            "1470071459604-3b5ec3a7fe05": "studio_cinematic_story_background.webp",
+        }
+
+        def photo(photo_id):
+            return f"/app/static/{photo_assets.get(photo_id, 'studio_hero.webp')}"
 
         def pos(x, y, w, h=None):
             height = f";--hh:calc(var(--p)*{h})" if h else ""
@@ -2429,7 +2448,7 @@ class WorldClassLandingPage:
         ]
         tile_html = "".join(
             f"<figure class='zx-a zx-tile{' zx-sm' if small else ''}' style='{pos(x, y, w, h)};--r:{rot};--ry:{ry}'>"
-            f"<img src='{photo(pid, 900 if w > 300 else 600)}' alt='{label or 'AI generated artwork'}'>"
+            f"<img src='{photo(pid)}' alt='{label or 'AI generated artwork'}' loading='eager' decoding='async'>"
             f"{f'<figcaption>{label}</figcaption>' if label else ''}</figure>"
             for label, pid, x, y, w, h, rot, ry, small in tiles
         )
