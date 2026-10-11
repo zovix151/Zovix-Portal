@@ -22299,3 +22299,1045 @@ connection to server at "aws-0-ap-south-1.pooler.supabase.com" (65.0.195.55), po
 2026-10-06 20:04:02,427 - Zovix - INFO - Database initialized successfully
 2026-10-06 20:04:06,127 - Zovix - INFO - Using Supabase PostgreSQL database
 2026-10-06 20:04:08,879 - Zovix - INFO - Database initialized successfully
+2026-10-06 20:22:23,038 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 20:22:24,740 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-06 20:22:24,749 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-06 20:22:24,750 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-06 20:22:26,301 - Zovix - INFO - Database initialized successfully
+2026-10-06 20:22:27,075 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 20:22:28,597 - Zovix - INFO - Database initialized successfully
+2026-10-06 20:22:55,010 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 20:22:56,505 - Zovix - INFO - Database initialized successfully
+2026-10-06 20:29:10,785 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 20:29:12,433 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-06 20:29:12,440 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-06 20:29:12,442 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-06 20:29:13,997 - Zovix - INFO - Database initialized successfully
+2026-10-06 20:29:25,212 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 20:29:26,813 - Zovix - INFO - Database initialized successfully
+2026-10-06 20:30:20,686 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 20:30:22,237 - Zovix - INFO - Database initialized successfully
+2026-10-06 20:32:30,791 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 20:32:33,468 - Zovix - INFO - Database initialized successfully
+2026-10-06 20:32:34,498 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 20:32:35,988 - Zovix - INFO - Database initialized successfully
+2026-10-06 20:33:03,075 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 20:36:16,809 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 20:36:19,185 - Zovix - INFO - Database initialized successfully
+2026-10-06 20:36:19,545 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 20:36:21,593 - Zovix - INFO - Database initialized successfully
+2026-10-06 20:37:58,898 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 20:39:46,955 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 20:39:49,159 - Zovix - INFO - Database initialized successfully
+2026-10-06 20:47:39,505 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 20:47:41,630 - Zovix - INFO - Database initialized successfully
+2026-10-06 20:48:11,272 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 20:55:45,128 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 20:55:46,547 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-06 20:55:46,556 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-06 20:55:46,557 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-06 20:55:48,973 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 20:55:49,986 - Zovix - INFO - Database initialized successfully
+2026-10-06 20:55:52,136 - Zovix - INFO - Database initialized successfully
+2026-10-06 20:56:20,282 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 20:56:21,778 - Zovix - INFO - Database initialized successfully
+2026-10-06 20:56:39,806 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 20:56:42,559 - Zovix - INFO - Database initialized successfully
+2026-10-06 20:56:48,553 - asyncio - ERROR - Exception in callback _ProactorBasePipeTransport._call_connection_lost(None)
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost(None)>
+Traceback (most recent call last):
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\asyncio\events.py", line 80, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\asyncio\proactor_events.py", line 162, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-10-06 20:56:48,597 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 20:56:51,157 - Zovix - INFO - Database initialized successfully
+2026-10-06 20:57:19,057 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 20:57:24,878 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 20:57:27,983 - Zovix - INFO - Database initialized successfully
+2026-10-06 21:00:58,849 - asyncio - ERROR - Exception in callback _ProactorBasePipeTransport._call_connection_lost(None)
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost(None)>
+Traceback (most recent call last):
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\asyncio\events.py", line 80, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\asyncio\proactor_events.py", line 162, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-10-06 21:03:42,795 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 21:03:44,254 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-06 21:03:44,261 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-06 21:03:44,262 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-06 21:03:46,779 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 21:03:46,933 - Zovix - INFO - Database initialized successfully
+2026-10-06 21:03:48,365 - Zovix - INFO - Database initialized successfully
+2026-10-06 21:04:17,037 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 21:04:18,712 - Zovix - INFO - Database initialized successfully
+2026-10-06 21:10:02,127 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 21:10:03,470 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-06 21:10:03,476 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-06 21:10:03,476 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-06 21:13:58,743 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 21:14:00,056 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-06 21:14:00,062 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-06 21:14:00,063 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-06 21:14:02,443 - Zovix - INFO - Database initialized successfully
+2026-10-06 21:14:03,226 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 21:14:05,701 - Zovix - INFO - Database initialized successfully
+2026-10-06 21:15:11,956 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 21:15:13,455 - Zovix - INFO - Database initialized successfully
+2026-10-06 21:15:17,197 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 21:15:17,661 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 21:15:19,074 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 21:15:19,891 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 21:15:25,151 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 21:15:26,143 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 21:15:46,770 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 21:15:51,789 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 21:16:11,594 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 21:16:14,801 - Zovix - INFO - Database initialized successfully
+2026-10-06 21:16:48,667 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 21:16:58,119 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 21:16:59,140 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 21:17:03,118 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 21:17:04,032 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 21:17:08,460 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 21:17:09,384 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 21:17:14,872 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 21:17:15,914 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 21:25:20,087 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 21:25:21,878 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-06 21:25:21,884 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-06 21:25:21,885 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-06 21:25:55,846 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 21:25:57,579 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-06 21:25:57,585 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-06 21:25:57,586 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-06 21:26:10,246 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 21:26:12,136 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-06 21:26:12,142 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-06 21:26:12,142 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-06 21:26:20,845 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 21:26:22,572 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-06 21:26:22,578 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-06 21:26:22,579 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-06 21:26:23,650 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 21:26:23,680 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 21:26:34,192 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 21:26:35,925 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-06 21:26:35,932 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-06 21:26:35,933 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-06 21:26:36,988 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 21:27:36,584 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 21:27:38,330 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-06 21:27:38,336 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-06 21:27:38,337 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-06 21:27:39,404 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 21:27:39,434 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 21:27:40,288 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 21:31:00,296 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 21:31:01,706 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-06 21:31:01,713 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-06 21:31:01,713 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-06 21:31:03,763 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 21:31:04,766 - Zovix - INFO - Database initialized successfully
+2026-10-06 21:31:06,343 - Zovix - INFO - Database initialized successfully
+2026-10-06 21:31:34,485 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-06 21:31:35,951 - Zovix - INFO - Database initialized successfully
+2026-10-09 16:13:24,438 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 16:13:28,393 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-09 16:13:28,408 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-09 16:13:28,410 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-09 16:13:34,677 - asyncio - ERROR - Exception in callback _ProactorBasePipeTransport._call_connection_lost(None)
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost(None)>
+Traceback (most recent call last):
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\asyncio\events.py", line 80, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\asyncio\proactor_events.py", line 162, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-10-09 16:13:35,752 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 16:14:04,946 - Zovix - ERROR - Authentication error: connection to server at "aws-0-ap-south-1.pooler.supabase.com" (65.0.195.55), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+connection to server at "aws-0-ap-south-1.pooler.supabase.com" (65.0.195.55), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+
+2026-10-09 16:14:24,267 - Zovix - ERROR - Authentication error: connection to server at "aws-0-ap-south-1.pooler.supabase.com" (65.0.195.55), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+connection to server at "aws-0-ap-south-1.pooler.supabase.com" (65.0.195.55), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+
+2026-10-09 16:15:46,574 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 16:15:48,178 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 16:15:49,657 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-10-09 16:15:49,709 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-09 16:15:49,711 - Zovix - INFO - Started 4 threaded workers
+2026-10-09 16:15:49,713 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-09 16:15:49,715 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-09 16:15:51,988 - Zovix - INFO - Database initialized successfully
+2026-10-09 16:15:53,019 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 16:15:54,834 - Zovix - INFO - Database initialized successfully
+2026-10-09 16:16:25,008 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 16:16:26,524 - Zovix - INFO - Database initialized successfully
+2026-10-09 16:26:24,843 - Zovix - ERROR - Authentication error: connection to server at "aws-0-ap-south-1.pooler.supabase.com" (3.111.105.85), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+connection to server at "aws-0-ap-south-1.pooler.supabase.com" (3.111.105.85), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+
+2026-10-09 16:26:58,737 - Zovix - ERROR - Authentication error: connection to server at "aws-0-ap-south-1.pooler.supabase.com" (3.111.105.85), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+connection to server at "aws-0-ap-south-1.pooler.supabase.com" (3.111.105.85), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+
+2026-10-09 16:27:46,559 - Zovix - ERROR - Authentication error: connection to server at "aws-0-ap-south-1.pooler.supabase.com" (65.0.195.55), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+connection to server at "aws-0-ap-south-1.pooler.supabase.com" (65.0.195.55), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+
+2026-10-09 16:27:49,567 - Zovix - ERROR - Registration error: connection to server at "aws-0-ap-south-1.pooler.supabase.com" (65.0.195.55), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+connection to server at "aws-0-ap-south-1.pooler.supabase.com" (65.0.195.55), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+2026-10-09 16:29:45,182 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 16:29:47,241 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-09 16:29:47,326 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-09 16:29:47,328 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-09 16:29:50,578 - Zovix - INFO - Database initialized successfully
+2026-10-09 16:29:51,074 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 16:29:54,148 - Zovix - INFO - Database initialized successfully
+2026-10-09 16:30:25,162 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 16:30:28,249 - Zovix - INFO - Database initialized successfully
+2026-10-09 16:36:33,842 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 16:36:35,553 - Zovix - INFO - Database initialized successfully
+2026-10-09 16:36:37,676 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 16:36:39,259 - Zovix - INFO - Database initialized successfully
+2026-10-09 16:37:16,693 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 16:39:54,217 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 16:39:56,147 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 16:39:57,192 - Zovix - INFO - Database initialized successfully
+2026-10-09 16:39:58,306 - Zovix - INFO - Database initialized successfully
+2026-10-09 16:40:27,720 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 16:46:52,967 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 16:46:55,653 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-09 16:46:55,662 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-09 16:46:55,664 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-09 16:46:58,457 - Zovix - INFO - Database initialized successfully
+2026-10-09 16:46:58,822 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 16:47:00,551 - Zovix - INFO - Database initialized successfully
+2026-10-09 16:47:30,586 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 16:47:32,206 - Zovix - INFO - Database initialized successfully
+2026-10-09 16:48:13,603 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 16:48:18,390 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 16:57:04,981 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 16:57:06,323 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-09 16:57:06,330 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-09 16:57:06,331 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-09 16:57:08,797 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 16:57:09,222 - Zovix - INFO - Database initialized successfully
+2026-10-09 16:57:10,478 - Zovix - INFO - Database initialized successfully
+2026-10-09 16:57:43,416 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 16:57:44,867 - Zovix - INFO - Database initialized successfully
+2026-10-09 17:10:49,411 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 17:10:50,952 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-09 17:10:50,960 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-09 17:10:50,961 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-09 17:10:53,113 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 17:10:54,068 - Zovix - INFO - Database initialized successfully
+2026-10-09 17:10:55,565 - Zovix - INFO - Database initialized successfully
+2026-10-09 17:11:23,986 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 17:11:25,782 - Zovix - INFO - Database initialized successfully
+2026-10-09 17:12:09,871 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 17:21:41,300 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 17:21:42,628 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-09 17:21:42,634 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-09 17:21:42,635 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-09 17:21:44,748 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 17:21:45,594 - Zovix - ERROR - Database init error: duplicate key value violates unique constraint "pg_type_typname_nsp_index"
+DETAIL:  Key (typname, typnamespace)=(creator_profiles, 2200) already exists.
+
+2026-10-09 17:21:45,887 - Zovix - INFO - Database initialized successfully
+2026-10-09 17:22:16,811 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 17:22:18,512 - Zovix - INFO - Database initialized successfully
+2026-10-09 17:30:16,452 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 17:30:17,771 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-09 17:30:17,777 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-09 17:30:17,778 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-09 17:30:19,681 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 17:30:20,873 - Zovix - INFO - Database initialized successfully
+2026-10-09 17:30:22,921 - Zovix - INFO - Database initialized successfully
+2026-10-09 17:30:50,175 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 17:30:51,817 - Zovix - INFO - Database initialized successfully
+2026-10-09 17:52:37,074 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 17:52:38,382 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-09 17:52:38,389 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-09 17:52:38,390 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-09 17:52:40,360 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 17:52:41,169 - Zovix - INFO - Database initialized successfully
+2026-10-09 17:52:41,803 - Zovix - INFO - Database initialized successfully
+2026-10-09 17:53:08,246 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 17:53:09,750 - Zovix - INFO - Database initialized successfully
+2026-10-09 17:58:24,075 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 17:58:27,684 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 17:58:31,173 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 17:58:32,075 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 17:58:44,040 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 17:58:44,639 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 17:58:52,438 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 17:58:54,176 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 17:59:05,592 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 17:59:08,378 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 18:06:39,828 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 18:06:41,276 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-09 18:06:41,283 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-09 18:06:41,284 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-09 18:06:43,091 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 18:06:44,569 - Zovix - INFO - Database initialized successfully
+2026-10-09 18:06:46,411 - Zovix - INFO - Database initialized successfully
+2026-10-09 18:07:16,208 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 18:07:17,924 - Zovix - INFO - Database initialized successfully
+2026-10-09 18:19:19,906 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 18:19:21,212 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-09 18:19:21,218 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-09 18:19:21,219 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-09 18:19:23,133 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 18:19:23,923 - Zovix - INFO - Database initialized successfully
+2026-10-09 18:19:24,706 - Zovix - INFO - Database initialized successfully
+2026-10-09 18:19:53,725 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 18:19:55,208 - Zovix - INFO - Database initialized successfully
+2026-10-09 18:20:21,696 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 18:20:27,282 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 18:20:30,043 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 18:20:30,607 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 18:27:53,546 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 18:27:54,932 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 18:27:57,304 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 18:27:57,356 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 18:28:00,161 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 18:28:00,631 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 18:28:03,884 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 18:28:04,736 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 18:28:07,460 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 18:28:08,287 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 18:28:13,449 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 18:28:14,488 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 18:28:32,616 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 18:28:39,483 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 18:28:41,975 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 18:28:56,722 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 18:28:58,454 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 18:30:30,959 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 18:30:32,688 - Zovix - INFO - Database initialized successfully
+2026-10-09 18:31:28,441 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 18:31:31,312 - Zovix - INFO - Database initialized successfully
+2026-10-09 18:31:57,753 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 18:34:02,801 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 18:34:04,109 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-09 18:34:04,116 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-09 18:34:04,117 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-09 18:34:06,214 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 18:34:07,016 - Zovix - INFO - Database initialized successfully
+2026-10-09 18:34:08,209 - Zovix - INFO - Database initialized successfully
+2026-10-09 18:34:47,355 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 18:34:49,176 - Zovix - INFO - Database initialized successfully
+2026-10-09 18:35:33,129 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 18:35:34,453 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-09 18:35:34,460 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-09 18:35:34,461 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-09 18:35:37,219 - Zovix - INFO - Database initialized successfully
+2026-10-09 18:35:51,298 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 18:35:54,698 - Zovix - INFO - Database initialized successfully
+2026-10-09 18:36:20,717 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 18:36:22,402 - Zovix - INFO - Database initialized successfully
+2026-10-09 18:43:11,900 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 18:43:14,515 - Zovix - INFO - Database initialized successfully
+2026-10-09 18:43:16,739 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 18:43:18,913 - Zovix - INFO - Database initialized successfully
+2026-10-09 18:44:14,180 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 18:46:06,262 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 18:46:11,418 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 18:46:20,185 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 18:46:21,162 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 18:51:18,969 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 18:51:20,403 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-09 18:51:20,410 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-09 18:51:20,411 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-09 18:51:22,188 - Zovix - INFO - Database initialized successfully
+2026-10-09 18:51:22,694 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 18:51:25,520 - Zovix - INFO - Database initialized successfully
+2026-10-09 18:51:39,423 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 18:51:40,976 - Zovix - INFO - Database initialized successfully
+2026-10-09 18:54:07,870 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 18:54:09,171 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-09 18:54:09,177 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-09 18:54:09,179 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-09 18:54:11,665 - Zovix - INFO - Database initialized successfully
+2026-10-09 18:54:12,993 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 18:54:15,447 - Zovix - INFO - Database initialized successfully
+2026-10-09 18:54:37,131 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 18:54:38,648 - Zovix - INFO - Database initialized successfully
+2026-10-09 19:01:40,522 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 19:01:41,856 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-09 19:01:41,862 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-09 19:01:41,863 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-09 19:01:44,066 - asyncio - ERROR - Exception in callback _ProactorBasePipeTransport._call_connection_lost(None)
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost(None)>
+Traceback (most recent call last):
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\asyncio\events.py", line 80, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\asyncio\proactor_events.py", line 162, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-10-09 19:01:44,895 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 19:01:45,492 - Zovix - INFO - Database initialized successfully
+2026-10-09 19:01:47,211 - Zovix - INFO - Database initialized successfully
+2026-10-09 19:02:11,355 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 19:02:13,012 - Zovix - INFO - Database initialized successfully
+2026-10-09 19:28:06,436 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 19:28:09,432 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-09 19:28:09,439 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-09 19:28:09,440 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-09 19:28:12,261 - Zovix - INFO - Database initialized successfully
+2026-10-09 19:28:21,312 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 19:28:23,510 - Zovix - INFO - Database initialized successfully
+2026-10-09 19:28:52,691 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 19:28:54,092 - Zovix - INFO - Database initialized successfully
+2026-10-09 19:29:54,894 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 19:29:59,993 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 19:30:03,536 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 19:30:04,276 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 19:38:17,741 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 19:38:20,543 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-09 19:38:20,548 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-09 19:38:20,549 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-09 19:38:23,725 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 19:38:23,758 - Zovix - INFO - Database initialized successfully
+2026-10-09 19:38:25,391 - Zovix - INFO - Database initialized successfully
+2026-10-09 19:38:48,060 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 19:38:49,515 - Zovix - INFO - Database initialized successfully
+2026-10-09 20:09:13,361 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 20:09:14,747 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-09 20:09:14,753 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-09 20:09:14,754 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-09 20:09:17,061 - Zovix - INFO - Database initialized successfully
+2026-10-09 20:09:20,393 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 20:09:23,072 - Zovix - INFO - Database initialized successfully
+2026-10-09 20:09:47,300 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 20:09:48,814 - Zovix - INFO - Database initialized successfully
+2026-10-09 20:18:31,431 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 20:18:32,751 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-09 20:18:32,757 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-09 20:18:32,758 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-09 20:18:35,767 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 20:18:36,348 - Zovix - INFO - Database initialized successfully
+2026-10-09 20:18:38,531 - Zovix - INFO - Database initialized successfully
+2026-10-09 20:18:56,510 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 20:18:58,164 - Zovix - INFO - Database initialized successfully
+2026-10-09 20:39:51,445 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 20:39:56,384 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 20:40:05,294 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 20:40:06,191 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 20:40:48,507 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 20:40:51,287 - Zovix - INFO - Database initialized successfully
+2026-10-09 20:41:16,556 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 20:41:18,344 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 20:41:18,507 - Zovix - INFO - Database initialized successfully
+2026-10-09 20:41:19,943 - Zovix - INFO - Database initialized successfully
+2026-10-09 20:41:20,941 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 20:41:22,587 - Zovix - INFO - Database initialized successfully
+2026-10-09 20:41:59,469 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 20:42:04,547 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 20:42:06,951 - Zovix - INFO - Database initialized successfully
+2026-10-09 20:47:38,669 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 20:47:42,359 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 20:47:46,114 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 20:47:46,596 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 21:12:08,135 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 21:12:09,573 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-09 21:12:09,580 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-09 21:12:09,582 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-09 21:12:11,803 - Zovix - INFO - Database initialized successfully
+2026-10-09 21:12:24,329 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 21:12:27,547 - Zovix - INFO - Database initialized successfully
+2026-10-09 21:12:52,858 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 21:12:54,304 - Zovix - INFO - Database initialized successfully
+2026-10-09 21:38:36,207 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 21:38:37,704 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-09 21:38:37,712 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-09 21:38:37,713 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-09 21:38:39,661 - Zovix - INFO - Database initialized successfully
+2026-10-09 21:38:40,741 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 21:38:44,117 - Zovix - INFO - Database initialized successfully
+2026-10-09 21:39:12,806 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 21:39:14,897 - Zovix - INFO - Database initialized successfully
+2026-10-09 21:56:21,930 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 21:56:23,690 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-09 21:56:23,728 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-09 21:56:23,731 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-09 21:56:26,393 - Zovix - INFO - Database initialized successfully
+2026-10-09 21:56:29,844 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 21:56:31,732 - Zovix - INFO - Database initialized successfully
+2026-10-09 21:56:47,479 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 21:56:49,104 - Zovix - INFO - Database initialized successfully
+2026-10-09 21:59:23,423 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 21:59:26,345 - Zovix - INFO - Database initialized successfully
+2026-10-09 21:59:26,553 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 21:59:29,009 - Zovix - INFO - Database initialized successfully
+2026-10-09 21:59:56,723 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 22:02:17,938 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 22:02:19,338 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-09 22:02:19,345 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-09 22:02:19,346 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-09 22:02:21,129 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 22:02:22,289 - Zovix - INFO - Database initialized successfully
+2026-10-09 22:02:22,903 - Zovix - INFO - Database initialized successfully
+2026-10-09 22:02:47,091 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 22:02:48,805 - Zovix - INFO - Database initialized successfully
+2026-10-09 22:05:24,408 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 22:05:26,382 - Zovix - INFO - Database initialized successfully
+2026-10-09 22:05:28,984 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 22:05:30,481 - Zovix - INFO - Database initialized successfully
+2026-10-09 22:05:59,436 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 22:08:01,932 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 22:08:03,667 - Zovix - INFO - Database initialized successfully
+2026-10-09 22:08:04,697 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 22:08:06,012 - Zovix - INFO - Database initialized successfully
+2026-10-09 22:08:34,024 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 22:13:10,023 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 22:13:11,598 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 22:13:12,794 - Zovix - INFO - Database initialized successfully
+2026-10-09 22:13:13,724 - Zovix - INFO - Database initialized successfully
+2026-10-09 22:13:33,110 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 22:19:45,200 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 22:19:46,836 - Zovix - INFO - Database initialized successfully
+2026-10-09 22:19:48,200 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 22:19:49,667 - Zovix - INFO - Database initialized successfully
+2026-10-09 22:20:23,893 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 22:20:42,196 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 22:20:45,642 - Zovix - INFO - Database initialized successfully
+2026-10-09 22:25:24,259 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 22:25:25,743 - Zovix - INFO - Database initialized successfully
+2026-10-09 22:26:24,293 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 22:26:28,504 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 22:26:33,173 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 22:26:33,715 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 22:26:36,449 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 22:26:37,516 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 22:26:57,360 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 22:26:59,268 - Zovix - INFO - Database initialized successfully
+2026-10-09 22:27:23,990 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 22:30:03,327 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 22:30:07,717 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 22:30:18,953 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 22:30:20,892 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 22:43:55,709 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 22:43:57,212 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-09 22:43:57,222 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-09 22:43:57,223 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-09 22:43:59,126 - Zovix - INFO - Database initialized successfully
+2026-10-09 22:44:02,686 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 22:44:04,104 - Zovix - INFO - Database initialized successfully
+2026-10-09 22:44:19,082 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 22:44:20,684 - Zovix - INFO - Database initialized successfully
+2026-10-09 22:46:26,814 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 22:46:34,661 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 22:46:36,780 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-09 22:46:39,632 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 16:58:27,965 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 16:58:31,628 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-10 16:58:31,643 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-10 16:58:31,645 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-10 16:58:38,795 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 16:59:16,881 - Zovix - ERROR - Authentication error: connection to server at "aws-0-ap-south-1.pooler.supabase.com" (65.0.195.55), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+connection to server at "aws-0-ap-south-1.pooler.supabase.com" (65.0.195.55), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+
+2026-10-10 17:00:29,498 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 17:00:31,052 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 17:00:32,647 - Zovix - WARNING - celery not installed. Using threaded queue.
+2026-10-10 17:00:32,695 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-10 17:00:32,699 - Zovix - INFO - Started 4 threaded workers
+2026-10-10 17:00:32,702 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-10 17:00:32,704 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-10 17:00:36,137 - Zovix - INFO - Database initialized successfully
+2026-10-10 17:00:40,010 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 17:00:43,203 - Zovix - INFO - Database initialized successfully
+2026-10-10 17:01:09,015 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 17:01:12,285 - Zovix - INFO - Database initialized successfully
+2026-10-10 17:02:12,390 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 17:02:19,887 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 17:02:29,359 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 17:02:32,789 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 17:17:57,955 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 17:17:59,943 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-10 17:17:59,953 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-10 17:17:59,954 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-10 17:18:03,517 - Zovix - INFO - Database initialized successfully
+2026-10-10 17:18:03,524 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 17:18:07,798 - Zovix - INFO - Database initialized successfully
+2026-10-10 17:18:40,252 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 17:18:43,334 - Zovix - INFO - Database initialized successfully
+2026-10-10 17:38:08,299 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 17:38:10,311 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-10 17:38:10,320 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-10 17:38:10,322 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-10 17:38:13,675 - Zovix - INFO - Database initialized successfully
+2026-10-10 17:38:17,846 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 17:38:21,253 - Zovix - INFO - Database initialized successfully
+2026-10-10 17:38:41,436 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 17:38:44,806 - Zovix - INFO - Database initialized successfully
+2026-10-10 17:39:16,466 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 17:39:19,931 - Zovix - INFO - Database initialized successfully
+2026-10-10 17:45:19,766 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 17:45:22,488 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-10 17:45:22,503 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-10 17:45:22,507 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-10 17:45:26,116 - Zovix - INFO - Database initialized successfully
+2026-10-10 17:45:28,072 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 17:45:31,543 - Zovix - INFO - Database initialized successfully
+2026-10-10 17:45:49,351 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 17:45:52,535 - Zovix - INFO - Database initialized successfully
+2026-10-10 17:48:31,471 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 17:48:38,663 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 17:51:40,395 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 17:51:58,629 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 17:52:00,669 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-10 17:52:00,679 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-10 17:52:00,681 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-10 17:52:04,150 - Zovix - INFO - Database initialized successfully
+2026-10-10 17:52:07,532 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 17:52:10,910 - Zovix - INFO - Database initialized successfully
+2026-10-10 17:52:35,795 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 17:52:39,068 - Zovix - INFO - Database initialized successfully
+2026-10-10 17:56:48,977 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 17:56:50,963 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-10 17:56:50,974 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-10 17:56:50,977 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-10 17:56:54,046 - Zovix - INFO - Database initialized successfully
+2026-10-10 17:56:55,711 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 17:56:58,797 - Zovix - INFO - Database initialized successfully
+2026-10-10 17:57:19,026 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 17:57:22,411 - Zovix - INFO - Database initialized successfully
+2026-10-10 18:01:37,557 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 18:01:39,957 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-10 18:01:39,970 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-10 18:01:39,972 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-10 18:01:42,920 - Zovix - INFO - Database initialized successfully
+2026-10-10 18:01:46,048 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 18:01:49,271 - Zovix - INFO - Database initialized successfully
+2026-10-10 18:02:08,907 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 18:02:12,309 - Zovix - INFO - Database initialized successfully
+2026-10-10 18:04:15,746 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 18:04:17,845 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-10 18:04:17,857 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-10 18:04:17,859 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-10 18:04:20,475 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 18:04:21,233 - Zovix - INFO - Database initialized successfully
+2026-10-10 18:04:23,896 - Zovix - INFO - Database initialized successfully
+2026-10-10 18:04:44,077 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 18:04:46,395 - Zovix - INFO - Database initialized successfully
+2026-10-10 18:18:15,092 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 18:18:19,831 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-10 18:18:19,840 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-10 18:18:19,841 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-10 18:18:22,969 - Zovix - INFO - Database initialized successfully
+2026-10-10 18:18:28,291 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 18:18:31,572 - Zovix - INFO - Database initialized successfully
+2026-10-10 18:18:50,798 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 18:18:54,202 - Zovix - INFO - Database initialized successfully
+2026-10-10 18:28:09,552 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 18:28:14,257 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-10 18:28:14,289 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-10 18:28:14,293 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-10 18:28:17,404 - Zovix - INFO - Database initialized successfully
+2026-10-10 18:28:18,343 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 18:28:21,401 - Zovix - INFO - Database initialized successfully
+2026-10-10 18:28:41,050 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 18:28:44,339 - Zovix - INFO - Database initialized successfully
+2026-10-10 18:32:45,622 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 18:32:47,040 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-10 18:32:47,048 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-10 18:32:47,049 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-10 18:32:49,054 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 18:32:49,587 - Zovix - INFO - Database initialized successfully
+2026-10-10 18:32:50,529 - Zovix - INFO - Database initialized successfully
+2026-10-10 18:33:13,386 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 18:33:14,945 - Zovix - INFO - Database initialized successfully
+2026-10-10 18:43:09,379 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 18:43:11,703 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-10 18:43:11,712 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-10 18:43:11,713 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-10 18:43:14,230 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 18:43:15,415 - Zovix - INFO - Database initialized successfully
+2026-10-10 18:43:17,721 - Zovix - INFO - Database initialized successfully
+2026-10-10 18:43:46,112 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 18:43:47,793 - Zovix - INFO - Database initialized successfully
+2026-10-10 18:43:57,405 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 18:44:00,062 - Zovix - INFO - Database initialized successfully
+2026-10-10 18:44:04,592 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 18:48:53,889 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 18:48:57,378 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 18:49:01,821 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 18:49:12,342 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 18:53:34,699 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 18:53:36,111 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-10 18:53:36,118 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-10 18:53:36,120 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-10 18:53:39,395 - Zovix - INFO - Database initialized successfully
+2026-10-10 18:53:40,477 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 18:53:42,801 - Zovix - INFO - Database initialized successfully
+2026-10-10 18:54:14,350 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 18:54:16,016 - Zovix - INFO - Database initialized successfully
+2026-10-10 18:56:55,881 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 18:56:59,480 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 18:57:04,553 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 18:57:05,068 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 19:52:08,970 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 19:52:10,694 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-10 19:52:10,703 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-10 19:52:10,704 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-10 19:52:12,467 - Zovix - INFO - Database initialized successfully
+2026-10-10 20:04:33,543 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 20:04:36,229 - Zovix - INFO - Database initialized successfully
+2026-10-10 20:04:57,665 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 20:04:59,388 - Zovix - INFO - Database initialized successfully
+2026-10-10 20:08:00,943 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 20:08:02,377 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-10 20:08:02,383 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-10 20:08:02,384 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-10 20:08:04,347 - Zovix - INFO - Database initialized successfully
+2026-10-10 20:08:11,978 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 20:08:15,443 - Zovix - INFO - Database initialized successfully
+2026-10-10 20:08:37,625 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 20:08:39,409 - Zovix - INFO - Database initialized successfully
+2026-10-10 20:09:19,781 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 20:09:24,286 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 20:09:30,449 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 20:09:33,953 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 20:50:15,259 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 20:50:18,808 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 20:53:18,434 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 20:53:18,514 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 20:53:24,360 - Zovix - INFO - [TOKEN TXN] deduct_credits_db OK: -2 from 'zovixenterprises@gmail.com' -> new_total_balance=293
+2026-10-10 20:53:38,430 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 20:56:20,180 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 20:56:24,820 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 20:59:16,981 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 20:59:18,509 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-10 20:59:18,517 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-10 20:59:18,518 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-10 20:59:21,001 - Zovix - INFO - Database initialized successfully
+2026-10-10 20:59:33,929 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 20:59:36,900 - Zovix - INFO - Database initialized successfully
+2026-10-10 20:59:50,415 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 20:59:51,967 - Zovix - INFO - Database initialized successfully
+2026-10-10 21:01:41,828 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 21:01:47,037 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 21:01:50,059 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 21:01:50,809 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 21:01:57,674 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 21:01:59,408 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 21:02:03,112 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 21:02:03,566 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 21:02:08,464 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 21:02:11,537 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 21:02:40,289 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 21:02:44,348 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 21:18:52,379 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 21:18:54,023 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-10 21:18:54,032 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-10 21:18:54,033 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-10 21:18:56,552 - Zovix - INFO - Database initialized successfully
+2026-10-10 21:26:35,368 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 21:26:37,096 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-10 21:26:37,104 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-10 21:26:37,105 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-10 21:26:40,489 - Zovix - INFO - Database initialized successfully
+2026-10-10 21:43:16,487 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-10 21:43:18,519 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-10 21:43:18,528 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-10 21:43:18,530 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-10 21:43:20,091 - Zovix - INFO - Database initialized successfully
+2026-10-11 12:23:58,701 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 12:24:00,391 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-11 12:24:00,402 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-11 12:24:00,403 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-11 12:28:46,027 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 12:29:49,773 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 12:31:37,770 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 12:31:39,257 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-11 12:31:39,264 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-11 12:31:39,265 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-11 12:31:41,506 - Zovix - INFO - Database initialized successfully
+2026-10-11 12:35:44,605 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 12:35:46,332 - Zovix - INFO - Database initialized successfully
+2026-10-11 12:36:05,459 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 12:36:07,280 - Zovix - INFO - Database initialized successfully
+2026-10-11 12:36:46,064 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 12:36:47,669 - Zovix - INFO - Database initialized successfully
+2026-10-11 12:39:35,869 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 12:39:37,273 - Zovix - INFO - Database initialized successfully
+2026-10-11 12:41:19,477 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 12:41:21,333 - Zovix - INFO - Database initialized successfully
+2026-10-11 12:42:17,447 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 12:42:19,036 - Zovix - INFO - Database initialized successfully
+2026-10-11 12:50:30,744 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 12:50:33,390 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-11 12:50:33,397 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-11 12:50:33,398 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-11 12:53:43,243 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 12:54:06,815 - Zovix - ERROR - Authentication error: connection to server at "aws-0-ap-south-1.pooler.supabase.com" (65.0.195.55), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+connection to server at "aws-0-ap-south-1.pooler.supabase.com" (65.0.195.55), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+
+2026-10-11 12:54:11,862 - Zovix - ERROR - Authentication error: connection to server at "aws-0-ap-south-1.pooler.supabase.com" (65.0.195.55), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+connection to server at "aws-0-ap-south-1.pooler.supabase.com" (65.0.195.55), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+
+2026-10-11 12:54:49,193 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 12:55:13,106 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 12:55:21,634 - asyncio - ERROR - Exception in callback _ProactorBasePipeTransport._call_connection_lost(None)
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost(None)>
+Traceback (most recent call last):
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\asyncio\events.py", line 80, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\asyncio\proactor_events.py", line 162, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-10-11 12:55:22,499 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 12:55:47,391 - Zovix - ERROR - Authentication error: connection to server at "aws-0-ap-south-1.pooler.supabase.com" (65.0.195.55), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+connection to server at "aws-0-ap-south-1.pooler.supabase.com" (65.0.195.55), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+
+2026-10-11 12:56:28,152 - Zovix - ERROR - Authentication error: connection to server at "aws-0-ap-south-1.pooler.supabase.com" (65.0.195.55), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+connection to server at "aws-0-ap-south-1.pooler.supabase.com" (65.0.195.55), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+
+2026-10-11 12:56:44,036 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 12:56:52,667 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 12:57:05,020 - Zovix - ERROR - Authentication error: connection to server at "aws-0-ap-south-1.pooler.supabase.com" (65.0.195.55), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+connection to server at "aws-0-ap-south-1.pooler.supabase.com" (65.0.195.55), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+
+2026-10-11 12:57:19,625 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 12:57:22,492 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 12:57:37,691 - Zovix - ERROR - Authentication error: connection to server at "aws-0-ap-south-1.pooler.supabase.com" (3.111.105.85), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+connection to server at "aws-0-ap-south-1.pooler.supabase.com" (3.111.105.85), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+
+2026-10-11 12:58:09,998 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 12:58:34,838 - Zovix - ERROR - Authentication error: connection to server at "aws-0-ap-south-1.pooler.supabase.com" (3.111.105.85), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+connection to server at "aws-0-ap-south-1.pooler.supabase.com" (3.111.105.85), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+
+2026-10-11 12:58:37,911 - Zovix - ERROR - Registration error: connection to server at "aws-0-ap-south-1.pooler.supabase.com" (65.0.195.55), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+connection to server at "aws-0-ap-south-1.pooler.supabase.com" (65.0.195.55), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+
+2026-10-11 12:58:42,592 - Zovix - ERROR - Authentication error: connection to server at "aws-0-ap-south-1.pooler.supabase.com" (65.0.195.55), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+connection to server at "aws-0-ap-south-1.pooler.supabase.com" (65.0.195.55), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+
+2026-10-11 13:01:18,006 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 13:01:24,949 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 13:01:52,881 - Zovix - ERROR - Authentication error: connection to server at "aws-0-ap-south-1.pooler.supabase.com" (65.0.195.55), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+connection to server at "aws-0-ap-south-1.pooler.supabase.com" (65.0.195.55), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+
+2026-10-11 13:05:05,286 - Zovix - ERROR - Authentication error: connection to server at "aws-0-ap-south-1.pooler.supabase.com" (65.0.195.55), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+connection to server at "aws-0-ap-south-1.pooler.supabase.com" (65.0.195.55), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+
+2026-10-11 13:05:55,836 - Zovix - ERROR - Authentication error: connection to server at "aws-0-ap-south-1.pooler.supabase.com" (3.111.105.85), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+connection to server at "aws-0-ap-south-1.pooler.supabase.com" (3.111.105.85), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+
+2026-10-11 13:06:02,176 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 13:06:21,542 - Zovix - ERROR - Authentication error: connection to server at "aws-0-ap-south-1.pooler.supabase.com" (3.111.105.85), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+connection to server at "aws-0-ap-south-1.pooler.supabase.com" (3.111.105.85), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+
+2026-10-11 13:10:38,504 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 13:10:45,999 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 13:11:10,249 - Zovix - ERROR - Authentication error: connection to server at "aws-0-ap-south-1.pooler.supabase.com" (3.111.105.85), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+connection to server at "aws-0-ap-south-1.pooler.supabase.com" (3.111.105.85), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+
+2026-10-11 13:15:05,991 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 13:15:08,800 - asyncio - ERROR - Exception in callback _ProactorBasePipeTransport._call_connection_lost(None)
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost(None)>
+Traceback (most recent call last):
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\asyncio\events.py", line 80, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\asyncio\proactor_events.py", line 162, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-10-11 13:15:08,858 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 13:15:34,985 - Zovix - ERROR - Authentication error: connection to server at "aws-0-ap-south-1.pooler.supabase.com" (3.111.105.85), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+connection to server at "aws-0-ap-south-1.pooler.supabase.com" (3.111.105.85), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+
+2026-10-11 13:16:23,322 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 13:16:54,408 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 13:17:19,956 - Zovix - ERROR - Authentication error: connection to server at "aws-0-ap-south-1.pooler.supabase.com" (65.0.195.55), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+connection to server at "aws-0-ap-south-1.pooler.supabase.com" (65.0.195.55), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+
+2026-10-11 13:18:32,668 - Zovix - ERROR - Authentication error: connection to server at "aws-0-ap-south-1.pooler.supabase.com" (3.111.105.85), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+connection to server at "aws-0-ap-south-1.pooler.supabase.com" (3.111.105.85), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+
+2026-10-11 13:19:12,989 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 13:19:18,460 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 13:19:47,121 - Zovix - ERROR - Authentication error: connection to server at "aws-0-ap-south-1.pooler.supabase.com" (3.111.105.85), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+connection to server at "aws-0-ap-south-1.pooler.supabase.com" (3.111.105.85), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+
+2026-10-11 13:23:05,311 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 13:23:08,260 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 13:23:34,472 - Zovix - ERROR - Authentication error: connection to server at "aws-0-ap-south-1.pooler.supabase.com" (3.111.105.85), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+connection to server at "aws-0-ap-south-1.pooler.supabase.com" (3.111.105.85), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+
+2026-10-11 13:24:00,076 - Zovix - ERROR - Registration error: connection to server at "aws-0-ap-south-1.pooler.supabase.com" (3.111.105.85), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+connection to server at "aws-0-ap-south-1.pooler.supabase.com" (3.111.105.85), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+
+2026-10-11 13:24:04,480 - Zovix - ERROR - Authentication error: connection to server at "aws-0-ap-south-1.pooler.supabase.com" (3.111.105.85), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+connection to server at "aws-0-ap-south-1.pooler.supabase.com" (3.111.105.85), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+
+2026-10-11 13:24:41,009 - Zovix - ERROR - Authentication error: connection to server at "aws-0-ap-south-1.pooler.supabase.com" (3.111.105.85), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+connection to server at "aws-0-ap-south-1.pooler.supabase.com" (3.111.105.85), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+
+2026-10-11 13:24:46,494 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 13:24:50,326 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 13:25:16,367 - Zovix - ERROR - Authentication error: connection to server at "aws-0-ap-south-1.pooler.supabase.com" (3.111.105.85), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+connection to server at "aws-0-ap-south-1.pooler.supabase.com" (3.111.105.85), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+
+2026-10-11 13:51:26,597 - Zovix - ERROR - Authentication error: connection to server at "aws-0-ap-south-1.pooler.supabase.com" (65.0.195.55), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+connection to server at "aws-0-ap-south-1.pooler.supabase.com" (65.0.195.55), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+
+2026-10-11 13:51:34,211 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 13:51:42,054 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 13:53:15,797 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 13:53:24,531 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 13:53:27,539 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 13:53:54,779 - Zovix - ERROR - Authentication error: connection to server at "aws-0-ap-south-1.pooler.supabase.com" (65.0.195.55), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+connection to server at "aws-0-ap-south-1.pooler.supabase.com" (65.0.195.55), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+
+2026-10-11 14:01:37,315 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 14:01:40,247 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 14:02:03,666 - Zovix - ERROR - Authentication error: connection to server at "aws-0-ap-south-1.pooler.supabase.com" (3.111.105.85), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+connection to server at "aws-0-ap-south-1.pooler.supabase.com" (3.111.105.85), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+
+2026-10-11 14:06:55,426 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 14:06:58,375 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 14:07:22,964 - Zovix - ERROR - Authentication error: connection to server at "aws-0-ap-south-1.pooler.supabase.com" (65.0.195.55), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+connection to server at "aws-0-ap-south-1.pooler.supabase.com" (65.0.195.55), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+
+2026-10-11 14:12:51,067 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 14:13:19,218 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 14:14:17,335 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 14:14:23,080 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 14:14:56,368 - Zovix - ERROR - Authentication error: connection to server at "aws-0-ap-south-1.pooler.supabase.com" (3.111.105.85), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+connection to server at "aws-0-ap-south-1.pooler.supabase.com" (3.111.105.85), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+
+2026-10-11 14:23:35,200 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 14:23:41,287 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 14:24:06,790 - Zovix - ERROR - Authentication error: connection to server at "aws-0-ap-south-1.pooler.supabase.com" (65.0.195.55), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+connection to server at "aws-0-ap-south-1.pooler.supabase.com" (65.0.195.55), port 6543 failed: FATAL:  (ENOTFOUND) tenant/user postgres.xxlseyxuuxgtjgharot not found
+
+2026-10-11 17:45:47,394 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 17:46:56,111 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 17:47:02,178 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 17:47:23,859 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 17:48:02,916 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 17:52:25,422 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 17:52:34,144 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 17:53:28,580 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:00:10,856 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:00:17,476 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:00:35,082 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:04:09,295 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:04:11,721 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-11 18:04:11,731 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-11 18:04:11,732 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-11 18:04:13,470 - Zovix - INFO - Database initialized successfully
+2026-10-11 18:04:16,924 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:04:18,642 - Zovix - INFO - Database initialized successfully
+2026-10-11 18:04:49,028 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:04:50,737 - Zovix - INFO - Database initialized successfully
+2026-10-11 18:10:36,885 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:10:38,210 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-11 18:10:38,217 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-11 18:10:38,217 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-11 18:10:39,952 - Zovix - INFO - Database initialized successfully
+2026-10-11 18:10:45,096 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:10:46,557 - Zovix - INFO - Database initialized successfully
+2026-10-11 18:11:09,751 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:11:11,495 - Zovix - INFO - Database initialized successfully
+2026-10-11 18:14:44,236 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:14:49,228 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:15:33,356 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:15:36,840 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:17:21,081 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:17:22,362 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-11 18:17:22,368 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-11 18:17:22,369 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-11 18:17:24,019 - Zovix - INFO - Database initialized successfully
+2026-10-11 18:17:26,152 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:17:27,756 - Zovix - INFO - Database initialized successfully
+2026-10-11 18:17:51,193 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:17:52,721 - Zovix - INFO - Database initialized successfully
+2026-10-11 18:21:08,236 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:21:11,953 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:21:57,786 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:22:01,720 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:22:46,398 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:22:48,063 - Zovix - INFO - Database initialized successfully
+2026-10-11 18:23:10,913 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:23:14,768 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:23:32,589 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:23:35,631 - Zovix - INFO - Database initialized successfully
+2026-10-11 18:24:24,258 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:26:05,994 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:26:09,561 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:26:12,689 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:26:13,172 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:26:22,352 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:26:23,361 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:26:32,577 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:26:34,466 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:26:48,704 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:26:51,176 - Zovix - INFO - Database initialized successfully
+2026-10-11 18:27:22,659 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:38:12,145 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:38:13,454 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-11 18:38:13,463 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-11 18:38:13,464 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-11 18:38:15,208 - Zovix - INFO - Database initialized successfully
+2026-10-11 18:38:16,238 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:38:18,075 - Zovix - INFO - Database initialized successfully
+2026-10-11 18:38:36,284 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:38:37,825 - Zovix - INFO - Database initialized successfully
+2026-10-11 18:38:42,954 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:38:43,850 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:39:02,199 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:39:03,945 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:45:50,050 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:45:55,296 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:46:07,945 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:46:11,936 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:47:34,582 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:48:00,469 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:49:11,144 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:49:14,828 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:49:18,241 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:49:19,208 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:49:57,859 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:50:01,497 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:50:07,093 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:50:07,584 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:50:14,707 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:50:15,590 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:50:19,073 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:50:19,605 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:50:41,609 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:50:45,240 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:50:53,836 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:50:55,615 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:51:00,164 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:51:01,163 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:51:04,513 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:51:05,034 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:54:08,995 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:54:11,100 - Zovix - INFO - Database initialized successfully
+2026-10-11 18:54:11,753 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:54:13,567 - Zovix - INFO - Database initialized successfully
+2026-10-11 18:54:38,577 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:54:51,268 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:54:52,337 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:55:00,472 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:55:01,718 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:55:04,866 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:55:05,935 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:55:09,552 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:55:12,622 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:57:00,135 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:57:03,800 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:57:11,109 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:57:11,649 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:57:17,415 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:57:18,337 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:57:25,208 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:57:26,532 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:57:29,882 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:57:30,807 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:57:33,990 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-11 18:57:36,432 - Zovix - INFO - Using Supabase PostgreSQL database

@@ -878,6 +878,13 @@ cache_manager = _get_cache_manager()
 if "current_page" not in st.session_state:
     st.session_state["current_page"] = "landing"
 requested_page = st.query_params.get("page")
+if requested_page == "logout":
+    st.session_state["is_logged_in"] = False
+    st.session_state["2fa_verified"] = False
+    st.session_state.pop("auth_redirect_mode", None)
+    st.session_state["current_page"] = "landing"
+    st.query_params.clear()
+    requested_page = None
 if requested_page == "login":
     if st.session_state.get("is_logged_in", False):
         st.session_state["current_page"] = "studio"
@@ -887,7 +894,7 @@ if requested_page == "login":
         st.session_state["current_page"] = "landing"
         st.session_state["auth_redirect_mode"] = "Cinematic Engine"
         st.query_params["page"] = "landing"
-elif requested_page in {"studio", "studio_mode", "payments", "profile", "scheduler", "subusers", "factory", "portfolio"} and not st.session_state.get("is_logged_in", False):
+elif requested_page in {"studio", "studio_mode", "payments", "profile", "scheduler", "subusers", "factory", "portfolio", "tutorials", "documentation", "community", "support"} and not st.session_state.get("is_logged_in", False):
     st.session_state["current_page"] = "landing"
     st.session_state.pop("auth_redirect_mode", None)
     st.query_params["page"] = "landing"
@@ -895,12 +902,29 @@ elif requested_page in {"landing", "studio"}:
     st.session_state["current_page"] = requested_page
 elif requested_page == "studio_mode":
     st.session_state["current_page"] = "studio_mode"
-elif requested_page in {"payments", "profile", "scheduler", "subusers", "factory", "portfolio"}:
+elif requested_page in {"payments", "profile", "scheduler", "subusers", "factory", "portfolio", "tutorials", "documentation", "community", "support"}:
     st.session_state["current_page"] = requested_page
 if "is_logged_in" not in st.session_state:
     st.session_state["is_logged_in"] = False
 if "studio_active_mode" not in st.session_state:
     st.session_state["studio_active_mode"] = "Cinematic Engine"
+requested_mode = st.query_params.get("mode")
+valid_studio_modes = {
+    "Cinematic Engine",
+    "Face Video Mode",
+    "Expressive Face Video Mode",
+    "Creative Workshop Mode",
+    "Blueprints Mode",
+    "Upscaler Mode",
+    "Draw Mode",
+    "Video Editor Mode",
+    "AI Agent Mode",
+    "AI Sales Mode",
+    "Dynamic UI Mode",
+    "Live Emotion Mode",
+}
+if requested_page == "studio_mode" and st.session_state.get("is_logged_in", False) and requested_mode in valid_studio_modes:
+    st.session_state["studio_active_mode"] = requested_mode
 if "active_node" not in st.session_state:
     st.session_state["active_node"] = "setup"
 if "sidebar_tab" not in st.session_state:
@@ -1507,6 +1531,15 @@ def init_database():
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
+
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS creator_profiles (
+                username VARCHAR(255) PRIMARY KEY,
+                display_name VARCHAR(120) NOT NULL,
+                avatar_data TEXT,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
         
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS history (
@@ -1783,6 +1816,51 @@ def preload_logged_in_user_data(username):
     st.session_state["credit_balance"] = st.session_state["user_credits"]
     st.session_state["user_profile_loaded_for"] = username
     st.session_state["user_profile_cache_ts"] = time.time()
+
+
+def load_creator_profile(username):
+    """Load a user's optional public-facing creator name and avatar."""
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT display_name, avatar_data FROM creator_profiles WHERE username = ?",
+            (normalize_account_username(username),),
+        )
+        row = cursor.fetchone()
+        if not row:
+            return {"display_name": "", "avatar_data": ""}
+        return {
+            "display_name": str(row[0] or "").strip(),
+            "avatar_data": str(row[1] or ""),
+        }
+    finally:
+        conn.close()
+
+
+def save_creator_profile(username, display_name, avatar_data):
+    """Create or update a user's creator profile."""
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT username FROM creator_profiles WHERE username = ?",
+            (normalize_account_username(username),),
+        )
+        if cursor.fetchone():
+            cursor.execute(
+                "UPDATE creator_profiles SET display_name = ?, avatar_data = ?, "
+                "updated_at = CURRENT_TIMESTAMP WHERE username = ?",
+                (display_name, avatar_data, normalize_account_username(username)),
+            )
+        else:
+            cursor.execute(
+                "INSERT INTO creator_profiles (username, display_name, avatar_data) VALUES (?, ?, ?)",
+                (normalize_account_username(username), display_name, avatar_data),
+            )
+        conn.commit()
+    finally:
+        conn.close()
 
 
 @st.cache_data(show_spinner=False, ttl=30)
@@ -17109,6 +17187,13 @@ elif st.session_state["current_page"] == "profile":
         st.error("We couldn't find the signed-in account. Please sign in again.")
         st.stop()
 
+    try:
+        creator_profile = load_creator_profile(profile_username)
+    except sqlite3.Error:
+        logger.exception("Unable to load creator profile for %s", profile_username)
+        st.error("Your creator profile could not be loaded. Please refresh and try again.")
+        st.stop()
+
     _, joined_at, last_login_at, account_language, stored_2fa_secret = profile_row
     profile_credits = float(get_user_credits_db(profile_username) or 0)
     profile_xp = int(st.session_state.get("xp_points", 0) or 0)
@@ -17121,6 +17206,14 @@ elif st.session_state["current_page"] == "profile":
     profile_support_tier = get_support_tier(profile_username)
     profile_initial = next((char.upper() for char in profile_username if char.isalnum()), "Z")
     profile_username_html = html_lib.escape(str(profile_username))
+    profile_display_name = str(creator_profile["display_name"] or "").strip()
+    profile_display_name_html = html_lib.escape(profile_display_name)
+    profile_avatar_data = str(creator_profile["avatar_data"] or "")
+    profile_hero_avatar = (
+        f"<img src='data:image/jpeg;base64,{html_lib.escape(profile_avatar_data, quote=True)}' "
+        "alt='Profile photo' style='width:100%;height:100%;object-fit:cover;border-radius:50%'>"
+        if profile_avatar_data else profile_initial
+    )
     profile_subscription_html = html_lib.escape(
         str(profile_subscription if has_profile_subscription else "Free plan")
     )
@@ -17177,6 +17270,7 @@ elif st.session_state["current_page"] == "profile":
             flex: 0 0 76px;
             width: 76px;
             height: 76px;
+            overflow: hidden;
             place-items: center;
             color: #143c40;
             background: linear-gradient(145deg, #ffffff, #d9f4ef);
@@ -17358,16 +17452,78 @@ elif st.session_state["current_page"] == "profile":
     st.markdown(
         f"""
         <div class="profile-page-hero">
-            <div class="profile-avatar">{profile_initial}</div>
+            <div class="profile-avatar">{profile_hero_avatar}</div>
             <div class="profile-page-hero-copy">
                 <div class="eyebrow">ZOVIX ACCOUNT · MEMBER PROFILE</div>
-                <h1>{profile_username_html}</h1>
+                <h1>{profile_display_name_html or profile_username_html}</h1>
                 <p>Your account details, creator activity, plan and security settings.</p>
             </div>
         </div>
         """,
         unsafe_allow_html=True,
     )
+
+    with st.container(border=True):
+        st.markdown('<div class="profile-section-title">Your creator profile</div>', unsafe_allow_html=True)
+        st.caption("Add a display name and photo. They will appear beside your account menu in Studio.")
+        if profile_avatar_data:
+            st.image(
+                io.BytesIO(base64.b64decode(profile_avatar_data)),
+                width=76,
+                caption="Current profile photo",
+            )
+        with st.form("creator_profile_form"):
+            creator_name_input = st.text_input(
+                "Display name",
+                value=profile_display_name,
+                max_chars=120,
+                placeholder="Your name",
+            )
+            creator_avatar_upload = st.file_uploader(
+                "Profile photo",
+                type=["png", "jpg", "jpeg", "webp"],
+                help="Upload a square or portrait photo (up to 5 MB).",
+            )
+            profile_submitted = st.form_submit_button("Save profile", type="primary")
+
+        if profile_submitted:
+            clean_display_name = creator_name_input.strip()
+            if not clean_display_name:
+                st.error("Enter a display name to create your profile.")
+            else:
+                avatar_to_save = profile_avatar_data
+                avatar_error = None
+                if creator_avatar_upload is not None:
+                    uploaded_bytes = creator_avatar_upload.getvalue()
+                    if len(uploaded_bytes) > 5 * 1024 * 1024:
+                        avatar_error = "Profile photo must be 5 MB or smaller."
+                    else:
+                        try:
+                            with Image.open(io.BytesIO(uploaded_bytes)) as source_image:
+                                if source_image.width > 5000 or source_image.height > 5000:
+                                    raise ValueError("Profile photo dimensions must be 5000 × 5000 pixels or smaller.")
+                                normalized_avatar = ImageOps.fit(
+                                    source_image.convert("RGB"),
+                                    (256, 256),
+                                    method=Image.Resampling.LANCZOS,
+                                )
+                                avatar_buffer = io.BytesIO()
+                                normalized_avatar.save(avatar_buffer, format="JPEG", quality=82, optimize=True)
+                                avatar_to_save = base64.b64encode(avatar_buffer.getvalue()).decode("ascii")
+                        except (OSError, ValueError) as error:
+                            avatar_error = str(error) or "Choose a valid image file."
+
+                if avatar_error:
+                    st.error(avatar_error)
+                else:
+                    try:
+                        save_creator_profile(profile_username, clean_display_name, avatar_to_save)
+                    except sqlite3.Error:
+                        logger.exception("Unable to save creator profile for %s", profile_username)
+                        st.error("Your creator profile could not be saved. Please try again.")
+                    else:
+                        st.success("Creator profile saved.")
+                        st.rerun()
 
     stat_columns = st.columns(4, gap="small")
     profile_stats = [
@@ -17423,9 +17579,40 @@ elif st.session_state["current_page"] == "profile":
                     <span class="profile-detail-label">Support tier</span>
                     <span class="profile-detail-value">{profile_support_html}</span>
                 </div>
+                <div style="padding: 14px 16px; margin-top: 10px; background: #f3faf9; border: 1px solid #dcebe8; border-radius: 12px;">
+                    <span class="profile-detail-label">Creator progress</span>
+                    <div style="display:flex;align-items:center;gap:10px;margin-top:8px;">
+                        <span style="display:grid;place-items:center;flex:0 0 38px;width:38px;height:38px;overflow:hidden;color:#fff;background:linear-gradient(135deg,#16b8b1,#5868e9);border-radius:50%;font-size:14px;font-weight:750;">
+                            {profile_hero_avatar}
+                        </span>
+                        <span style="min-width:0;">
+                            <strong style="display:block;overflow-wrap:anywhere;color:#203638;font-size:12px;">
+                                {profile_display_name_html or profile_username_html}
+                            </strong>
+                            <small style="display:block;margin-top:3px;color:#536467;font-size:10px;">
+                                {profile_xp:,} creator XP · {profile_videos:,} creations
+                            </small>
+                        </span>
+                    </div>
+                </div>
                 """,
                 unsafe_allow_html=True,
             )
+            st.markdown(
+                """
+                <div style="padding:14px 16px;margin-top:10px;color:#fff;border-radius:12px;background:linear-gradient(120deg,#24245b,#5740a8 65%,#257eaa);">
+                    <strong style="display:block;font-size:13px;">Create More. Get More.</strong>
+                    <span style="display:block;margin-top:5px;color:#e4e7f6;font-size:11px;line-height:1.45;">
+                        Explore plans for more credits and creative possibilities.
+                    </span>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+            if st.button("Explore plans →", key="profile_explore_plans", type="primary", width="stretch"):
+                st.session_state["current_page"] = "payments"
+                st.query_params["page"] = "payments"
+                st.rerun()
 
     security_column, achievements_column = st.columns([1, 1], gap="large")
     with security_column:
@@ -17466,7 +17653,7 @@ elif st.session_state["current_page"] == "profile":
         show_2fa_modal()
     st.stop()
 
-elif st.session_state["current_page"] in {"scheduler", "subusers", "factory", "portfolio"}:
+elif st.session_state["current_page"] in {"scheduler", "subusers", "factory", "portfolio", "tutorials", "documentation", "community", "support"}:
     if not st.session_state.get("is_logged_in", False):
         st.session_state["current_page"] = "landing"
         st.query_params["page"] = "landing"
@@ -17481,6 +17668,10 @@ elif st.session_state["current_page"] in {"scheduler", "subusers", "factory", "p
         "subusers": ("👥", "Sub-user access", "Manage the accounts linked to your ZOVIX workspace."),
         "factory": ("🚀", "ZOVIX Mass Factory", "Choose a creative engine and start building your next piece of content."),
         "portfolio": ("📂", "My portfolio", "A polished home for your generated videos, images and creative outputs."),
+        "tutorials": ("🎓", "Studio tutorials", "Learn how to turn an idea into a finished creation with step-by-step guides for every engine."),
+        "documentation": ("📘", "Studio documentation", "Explore each engine's purpose, requirements, typical outputs, and useful production notes."),
+        "community": ("♧", "Community inspiration", "Explore visual references, creative briefs, and ideas to start your next project."),
+        "support": ("🛟", "ZOVIX support", "Find troubleshooting steps and the right information to send when you need help."),
     }
     standalone_icon, standalone_title, standalone_description = standalone_details[standalone_page]
     st.markdown(get_premium_theme_css(), unsafe_allow_html=True)
@@ -17508,9 +17699,9 @@ elif st.session_state["current_page"] in {"scheduler", "subusers", "factory", "p
             }
             section[data-testid="stMain"] .block-container {
                 width: 100% !important;
-                max-width: none !important;
-                margin: 0 !important;
-                padding: 1.25rem clamp(16px, 2vw, 32px) 2.5rem !important;
+                max-width: 1440px !important;
+                margin: 0 auto !important;
+                padding: 1.25rem clamp(20px, 2.5vw, 36px) 2.5rem !important;
             }
             .standalone-hero {
                 min-height: 142px;
@@ -17680,6 +17871,563 @@ elif st.session_state["current_page"] in {"scheduler", "subusers", "factory", "p
         render_sub_user_access_section()
     elif standalone_page == "portfolio":
         render_user_portfolio_section()
+    elif standalone_page == "tutorials":
+        st.markdown(
+            """
+            <style>
+                .tutorial-intro {
+                    margin: 0 0 18px;
+                    color: var(--standalone-muted);
+                    font: 500 14px/1.6 'Inter', sans-serif;
+                }
+                .tutorial-card {
+                    height: 100%;
+                    padding: 18px;
+                    color: var(--standalone-text);
+                    background: #fff;
+                    border: 1px solid var(--standalone-line);
+                    border-radius: 16px;
+                    box-shadow: 0 8px 24px rgba(26,55,56,.055);
+                }
+                .tutorial-card h3 {
+                    margin: 0 0 6px;
+                    color: #173f43 !important;
+                    font: 750 16px/1.35 'Inter',sans-serif !important;
+                }
+                .tutorial-card p {
+                    margin: 0 0 10px;
+                    color: var(--standalone-muted) !important;
+                    font: 500 12px/1.5 'Inter',sans-serif !important;
+                }
+                .tutorial-card ol {
+                    margin: 0;
+                    padding-left: 20px;
+                    color: #354345;
+                    font: 500 12px/1.6 'Inter',sans-serif;
+                }
+                .tutorial-card li { padding-left: 3px; margin: 3px 0; }
+                .tutorial-tip {
+                    margin-top: 12px;
+                    padding: 10px 12px;
+                    color: #285558;
+                    background: #eef9f7;
+                    border: 1px solid #d3eeea;
+                    border-radius: 10px;
+                    font: 500 11px/1.5 'Inter',sans-serif;
+                }
+                .tutorial-tag {
+                    display: inline-flex;
+                    margin-bottom: 9px;
+                    padding: 5px 9px;
+                    color: #3857c7;
+                    background: #f0f2ff;
+                    border-radius: 999px;
+                    font: 700 10px/1 'Inter',sans-serif;
+                }
+            </style>
+            <p class="tutorial-intro">
+                Pick a guide to see the basic workflow, what to prepare, and how to get a stronger result.
+                You can open the matching engine directly from each tutorial.
+            </p>
+            """,
+            unsafe_allow_html=True,
+        )
+        tutorial_query = st.text_input(
+            "Search tutorials",
+            placeholder="Search by engine or goal, e.g. video, voice, blueprint...",
+            key="studio_tutorial_search",
+        ).strip().casefold()
+        tutorial_guides = [
+            ("🎬", "Cinematic Engine", "Cinematic Engine", "Create a scene or short story from a written idea.", [
+                "Choose a scene, story, or visual concept and describe the subject.",
+                "Add setting, lighting, camera movement, mood, and shot details.",
+                "Choose an aspect ratio and any available generation options.",
+                "Generate a preview, review it, then refine the prompt if needed.",
+            ], "Describe visible details and camera movement separately for more control."),
+            ("👤", "Face Studio", "Face Video Mode", "Create a talking or expressive character video.", [
+                "Prepare a clear, front-facing portrait with the face unobstructed.",
+                "Upload the portrait and provide the audio or spoken text requested by the tool.",
+                "Choose available expression, motion, or quality options.",
+                "Generate and preview the result; try a shorter clip if motion looks uneven.",
+            ], "Even lighting and a clearly visible face usually produce better results."),
+            ("🎨", "Creative Workshop", "Creative Workshop Mode", "Turn an image prompt into a visual concept.", [
+                "Describe the subject, style, composition, and intended use.",
+                "Add color, lighting, background, and aspect-ratio preferences.",
+                "Select the available model or generation options.",
+                "Generate, compare the result with your brief, and adjust one detail at a time.",
+            ], "Mention what should be in the image and what should stay out of it."),
+            ("⬡", "Blueprints", "Blueprints Mode", "Plan a structured blueprint or design concept.", [
+                "Name the object, space, or system you want to plan.",
+                "Specify dimensions, functional needs, materials, and style.",
+                "Choose the blueprint category and layout options.",
+                "Review the generated plan and refine any missing requirements.",
+            ], "Include practical constraints early so the plan reflects your real use case."),
+            ("✏️", "Draw", "Draw Mode", "Create an illustration from a short creative brief.", [
+                "Describe the main subject, action, and setting.",
+                "Choose an art style, palette, and level of detail.",
+                "Set the composition or aspect ratio that fits your project.",
+                "Generate and refine the prompt based on the areas you want changed.",
+            ], "Keep the subject and art style clear; add scene details after that."),
+            ("✂️", "Video Editor", "Video Editor Mode", "Prepare and refine a video with the editing tools.", [
+                "Upload or select the source clips and assets you want to use.",
+                "Choose the target format and arrange the content in the desired order.",
+                "Set available trim, audio, transition, or enhancement options.",
+                "Preview the edit before exporting and check the final format.",
+            ], "Keep source files available until the final render has been checked."),
+            ("🤖", "AI Agent", "AI Agent Mode", "Generate marketing content with help from an AI agent.", [
+                "Enter your business, product, audience, and campaign goal.",
+                "Add key benefits, preferred tone, and any required brand details.",
+                "Review the generated copy or creative assets for accuracy.",
+                "Adjust the brief and generate another version when needed.",
+            ], "Provide factual product details so the agent does not have to guess."),
+            ("📣", "AI Sales", "AI Sales Mode", "Create a product-focused sales video.", [
+                "Add the product or service name and its most important benefits.",
+                "Describe the target customer and the action viewers should take.",
+                "Choose a presenter, visual style, or format where available.",
+                "Preview the script and video, then refine the offer or call to action.",
+            ], "One audience and one clear call to action make a stronger sales brief."),
+            ("🧠", "Dynamic UI", "Dynamic UI Mode", "Personalize a creative workspace for your project.", [
+                "Describe the kind of project or workflow you are organizing.",
+                "Select the relevant content or workspace preferences.",
+                "Review the suggested layout and available controls.",
+                "Adjust the setup to keep the tools you use most easy to reach.",
+            ], "Start with the task you need to finish, then choose supporting controls."),
+            ("🎙️", "Live Emotions", "Live Emotion Mode", "Generate expressive voice or spoken content.", [
+                "Write the exact text you want spoken and select its language.",
+                "Choose a voice and the emotion or delivery style.",
+                "Set any available voice, speed, or reference-audio options.",
+                "Generate and listen through the complete output before downloading.",
+            ], "Punctuation and short sentences help make spoken delivery sound natural."),
+            ("⚡", "Upscaler", "Upscaler Mode", "Improve the resolution and detail of an image.", [
+                "Upload the original image in a supported format.",
+                "Choose the output scale or enhancement options.",
+                "Start the upscale and wait for processing to finish.",
+                "Compare the output with the source before using or downloading it.",
+            ], "Use the highest-quality source image you have for the cleanest result."),
+        ]
+        matching_guides = [
+            guide for guide in tutorial_guides
+            if not tutorial_query or tutorial_query in " ".join((guide[1], guide[3], *guide[4])).casefold()
+        ]
+        if not matching_guides:
+            st.info("No tutorials match that search. Try an engine name such as Cinematic, Voice, or Draw.")
+        for row_start in range(0, len(matching_guides), 2):
+            tutorial_columns = st.columns(2, gap="medium")
+            for tutorial_col, guide in zip(tutorial_columns, matching_guides[row_start:row_start + 2]):
+                icon, title, mode_name, summary, steps, tip = guide
+                with tutorial_col:
+                    st.markdown(
+                        f"<article class='tutorial-card'><span class='tutorial-tag'>{icon} STEP-BY-STEP GUIDE</span>"
+                        f"<h3>{title}</h3><p>{summary}</p><ol>"
+                        + "".join(f"<li>{step}</li>" for step in steps)
+                        + f"</ol><div class='tutorial-tip'><strong>Tip:</strong> {tip}</div></article>",
+                        unsafe_allow_html=True,
+                    )
+                    if st.button(
+                        f"Open {title}",
+                        key=f"tutorial_open_{mode_name}",
+                        type="primary",
+                        width="stretch",
+                    ):
+                        handle_engine_access_request(mode_name)
+    elif standalone_page == "support":
+        st.markdown(
+            """
+            <style>
+                .support-intro {
+                    margin: 0 0 16px;
+                    color: var(--standalone-muted);
+                    font: 500 14px/1.6 'Inter',sans-serif;
+                }
+                .support-card {
+                    height: 100%;
+                    padding: 18px;
+                    background: #fff;
+                    border: 1px solid var(--standalone-line);
+                    border-radius: 16px;
+                    box-shadow: 0 8px 24px rgba(26,55,56,.055);
+                }
+                .support-card h3 {
+                    margin: 0 0 7px;
+                    color: #173f43 !important;
+                    font: 750 15px/1.4 'Inter',sans-serif !important;
+                }
+                .support-card p, .support-card li {
+                    color: var(--standalone-muted) !important;
+                    font: 500 12px/1.55 'Inter',sans-serif !important;
+                }
+                .support-card p { margin: 0; }
+                .support-card ul { margin: 8px 0 0; padding-left: 19px; }
+                .support-card li { margin: 4px 0; }
+                .support-contact {
+                    margin: 0 0 16px;
+                    padding: 18px;
+                    color: #fff;
+                    background: linear-gradient(115deg,#123d43,#176c6d 62%,#248d83);
+                    border-radius: 16px;
+                    box-shadow: 0 12px 28px rgba(24,76,76,.14);
+                }
+                .support-contact h3 {
+                    margin: 0 0 5px;
+                    color: #fff !important;
+                    font: 750 17px/1.35 'Inter',sans-serif !important;
+                }
+                .support-contact p {
+                    margin: 0;
+                    color: rgba(255,255,255,.88) !important;
+                    font: 500 12px/1.55 'Inter',sans-serif !important;
+                }
+                .support-contact a {
+                    display: inline-flex;
+                    margin-top: 12px;
+                    padding: 9px 13px;
+                    color: #153438 !important;
+                    background: #fff;
+                    border-radius: 9px;
+                    font: 700 12px/1.3 'Inter',sans-serif;
+                    text-decoration: none;
+                }
+                .support-faq details {
+                    margin: 8px 0;
+                    padding: 13px 15px;
+                    background: #fff;
+                    border: 1px solid var(--standalone-line);
+                    border-radius: 12px;
+                }
+                .support-faq summary {
+                    color: #173f43;
+                    cursor: pointer;
+                    font: 700 13px/1.45 'Inter',sans-serif;
+                }
+                .support-faq details p {
+                    margin: 9px 0 0;
+                    color: var(--standalone-muted);
+                    font: 500 12px/1.6 'Inter',sans-serif;
+                }
+                .support-section-title {
+                    margin: 20px 0 10px;
+                    color: #173f43 !important;
+                    font: 750 18px/1.35 'Inter',sans-serif !important;
+                }
+            </style>
+            <p class="support-intro">
+                Start with the quick answers below. If something still is not working, contact support with enough detail to investigate.
+            </p>
+            <section class="support-contact">
+                <h3>Still need a hand?</h3>
+                <p>Email <strong>zovixenterprises@gmail.com</strong>. Include the page or engine, what you expected,
+                what happened, and the approximate time. Never include your password, one-time codes, or payment-card details.</p>
+                <a href="mailto:zovixenterprises@gmail.com?subject=ZOVIX%20Support%20Request">Email ZOVIX Support →</a>
+            </section>
+            <div class="support-faq">
+                <h2 class="support-section-title">Common questions</h2>
+                <details><summary>My generation did not start or finish. What should I check?</summary>
+                    <p>Check that required text and uploads are provided, the file type is supported, and your connection is stable.
+                    Note the engine, any displayed error, and the approximate time before contacting support. Avoid repeatedly
+                    submitting a request while an earlier one is still processing.</p>
+                </details>
+                <details><summary>Where can I find my generated work?</summary>
+                    <p>Open Studio and check Your Creations or the relevant engine's history/gallery. If an item is missing,
+                    include its approximate creation time and engine when you contact support.</p>
+                </details>
+                <details><summary>Why is an uploaded file rejected?</summary>
+                    <p>Check the uploader's listed file types and size limit, then try a supported format. Keep the original file
+                    unchanged; if the issue continues, share the file type, approximate size, and error text—do not email sensitive media.</p>
+                </details>
+                <details><summary>How do I report a page or account issue?</summary>
+                    <p>Describe the steps that led to the issue, the page or engine, what you expected, and what appeared instead.
+                    Include a screenshot only after removing personal, account, or payment information.</p>
+                </details>
+                <details><summary>How do I learn how an engine works?</summary>
+                    <p>Use Studio Tutorials for step-by-step workflows or Documentation for engine inputs, outputs, and practical notes.</p>
+                </details>
+                <details><summary>Is Community for sharing member creations?</summary>
+                    <p>The current Community page contains curated inspiration references, not member-submitted posts. Community
+                    sharing is not available yet.</p>
+                </details>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        support_links = st.columns(3, gap="small")
+        for link_column, (label, page) in zip(
+            support_links,
+            [
+                ("🎓 Open Tutorials", "tutorials"),
+                ("📘 Open Documentation", "documentation"),
+                ("♧ Community Inspiration", "community"),
+            ],
+        ):
+            with link_column:
+                if st.button(label, key=f"support_open_{page}", width="stretch"):
+                    st.session_state["current_page"] = page
+                    st.query_params["page"] = page
+                    st.rerun()
+    elif standalone_page == "community":
+        st.markdown(
+            """
+            <style>
+                .community-intro {
+                    margin: 0 0 14px;
+                    color: var(--standalone-muted);
+                    font: 500 14px/1.6 'Inter',sans-serif;
+                }
+                .community-notice {
+                    margin: 0 0 18px;
+                    padding: 12px 15px;
+                    color: #285558;
+                    background: #eef9f7;
+                    border: 1px solid #d3eeea;
+                    border-radius: 12px;
+                    font: 500 12px/1.55 'Inter',sans-serif;
+                }
+                .community-card {
+                    height: 100%;
+                    overflow: hidden;
+                    background: #fff;
+                    border: 1px solid var(--standalone-line);
+                    border-radius: 16px;
+                    box-shadow: 0 8px 24px rgba(26,55,56,.07);
+                }
+                .community-card img {
+                    display: block;
+                    width: 100%;
+                    height: 180px;
+                    object-fit: cover;
+                }
+                .community-card-copy { padding: 15px; }
+                .community-card-tag {
+                    display: inline-flex;
+                    margin-bottom: 8px;
+                    padding: 5px 9px;
+                    color: #3857c7;
+                    background: #f0f2ff;
+                    border-radius: 999px;
+                    font: 700 10px/1 'Inter',sans-serif;
+                }
+                .community-card h3 {
+                    margin: 0 0 5px;
+                    color: #173f43 !important;
+                    font: 750 16px/1.35 'Inter',sans-serif !important;
+                }
+                .community-card p {
+                    margin: 0 0 8px;
+                    color: var(--standalone-muted) !important;
+                    font: 500 12px/1.5 'Inter',sans-serif !important;
+                }
+                .community-card blockquote {
+                    margin: 10px 0 0;
+                    padding: 10px 12px;
+                    color: #405765;
+                    background: #f5f8fa;
+                    border-left: 3px solid #48bdb4;
+                    border-radius: 0 9px 9px 0;
+                    font: 500 11px/1.55 'Inter',sans-serif;
+                }
+                @media (max-width: 768px) {
+                    .community-card img { height: 160px; }
+                }
+            </style>
+            <p class="community-intro">
+                Browse creative directions and ready-to-adapt prompt ideas, then open the engine that fits your project.
+            </p>
+            <div class="community-notice">
+                <strong>About this gallery:</strong> These are curated visual references and sample briefs,
+                not posts or creations submitted by ZOVIX members. Community sharing features are not available here yet.
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        community_query = st.text_input(
+            "Search community inspiration",
+            placeholder="Search ideas, moods, or engines...",
+            key="studio_community_search",
+        ).strip().casefold()
+        community_ideas = [
+            ("Into the wild", "Landscape · Cinematic", "Cinematic Engine", "photo-1500530855697-b586d89ba3ee",
+             "A wide cinematic landscape with layered green hills, soft morning mist, a winding trail, natural light, and a calm sense of exploration."),
+            ("Quiet reflections", "Travel · Creative Workshop", "Creative Workshop Mode", "photo-1470770841072-f978cf4d019e",
+             "A quiet alpine lake reflecting distant mountains at dawn, cool muted colors, gentle atmospheric haze, balanced composition, and a peaceful travel-editorial mood."),
+            ("The last light", "Story frame · Cinematic", "Cinematic Engine", "photo-1501785888041-af3ef285b470",
+             "A lone mountain lake at sunset, warm last light on the peaks, subtle water reflections, wide establishing shot, and a thoughtful cinematic atmosphere."),
+            ("Open horizons", "Nature · Draw", "Draw Mode", "photo-1469474968028-56623f02e42e",
+             "Illustrate an expansive mountain valley beneath dramatic clouds, with clear foreground shapes, layered distant ridges, and a refined painterly travel-poster style."),
+            ("Blue in motion", "Ocean · Creative Workshop", "Creative Workshop Mode", "photo-1518837695005-2083093ee35b",
+             "An expressive ocean wave in deep blue tones, crisp water texture, directional natural light, minimal composition, and a premium editorial image style."),
+            ("Somewhere warm", "Campaign · Draw", "Draw Mode", "photo-1507525428034-b723cf961d3e",
+             "Illustrate a bright summer coastal escape as a polished campaign concept, with warm sunlight, inviting colors, a clear focal subject, and clean editorial composition."),
+            ("Under the stars", "Night sky · Cinematic", "Cinematic Engine", "photo-1519681393784-d120267933ba",
+             "A snow-covered mountain beneath a vivid starry night, a small foreground silhouette for scale, cool blue atmosphere, and a slow cinematic push-in."),
+            ("Forest light", "Atmosphere · Creative Workshop", "Creative Workshop Mode", "photo-1518495973542-4542c06a5843",
+             "Sunbeams filtering through a lush forest canopy, delicate floating mist, deep natural greens, layered composition, and a quiet, immersive mood."),
+            ("The hidden trail", "Adventure · Blueprint", "Blueprints Mode", "photo-1441974231531-c6227db76b6e",
+             "Plan a nature-walk visitor route through a dense woodland, with a clearly marked winding trail, safe resting points, gentle slopes, and minimal environmental impact."),
+            ("After the rain", "Moodboard · Draw", "Draw Mode", "photo-1500534623283-312aade485b7",
+             "Create a soft landscape moodboard after rainfall, with luminous cloud breaks, reflective ground, subdued earth tones, and an optimistic sense of renewal."),
+        ]
+        visible_community_ideas = [
+            idea for idea in community_ideas
+            if not community_query or community_query in " ".join(idea).casefold()
+        ]
+        if not visible_community_ideas:
+            st.info("No inspiration matches that search. Try a mood such as ocean, cinematic, or travel.")
+        for row_start in range(0, len(visible_community_ideas), 3):
+            community_columns = st.columns(3, gap="medium")
+            for idea_index, (community_col, idea) in enumerate(zip(
+                community_columns,
+                visible_community_ideas[row_start:row_start + 3],
+            )):
+                title, category, mode_name, image_id, prompt = idea
+                image_url = f"https://images.unsplash.com/{image_id}?auto=format&fit=crop&w=900&q=82"
+                with community_col:
+                    st.markdown(
+                        f"<article class='community-card'><img src='{html_lib.escape(image_url, quote=True)}' "
+                        f"alt='{html_lib.escape(title, quote=True)} creative inspiration' loading='lazy'>"
+                        f"<div class='community-card-copy'><span class='community-card-tag'>"
+                        f"{html_lib.escape(category)}</span><h3>{html_lib.escape(title)}</h3>"
+                        f"<p>Starter prompt</p><blockquote>{html_lib.escape(prompt)}</blockquote></div></article>",
+                        unsafe_allow_html=True,
+                    )
+                    if st.button(
+                        f"Use this idea · {title}",
+                        key=f"community_idea_{row_start + idea_index}_{mode_name}",
+                        type="primary",
+                        width="stretch",
+                    ):
+                        st.session_state["studio_prompt_value"] = prompt
+                        prompt_widget_keys = {
+                            "Cinematic Engine": "user_prompt",
+                            "Creative Workshop Mode": "workshop_prompt_str_area",
+                            "Draw Mode": "dr_prompt",
+                            "Blueprints Mode": "bp_prompt_input",
+                        }
+                        prompt_widget_key = prompt_widget_keys.get(mode_name)
+                        if prompt_widget_key:
+                            st.session_state[prompt_widget_key] = prompt
+                        st.session_state["studio_favorites_only"] = False
+                        handle_engine_access_request(mode_name)
+    elif standalone_page == "documentation":
+        st.markdown(
+            """
+            <style>
+                .documentation-intro {
+                    margin: 0 0 18px;
+                    color: var(--standalone-muted);
+                    font: 500 14px/1.6 'Inter',sans-serif;
+                }
+                .documentation-card {
+                    height: 100%;
+                    padding: 18px;
+                    color: var(--standalone-text);
+                    background: #fff;
+                    border: 1px solid var(--standalone-line);
+                    border-radius: 16px;
+                    box-shadow: 0 8px 24px rgba(26,55,56,.055);
+                }
+                .documentation-card h3 {
+                    margin: 0 0 6px;
+                    color: #173f43 !important;
+                    font: 750 16px/1.35 'Inter',sans-serif !important;
+                }
+                .documentation-card p {
+                    margin: 0 0 10px;
+                    color: var(--standalone-muted) !important;
+                    font: 500 12px/1.5 'Inter',sans-serif !important;
+                }
+                .documentation-card dl {
+                    display: grid;
+                    grid-template-columns: 74px minmax(0,1fr);
+                    gap: 7px 10px;
+                    margin: 0;
+                    font: 500 11px/1.5 'Inter',sans-serif;
+                }
+                .documentation-card dt {
+                    color: #405765;
+                    font-weight: 750;
+                }
+                .documentation-card dd {
+                    margin: 0;
+                    color: #526477;
+                }
+                .documentation-tag {
+                    display: inline-flex;
+                    margin-bottom: 9px;
+                    padding: 5px 9px;
+                    color: #3857c7;
+                    background: #f0f2ff;
+                    border-radius: 999px;
+                    font: 700 10px/1 'Inter',sans-serif;
+                }
+                .documentation-note {
+                    margin: 0 0 18px;
+                    padding: 13px 15px;
+                    color: #285558;
+                    background: #eef9f7;
+                    border: 1px solid #d3eeea;
+                    border-radius: 12px;
+                    font: 500 12px/1.55 'Inter',sans-serif;
+                }
+            </style>
+            <p class="documentation-intro">
+                Use this reference to choose the right engine and prepare the assets or details it needs.
+                Requirements vary by engine; check its controls before submitting a generation.
+            </p>
+            <div class="documentation-note">
+                <strong>General workflow:</strong> choose an engine, provide the requested prompt or source files,
+                review the available settings, generate a result, then preview it before downloading or continuing.
+                Only upload media you have permission to use.
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        documentation_query = st.text_input(
+            "Search documentation",
+            placeholder="Search engines, input types, outputs, or features...",
+            key="studio_documentation_search",
+        ).strip().casefold()
+        engine_reference = [
+            ("🎬", "Cinematic Engine", "Cinematic Engine", "Build cinematic scenes and story-driven visual clips.", "A written scene or story prompt; configure format and available generation options.", "A generated visual scene or video, depending on the selected workflow.", "Describe subject, setting, action, lighting, and camera movement."),
+            ("👤", "Face Studio", "Face Video Mode", "Create portrait-led talking or expressive character videos.", "A supported portrait and the audio, text, or motion inputs requested by the selected tool.", "A face animation or talking video with available enhancement options.", "Use a clear, unobstructed face and evenly lit source image."),
+            ("🎨", "Creative Workshop", "Creative Workshop Mode", "Generate visual concepts and images from a creative brief.", "A prompt describing subject, style, composition, palette, and requested format.", "Generated artwork or image assets.", "State the main subject and visual style before adding secondary details."),
+            ("⬡", "Blueprints", "Blueprints Mode", "Develop structured design, layout, or blueprint concepts.", "A project description with intended use, dimensions, requirements, and design preferences.", "A generated blueprint or structured visual plan.", "Include practical constraints and intended use in the brief."),
+            ("✏️", "Draw", "Draw Mode", "Create illustrations and concept art from text prompts.", "A description of subject, action, setting, art style, and composition.", "Illustrated image or concept artwork.", "Keep the subject and chosen art style specific and consistent."),
+            ("✂️", "Video Editor", "Video Editor Mode", "Edit, combine, and enhance supplied media.", "Source clips or assets plus the edit, format, and audio choices available in the editor.", "An edited or enhanced media export.", "Preview the complete output and confirm its format before sharing."),
+            ("🤖", "AI Agent", "AI Agent Mode", "Create marketing content with AI assistance.", "Business and product facts, intended audience, goal, and preferred tone.", "AI-generated marketing copy and any assets supported by the agent workflow.", "Use accurate source details and review generated claims before publishing."),
+            ("📣", "AI Sales", "AI Sales Mode", "Prepare product-focused promotional or sales videos.", "Product benefits, target audience, offer, brand details, and desired call to action.", "A sales-oriented script or generated video, depending on available options.", "Focus on one audience and one clear next step for viewers."),
+            ("🧠", "Dynamic UI", "Dynamic UI Mode", "Personalize a creative workspace around a project workflow.", "A description of the task and the workspace preferences requested by the tool.", "A tailored workspace or workflow configuration.", "Start from the task you need to complete and prioritize its essential controls."),
+            ("🎙️", "Live Emotions", "Live Emotion Mode", "Generate expressive speech and voice outputs.", "Text, selected language and voice, plus optional reference audio when supported.", "Generated speech audio with the selected delivery settings.", "Check pronunciation and listen through the full recording before use."),
+            ("⚡", "Upscaler", "Upscaler Mode", "Increase image resolution and enhance visual detail.", "A supported source image and the available scale or enhancement settings.", "An upscaled image file.", "Use the cleanest, highest-resolution original available."),
+        ]
+        visible_references = [
+            reference for reference in engine_reference
+            if not documentation_query
+            or documentation_query in " ".join(reference).casefold()
+        ]
+        if not visible_references:
+            st.info("No documentation matches that search. Try an engine name such as Cinematic, Voice, or Draw.")
+        for row_start in range(0, len(visible_references), 2):
+            reference_columns = st.columns(2, gap="medium")
+            for reference_col, reference in zip(
+                reference_columns,
+                visible_references[row_start:row_start + 2],
+            ):
+                icon, title, mode_name, description, requirements, output, guidance = reference
+                with reference_col:
+                    st.markdown(
+                        f"<article class='documentation-card'><span class='documentation-tag'>"
+                        f"{icon} ENGINE REFERENCE</span><h3>{title}</h3><p>{description}</p>"
+                        f"<dl><dt>Input</dt><dd>{requirements}</dd>"
+                        f"<dt>Output</dt><dd>{output}</dd>"
+                        f"<dt>Guidance</dt><dd>{guidance}</dd></dl></article>",
+                        unsafe_allow_html=True,
+                    )
+                    if st.button(
+                        f"Open {title}",
+                        key=f"documentation_open_{mode_name}",
+                        type="primary",
+                        width="stretch",
+                    ):
+                        handle_engine_access_request(mode_name)
     else:
         factory_history = st.session_state.get("history_renders", [])
         factory_face_history = st.session_state.get("face_video_history", [])
@@ -19446,6 +20194,1801 @@ elif st.session_state["current_page"] == "studio":
         }
     </style>
     """, unsafe_allow_html=True)
+
+    engine_cards = [
+        ("🎬", "Cinematic", "Cinematic Engine", "Create cinematic scenes, stories and visual worlds.", "photo-1500530855697-b586d89ba3ee"),
+        ("👤", "Face Studio", "Face Video Mode", "Generate realistic characters, faces and talking videos.", "photo-1534528741775-53994a69daeb"),
+        ("🎨", "Creative Workshop", "Creative Workshop Mode", "Turn ideas into unique visual creations.", "photo-1470770841072-f978cf4d019e"),
+        ("⬡", "Blueprint", "Blueprints Mode", "Plan concepts, compositions and creative structures.", "photo-1487958449943-2429e8be8625"),
+        ("✏️", "Draw", "Draw Mode", "Create artwork, illustrations and concept art.", "photo-1579783902614-a3fb3927b6a5"),
+        ("✂️", "Editor", "Video Editor Mode", "Edit, enhance and combine your content.", "photo-1574717024653-61fd2cf4d44d"),
+        ("🤖", "AI Agent", "AI Agent Mode", "Automate tasks and build intelligent workflows.", "photo-1485827404703-89b55fcc595e"),
+        ("📣", "Sales Video", "AI Sales Mode", "Create marketing and promotional videos.", "photo-1497366754035-f200968a6e72"),
+        ("🧠", "Dynamic UI", "Dynamic UI Mode", "Adapt your creative workspace to each project.", "photo-1497366811353-6870744d04b2"),
+        ("💜", "Live Emotions", "Live Emotion Mode", "Bring characters to life with expressive voices.", "photo-1508214751196-bcfd4ca60f91"),
+        ("⚡", "Upscaler", "Upscaler Mode", "Enhance image detail and resolution.", "photo-1519681393784-d120267933ba"),
+    ]
+    engine_cards_html = ""
+
+    dashboard_history = [
+        item
+        for item in (
+            list(st.session_state.get("history_renders", []) or [])
+            + list(st.session_state.get("face_video_history", []) or [])
+            + list(st.session_state.get("sales_video_history", []) or [])
+        )
+        if isinstance(item, dict)
+    ]
+    dashboard_history.sort(
+        key=lambda item: str(item.get("timestamp") or item.get("created_at") or ""),
+        reverse=True,
+    )
+    dashboard_history = dashboard_history[:6]
+    recent_cards = []
+
+    username = str(st.session_state.get("logged_user", "Creator")).strip()
+    try:
+        creator_profile = load_creator_profile(username)
+    except sqlite3.Error:
+        logger.exception("Unable to load creator profile for %s", username)
+        st.error("Your creator profile could not be loaded. Please refresh and try again.")
+        st.stop()
+    first_name = username.split("@", 1)[0].split(".", 1)[0].split(" ", 1)[0] or "Creator"
+    profile_display_name = creator_profile["display_name"]
+    display_name = profile_display_name or first_name
+    safe_name = html_lib.escape(display_name)
+    safe_username = html_lib.escape(username)
+    avatar_initial = html_lib.escape(display_name[:1].upper())
+    avatar_initials = f"<span class='zd-avatar'>{avatar_initial}</span>"
+    safe_profile_avatar = html_lib.escape(creator_profile["avatar_data"], quote=True)
+    credit_balance = int(st.session_state.get("user_credits", 0))
+    subscription_active = bool(st.session_state.get("subscription_active", False))
+    subscription_name = str(st.session_state.get("subscription_pack", "")).strip()
+    plan_name = html_lib.escape(subscription_name if subscription_active and subscription_name else "Free Plan")
+    plan_action = "Manage plan" if subscription_active else "Upgrade for more power"
+    st.markdown(
+        """
+        <style>
+        :root {
+            --studio-bg: #ffffff;
+            --studio-surface: #ffffff;
+            --studio-text: #152238;
+            --studio-muted: #66758b;
+            --studio-line: #e3e9f2;
+            --studio-teal: #27b8b1;
+            --studio-coral: #f4a581;
+        }
+        html, body, .stApp, [data-testid="stAppViewContainer"], section[data-testid="stMain"],
+        section.main, section[data-testid="stMain"] .block-container {
+            width: 100% !important;
+            max-width: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #ffffff !important;
+            color: #152238 !important;
+            font-family: 'Inter', sans-serif !important;
+        }
+        section[data-testid="stSidebar"], [data-testid="stSidebarCollapsedControl"] { display: none !important; }
+        .zovix-dashboard {
+            --zd-ink: #152238;
+            --zd-muted: #718096;
+            --zd-line: #e4eaf2;
+            display: grid;
+            grid-template-columns: 184px minmax(0, 1fr) 242px;
+            gap: 18px;
+            width: 100%;
+            min-height: 100vh;
+            padding: 6px 18px 20px;
+            color: var(--zd-ink);
+            background: #ffffff;
+        }
+        .zd-sidebar { display:flex; flex-direction:column; min-height:calc(100vh - 34px); padding:4px 10px 8px 2px; border-right:1px solid #edf0f5; }
+        .zd-brand { display:flex; align-items:center; gap:10px; margin:4px 0 24px; color:#152238; text-decoration:none; }
+        .zd-brand-mark { display:grid; place-items:center; width:38px; height:38px; color:#fff; background:linear-gradient(135deg,#18c5c5,#6657ef); border-radius:11px; font-size:20px; font-weight:900; box-shadow:0 6px 16px rgba(66,104,219,.2); }
+        .zd-brand-name { display:block; font:850 17px/1 'Inter',sans-serif; letter-spacing:.08em; }
+        .zd-brand-sub { display:block; margin-top:4px; color:#8592a5; font:650 7px/1 'Inter',sans-serif; letter-spacing:.14em; }
+        .zd-studio-brand {
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            min-height:38px;
+            margin:0 0 24px;
+        }
+        .zd-studio-brand .zd-brand { margin:0; }
+        .zd-nav-label { margin:15px 8px 7px; color:#8a97aa; font:750 15px/1 'Inter',sans-serif; letter-spacing:.12em; text-transform:uppercase; }
+        .zd-nav { display:grid; gap:3px; }
+        .zd-nav a { display:flex; align-items:center; gap:10px; min-height:34px; padding:0 9px; color:#536278; border-radius:8px; text-decoration:none; font:600 11px/1.25 'Inter',sans-serif; transition:background .16s,color .16s; }
+        .zd-nav a:hover, .zd-nav a.active { color:#263d62; background:#edf3ff; }
+        .zd-nav a.active { font-weight:750; }
+        .zd-nav-icon { width:17px; text-align:center; font-size:14px; }
+        .zd-nav-rule { height:1px; margin:12px 7px 3px; background:#edf0f5; }
+        .zd-sidebar-promo { margin-top:auto; padding:14px 12px; color:#fff; border-radius:13px; background:linear-gradient(145deg,#161f40,#41255a 64%,#27205b); }
+        .zd-sidebar-promo strong { display:block; font-size:12px; }
+        .zd-sidebar-promo p { margin:6px 0 10px; color:#dce1f5; font-size:9px; line-height:1.5; }
+        .zd-sidebar-promo a { display:inline-flex; padding:7px 10px; color:#fff; background:#6657ef; border-radius:7px; font-size:9px; font-weight:750; text-decoration:none; }
+        .zd-main { min-width:0; }
+        .zd-topbar { display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:39px; margin:0 0 12px; }
+        .zd-breadcrumb { color:#738198; font-size:10px; font-weight:650; }
+        .zd-user { display:flex; align-items:center; gap:8px; color:#26354c; text-decoration:none; font-size:10px; font-weight:750; }
+        .zd-avatar { display:grid; place-items:center; width:29px; height:29px; color:#fff; background:linear-gradient(135deg,#16b8b1,#5868e9); border-radius:50%; font-size:12px; }
+        .zd-hero { position:relative; display:flex; align-items:flex-end; min-height:218px; overflow:hidden; padding:23px; color:#fff; border:1px solid rgba(55,105,167,.22); border-radius:15px; background:#12274c center 42%/cover no-repeat; box-shadow:0 8px 22px rgba(33,57,91,.1); }
+        .zd-hero::before { position:absolute; inset:0; content:""; background:linear-gradient(90deg,rgba(8,18,40,.92) 0%,rgba(9,21,46,.76) 41%,rgba(8,20,43,.12) 100%),linear-gradient(0deg,rgba(8,18,40,.36),transparent 60%); }
+        .zd-hero-copy { position:relative; z-index:1; max-width:560px; }
+        .zd-hero-kicker { margin-bottom:8px; color:#e2efff; font-size:10px; font-weight:650; }
+        .zd-hero h1 { margin:0; color:#fff; font:800 clamp(23px,2.4vw,34px)/1.12 'Inter',sans-serif; letter-spacing:-.04em; }
+        .zd-hero h1 span { color:#69bafa; }
+        .zd-hero p { max-width:490px; margin:9px 0 13px; color:#e5edf9; font-size:10px; line-height:1.55; }
+        .zd-hero-actions { display:flex; flex-wrap:wrap; align-items:center; gap:7px; }
+        .zd-hero-actions a { display:inline-flex; align-items:center; min-height:31px; padding:0 11px; color:#fff; border:1px solid rgba(255,255,255,.26); border-radius:8px; background:rgba(255,255,255,.1); font-size:9px; font-weight:750; text-decoration:none; backdrop-filter:blur(8px); }
+        .zd-hero-actions a.primary { background:linear-gradient(100deg,#12bfc4,#5867ef); border-color:transparent; }
+        .zd-hero-tags { display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
+        .zd-hero-tags span { padding:5px 8px; color:#edf3ff; border:1px solid rgba(255,255,255,.22); border-radius:99px; background:rgba(15,30,55,.3); font-size:8px; }
+        .zd-section-head { display:flex; align-items:flex-end; justify-content:space-between; gap:12px; margin:17px 0 9px; }
+        .zd-section-head h2 { margin:0; color:#1d2b42; font:800 15px/1.2 'Inter',sans-serif; letter-spacing:-.02em; }
+        .zd-section-head p { margin:3px 0 0; color:#768399; font-size:9px; }
+        .zd-section-head a { color:#376cda; font-size:9px; font-weight:750; text-decoration:none; white-space:nowrap; }
+        .zd-engine-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:9px; }
+        .zd-engine-card { position:relative; display:flex; align-items:flex-end; min-height:86px; overflow:hidden; padding:11px; color:#fff; border:1px solid #d7e0ee; border-radius:11px; background:var(--engine-image) center/cover no-repeat, #293a58; text-decoration:none; box-shadow:0 4px 12px rgba(35,55,84,.06); transition:transform .17s,box-shadow .17s; }
+        .zd-engine-card::before { position:absolute; inset:0; content:""; background:linear-gradient(90deg,rgba(9,20,40,.84),rgba(9,20,40,.22)),linear-gradient(0deg,rgba(7,17,35,.48),transparent 65%); }
+        .zd-engine-card:hover { transform:translateY(-2px); box-shadow:0 9px 20px rgba(35,55,84,.16); }
+        .zd-engine-icon { position:absolute; z-index:1; top:9px; left:9px; display:grid; place-items:center; width:25px; height:25px; color:#fff; border:1px solid rgba(255,255,255,.34); border-radius:8px; background:rgba(40,75,190,.75); font-size:13px; }
+        .zd-engine-copy { position:relative; z-index:1; display:grid; gap:3px; max-width:88%; }
+        .zd-engine-copy strong { font-size:10px; line-height:1.2; }
+        .zd-engine-copy small { color:#e0e8f4; font-size:8px; line-height:1.35; }
+        .zd-engine-arrow { position:absolute; z-index:1; right:8px; bottom:8px; display:grid; place-items:center; width:20px; height:20px; border:1px solid rgba(255,255,255,.42); border-radius:50%; font-size:11px; }
+        .zd-recent-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; }
+        .zd-recent-card { position:relative; display:flex; align-items:flex-end; min-height:92px; overflow:hidden; padding:9px; color:#fff; border:1px solid #d7e0ee; border-radius:10px; background:var(--recent-image) center/cover no-repeat, #273953; text-decoration:none; }
+        .zd-recent-card::before { position:absolute; inset:0; content:""; background:linear-gradient(0deg,rgba(8,17,36,.87),rgba(8,17,36,.03) 82%); }
+        .zd-recent-copy { position:relative; z-index:1; display:grid; gap:3px; width:100%; }
+        .zd-recent-copy strong { overflow:hidden; font-size:9px; text-overflow:ellipsis; white-space:nowrap; }
+        .zd-recent-copy small { color:#d8e2f2; font-size:8px; }
+        .zd-recent-open { position:absolute; z-index:1; top:7px; right:7px; display:grid; place-items:center; width:19px; height:19px; border-radius:50%; background:rgba(16,30,54,.55); font-size:10px; }
+        .zd-empty-recent { min-height:78px; }
+        .zd-lower-section { margin-top:20px; padding:16px; border:1px solid #e6ebf2; border-radius:13px; background:linear-gradient(145deg,#fff,#f8fafc); }
+        .zd-lower-head { display:flex; align-items:flex-end; justify-content:space-between; gap:10px; margin-bottom:11px; }
+        .zd-lower-head h2 { margin:0; color:#1d2b42; font:800 15px/1.2 'Inter',sans-serif; }
+        .zd-lower-head p { margin:4px 0 0; color:#768399; font-size:9px; }
+        .zd-lower-head a { color:#376cda; font-size:9px; font-weight:750; text-decoration:none; white-space:nowrap; }
+        .zd-future-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
+        .zd-future-card { overflow:hidden; border:1px solid #e3e9f2; border-radius:10px; background:#fff; }
+        .zd-future-card img { display:block; width:100%; height:72px; object-fit:cover; }
+        .zd-future-copy { padding:9px; }
+        .zd-future-copy small { color:#4c63d9; font-size:7px; font-weight:800; letter-spacing:.08em; }
+        .zd-future-copy strong { display:block; margin-top:4px; color:#26344c; font-size:9px; line-height:1.35; }
+        .zd-future-copy p { margin:4px 0 0; color:#718096; font-size:8px; line-height:1.45; }
+        .zd-community-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
+        .zd-community-card { position:relative; display:flex; min-height:92px; align-items:flex-end; overflow:hidden; padding:9px; color:#fff; border:1px solid #dfe6f0; border-radius:10px; background:var(--community-image) center/cover no-repeat,#293a58; text-decoration:none; }
+        .zd-community-card::before { position:absolute; inset:0; content:""; background:linear-gradient(0deg,rgba(8,17,36,.83),rgba(8,17,36,.02) 85%); }
+        .zd-community-card strong { position:relative; z-index:1; font-size:9px; }
+        .zd-community-note { margin:9px 0 0; color:#7c8798; font-size:8px; line-height:1.45; }
+        .zd-footer { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px; margin-top:18px; padding:13px 2px 5px; color:#7b8798; border-top:1px solid #e8edf3; font-size:8px; }
+        .zd-footer-links { display:flex; flex-wrap:wrap; gap:13px; }
+        .zd-footer a { color:#52647d; font-weight:650; text-decoration:none; }
+        .zd-footer a:hover { color:#355bd5; }
+        .st-key-studio-native-actions {
+            margin: 0 18px 22px;
+            padding: 16px;
+            border: 1px solid #e3e9f2;
+            border-radius: 13px;
+            background: #fff;
+            box-shadow: 0 5px 15px rgba(26,47,77,.04);
+        }
+        .st-key-studio-native-actions h2 {
+            margin: 3px 0 10px;
+            color: #1d2b42;
+            font: 800 15px/1.2 'Inter',sans-serif;
+        }
+        .st-key-studio-native-actions [data-testid="stButton"] > button {
+            min-height: 38px;
+            color: #34445c !important;
+            background: #fff !important;
+            border: 1px solid #e1e7f0 !important;
+            border-radius: 9px !important;
+            box-shadow: 0 3px 8px rgba(30,50,80,.04) !important;
+            font: 650 10px/1.25 'Inter',sans-serif !important;
+        }
+        .st-key-studio-native-actions [data-testid="stButton"] > button:hover {
+            color: #334bc2 !important;
+            background: #f4f6ff !important;
+            border-color: #bbc7f1 !important;
+        }
+        section[data-testid="stMain"] [data-testid="stExpander"] { margin:0 18px 24px; border-color:#e3e9f2; border-radius:11px; background:#fff; }
+        section[data-testid="stMain"] [data-testid="stExpander"] summary { color:#293a54; font-weight:750; }
+        .zd-right { display:grid; align-content:start; gap:10px; padding-top:50px; }
+        .zd-panel { padding:12px; border:1px solid var(--zd-line); border-radius:12px; background:#fff; box-shadow:0 5px 15px rgba(26,47,77,.045); }
+        .zd-panel-head { display:flex; align-items:center; justify-content:space-between; gap:8px; color:#25344d; font-size:10px; font-weight:800; }
+        .zd-balance { display:flex; align-items:center; gap:9px; margin-top:10px; }
+        .zd-balance-icon { display:grid; place-items:center; width:30px; height:30px; color:#7156e8; border-radius:9px; background:#f0edff; font-size:15px; }
+        .zd-balance strong { display:block; color:#17263d; font-size:20px; line-height:1; }
+        .zd-balance small { display:block; margin-top:4px; color:#78869a; font-size:8px; }
+        .zd-panel-link { display:flex; align-items:center; justify-content:center; min-height:29px; margin-top:10px; color:#fff; border-radius:7px; background:linear-gradient(100deg,#4c54e8,#7e48e8); font-size:9px; font-weight:750; text-decoration:none; }
+        .zd-plan { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:11px; padding:9px; border-radius:8px; background:#f8f8ff; }
+        .zd-plan strong { display:block; color:#26324a; font-size:9px; }
+        .zd-plan small { display:block; margin-top:3px; color:#7d8798; font-size:8px; }
+        .zd-plan a { color:#4d60d9; font-size:8px; font-weight:750; text-decoration:none; white-space:nowrap; }
+        .zd-mini-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:5px; margin-top:11px; padding-top:10px; border-top:1px solid #edf0f5; }
+        .zd-mini-stats div { color:#7b8798; font-size:7px; text-align:center; }
+        .zd-mini-stats span { display:block; }
+        .zd-mini-stats strong { display:block; margin-bottom:3px; color:#24344d; font-size:10px; }
+        .zd-action-list { display:grid; gap:6px; margin-top:9px; }
+        .zd-action-list a { display:flex; align-items:center; gap:8px; min-height:31px; padding:0 8px; color:#394961; border:1px solid #e8edf4; border-radius:8px; font-size:9px; font-weight:650; text-decoration:none; }
+        .zd-action-list a:hover { background:#f6f8ff; border-color:#cfd8f2; }
+        .zd-promo { min-height:105px; overflow:hidden; color:#fff; border:0; background:linear-gradient(90deg,rgba(20,25,59,.93),rgba(30,35,82,.28)),url('https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=640&q=82') center/cover; }
+        .zd-promo strong { display:block; max-width:140px; font-size:13px; line-height:1.15; }
+        .zd-promo p { max-width:155px; margin:6px 0 9px; color:#e4e7f6; font-size:8px; line-height:1.4; }
+        .zd-promo a { display:inline-flex; padding:6px 9px; color:#fff; border-radius:99px; background:#554be8; font-size:8px; font-weight:750; text-decoration:none; }
+        .zd-creator { display:flex; align-items:center; gap:9px; margin-top:9px; }
+        .zd-creator .zd-avatar { width:27px; height:27px; }
+        .zd-creator strong { display:block; color:#26364d; font-size:9px; }
+        .zd-creator small { display:block; margin-top:3px; color:#7a8799; font-size:8px; }
+        @media (max-width:1100px) {
+            .zovix-dashboard { grid-template-columns:164px minmax(0,1fr); gap:14px; }
+            .zd-right { grid-column:2; grid-template-columns:repeat(2,minmax(0,1fr)); padding-top:0; }
+            .zd-promo { min-height:120px; }
+        }
+        @media (max-width:760px) {
+            .zovix-dashboard { grid-template-columns:minmax(0,1fr); gap:10px; padding:6px 10px 10px; }
+            .zd-sidebar { min-height:0; padding:0 0 9px; border-right:0; border-bottom:1px solid #edf0f5; }
+            .zd-brand { margin:1px 0 9px; }
+            .zd-studio-brand { min-height:38px; margin:0 0 9px; padding-right:0; }
+            .zd-nav-label, .zd-nav-rule, .zd-sidebar-promo { display:none; }
+            .zd-nav { display:flex; gap:5px; overflow-x:auto; padding-bottom:2px; }
+            .zd-nav a { flex:0 0 auto; min-height:31px; padding:0 8px; background:#f7f9fc; font-size:9px; }
+            .zd-topbar { min-height:30px; margin-bottom:8px; }
+            .zd-hero { min-height:205px; padding:17px; background-position:62% center; }
+            .zd-hero h1 { max-width:450px; font-size:clamp(22px,6vw,31px); }
+            .zd-engine-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; }
+            .zd-engine-card { min-height:82px; }
+            .zd-recent-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+            .zd-right { grid-column:auto; grid-template-columns:repeat(2,minmax(0,1fr)); }
+        }
+        @media (max-width:430px) {
+            .zd-right { grid-template-columns:minmax(0,1fr); }
+            .zd-hero { min-height:195px; }
+            .zd-hero-tags span { font-size:7px; }
+            .zd-engine-copy small { font-size:7px; }
+            .zd-future-grid { grid-template-columns:minmax(0,1fr); }
+            .zd-future-card { display:grid; grid-template-columns:100px minmax(0,1fr); }
+            .zd-future-card img { width:100px; height:100%; min-height:92px; }
+            .zd-community-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+        }
+        html, body, .stApp, [data-testid="stAppViewContainer"],
+        section[data-testid="stMain"], section[data-testid="stMain"] .block-container {
+            background:#030b17 !important;
+            color:#e6edff !important;
+        }
+        section[data-testid="stMain"] .block-container {
+            padding:6px 14px 18px !important;
+            margin-top:0 !important;
+        }
+        section[data-testid="stMain"] {
+            margin-top:0 !important;
+        }
+        section[data-testid="stMain"] .block-container > div[data-testid="stVerticalBlock"] {
+            gap:0 !important;
+            margin-top:0 !important;
+        }
+        section[data-testid="stMain"] [data-testid="stHorizontalBlock"] {
+            gap:12px !important;
+        }
+        section[data-testid="stMain"] [data-testid="column"] { min-width:0 !important; }
+        .zd-brand { color:#edf3ff; }
+        .zd-brand-sub { color:#8292ad; }
+        .zd-hero {
+            min-height:220px;
+            border-color:#263d63;
+            background-color:#08182a;
+            box-shadow:0 12px 32px rgba(0,0,0,.32);
+        }
+        .zd-hero h1 span { color:#49b8ff; }
+        .zd-section-head h2, .zd-lower-head h2 { color:#edf3ff; }
+        .zd-section-head p, .zd-lower-head p { color:#99a9c3; }
+        .zd-engine-card, .zd-recent-card, .zd-community-card {
+            border-color:#2a3c5a;
+            box-shadow:0 5px 18px rgba(0,0,0,.22);
+        }
+        .zd-lower-section {
+            border-color:#263751;
+            background:linear-gradient(145deg,#0b1628,#07111e);
+        }
+        .zd-future-card, .zd-panel {
+            border-color:#263751;
+            background:#0b1628;
+            box-shadow:0 8px 22px rgba(0,0,0,.22);
+        }
+        .zd-future-copy strong, .zd-panel-head, .zd-balance strong,
+        .zd-plan strong, .zd-mini-stats strong, .zd-creator strong {
+            color:#edf3ff;
+        }
+        .zd-future-copy p, .zd-balance small, .zd-plan small,
+        .zd-mini-stats div, .zd-creator small { color:#9aa9c0; }
+        .zd-plan { background:#111d33; }
+        .zd-mini-stats { border-color:#263751; }
+        .zd-action-list a {
+            color:#dce6fc;
+            border-color:#2a3c5a;
+            background:#101c31;
+        }
+        .zd-action-list a:hover { background:#172846; border-color:#476394; }
+        .zd-footer { color:#7f90aa; border-color:#263751; }
+        .zd-footer a { color:#9eacc4; }
+        .st-key-studio_sidebar_action_0 [data-testid="stButton"] > button {
+            color:#fff !important;
+            background:#12336a !important;
+            border-color:#284f91 !important;
+        }
+        section[data-testid="stMain"] [data-testid="stButton"] > button {
+            min-height:34px;
+            color:#dce6fc !important;
+            background:#0b1729 !important;
+            border:1px solid #273a59 !important;
+            border-radius:8px !important;
+            box-shadow:none !important;
+            font:600 10px/1.3 'Inter',sans-serif !important;
+            transition:background .16s,border-color .16s,transform .16s;
+        }
+        section[data-testid="stMain"] [data-testid="stButton"] > button:hover {
+            color:#fff !important;
+            background:#142542 !important;
+            border-color:#526eaa !important;
+            transform:translateY(-1px);
+        }
+        section[data-testid="stMain"] [data-testid="stButton"] > button[kind="primary"],
+        section[data-testid="stMain"] [data-testid="stFormSubmitButton"] > button {
+            color:#fff !important;
+            background:linear-gradient(100deg,#08aeca,#6547ed) !important;
+            border-color:transparent !important;
+            font-weight:750 !important;
+        }
+        section[data-testid="stMain"] [data-testid="stTextInput"] input {
+            min-height:38px;
+            color:#edf3ff !important;
+            background:#081426 !important;
+            border-color:#29405f !important;
+            border-radius:9px !important;
+        }
+        section[data-testid="stMain"] [data-testid="stTextInput"] input::placeholder {
+            color:#7e91af !important;
+        }
+        section[data-testid="stMain"] [data-testid="stRadio"] label,
+        section[data-testid="stMain"] [data-testid="stCaptionContainer"],
+        section[data-testid="stMain"] [data-testid="stMarkdownContainer"] p {
+            color:#aab8cf;
+        }
+        section[data-testid="stMain"] [data-testid="stAlert"] {
+            color:#dce6fc;
+            background:#0b1729;
+            border-color:#273a59;
+        }
+        section[data-testid="stMain"] [data-testid="stExpander"] {
+            margin:0 14px 24px;
+            border-color:#273a59;
+            background:#0b1628;
+        }
+        section[data-testid="stMain"] [data-testid="stExpander"] summary { color:#e4edff; }
+        .st-key-studio_hero_prompt_form {
+            position:relative;
+            z-index:2;
+            margin:-64px 14px 12px;
+            padding:9px 10px 6px;
+            border:1px solid rgba(104,151,221,.45);
+            border-radius:12px;
+            background:rgba(5,16,31,.94);
+            box-shadow:0 10px 26px rgba(0,0,0,.35);
+            backdrop-filter:blur(12px);
+        }
+        .st-key-studio_dashboard_search [data-testid="stTextInput"] input {
+            min-height:34px !important;
+            background:#0a172a !important;
+        }
+        .st-key-studio_hero_prompt_form [data-testid="stRadio"] div[role="radiogroup"] {
+            display:flex;
+            flex-wrap:wrap;
+            gap:5px;
+        }
+        .st-key-studio_hero_prompt_form [data-testid="stRadio"] label {
+            min-height:25px;
+            padding:2px 8px;
+            color:#dce6fc !important;
+            border:1px solid #2a3d5b;
+            border-radius:999px;
+            background:#0b1a2d;
+            font-size:8px;
+        }
+        .st-key-studio_hero_prompt_form [data-testid="stRadio"] label > div:first-child {
+            display:none;
+        }
+        .zd-recent-placeholder {
+            display:grid;
+            place-content:center;
+            min-height:88px;
+            color:#b6cbf7;
+            border:1px solid #263e61;
+            border-radius:9px;
+            background:radial-gradient(ellipse at 75% 20%,#28477c,#0b172a 72%);
+            font-size:21px;
+            text-align:center;
+        }
+        .zd-recent-placeholder small {
+            margin-top:4px;
+            color:#8ea4c7;
+            font-size:7px;
+            letter-spacing:.12em;
+        }
+        html, body, .stApp, [data-testid="stAppViewContainer"],
+        section[data-testid="stMain"], section[data-testid="stMain"] .block-container {
+            background:#f7f9fc !important;
+            color:#1b2940 !important;
+        }
+        section[data-testid="stMain"] .block-container {
+            padding:6px 14px 18px !important;
+            margin-top:0 !important;
+        }
+        section[data-testid="stMain"] {
+            margin-top:0 !important;
+        }
+        section[data-testid="stMain"] .block-container > div[data-testid="stVerticalBlock"] {
+            gap:0 !important;
+            margin-top:0 !important;
+        }
+        section[data-testid="stMain"] [data-testid="stHorizontalBlock"] {
+            gap:10px !important;
+        }
+        section[data-testid="stMain"] [data-testid="column"] { min-width:0 !important; }
+        .zd-brand { color:#172844; }
+        .zd-brand-sub { color:#77849a; }
+        .zd-section-head h2, .zd-lower-head h2 { color:#172844; }
+        .zd-section-head p, .zd-lower-head p { color:#75829a; }
+        .zd-hero {
+            min-height:190px;
+            padding:18px;
+            background-color:#d9e7f8;
+            box-shadow:0 8px 22px rgba(33,57,91,.1);
+        }
+        .zd-hero::before {
+            background:linear-gradient(90deg,rgba(238,246,255,.94) 0%,rgba(230,240,253,.83) 43%,rgba(12,23,43,.04) 100%);
+        }
+        .zd-hero-copy { max-width:610px; }
+        .zd-hero-kicker { color:#435572; }
+        .zd-hero h1 { color:#14243f; font-size:clamp(23px,2.2vw,31px); white-space:nowrap; }
+        .zd-hero h1 span { color:#317cff; }
+        .zd-hero p { max-width:370px; color:#fff; }
+        .zd-engine-card, .zd-recent-card, .zd-community-card {
+            border-color:#dce4ef;
+            box-shadow:0 4px 12px rgba(35,55,84,.07);
+        }
+        .zd-lower-section, .zd-future-card, .zd-panel {
+            border-color:#e3e9f2;
+            background:#fff;
+            box-shadow:0 5px 15px rgba(26,47,77,.045);
+        }
+        .zd-future-copy strong, .zd-panel-head, .zd-balance strong,
+        .zd-plan strong, .zd-mini-stats strong, .zd-creator strong { color:#1d2b42; }
+        .zd-future-copy p, .zd-balance small, .zd-plan small,
+        .zd-mini-stats div, .zd-creator small { color:#78869a; }
+        .zd-plan { background:#f8f8ff; }
+        .zd-mini-stats { border-color:#edf0f5; }
+        .zd-action-list a {
+            color:#394961;
+            border-color:#e8edf4;
+            background:#fff;
+        }
+        .zd-action-list a:hover { background:#f6f8ff; border-color:#cfd8f2; }
+        .zd-footer { color:#7b8798; border-color:#e8edf3; }
+        .zd-footer a { color:#52647d; }
+        section[data-testid="stMain"] [data-testid="stButton"] > button {
+            min-height:31px;
+            color:#40516b !important;
+            background:#fff !important;
+            border:1px solid #e2e8f1 !important;
+            border-radius:8px !important;
+            box-shadow:0 2px 6px rgba(30,50,80,.035) !important;
+            font:600 10px/1.3 'Inter',sans-serif !important;
+            transition:background .16s,border-color .16s,transform .16s;
+        }
+        section[data-testid="stMain"] [data-testid="stButton"] > button:hover {
+            color:#334bc2 !important;
+            background:#f4f6ff !important;
+            border-color:#bbc7f1 !important;
+            transform:translateY(-1px);
+        }
+        .st-key-studio_sidebar_action_0 [data-testid="stButton"] > button {
+            color:#2459cf !important;
+            background:#e8f0ff !important;
+            border-color:#d8e4ff !important;
+            font-weight:750 !important;
+        }
+        section[data-testid="stMain"] [data-testid="stButton"] > button[kind="primary"],
+        section[data-testid="stMain"] [data-testid="stFormSubmitButton"] > button {
+            color:#fff !important;
+            background:linear-gradient(100deg,#08b8d2,#7551f3) !important;
+            border-color:transparent !important;
+            font-weight:750 !important;
+        }
+        section[data-testid="stMain"] [data-testid="stTextInput"] input {
+            min-height:34px;
+            color:#253650 !important;
+            background:#fff !important;
+            border-color:#dce4ef !important;
+            border-radius:9px !important;
+        }
+        section[data-testid="stMain"] [data-testid="stTextInput"] input::placeholder { color:#8c99ad !important; }
+        section[data-testid="stMain"] [data-testid="stRadio"] label,
+        section[data-testid="stMain"] [data-testid="stCaptionContainer"],
+        section[data-testid="stMain"] [data-testid="stMarkdownContainer"] p { color:#65748b; }
+        section[data-testid="stMain"] [data-testid="stAlert"] {
+            color:#34445c;
+            background:#f7f9fc;
+            border-color:#e3e9f2;
+        }
+        section[data-testid="stMain"] [data-testid="stExpander"] {
+            margin:0 14px 24px;
+            border-color:#e3e9f2;
+            background:#fff;
+        }
+        section[data-testid="stMain"] [data-testid="stExpander"] summary { color:#293a54; }
+        .st-key-studio_hero_container {
+            box-sizing:border-box;
+            position:relative;
+            display:flex;
+            flex-direction:column;
+            min-height:300px;
+            height:auto;
+            overflow:visible;
+            padding:20px 20px 22px !important;
+            border:1px solid rgba(115,164,222,.32);
+            border-radius:15px;
+            background:
+                linear-gradient(90deg,rgba(239,246,255,.84) 0%,rgba(239,246,255,.72) 38%,rgba(239,246,255,.38) 50%,rgba(239,246,255,0) 58%,rgba(239,246,255,0) 100%),
+                url('/app/static/studio_hero.png') center 45%/cover no-repeat;
+            box-shadow:0 8px 22px rgba(33,57,91,.14);
+        }
+        .st-key-studio_hero_container [data-testid="stVerticalBlock"] {
+            width:100%;
+            gap:0 !important;
+        }
+        .st-key-studio_hero_container .zd-hero {
+            min-height:0;
+            overflow:visible;
+            align-items:flex-start;
+            padding:0;
+            border:0;
+            border-radius:0;
+            background:none !important;
+            box-shadow:none;
+        }
+        .st-key-studio_hero_container .zd-hero::before { display:none; }
+        .st-key-studio_hero_container .zd-hero-copy { max-width:720px; }
+        .st-key-studio_hero_container .zd-hero-kicker { color:#213957; }
+        .st-key-studio_hero_container .zd-hero h1 { color:#101f3d; text-shadow:0 1px 0 rgba(255,255,255,.45); }
+        .st-key-studio_hero_container .zd-hero h1 span { color:#3478ff; }
+        .st-key-studio_hero_container .zd-hero p { color:#203654; text-shadow:0 1px 0 rgba(255,255,255,.35); }
+        .st-key-studio_hero_container .zd-hero p { margin-bottom:0; }
+        .st-key-studio_hero_prompt_form {
+            position:relative;
+            z-index:2;
+            width:100%;
+            box-sizing:border-box;
+            margin:14px 0 0;
+            padding:5px;
+            border:1px solid rgba(129,171,229,.56);
+            border-radius:12px;
+            background:rgba(255,255,255,.97);
+            box-shadow:0 1px 0 rgba(255,255,255,.95) inset,
+                0 3px 0 rgba(49,91,151,.12),
+                0 8px 18px rgba(12,29,58,.2);
+            backdrop-filter:blur(10px);
+        }
+        .st-key-studio_hero_prompt_form [data-testid="stHorizontalBlock"] {
+            align-items:center;
+            gap:4px !important;
+        }
+        .st-key-studio_hero_prompt_form [data-testid="stTextInput"] input {
+            min-height:42px !important;
+            padding:0 10px !important;
+            color:#233650 !important;
+            border:1px solid transparent !important;
+            border-radius:8px !important;
+            background:transparent !important;
+            box-shadow:none !important;
+        }
+        .st-key-studio_hero_prompt_form [data-testid="stTextInput"] input::placeholder {
+            color:#7889a3 !important;
+        }
+        .st-key-studio_hero_prompt_form [data-testid="stFormSubmitButton"] > button {
+            min-height:42px !important;
+            padding:0 17px !important;
+            border:0 !important;
+            border-radius:8px !important;
+            background:linear-gradient(110deg,#16c2d2,#6850f5) !important;
+            box-shadow:0 2px 0 rgba(255,255,255,.22) inset,
+                0 3px 7px rgba(66,72,187,.3) !important;
+            white-space:nowrap !important;
+        }
+        .st-key-studio_creation_type_choices {
+            width:100%;
+            margin-top:9px;
+        }
+        .st-key-studio_creation_type_choices [data-testid="stHorizontalBlock"] {
+            display:flex !important;
+            flex-wrap:wrap;
+            align-items:center;
+            justify-content:flex-start;
+            gap:8px !important;
+        }
+        .st-key-studio_creation_type_choices [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] {
+            width:auto !important;
+            min-width:0 !important;
+            max-width:none !important;
+            flex:0 0 auto !important;
+        }
+        .st-key-studio_creation_type_choices [data-testid="stButton"] > button {
+            box-sizing:border-box !important;
+            width:auto !important;
+            min-width:0 !important;
+            min-height:34px !important;
+            padding:0 11px !important;
+            color:#34445d !important;
+            border:1px solid #d5dfed !important;
+            border-radius:999px !important;
+            background:rgba(255,255,255,.96) !important;
+            box-shadow:0 1px 0 rgba(255,255,255,.95) inset,
+                0 2px 0 rgba(42,66,105,.08),
+                0 4px 9px rgba(32,53,84,.1) !important;
+            font-size:9px !important;
+            font-weight:650 !important;
+            white-space:nowrap !important;
+        }
+        .st-key-studio_creation_type_choices [data-testid="stButton"] > button:hover {
+            color:#3156bd !important;
+            border-color:#aebfff !important;
+            background:#f0f3ff !important;
+        }
+        .st-key-studio_creation_type_choices [data-testid="stButton"] > button[kind="primary"] {
+            color:#3156bd !important;
+            border-color:#aebfff !important;
+            background:#edf2ff !important;
+            box-shadow:0 1px 0 rgba(255,255,255,.95) inset,
+                0 2px 0 rgba(73,91,198,.1),
+                0 4px 9px rgba(73,91,198,.13) !important;
+        }
+        .zd-recent-placeholder {
+            min-height:72px;
+            color:#536b90;
+            border-color:#dce4ef;
+            background:radial-gradient(ellipse at 75% 20%,#dae7ff,#f2f6fc 72%);
+        }
+        .zd-recent-placeholder small { color:#7d8ca5; }
+        .st-key-studio_dashboard_search [data-testid="stTextInput"] input { min-height:34px !important; }
+        .st-key-studio_upgrade_inline [data-testid="stButton"] > button,
+        .st-key-studio_quick_action_0 [data-testid="stButton"] > button {
+            color:#fff !important;
+            background:linear-gradient(100deg,#08b8d2,#7551f3) !important;
+            border-color:transparent !important;
+        }
+        .st-key-studio_credits_panel {
+            box-sizing:border-box;
+            min-width:0;
+            overflow:hidden;
+            padding:12px;
+            border:1px solid #e3e9f2;
+            border-radius:12px;
+            background:#fff;
+            box-shadow:0 5px 15px rgba(26,47,77,.045);
+        }
+        .st-key-studio_credit_amount_row [data-testid="stHorizontalBlock"],
+        .st-key-studio_plan_row [data-testid="stHorizontalBlock"],
+        .st-key-studio_credits_panel [data-testid="stHorizontalBlock"] {
+            align-items:center;
+            gap:7px !important;
+        }
+        .st-key-studio_credits_panel [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] {
+            min-width:0 !important;
+        }
+        .st-key-studio_add_credits_inline [data-testid="stButton"] > button {
+            box-sizing:border-box !important;
+            width:100% !important;
+            min-width:0 !important;
+            min-height:31px !important;
+            padding:0 5px !important;
+            color:#4c5fd8 !important;
+            border:1px solid #bfc9ff !important;
+            border-radius:8px !important;
+            background:#fff !important;
+            box-shadow:none !important;
+            font:650 9px/1 'Inter',sans-serif !important;
+            letter-spacing:0 !important;
+            white-space:nowrap !important;
+        }
+        .st-key-studio_add_credits_inline [data-testid="stButton"] p {
+            margin:0 !important;
+            overflow:visible !important;
+            font:650 9px/1 'Inter',sans-serif !important;
+            letter-spacing:0 !important;
+            white-space:nowrap !important;
+        }
+        .st-key-studio_credits_panel .zd-balance { margin-top:2px; }
+        .st-key-studio_credits_panel .zd-balance strong { color:#2864d8; font-size:19px; }
+        .st-key-studio_credits_panel .zd-balance small { color:#71829b; white-space:nowrap; }
+        .st-key-studio_plan_row [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] {
+            min-width:0 !important;
+        }
+        .st-key-studio_credits_panel .zd-plan {
+            min-height:42px;
+            margin:0;
+            padding:6px 7px;
+            border:1px solid #e7eaff;
+            background:#f5f6ff;
+        }
+        .st-key-studio_credits_panel .zd-plan-copy {
+            min-width:0;
+            overflow:hidden;
+        }
+        .st-key-studio_credits_panel .zd-plan-copy strong {
+            display:block;
+            overflow:hidden;
+            text-overflow:ellipsis;
+            white-space:nowrap;
+        }
+        .st-key-studio_credits_panel .zd-plan-copy small {
+            display:block;
+            overflow:hidden;
+            color:#5b65c8;
+            font-weight:600;
+            text-overflow:ellipsis;
+            white-space:nowrap;
+        }
+        .st-key-studio_upgrade_inline [data-testid="stButton"] > button {
+            box-sizing:border-box !important;
+            width:100% !important;
+            min-width:0 !important;
+            min-height:30px !important;
+            padding:0 3px !important;
+            color:#fff !important;
+            border:0 !important;
+            border-radius:8px !important;
+            background:linear-gradient(110deg,#3484ff,#2563eb) !important;
+            box-shadow:0 2px 0 rgba(255,255,255,.2) inset,
+                0 3px 8px rgba(37,99,235,.26) !important;
+            font-weight:750 !important;
+            white-space:nowrap !important;
+            font-size:clamp(7px, 0.58vw, 9px) !important;
+            letter-spacing:-.025em !important;
+        }
+        .st-key-studio_add_credits_inline [data-testid="stButton"] p,
+        .st-key-studio_upgrade_inline [data-testid="stButton"] p {
+            overflow:visible !important;
+            font-size:inherit !important;
+            white-space:nowrap !important;
+        }
+        .st-key-studio_credits_panel .zd-mini-stats {
+            box-sizing:border-box;
+            width:100%;
+            min-width:0;
+            grid-template-columns:repeat(3,minmax(0,1fr));
+            margin-top:10px;
+            padding:9px 0 2px;
+        }
+        .st-key-studio_credits_panel .zd-mini-stats > div {
+            box-sizing:border-box;
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            min-width:0;
+            padding:0 2px;
+            overflow-wrap:normal;
+            font-size:8px;
+            line-height:1.3;
+        }
+        .st-key-studio_credits_panel .zd-mini-stats strong {
+            display:block;
+            margin-bottom:2px;
+            font-size:10px;
+            white-space:nowrap;
+        }
+        .st-key-studio_credits_panel .zd-mini-stats span {
+            display:block;
+            max-width:100%;
+            white-space:normal;
+            overflow-wrap:normal;
+        }
+        .zd-profile-control {
+            display:flex;
+            align-items:center;
+            justify-content:flex-start;
+            gap:4px;
+            width:auto;
+            min-width:0;
+            min-height:38px;
+            padding:2px 0;
+            color:#26354c;
+            border-radius:9px;
+            text-decoration:none;
+        }
+        .zd-profile-control:hover { background:#f5f7fb; }
+        .zd-profile-control:focus-visible {
+            outline:2px solid #7c92ff;
+            outline-offset:2px;
+        }
+        .zd-profile-avatar {
+            display:grid;
+            place-items:center;
+            flex:none;
+            width:30px;
+            height:30px;
+            border:1px solid #e3e9f2;
+            border-radius:50%;
+            object-fit:cover;
+        }
+        .zd-profile-avatar-fallback {
+            color:#fff;
+            border-color:#fff;
+            background:linear-gradient(135deg,#16b8b1,#5868e9);
+            box-shadow:0 2px 7px rgba(46,81,156,.18);
+            font-size:12px;
+            font-weight:750;
+        }
+        .zd-profile-chevron { color:#64748b; font-size:12px; }
+        .st-key-studio_account_profile {
+            width:38px !important;
+            min-width:38px !important;
+            margin-left:0 !important;
+        }
+        .st-key-studio_account_profile [data-testid="stButton"],
+        .st-key-studio_account_profile [data-testid="stButton"] > button {
+            width:38px !important;
+            min-width:38px !important;
+            max-width:38px !important;
+        }
+        .st-key-studio_account_profile [data-testid="stButton"] > button {
+            box-sizing:border-box !important;
+            position:relative !important;
+            display:grid !important;
+            place-items:center !important;
+            aspect-ratio:1 / 1 !important;
+            height:38px !important;
+            min-height:38px !important;
+            margin:0 auto !important;
+            padding:0 !important;
+            overflow:hidden !important;
+            color:#fff !important;
+            border:2px solid #fff !important;
+            border-radius:50% !important;
+            background:linear-gradient(135deg,#16b8b1,#5868e9) !important;
+            box-shadow:0 2px 7px rgba(46,81,156,.22) !important;
+            font:750 13px/1 'Inter',sans-serif !important;
+        }
+        .st-key-studio_account_profile [data-testid="stButton"] > button:hover {
+            border-color:#dce8ff !important;
+            transform:translateY(-1px);
+        }
+        .st-key-studio_account_profile [data-testid="stButton"] p {
+            margin:0 !important;
+            font:inherit !important;
+        }
+        section[data-testid="stMain"] [data-testid="stHorizontalBlock"]:has(.st-key-studio_dashboard_search) {
+            align-items:flex-start !important;
+        }
+        section[data-testid="stMain"] [data-testid="stHorizontalBlock"]:has(.st-key-studio_dashboard_search) > [data-testid="column"] {
+            align-self:flex-start !important;
+        }
+        .st-key-studio_dashboard_search { margin:0 !important; }
+        .st-key-studio_dashboard_search [data-testid="stTextInput"] { padding:0 !important; }
+        .st-key-studio_dashboard_notifications [data-testid="stButton"] {
+            width:100%;
+        }
+        .zd-right .zd-panel-head { margin:10px 0 7px; }
+        .zd-recent-feed-copy { display:grid; gap:4px; padding:3px 0; }
+        .zd-recent-feed-copy strong {
+            overflow:hidden;
+            color:#25344d;
+            font-size:9px;
+            text-overflow:ellipsis;
+            white-space:nowrap;
+        }
+        .zd-recent-feed-copy small { color:#78869a; font-size:8px; }
+        .st-key-studio_dashboard_notifications [data-testid="stButton"] > button {
+            box-sizing:border-box !important;
+            display:grid !important;
+            place-items:center !important;
+            position:relative !important;
+            width:36px !important;
+            min-width:36px !important;
+            height:36px !important;
+            min-height:36px !important;
+            margin:1px 0 0 auto !important;
+            padding:0 !important;
+            border-color:transparent !important;
+            background:transparent !important;
+            box-shadow:none !important;
+        }
+        .st-key-studio_dashboard_notifications [data-testid="stButton"] > button:hover {
+            background:#f2f5fa !important;
+            border-color:#e6ebf3 !important;
+        }
+        .st-key-studio_dashboard_notifications [data-testid="stButton"] > button p {
+            margin:0 !important;
+            filter:grayscale(1) brightness(.48);
+            font-size:14px !important;
+            line-height:1 !important;
+        }
+        .st-key-studio_dashboard_notifications [data-testid="stButton"] > button::after {
+            position:absolute;
+            top:7px;
+            right:7px;
+            width:7px;
+            height:7px;
+            border:1px solid #fff;
+            border-radius:50%;
+            background:#f04452;
+            content:"";
+        }
+        .zd-sidebar-promo {
+            margin:14px 2px 8px;
+            padding:12px;
+            color:#273858;
+            border:1px solid #e7e4ff;
+            background:linear-gradient(145deg,#fff7ef,#f6f0ff 70%,#edf6ff);
+            box-shadow:0 5px 14px rgba(70,75,150,.07);
+        }
+        .zd-sidebar-promo p { color:#69758c; }
+        .zd-sidebar-promo a { background:linear-gradient(100deg,#4c54e8,#16b6e6); }
+        [data-testid="stColumn"]:has([class*="st-key-studio_recent_"]) [data-testid="stImage"] img {
+            height:72px;
+            object-fit:cover;
+            border-radius:8px;
+        }
+        [class*="st-key-studio_right_recent_"] [data-testid="stButton"] > button {
+            min-height:24px !important;
+            padding:1px 5px !important;
+            font-size:8px !important;
+        }
+        [class*="st-key-studio_sidebar_action_"] [data-testid="stButton"] > button,
+        [class*="st-key-studio_library_"] [data-testid="stButton"] > button,
+        [class*="st-key-studio_resource_"] [data-testid="stButton"] > button {
+            justify-content:flex-start !important;
+            min-height:29px !important;
+            padding:0 8px !important;
+            text-align:left !important;
+            box-shadow:none !important;
+        }
+        .zd-engine-photo-card {
+            position:relative;
+            display:flex;
+            align-items:flex-end;
+            isolation:isolate;
+            min-height:88px;
+            aspect-ratio:2.65 / 1;
+            overflow:hidden;
+            padding:9px;
+            color:#fff;
+            border:1px solid #dce4ef;
+            border-radius:11px;
+            background:#182c49;
+            box-shadow:0 4px 12px rgba(35,55,84,.07);
+            text-decoration:none;
+            transition:transform .17s,box-shadow .17s;
+        }
+        .zd-engine-photo-card::before {
+            position:absolute;
+            z-index:1;
+            inset:0;
+            background:linear-gradient(90deg,rgba(8,18,37,.1),rgba(8,18,37,.04) 42%,rgba(8,18,37,.25)),
+                linear-gradient(0deg,rgba(7,16,33,.86),rgba(7,16,33,.02) 82%);
+            content:"";
+        }
+        .zd-engine-photo-card:hover {
+            transform:translateY(-2px);
+            box-shadow:0 8px 18px rgba(35,55,84,.16);
+        }
+        .zd-engine-photo-card:focus-visible {
+            outline:2px solid #6587ff;
+            outline-offset:2px;
+        }
+        .zd-engine-photo-card img {
+            position:absolute;
+            z-index:0;
+            inset:0;
+            width:100%;
+            height:100%;
+            object-fit:cover;
+        }
+        .zd-engine-photo-icon {
+            position:relative;
+            z-index:2;
+            display:grid;
+            flex:none;
+            place-items:center;
+            width:32px;
+            height:32px;
+            color:#365bd5;
+            border:1px solid rgba(255,255,255,.8);
+            border-radius:8px;
+            background:rgba(255,255,255,.97);
+            box-shadow:0 2px 8px rgba(5,14,32,.2);
+            font-size:16px;
+        }
+        .zd-engine-photo-copy {
+            position:relative;
+            z-index:2;
+            display:grid;
+            min-width:0;
+            gap:2px;
+            margin-left:8px;
+            padding-right:18px;
+        }
+        .zd-engine-photo-copy strong {
+            overflow:hidden;
+            color:#fff;
+            font-size:10px;
+            line-height:1.2;
+            text-overflow:ellipsis;
+            white-space:nowrap;
+        }
+        .zd-engine-photo-copy small {
+            display:-webkit-box;
+            overflow:hidden;
+            color:#edf2fa;
+            font-size:8px;
+            line-height:1.3;
+            -webkit-box-orient:vertical;
+            -webkit-line-clamp:2;
+        }
+        .zd-engine-photo-arrow {
+            position:absolute;
+            z-index:2;
+            right:8px;
+            bottom:8px;
+            display:grid;
+            place-items:center;
+            width:20px;
+            height:20px;
+            color:#fff;
+            border:1px solid rgba(255,255,255,.5);
+            border-radius:50%;
+            background:rgba(12,25,45,.45);
+            font-size:12px;
+        }
+        @media (max-width:760px) {
+            section[data-testid="stMain"] .block-container { padding:6px 10px 16px !important; }
+            .st-key-studio_hero_container { min-height:0; padding:17px 12px 18px !important; }
+            .st-key-studio_hero_container .zd-hero { min-height:0; padding:0; }
+            .st-key-studio_hero_prompt_form { margin:12px 0 0; }
+            .st-key-studio_creation_type_choices [data-testid="stHorizontalBlock"] { gap:6px !important; }
+            .st-key-studio_creation_type_choices [data-testid="stButton"] > button {
+                min-height:32px !important;
+                padding:0 8px !important;
+                font-size:8px !important;
+                white-space:normal !important;
+            }
+            .zd-hero h1 { white-space:normal; }
+        }
+        @media (max-width:760px) {
+            section[data-testid="stMain"] .block-container { padding:6px 10px 16px !important; }
+            .st-key-studio_hero_prompt_form { margin:12px 0 0; }
+        }
+        .zovix-dashboard, .zd-footer {
+            font-family:'Inter',sans-serif;
+        }
+        .zd-nav-label {
+            font-size:10px;
+            letter-spacing:.1em;
+        }
+        .studio-sidebar-section-label {
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            gap:8px;
+            width:100%;
+            margin:14px 0 8px;
+            color:#5368de;
+            font:750 11px/1.25 'Inter',sans-serif;
+            letter-spacing:.12em;
+            text-align:center;
+            text-transform:uppercase;
+        }
+        .studio-sidebar-section-label::before,
+        .studio-sidebar-section-label::after {
+            flex:1 1 auto;
+            height:1px;
+            max-width:30px;
+            background:linear-gradient(90deg,transparent,rgba(42,184,211,.65));
+            content:"";
+        }
+        .studio-sidebar-section-label::after {
+            background:linear-gradient(90deg,rgba(108,86,235,.65),transparent);
+        }
+        .zd-studio-brand,
+        .zd-studio-brand .zd-brand {
+            width:100%;
+            justify-content:center;
+            text-align:center;
+        }
+        .zd-studio-brand .zd-brand { gap:9px; }
+        .zd-brand-name {
+            color:#4259c9;
+            background:linear-gradient(100deg,#19b8d0,#6457e8 75%);
+            -webkit-background-clip:text;
+            background-clip:text;
+            -webkit-text-fill-color:transparent;
+        }
+        .zd-brand-sub {
+            color:#536783;
+            font-size:8px;
+            letter-spacing:.16em;
+        }
+        .zd-nav a {
+            min-height:36px;
+            font-size:12px;
+            line-height:1.35;
+        }
+        .zd-breadcrumb, .zd-user { font-size:12px; }
+        .zd-brand-sub { font-size:8px; }
+        .zd-hero-kicker { font-size:12px; }
+        .zd-hero p {
+            font-size:13px;
+            line-height:1.6;
+        }
+        .zd-hero-actions a {
+            min-height:38px;
+            padding:0 14px;
+            border-radius:999px;
+            font-size:12px;
+            font-weight:650;
+        }
+        .zd-hero-tags span {
+            padding:6px 10px;
+            font-size:10px !important;
+        }
+        .zd-section-head h2, .zd-lower-head h2 { font-size:17px; }
+        .zd-section-head p, .zd-lower-head p {
+            font-size:12px;
+            line-height:1.5;
+        }
+        .zd-section-head a, .zd-lower-head a { font-size:12px; }
+        .zd-engine-copy strong { font-size:12px; line-height:1.3; }
+        .zd-engine-copy small { font-size:10px !important; line-height:1.45; }
+        .zd-recent-copy strong, .zd-recent-feed-copy strong {
+            font-size:11px;
+            line-height:1.35;
+        }
+        .zd-recent-copy small, .zd-recent-feed-copy small { font-size:10px; }
+        .zd-future-copy small { font-size:9px; }
+        .zd-future-copy strong { font-size:12px; line-height:1.4; }
+        .zd-future-copy p, .zd-community-note {
+            font-size:11px;
+            line-height:1.5;
+        }
+        .zd-community-card strong { font-size:11px; }
+        .zd-footer { font-size:10px; }
+        .zd-panel-head { font-size:12px; }
+        .zd-balance small, .zd-plan small { font-size:10px; }
+        .zd-plan strong, .zd-mini-stats strong { font-size:11px; }
+        .zd-plan a { font-size:10px; }
+        .zd-mini-stats div { font-size:9px; }
+        .zd-action-list a {
+            min-height:36px;
+            font-size:12px;
+        }
+        .zd-sidebar-promo strong { font-size:13px; }
+        .zd-sidebar-promo p { font-size:11px; line-height:1.5; }
+        .zd-sidebar-promo a { font-size:11px; }
+        .st-key-studio_hero_prompt_form [data-testid="stRadio"] label {
+            min-height:30px;
+            padding:5px 10px;
+            font-size:11px;
+        }
+        section[data-testid="stMain"] [data-testid="stButton"] > button {
+            min-height:38px !important;
+            padding:8px 12px !important;
+            font:600 12px/1.4 'Inter',sans-serif !important;
+            letter-spacing:0 !important;
+            text-transform:none !important;
+        }
+        section[data-testid="stMain"] [data-testid="stButton"] > button p {
+            font:inherit !important;
+            letter-spacing:inherit !important;
+        }
+        [class*="st-key-studio_sidebar_action_"] [data-testid="stButton"] > button,
+        [class*="st-key-studio_library_"] [data-testid="stButton"] > button,
+        [class*="st-key-studio_resource_"] [data-testid="stButton"] > button {
+            min-height:36px !important;
+            padding:7px 10px !important;
+        }
+        .st-key-studio_add_credits_inline [data-testid="stButton"] > button,
+        .st-key-studio_upgrade_inline [data-testid="stButton"] > button {
+            min-height:34px !important;
+            padding:6px 8px !important;
+            font-size:11px !important;
+        }
+        [class*="st-key-studio_right_recent_"] [data-testid="stButton"] > button {
+            min-height:30px !important;
+            padding:5px 8px !important;
+            font-size:10px !important;
+        }
+        .st-key-studio_hero_prompt_form [data-testid="stFormSubmitButton"] > button {
+            min-height:40px !important;
+            font-size:13px !important;
+            font-weight:700 !important;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    sidebar_groups = [
+        ("WORKSPACE", [
+            ("🏠", "Dashboard", "?page=studio", True),
+            ("🎬", "Cinematic", f"?page=studio_mode&amp;mode={urllib.parse.quote('Cinematic Engine', safe='')}", False),
+            ("👤", "Face Studio", f"?page=studio_mode&amp;mode={urllib.parse.quote('Face Video Mode', safe='')}", False),
+            ("🎨", "Creative Workshop", f"?page=studio_mode&amp;mode={urllib.parse.quote('Creative Workshop Mode', safe='')}", False),
+            ("⬡", "Blueprint", f"?page=studio_mode&amp;mode={urllib.parse.quote('Blueprints Mode', safe='')}", False),
+            ("✏️", "Draw", f"?page=studio_mode&amp;mode={urllib.parse.quote('Draw Mode', safe='')}", False),
+            ("✂️", "Editor", f"?page=studio_mode&amp;mode={urllib.parse.quote('Video Editor Mode', safe='')}", False),
+            ("🤖", "AI Agent", f"?page=studio_mode&amp;mode={urllib.parse.quote('AI Agent Mode', safe='')}", False),
+            ("📣", "Sales Video", f"?page=studio_mode&amp;mode={urllib.parse.quote('AI Sales Mode', safe='')}", False),
+            ("💜", "Live Emotions", f"?page=studio_mode&amp;mode={urllib.parse.quote('Live Emotion Mode', safe='')}", False),
+            ("⚡", "Upscaler", f"?page=studio_mode&amp;mode={urllib.parse.quote('Upscaler Mode', safe='')}", False),
+        ]),
+        ("LIBRARY", [
+            ("▣", "My Creations", "?page=portfolio", False),
+            ("◷", "History", "?page=portfolio", False),
+        ]),
+    ]
+    sidebar_nav_html = []
+    for group_title, links in sidebar_groups:
+        sidebar_nav_html.append(f"<div class='zd-nav-label'>{group_title}</div><nav class='zd-nav'>")
+        sidebar_nav_html.extend(
+            f"<a class='{'active' if active else ''}' href='{href}'><span class='zd-nav-icon'>{icon}</span>{label}</a>"
+            for icon, label, href, active in links
+        )
+        sidebar_nav_html.append("</nav>")
+        if group_title == "WORKSPACE":
+            sidebar_nav_html.append("<div class='zd-nav-rule'></div>")
+
+    recent_html = "".join(recent_cards)
+    avatar_initials = f"<span class='zd-avatar'>{avatar_initial}</span>"
+    dashboard_html = f"""
+    <div class="zovix-dashboard">
+      <aside class="zd-sidebar">
+        <a class="zd-brand" href="?page=studio"><span class="zd-brand-mark">Z</span><span><span class="zd-brand-name">ZOVIX</span><small class="zd-brand-sub">AI CREATIVE STUDIO</small></span></a>
+        {''.join(sidebar_nav_html)}
+        <div class="zd-nav-label">TOOLS &amp; RESOURCES</div>
+        <nav class="zd-nav">
+          <a href="?page=landing#how-it-works"><span class="zd-nav-icon">▤</span>Tutorials</a>
+          <a href="?page=landing#engines"><span class="zd-nav-icon">ⓘ</span>Documentation</a>
+          <a href="?page=landing#about"><span class="zd-nav-icon">◉</span>Community</a>
+        </nav>
+        <div class="zd-sidebar-promo"><strong>👑 Go Pro</strong><p>Unlock more creative power and explore every ZOVIX engine.</p><a href="?page=payments">Explore plans →</a></div>
+      </aside>
+      <main class="zd-main">
+        <header class="zd-topbar"><span class="zd-breadcrumb">Workspace&nbsp; / &nbsp;Dashboard</span><a class="zd-user" href="?page=profile">{avatar_initials}<span>{safe_name}<small style="display:block;color:#FFFFFF;font-size:8px;font-weight:500;margin-top:2px">{plan_name}</small></span>⌄</a></header>
+        <section class="zd-hero" style="background-image:url('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&amp;fit=crop&amp;w=1600&amp;q=88')">
+          <div class="zd-hero-copy"><div class="zd-hero-kicker">Welcome back, {safe_name} 👋</div><h1>What do you want to<br><span>create</span> today?</h1>
+          <p>Turn your imagination into stunning visuals, videos, characters and voices — all with the power of ZOVIX AI.</p>
+          <div class="zd-hero-actions"><a class="primary" href="?page=studio_mode&amp;mode=Cinematic%20Engine">✦&nbsp; Create New Project</a><a href="?page=portfolio">▣&nbsp; My Creations</a></div>
+          <div class="zd-hero-tags"><span>✦ Cinematic Scene</span><span>♙ Character</span><span>▧ Image</span><span>♫ Voice</span><span>▶ Video</span></div></div>
+        </section>
+        <div class="zd-section-head"><div><h2>AI Engines</h2><p>{len(engine_cards)} specialized engines. Endless creative possibilities.</p></div><a href="?page=studio#engines">View all engines&nbsp; →</a></div>
+        <section class="zd-engine-grid" id="engines">{engine_cards_html}</section>
+        <div class="zd-section-head"><div><h2>Recent Creations</h2><p>{len(dashboard_history)} recent items from your workspace.</p></div><a href="?page=portfolio">View all&nbsp; →</a></div>
+        <section class="zd-recent-grid">{recent_html}</section>
+        <section class="zd-lower-section" id="studio-future">
+          <div class="zd-lower-head"><div><h2>What’s Ahead</h2><p>Product priorities we’re exploring for the ZOVIX studio.</p></div><span>Future</span></div>
+          <div class="zd-future-grid">
+            <article class="zd-future-card"><img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&amp;fit=crop&amp;w=480&amp;q=78" alt="Team planning product improvements" loading="lazy"><div class="zd-future-copy"><small>NOW · EXPERIENCE</small><strong>Simpler creative workflows</strong><p>Make it easier to choose an engine and move from idea to result.</p></div></article>
+            <article class="zd-future-card"><img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&amp;fit=crop&amp;w=480&amp;q=78" alt="Creative team collaborating" loading="lazy"><div class="zd-future-copy"><small>NEXT · CREATION</small><strong>More connected tools</strong><p>Explore smoother ways to refine and continue creative projects.</p></div></article>
+            <article class="zd-future-card"><img src="https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&amp;fit=crop&amp;w=480&amp;q=78" alt="Modern creative workspace" loading="lazy"><div class="zd-future-copy"><small>EXPLORING · PLATFORM</small><strong>A connected creator studio</strong><p>Improve project organization, previews and handoffs.</p></div></article>
+          </div>
+          <p class="zd-community-note">These are product priorities, not promised release dates. Scope and timing may change.</p>
+        </section>
+        <section class="zd-lower-section" id="studio-community">
+          <div class="zd-lower-head"><div><h2>Community Inspiration</h2><p>Ideas and visual references to spark your next creation.</p></div><a href="?page=studio#engines">Explore AI engines&nbsp; →</a></div>
+          <div class="zd-community-grid">
+            <a class="zd-community-card" href="?page=studio_mode&amp;mode=Cinematic%20Engine" style="--community-image:url('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&amp;fit=crop&amp;w=560&amp;q=80')"><strong>Into the wild · Cinematic</strong></a>
+            <a class="zd-community-card" href="?page=studio_mode&amp;mode=Creative%20Workshop%20Mode" style="--community-image:url('https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&amp;fit=crop&amp;w=560&amp;q=80')"><strong>Quiet reflections · Visual concept</strong></a>
+            <a class="zd-community-card" href="?page=studio_mode&amp;mode=Blueprints%20Mode" style="--community-image:url('https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&amp;fit=crop&amp;w=560&amp;q=80')"><strong>The last light · Scene idea</strong></a>
+          </div>
+          <p class="zd-community-note">Illustrative inspiration photography, not user-submitted community creations. Try one of the <a href="?page=studio#engines">AI engines above</a> to start your own project.</p>
+        </section>
+      </main>
+      <aside class="zd-right">
+        <section class="zd-panel"><div class="zd-panel-head"><span>✨ Credits Balance</span><a href="?page=payments" style="color:#5365df;text-decoration:none">＋ Add</a></div>
+          <div class="zd-balance"><span class="zd-balance-icon">✦</span><span><strong>{credit_balance:,}</strong><small>Available credits</small></span></div>
+          <div class="zd-plan"><span><strong>{plan_name}</strong><small>{'Active subscription' if subscription_active else 'Upgrade for more power'}</small></span><a href="?page=payments">{'Manage' if subscription_active else 'Upgrade'}</a></div>
+          <div class="zd-mini-stats"><div><strong>{len(engine_cards)}</strong><span>AI Engines</span></div><div><strong>HD</strong><span>Quality</span></div><div><strong>Fast</strong><span>Processing</span></div></div>
+        </section>
+        <section class="zd-panel"><div class="zd-panel-head">Quick Actions</div><div class="zd-action-list">
+          <a href="?page=portfolio"><span>▣</span>Portfolio</a>
+          <a href="?page=portfolio"><span>▣</span>My Creations</a>
+          <a href="?page=landing#how-it-works"><span>▶</span>Watch Tutorial</a>
+          <a href="?page=landing#about"><span>♧</span>Explore ZOVIX</a>
+        </div></section>
+        <a href="?page=logout" style="color:#78869a;text-align:right;text-decoration:none;font-size:9px;padding:1px 4px">↩ Log out</a>
+      </aside>
+    </div>
+    <footer class="zd-footer"><span>© 2026 ZOVIX · AI Creative Studio</span><nav class="zd-footer-links" aria-label="Studio footer">
+      <a href="?page=studio#engines">AI Engines</a><a href="#studio-community">Community</a><a href="#studio-future">Future</a><a href="#studio-privacy-policy">Privacy Policy ↓</a>
+    </nav></footer>
+    """
+    def _dashboard_go(action):
+        if action.startswith("mode:"):
+            handle_engine_access_request(action.partition(":")[2])
+            return
+        if action == "logout":
+            st.session_state["is_logged_in"] = False
+            st.session_state["2fa_verified"] = False
+            st.session_state.pop("auth_redirect_mode", None)
+            st.session_state["current_page"] = "landing"
+            st.query_params.clear()
+            st.rerun()
+            return
+
+        page = "tutorials" if action == "help" else action
+        st.session_state["current_page"] = page
+        if page == "landing":
+            st.session_state.pop("auth_redirect_mode", None)
+            st.query_params.clear()
+        else:
+            st.query_params["page"] = page
+        if page in {"factory", "portfolio", "scheduler", "subusers"}:
+            st.session_state["standalone_return_sidebar_tab"] = "🚀 Zovix Mass Factory"
+        st.rerun()
+
+    if st.session_state.pop("studio_clear_search_next", False):
+        st.session_state["studio_dashboard_search"] = ""
+
+    dashboard_columns = st.columns([0.20, 0.56, 0.24], gap="small")
+    with dashboard_columns[0]:
+        st.markdown(
+            "<div class='zd-studio-brand'><div class='zd-brand'><span class='zd-brand-mark'>Z</span><span>"
+            "<span class='zd-brand-name'>ZOVIX</span><small class='zd-brand-sub'>AI CREATIVE STUDIO</small>"
+            "</span></div></div>",
+            unsafe_allow_html=True,
+        )
+        sidebar_actions = [
+            ("🏠  Dashboard", "studio"),
+            ("🎬  Cinematic", "mode:Cinematic Engine"),
+            ("👤  Face Studio", "mode:Face Video Mode"),
+            ("🎨  Creative Workshop", "mode:Creative Workshop Mode"),
+            ("⬡  Blueprint", "mode:Blueprints Mode"),
+            ("✏️  Draw", "mode:Draw Mode"),
+            ("✂️  Editor", "mode:Video Editor Mode"),
+            ("🤖  AI Agent", "mode:AI Agent Mode"),
+            ("📣  Sales Video", "mode:AI Sales Mode"),
+            ("🧠  Dynamic UI", "mode:Dynamic UI Mode"),
+            ("💜  Live Emotions", "mode:Live Emotion Mode"),
+        ]
+        for index, (label, action) in enumerate(sidebar_actions):
+            if st.button(label, key=f"studio_sidebar_action_{index}", width="stretch"):
+                _dashboard_go(action)
+        st.markdown(
+            "<div class='studio-sidebar-section-label'>Library</div>",
+            unsafe_allow_html=True,
+        )
+        for label, route in [
+            ("☆  Favorites", "favorites"),
+            ("◷  History", "portfolio"),
+        ]:
+            if st.button(label, key=f"studio_library_{route}_{label}", width="stretch"):
+                if route == "favorites":
+                    st.session_state["studio_favorites_only"] = not st.session_state.get(
+                        "studio_favorites_only", False
+                    )
+                    st.rerun()
+                else:
+                    st.session_state["studio_favorites_only"] = False
+                    _dashboard_go(route)
+        st.markdown(
+            "<div class='studio-sidebar-section-label'>Tools &amp; Resources</div>",
+            unsafe_allow_html=True,
+        )
+        for label, action in [
+            ("▤  Tutorials", "help"),
+            ("ⓘ  Documentation", "documentation"),
+            ("♧  Community", "community"),
+            ("?  Support", "support"),
+        ]:
+            if st.button(label, key=f"studio_resource_{label}", width="stretch"):
+                _dashboard_go(action)
+        st.divider()
+        st.markdown(
+            "<div class='zd-sidebar-promo'><strong>👑 Go Pro</strong>"
+            "<p>Unlock more creative power and priority processing.</p>"
+            "<a href='?page=payments'>Upgrade Now →</a></div>",
+            unsafe_allow_html=True,
+        )
+        if st.button("↩ Log out", key="studio_sidebar_logout", width="stretch"):
+            _dashboard_go("logout")
+
+    with dashboard_columns[1]:
+        search_query = st.text_input(
+            "Search Studio",
+            placeholder="Search anything... (e.g. create a cinematic scene)",
+            key="studio_dashboard_search",
+            label_visibility="collapsed",
+        ).strip().casefold()
+
+        if notice := st.session_state.pop("studio_dashboard_notice", None):
+            st.info(notice)
+
+        with st.container(key="studio_hero_container"):
+            st.markdown(
+                f"""
+                <section class="zd-hero">
+                  <div class="zd-hero-copy"><div class="zd-hero-kicker">Welcome back, {safe_name} 👋</div>
+                  <h1>What do you want to <span>create</span> today?</h1>
+                  <p>Turn your imagination into stunning visuals, videos, characters and voices — all with the power of ZOVIX AI.</p>
+                  </div>
+                </section>
+                """,
+                unsafe_allow_html=True,
+            )
+            with st.form("studio_hero_prompt_form", border=False):
+                prompt_columns = st.columns([0.8, 0.2], gap="small")
+                with prompt_columns[0]:
+                    dashboard_prompt = st.text_input(
+                        "Describe your idea",
+                        placeholder="e.g. Create a cinematic scene of a warrior in a fantasy world...",
+                        key="studio_dashboard_prompt",
+                        label_visibility="collapsed",
+                    )
+                with prompt_columns[1]:
+                    prompt_submitted = st.form_submit_button(
+                        "✦ Generate",
+                        type="primary",
+                        width="stretch",
+                    )
+            creation_options = [
+                ("Cinematic Scene", "◉  Cinematic Scene"),
+                ("Character", "♙  Character"),
+                ("Image", "▧  Image"),
+                ("Voice", "♫  Voice"),
+                ("Video", "▶  Video"),
+            ]
+            st.session_state.setdefault("studio_quick_creation_type", "Cinematic Scene")
+            creation_type = st.session_state["studio_quick_creation_type"]
+            with st.container(key="studio_creation_type_choices"):
+                creation_columns = st.columns(5, gap="small")
+                for index, (column, (option, label)) in enumerate(zip(creation_columns, creation_options)):
+                    with column:
+                        if st.button(
+                            label,
+                            key=f"studio_creation_type_{index}",
+                            type="primary" if creation_type == option else "secondary",
+                            width="stretch",
+                        ):
+                            st.session_state["studio_quick_creation_type"] = option
+                            st.rerun()
+        if prompt_submitted:
+            if not dashboard_prompt.strip():
+                st.error("Enter a prompt before starting a project.")
+            else:
+                selected_mode = {
+                    "Cinematic Scene": "Cinematic Engine",
+                    "Character": "Face Video Mode",
+                    "Image": "Creative Workshop Mode",
+                    "Voice": "Live Emotion Mode",
+                    "Video": "Cinematic Engine",
+                }[creation_type]
+                st.session_state["studio_prompt_value"] = dashboard_prompt.strip()
+                st.session_state["user_prompt"] = dashboard_prompt.strip()
+                st.session_state["studio_mode_radio"] = "💡 Autonomous AI Topic"
+                _dashboard_go(f"mode:{selected_mode}")
+
+        engine_header_columns = st.columns([0.77, 0.23], gap="small")
+        with engine_header_columns[0]:
+            st.markdown(
+                "<div class='zd-section-head'><div><h2>AI Engines</h2>"
+                f"<p>{len(engine_cards)} specialized engines. Endless creative possibilities.</p></div></div>",
+                unsafe_allow_html=True,
+            )
+        with engine_header_columns[1]:
+            show_all_engines = st.session_state.get("studio_show_all_engines", False)
+            if st.button(
+                "Show less ↑" if show_all_engines else "View all engines →",
+                key="studio_view_all_engines",
+                width="stretch",
+            ):
+                st.session_state["studio_show_all_engines"] = not show_all_engines
+                st.rerun()
+        engine_pool = engine_cards if (search_query or st.session_state.get("studio_show_all_engines", False)) else engine_cards[:9]
+        visible_engines = [
+            card for card in engine_pool
+            if not search_query
+            or search_query in card[1].casefold()
+            or search_query in card[2].casefold()
+            or search_query in card[3].casefold()
+        ]
+        for row_start in range(0, len(visible_engines), 3):
+            engine_columns = st.columns(3, gap="small")
+            for column, card in zip(
+                engine_columns,
+                visible_engines[row_start:row_start + 3],
+            ):
+                icon, title, mode, description, image = card
+                with column:
+                    supplied_image = {
+                        0: "studio_cinematic_engine.png",
+                        1: "studio_face_generate.png",
+                        2: "studio_creative_workshop_engine.png",
+                        3: "studio_blueprint_engine.jpg",
+                        4: "studio_draw_engine.png",
+                        5: "studio_editor_engine.png",
+                        7: "studio_sales_engine.png",
+                        6: "studio_ai_agent_engine.jpg",
+                        9: "studio_live_emotions_engine.png",
+                        8: "studio_dynamic_ui_engine.jpg",
+                    }.get(engine_cards.index(card))
+                    image_source = (
+                        f"/app/static/{supplied_image}"
+                        if supplied_image and os.path.isfile(os.path.join("static", supplied_image))
+                        else f"https://images.unsplash.com/{image}?auto=format&fit=crop&w=900&q=82"
+                    )
+                    engine_mode_url = urllib.parse.quote(mode, safe="")
+                    st.markdown(
+                        f"<a class='zd-engine-photo-card' href='?page=studio_mode&amp;mode={engine_mode_url}' "
+                        f"aria-label='{html_lib.escape(title, quote=True)}: "
+                        f"{html_lib.escape(description, quote=True)}'>"
+                        f"<img src='{html_lib.escape(image_source, quote=True)}' alt='' loading='lazy'>"
+                        f"<span class='zd-engine-photo-icon' aria-hidden='true'>{html_lib.escape(icon)}</span>"
+                        "<span class='zd-engine-photo-copy'>"
+                        f"<strong>{html_lib.escape(title)}</strong>"
+                        f"<small>{html_lib.escape(description)}</small></span>"
+                        "<span class='zd-engine-photo-arrow' aria-hidden='true'>›</span></a>",
+                        unsafe_allow_html=True,
+                    )
+        if search_query and not visible_engines:
+            st.info("No AI engines match your search.")
+
+        st.markdown(
+            "<div class='zd-section-head'><div><h2>Your Creations</h2>"
+            "<p>Manage and access your generated content.</p></div></div>",
+            unsafe_allow_html=True,
+        )
+        favorite_keys = set(st.session_state.get("studio_favorite_keys", []))
+        visible_history = [
+            (index, item)
+            for index, item in enumerate(dashboard_history)
+            if (
+                not search_query
+                or search_query in str(item.get("file_name", "")).casefold()
+                or search_query in str(
+                    item.get("generation_type") or item.get("portfolio_type") or item.get("quality") or ""
+                ).casefold()
+                or search_query in str(item.get("prompt", "")).casefold()
+            )
+            and (
+                not st.session_state.get("studio_favorites_only", False)
+                or str(
+                    item.get("path") or item.get("face_path") or item.get("video_path") or item.get("file_name", "")
+                ) in favorite_keys
+            )
+        ]
+        if visible_history:
+            for row_start in range(0, len(visible_history), 5):
+                recent_columns = st.columns(5, gap="small")
+                for column, (index, item) in zip(
+                    recent_columns,
+                    visible_history[row_start:row_start + 5],
+                ):
+                    title = str(item.get("file_name", "Untitled creation"))
+                    item_path = str(
+                        item.get("path") or item.get("face_path") or item.get("video_path") or ""
+                    )
+                    favorite_key = item_path or title
+                    with column:
+                        extension = os.path.splitext(item_path.split("?", 1)[0])[1].lower()
+                        if item_path and os.path.isfile(item_path) and extension in {
+                            ".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp"
+                        }:
+                            st.image(item_path, width="stretch")
+                        else:
+                            st.markdown(
+                                "<div class='zd-recent-placeholder'>✦<small>CREATION</small></div>",
+                                unsafe_allow_html=True,
+                            )
+                        st.markdown(
+                            f"<div class='zd-recent-copy'><strong>{html_lib.escape(title)}</strong>"
+                            f"<small>{html_lib.escape(str(item.get('generation_type') or item.get('portfolio_type') or item.get('quality') or 'AI creation'))}</small></div>",
+                            unsafe_allow_html=True,
+                        )
+                        recent_actions = st.columns([0.75, 0.25], gap="small")
+                        with recent_actions[0]:
+                            if st.button(
+                                f"Open {title[:22]}",
+                                key=f"studio_recent_{index}",
+                                width="stretch",
+                            ):
+                                st.session_state["portfolio_return_sidebar_tab"] = "🚀 Zovix Mass Factory"
+                                st.session_state["studio_favorites_only"] = False
+                                _dashboard_go("portfolio")
+                        with recent_actions[1]:
+                            if st.button(
+                                "★" if favorite_key in favorite_keys else "☆",
+                                key=f"studio_favorite_{index}",
+                                help="Remove from favorites" if favorite_key in favorite_keys else "Add to favorites",
+                                width="stretch",
+                            ):
+                                if favorite_key in favorite_keys:
+                                    favorite_keys.remove(favorite_key)
+                                else:
+                                    favorite_keys.add(favorite_key)
+                                st.session_state["studio_favorite_keys"] = sorted(favorite_keys)
+                                st.rerun()
+            if st.button("View all creations", key="studio_recent_all", width="stretch"):
+                st.session_state["studio_favorites_only"] = False
+                _dashboard_go("portfolio")
+        elif search_query or st.session_state.get("studio_favorites_only", False):
+            st.info("No creations match these filters.")
+        else:
+            st.info("Your creations will appear here after you generate your first project.")
+
+        st.markdown(
+            """
+            <section class="zd-lower-section" id="studio-future">
+              <div class="zd-lower-head">
+                <div><h2>What’s Ahead</h2><p>Product priorities we’re exploring for the ZOVIX studio.</p></div>
+                <span>Future</span>
+              </div>
+              <div class="zd-future-grid">
+                <article class="zd-future-card">
+                  <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&amp;fit=crop&amp;w=480&amp;q=78" alt="Team planning product improvements" loading="lazy">
+                  <div class="zd-future-copy"><small>NOW · EXPERIENCE</small><strong>Simpler creative workflows</strong><p>Make it easier to choose an engine and move from idea to result.</p></div>
+                </article>
+                <article class="zd-future-card">
+                  <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&amp;fit=crop&amp;w=480&amp;q=78" alt="Creative team collaborating" loading="lazy">
+                  <div class="zd-future-copy"><small>NEXT · CREATION</small><strong>More connected tools</strong><p>Explore smoother ways to refine and continue creative projects.</p></div>
+                </article>
+                <article class="zd-future-card">
+                  <img src="https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&amp;fit=crop&amp;w=480&amp;q=78" alt="Modern creative workspace" loading="lazy">
+                  <div class="zd-future-copy"><small>EXPLORING · PLATFORM</small><strong>A connected creator studio</strong><p>Improve project organization, previews and handoffs.</p></div>
+                </article>
+              </div>
+              <p class="zd-community-note">These are product priorities, not promised release dates. Scope and timing may change.</p>
+            </section>
+            <section class="zd-lower-section" id="studio-community">
+              <div class="zd-lower-head">
+                <div><h2>Community Creations</h2><p>Visual inspiration to spark your next project.</p></div>
+                <a href="?page=studio#engines">Explore AI engines&nbsp; →</a>
+              </div>
+              <div class="zd-community-grid">
+                <a class="zd-community-card" href="?page=studio_mode&amp;mode=Cinematic%20Engine" style="--community-image:url('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&amp;fit=crop&amp;w=560&amp;q=80')"><strong>Into the wild · Cinematic</strong></a>
+                <a class="zd-community-card" href="?page=studio_mode&amp;mode=Creative%20Workshop%20Mode" style="--community-image:url('https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&amp;fit=crop&amp;w=560&amp;q=80')"><strong>Quiet reflections · Visual concept</strong></a>
+                <a class="zd-community-card" href="?page=studio_mode&amp;mode=Blueprints%20Mode" style="--community-image:url('https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&amp;fit=crop&amp;w=560&amp;q=80')"><strong>The last light · Scene idea</strong></a>
+              </div>
+              <p class="zd-community-note">Illustrative inspiration photography, not member-submitted creations. Start your own project with one of the <a href="?page=studio#engines">AI engines above</a>.</p>
+            </section>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        footer_columns = st.columns(4, gap="small")
+        with footer_columns[0]:
+            if st.button("AI Engines", key="studio_footer_engines", width="stretch"):
+                st.session_state["studio_clear_search_next"] = True
+                st.rerun()
+        with footer_columns[1]:
+            if st.button("Community", key="studio_footer_community", width="stretch"):
+                _dashboard_go("community")
+        with footer_columns[2]:
+            if st.button("Future", key="studio_footer_future", width="stretch"):
+                st.session_state["studio_footer_notice"] = "Future items are product priorities, not promised release dates."
+                st.rerun()
+        with footer_columns[3]:
+            if st.button("Privacy Policy", key="studio_footer_privacy", width="stretch"):
+                st.session_state["show_studio_privacy_policy"] = not st.session_state.get("show_studio_privacy_policy", False)
+                st.rerun()
+        footer_notice = st.session_state.pop("studio_footer_notice", None)
+        if footer_notice:
+            st.info(footer_notice)
+        if st.session_state.get("show_studio_privacy_policy", False):
+            show_privacy_policy()
+
+    with dashboard_columns[2]:
+        topbar_columns = st.columns([0.68, 0.32], gap="small")
+        with topbar_columns[0]:
+            if st.button("🔔", key="studio_dashboard_notifications", width="stretch"):
+                st.toast("You're all caught up.")
+        with topbar_columns[1]:
+            if safe_profile_avatar:
+                st.markdown(
+                    f"<style>.st-key-studio_account_profile [data-testid='stButton'] > button "
+                    f"{{background-image:url('data:image/jpeg;base64,{safe_profile_avatar}') !important;"
+                    "background-size:cover !important;background-position:center !important;"
+                    "color:transparent !important;font-size:0 !important;}}</style>",
+                    unsafe_allow_html=True,
+                )
+            if st.button(
+                avatar_initial,
+                key="studio_account_profile",
+                width="stretch",
+                help=f"Open {display_name}'s profile",
+            ):
+                _dashboard_go("profile")
+        with st.container(key="studio_credits_panel"):
+            st.markdown("<div class='zd-panel-head'>✨ Credits Balance</div>", unsafe_allow_html=True)
+            with st.container(key="studio_credit_amount_row"):
+                credit_columns = st.columns([0.48, 0.52], gap="small")
+                with credit_columns[0]:
+                    st.markdown(
+                        f"<div class='zd-balance'><span class='zd-balance-icon'>✦</span>"
+                        f"<span><strong>{credit_balance:,}</strong><small>Available credits</small></span></div>",
+                        unsafe_allow_html=True,
+                    )
+                with credit_columns[1]:
+                    if st.button(
+                        "＋ Add Credits",
+                        key="studio_add_credits_inline",
+                        width="stretch",
+                    ):
+                        _dashboard_go("payments")
+
+            with st.container(key="studio_plan_row"):
+                plan_columns = st.columns([0.64, 0.36], gap="small")
+                with plan_columns[0]:
+                    st.markdown(
+                        f"<div class='zd-plan'><span class='zd-plan-copy'><strong>{plan_name}</strong>"
+                        f"<small>{'Active subscription' if subscription_active else 'Upgrade for more power'}</small>"
+                        f"</span></div>",
+                        unsafe_allow_html=True,
+                    )
+                with plan_columns[1]:
+                    if st.button(
+                        "Manage" if subscription_active else "Upgrade",
+                        key="studio_upgrade_inline",
+                        width="stretch",
+                    ):
+                        _dashboard_go("payments")
+            st.markdown(
+                f"<div class='zd-mini-stats'><div><strong>{len(engine_cards)}</strong><span>AI Engines</span></div>"
+                "<div><strong>HD</strong><span>Quality</span></div><div><strong>Fast</strong><span>Processing</span></div></div>",
+                unsafe_allow_html=True,
+            )
+        st.markdown("<div class='zd-panel-head'>Quick Actions</div>", unsafe_allow_html=True)
+        for index, (label, action) in enumerate([
+            ("▣ Portfolio", "portfolio"),
+            ("👥 Sub Users", "subusers"),
+            ("◷ Scheduler", "scheduler"),
+            ("▣ My Creations", "portfolio"),
+            ("▶ Watch Tutorial", "help"),
+            ("♧ Join Community", "community"),
+        ]):
+            if st.button(label, key=f"studio_quick_action_{index}", width="stretch"):
+                _dashboard_go(action)
+        st.markdown("<div class='zd-panel-head'>Recent Creations</div>", unsafe_allow_html=True)
+        if dashboard_history:
+            for index, item in enumerate(dashboard_history[:5]):
+                title = html_lib.escape(str(item.get("file_name") or "Untitled creation"))
+                item_path = str(item.get("path") or item.get("face_path") or item.get("video_path") or "")
+                item_type = html_lib.escape(str(
+                    item.get("generation_type") or item.get("portfolio_type") or "AI creation"
+                ))
+                recent_columns = st.columns([0.28, 0.72], gap="small")
+                with recent_columns[0]:
+                    extension = os.path.splitext(item_path.split("?", 1)[0])[1].lower()
+                    if item_path and os.path.isfile(item_path) and extension in {
+                        ".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp"
+                    }:
+                        st.image(item_path, width="stretch")
+                    else:
+                        st.markdown(
+                            "<div class='zd-recent-placeholder'>✦</div>",
+                            unsafe_allow_html=True,
+                        )
+                with recent_columns[1]:
+                    st.markdown(
+                        f"<div class='zd-recent-feed-copy'><strong>{title}</strong>"
+                        f"<small>{item_type}</small></div>",
+                        unsafe_allow_html=True,
+                    )
+                    if st.button("Open", key=f"studio_right_recent_{index}", width="stretch"):
+                        st.session_state["portfolio_return_sidebar_tab"] = "🚀 Zovix Mass Factory"
+                        _dashboard_go("portfolio")
+        else:
+            st.caption("Your generated work will appear here.")
+
+    st.stop()
 
     with st.sidebar.expander("🟢 System Health", expanded=False):
         health = system_health_check()

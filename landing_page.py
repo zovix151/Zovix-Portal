@@ -1640,7 +1640,7 @@ class WorldClassLandingPage:
             border-radius: 28px 120px 28px 120px;
             background:
                 linear-gradient(180deg, rgba(9, 20, 31, .08) 10%, rgba(9, 20, 31, .22) 42%, rgba(9, 20, 31, .88) 100%),
-                url('https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?auto=format&fit=crop&w=1500&q=90') center 48%/cover;
+                url('/app/static/studio_cinematic_story_background.png') center 48%/cover;
             box-shadow: 0 34px 70px rgba(20, 42, 57, .24), 0 0 0 10px rgba(255, 255, 255, .28);
             transform: perspective(1200px) rotateY(-7deg) rotateX(2deg);
             transition: transform .4s ease, box-shadow .4s ease;
@@ -1657,11 +1657,12 @@ class WorldClassLandingPage:
             background-clip: text;
         }
         .face-video-guide .cinematic-guide-visual {
-            background:
-                linear-gradient(180deg, rgba(18, 15, 29, .06) 8%, rgba(18, 15, 29, .18) 42%, rgba(18, 15, 29, .9) 100%),
-                url('https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=1500&q=90') center 34%/cover;
+            min-height: 0;
+            aspect-ratio: 16 / 9;
+            background: #11182a url('/app/static/studio_face_video_guide.png') center/contain no-repeat;
             box-shadow: 0 34px 70px rgba(96, 36, 78, .2), 0 0 0 10px rgba(255, 255, 255, .28);
         }
+        .face-video-guide .cinematic-guide-visual::after { display: none; }
         .face-video-guide .cinematic-visual-copy .eyebrow { color: #ffd0e7; }
         .face-video-guide .cinematic-flow-number {
             background: linear-gradient(135deg, #ec4899, #7656ed);
@@ -1679,7 +1680,7 @@ class WorldClassLandingPage:
         .expressive-face-guide .cinematic-guide-visual {
             background:
                 linear-gradient(180deg, rgba(17, 16, 36, .04) 8%, rgba(17, 16, 36, .18) 42%, rgba(17, 16, 36, .91) 100%),
-                url('https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=1500&q=90') center 30%/cover;
+                url('/app/static/studio_expressive_face_background.png') center 30%/cover;
             box-shadow: 0 34px 70px rgba(78, 48, 129, .22), 0 0 0 10px rgba(255, 255, 255, .28);
         }
         .expressive-face-guide .cinematic-visual-copy .eyebrow { color: #ded0ff; }
@@ -1699,7 +1700,7 @@ class WorldClassLandingPage:
         .creative-workshop-guide .cinematic-guide-visual {
             background:
                 linear-gradient(180deg, rgba(25, 18, 18, .04) 8%, rgba(25, 18, 18, .16) 42%, rgba(25, 18, 18, .9) 100%),
-                url('https://images.unsplash.com/photo-1549490349-8643362247b5?auto=format&fit=crop&w=1500&q=90') center 50%/cover;
+                url('/app/static/studio_creative_workshop_background.png') center 50%/cover;
             box-shadow: 0 34px 70px rgba(141, 83, 44, .2), 0 0 0 10px rgba(255, 255, 255, .28);
         }
         .creative-workshop-guide .cinematic-visual-copy .eyebrow { color: #ffdfbd; }
@@ -1719,7 +1720,7 @@ class WorldClassLandingPage:
         .live-emotion-voice-guide .cinematic-guide-visual {
             background:
                 linear-gradient(180deg, rgba(9, 18, 33, .06) 8%, rgba(9, 18, 33, .18) 42%, rgba(9, 18, 33, .91) 100%),
-                url('https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&w=1500&q=90') center 48%/cover;
+                url('/app/static/studio_live_emotion_voice_background.png') center 48%/cover;
             box-shadow: 0 34px 70px rgba(40, 68, 130, .22), 0 0 0 10px rgba(255, 255, 255, .28);
         }
         .live-emotion-voice-guide .cinematic-visual-copy .eyebrow { color: #b5fff0; }
@@ -1739,7 +1740,7 @@ class WorldClassLandingPage:
         .blueprint-engine-guide .cinematic-guide-visual {
             background:
                 linear-gradient(180deg, rgba(8, 20, 42, .06) 8%, rgba(8, 20, 42, .18) 42%, rgba(8, 20, 42, .92) 100%),
-                url('https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1500&q=90') center 50%/cover;
+                url('/app/static/studio_blueprint_guide_background.jpg') center 50%/cover;
             box-shadow: 0 34px 70px rgba(40, 68, 130, .22), 0 0 0 10px rgba(255, 255, 255, .28);
         }
         .blueprint-engine-guide .cinematic-visual-copy .eyebrow { color: #c7ddff; }
@@ -1777,11 +1778,12 @@ class WorldClassLandingPage:
             background-clip: text;
         }
         .video-editor-guide .cinematic-guide-visual {
-            background:
-                linear-gradient(180deg, rgba(20, 13, 34, .04) 8%, rgba(20, 13, 34, .2) 42%, rgba(20, 13, 34, .92) 100%),
-                url('https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&fit=crop&w=1500&q=90') center 50%/cover;
+            min-height: 0;
+            aspect-ratio: 16 / 9;
+            background: #11182a url('/app/static/studio_video_editor_guide.png') center/contain no-repeat;
             box-shadow: 0 34px 70px rgba(94, 52, 130, .22), 0 0 0 10px rgba(255, 255, 255, .28);
         }
+        .video-editor-guide .cinematic-guide-visual::after { display: none; }
         .video-editor-guide .cinematic-visual-copy .eyebrow { color: #e3d2ff; }
         .video-editor-guide .cinematic-flow-number {
             background: linear-gradient(135deg, #8b5cf6, #ec4899);
@@ -2587,14 +2589,7 @@ class WorldClassLandingPage:
             """
             <section class="cinematic-guide face-video-guide" id="face-video-studio">
                 <div class="cinematic-guide-inner">
-                    <div class="cinematic-guide-visual" role="img" aria-label="Portrait for an AI talking face video">
-                        <div class="cinematic-visual-top"><span>👤</span> Face Video Studio</div>
-                        <div class="cinematic-visual-copy">
-                            <div class="eyebrow">A photo that speaks your script</div>
-                            <h3>One photo.<br>A voice of your own.</h3>
-                            <p>Turn a portrait and your dialogue into a talking-face video with natural voice and lip-sync.</p>
-                        </div>
-                    </div>
+                    <div class="cinematic-guide-visual" role="img" aria-label="Creator making a talking-face video from a portrait with natural voice and lip-sync"></div>
                     <div class="cinematic-guide-copy">
                         <div class="section-header">
                             <div class="tag">👤 How Face Video Studio works</div>
@@ -2857,14 +2852,7 @@ class WorldClassLandingPage:
             """
             <section class="cinematic-guide video-editor-guide" id="video-editor">
                 <div class="cinematic-guide-inner">
-                    <div class="cinematic-guide-visual" role="img" aria-label="Video editing setup ready for a multi-clip project">
-                        <div class="cinematic-visual-top"><span>🎞️</span> Video Editor</div>
-                        <div class="cinematic-visual-copy">
-                            <div class="eyebrow">Bring every clip together</div>
-                            <h3>Shape the story.<br>Set the rhythm.</h3>
-                            <p>Combine your video and image files with transitions, visual effects, music and optional narration.</p>
-                        </div>
-                    </div>
+                    <div class="cinematic-guide-visual" role="img" aria-label="Video editor workspace with a creator editing a cinematic travel story"></div>
                     <div class="cinematic-guide-copy">
                         <div class="section-header">
                             <div class="tag">🎞️ How Video Editor works</div>
