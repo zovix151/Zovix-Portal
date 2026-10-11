@@ -2481,7 +2481,7 @@ class WorldClassLandingPage:
              "<span style='background:#e1f6f3;color:#12a89a'><i class='zx-i'>layers</i></span>"
              "<span style='background:#ffe6ec;color:#ef4468'><i class='zx-i'>favorite</i></span></div>"),
             (886, 192, "auto_awesome", "03", "Your Masterpiece", "Get studio-quality images, videos and content — ready to use, edit or publish.",
-             f"<div class='zx-mock zx-mock-thumb' style=\"background-image:url('{photo('1470071459604-3b5ec3a7fe05', 600)}')\"><span><i class='zx-i'>play_arrow</i></span></div>"),
+             f"<div class='zx-mock zx-mock-thumb' style=\"background-image:url('{photo('1470071459604-3b5ec3a7fe05')}')\"><span><i class='zx-i'>play_arrow</i></span></div>"),
         ]
         steps_html = "".join(
             f"<div class='zx-a zx-step' style='{pos(x + 42, 20, w, 168)}'><span class='zx-ficon'><i class='zx-i'>{icon}</i></span>"
@@ -2533,7 +2533,7 @@ class WorldClassLandingPage:
             "<a class='zx-btn zx-btn-primary' href='?page=login' target='_self'><i class='zx-i'>rocket_launch</i>Start Creating Free<i class='zx-i'>arrow_forward</i></a>"
             "<a class='zx-btn zx-btn-ghost' href='#how-it-works'><i class='zx-i'>play_arrow</i>Watch ZOVIX in Action</a></div>"
             f"<div class='zx-a zx-checks' style='{pos(160, 518, 440)}'><span>No Credit Card Required</span><span>Instant Access</span><span>Free Plan Available</span></div>"
-            f"<a class='zx-a zx-demo' href='#how-it-works' aria-label='Watch the ZOVIX cinematic demo' style=\"{pos(690, 213, 394, 220)};background-image:url('{photo('1493246507139-91e8fad9978e', 1200)}');\">"
+            f"<a class='zx-a zx-demo' href='#how-it-works' aria-label='Watch the ZOVIX cinematic demo' style=\"{pos(690, 213, 394, 220)};background-image:url('{photo('1493246507139-91e8fad9978e')}');\">"
             "<div class='zx-demo-title'><span class='zx-grad'>ZOVIX</span><small>CINEMATIC DEMO</small></div>"
             "<span class='zx-play'><i class='zx-i'>play_arrow</i></span>"
             "<span class='zx-demo-cap'>Real AI Generated Content</span>"
