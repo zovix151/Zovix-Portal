@@ -49,6 +49,67 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
+components.html(
+    """
+    <script>
+    (() => {
+        const host = window.parent;
+        const userAgent = host.navigator.userAgent || "";
+        const screenWidth = host.screen.width || host.innerWidth;
+        const screenHeight = host.screen.height || host.innerHeight;
+        const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(userAgent)
+            || ((host.navigator.maxTouchPoints || 0) > 1
+                && Math.min(screenWidth, screenHeight) <= 900);
+        const viewport = host.document.querySelector('meta[name="viewport"]');
+
+        if (!isMobile || !viewport) return;
+
+        const desktopWidth = 1440;
+        host.document.body.classList.add("zovix-desktop-mobile");
+        if (!host.document.getElementById("zovix-mobile-desktop-spacing")) {
+            const style = host.document.createElement("style");
+            style.id = "zovix-mobile-desktop-spacing";
+            style.textContent = `
+                body.zovix-desktop-mobile .zx-stage {
+                    --stage-vh: min(100svh, 56.25cqw);
+                    --y-scale: min(calc(var(--p) * 1.25), calc((var(--stage-vh) - 100px) * 0.0017));
+                    height: calc(max(calc(var(--stage-vh) - 65px), calc(var(--p) * 554)) + calc(var(--p) * 460));
+                }
+                body.zovix-desktop-mobile .zx-followup {
+                    top: max(calc(var(--stage-vh) - 65px), calc(var(--p) * 530));
+                }
+                body.zovix-desktop-mobile .zx-stage .zx-stats {
+                    top: max(calc(var(--y-scale) * 553), calc(var(--stage-vh) - 150px));
+                }
+            `;
+            host.document.head.appendChild(style);
+        }
+        const updateViewport = () => {
+            const width = host.screen.width || host.innerWidth;
+            const scale = Math.min(1, width / desktopWidth);
+            const content = `width=${desktopWidth}, initial-scale=1, maximum-scale=5, user-scalable=yes`;
+            if (viewport.getAttribute("content") !== content) {
+                viewport.setAttribute("content", content);
+            }
+            host.document.body.style.width = `${desktopWidth}px`;
+            host.document.body.style.height = `${host.innerHeight}px`;
+            host.document.body.style.transformOrigin = "top left";
+            host.document.body.style.transform = `scale(${scale})`;
+        };
+
+        updateViewport();
+        if (!host.__zovixDesktopViewportListener) {
+            host.__zovixDesktopViewportListener = true;
+            host.addEventListener("orientationchange", updateViewport);
+            host.addEventListener("resize", updateViewport);
+        }
+    })();
+    </script>
+    """,
+    height=0,
+    scrolling=False,
+)
+
 _GENERATION_SUCCESS_MESSAGE = "Generated successfully by Zovix"
 
 
@@ -17846,8 +17907,33 @@ elif st.session_state["current_page"] in {"scheduler", "subusers", "factory", "p
                 .standalone-hero-icon { flex-basis: 54px; width: 54px; height: 54px; border-radius: 16px; font-size: 24px; }
                 section[data-testid="stMain"] [data-testid="stHorizontalBlock"] { flex-wrap: wrap !important; }
                 section[data-testid="stMain"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] {
-                    min-width: min(100%, 210px) !important;
-                    flex: 1 1 210px !important;
+                    box-sizing: border-box !important;
+                    min-width: min(100%, 160px) !important;
+                    flex: 1 1 160px !important;
+                }
+                section[data-testid="stMain"] [data-testid="stButton"] > button {
+                    min-height: 42px !important;
+                    height: auto !important;
+                    padding: 9px 12px !important;
+                    font-size: 12px !important;
+                    line-height: 1.35 !important;
+                    white-space: normal !important;
+                    overflow-wrap: anywhere !important;
+                }
+                section[data-testid="stMain"] input,
+                section[data-testid="stMain"] textarea,
+                section[data-testid="stMain"] [data-baseweb="select"] {
+                    min-width: 0 !important;
+                    max-width: 100% !important;
+                    font-size: 16px !important;
+                }
+            }
+            @media (max-width: 420px) {
+                section[data-testid="stMain"] .standalone-hero { align-items: flex-start; }
+                section[data-testid="stMain"] .standalone-hero-copy p { font-size: 13px !important; }
+                section[data-testid="stMain"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] {
+                    min-width: min(100%, 138px) !important;
+                    flex: 1 1 138px !important;
                 }
             }
         </style>
@@ -21273,18 +21359,47 @@ elif st.session_state["current_page"] == "studio":
             .st-key-studio_hero_container { min-height:0; padding:17px 12px 18px !important; }
             .st-key-studio_hero_container .zd-hero { min-height:0; padding:0; }
             .st-key-studio_hero_prompt_form { margin:12px 0 0; }
-            .st-key-studio_creation_type_choices [data-testid="stHorizontalBlock"] { gap:6px !important; }
+            .st-key-studio_hero_prompt_form [data-testid="stHorizontalBlock"] {
+                flex-wrap:nowrap !important;
+                gap:7px !important;
+            }
+            .st-key-studio_hero_prompt_form [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:first-child {
+                flex:1 1 calc(100% - 112px) !important;
+                width:auto !important;
+                min-width:0 !important;
+            }
+            .st-key-studio_hero_prompt_form [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:last-child {
+                flex:0 0 108px !important;
+                width:108px !important;
+                min-width:0 !important;
+            }
+            .st-key-studio_creation_type_choices [data-testid="stHorizontalBlock"] {
+                display:flex !important;
+                flex-wrap:wrap !important;
+                gap:7px !important;
+            }
+            .st-key-studio_creation_type_choices [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] {
+                flex:1 1 calc(33.333% - 7px) !important;
+                width:auto !important;
+                min-width:0 !important;
+                max-width:calc(33.333% - 5px) !important;
+            }
             .st-key-studio_creation_type_choices [data-testid="stButton"] > button {
-                min-height:32px !important;
-                padding:0 8px !important;
-                font-size:8px !important;
+                box-sizing:border-box !important;
+                min-height:42px !important;
+                height:auto !important;
+                padding:7px 6px !important;
+                font-size:10px !important;
+                line-height:1.25 !important;
                 white-space:normal !important;
             }
             .zd-hero h1 { white-space:normal; }
         }
-        @media (max-width:760px) {
-            section[data-testid="stMain"] .block-container { padding:6px 10px 16px !important; }
-            .st-key-studio_hero_prompt_form { margin:12px 0 0; }
+        @media (max-width:380px) {
+            .st-key-studio_creation_type_choices [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] {
+                flex-basis:calc(50% - 7px) !important;
+                max-width:calc(50% - 4px) !important;
+            }
         }
         .zovix-dashboard, .zd-footer {
             font-family:'Inter',sans-serif;
@@ -22781,14 +22896,28 @@ if st.session_state.get("current_page") == "studio_mode":
             }
             section[data-testid="stMain"] .block-container [data-testid="stHorizontalBlock"] {
                 display: flex !important;
-                flex-direction: column !important;
-                flex-wrap: nowrap !important;
-                gap: 12px !important;
+                flex-direction: row !important;
+                flex-wrap: wrap !important;
+                align-items: stretch !important;
+                gap: 12px 10px !important;
                 width: 100% !important;
                 max-width: 100% !important;
             }
             section[data-testid="stMain"] .block-container [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] {
                 box-sizing: border-box !important;
+                flex: 1 1 calc(50% - 10px) !important;
+                width: auto !important;
+                min-width: min(100%, 150px) !important;
+                max-width: calc(50% - 5px) !important;
+            }
+            section[data-testid="stMain"] .block-container
+            [data-testid="stHorizontalBlock"]:has(.engine-configurators-title):has(.live-video-output-title) {
+                flex-direction: column !important;
+                flex-wrap: nowrap !important;
+            }
+            section[data-testid="stMain"] .block-container
+            [data-testid="stHorizontalBlock"]:has(.engine-configurators-title):has(.live-video-output-title)
+            > [data-testid="stColumn"] {
                 flex: 1 1 100% !important;
                 width: 100% !important;
                 min-width: 0 !important;
@@ -22875,6 +23004,15 @@ if st.session_state.get("current_page") == "studio_mode":
             }
             section[data-testid="stMain"] .block-container [data-testid="stHorizontalBlock"] {
                 gap: 10px !important;
+            }
+            section[data-testid="stMain"] .block-container [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] {
+                min-width: 0 !important;
+                max-width: calc(50% - 5px) !important;
+            }
+            section[data-testid="stMain"] .block-container
+            [data-testid="stHorizontalBlock"]:has(.engine-configurators-title):has(.live-video-output-title)
+            > [data-testid="stColumn"] {
+                max-width: 100% !important;
             }
         }
     </style>

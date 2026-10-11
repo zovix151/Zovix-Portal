@@ -997,9 +997,10 @@ class WorldClassLandingPage:
         .zx-eng-card span { font-size: clamp(10px, calc(var(--p) * 6.5), 12px); }
 
         @media (max-width: 900px) {
-            .landing-nav .nav-links a:not(.nav-cta-btn), .zx-nav-sep, .zx-lang { display: none !important; }
+            .landing-nav .nav-links a:not(.nav-cta-btn):not(.zx-login), .zx-nav-sep, .zx-lang { display: none !important; }
             .landing-nav .nav-links { display: flex !important; }
             .landing-nav .nav-links a.nav-cta-btn { display: inline-flex !important; }
+            .landing-nav .nav-links a.zx-login { display: inline-flex !important; }
             .zx-root { --p: min(1.15px, calc(100cqw / 400)); }
             .zx-stage { display: flex; flex-direction: column; align-items: flex-start; gap: calc(var(--p) * 16); height: auto; padding: calc(var(--p) * 70) calc(var(--p) * 18) calc(var(--p) * 28); }
             .zx-a { position: static; width: auto; height: auto; }
@@ -1602,7 +1603,7 @@ class WorldClassLandingPage:
             .about-pillars { grid-template-columns: 1fr; }
         }
         @media (max-width: 380px) {
-            .engine-gallery-grid { grid-template-columns: 1fr; }
+            .engine-gallery-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         }
         .cinematic-guide {
             position: relative;
@@ -2019,6 +2020,10 @@ class WorldClassLandingPage:
         }
         @media (max-width: 480px) {
             .pricing-section .subscription-plans-grid,
+            .pricing-section .one-time-plans-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+        @media (max-width: 360px) {
+            .pricing-section .subscription-plans-grid,
             .pricing-section .one-time-plans-grid { grid-template-columns: 1fr; }
         }
         @media (prefers-reduced-motion: reduce) {
@@ -2204,11 +2209,13 @@ class WorldClassLandingPage:
                 display: none !important;
             }
             .landing-nav .nav-links a.zx-login {
+                display: inline-flex !important;
                 min-height: 34px;
                 padding: 0 11px;
                 font-size: 11px;
             }
             .landing-nav .nav-links a.nav-cta-btn {
+                display: inline-flex !important;
                 min-height: 34px;
                 padding: 0 12px;
                 font-size: 11px;
