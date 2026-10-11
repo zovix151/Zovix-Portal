@@ -95,17 +95,19 @@ components.html(
             const lockZoom = workspacePages.has(page);
             const width = host.screen.width || host.innerWidth;
             const scale = Math.min(1, width / desktopWidth);
-            const content = `width=${desktopWidth}, initial-scale=1, maximum-scale=${lockZoom ? 1 : 5}, user-scalable=${lockZoom ? "no" : "yes"}`;
+            const content = `width=${desktopWidth}, initial-scale=1, minimum-scale=1, maximum-scale=5, user-scalable=yes`;
             const previousPage = host.__zovixViewportPage;
             const needsZoomReset = lockZoom
-                && (previousPage !== page || (host.visualViewport && host.visualViewport.scale > 1.01));
+                && previousPage !== page
+                && host.visualViewport
+                && host.visualViewport.scale > 1.01;
             host.__zovixViewportPage = page;
 
             if (needsZoomReset && !host.__zovixViewportResetPending) {
                 host.__zovixViewportResetPending = true;
                 viewport.setAttribute(
                     "content",
-                    `width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no`
+                    `width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no`
                 );
                 host.setTimeout(() => {
                     if (getPage() === page) {
@@ -118,8 +120,13 @@ components.html(
                 viewport.setAttribute("content", content);
             }
 
+            host.document.documentElement.style.overflow = lockZoom ? "hidden" : "";
             host.document.body.style.width = `${desktopWidth}px`;
             host.document.body.style.height = `${host.innerHeight}px`;
+            host.document.body.style.position = lockZoom ? "fixed" : "";
+            host.document.body.style.top = lockZoom ? "0" : "";
+            host.document.body.style.left = lockZoom ? "0" : "";
+            host.document.body.style.overflow = lockZoom ? "hidden" : "";
             host.document.body.style.transformOrigin = "top left";
             host.document.body.style.transform = `scale(${scale})`;
         };
