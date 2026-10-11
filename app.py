@@ -95,7 +95,41 @@ components.html(
             const lockZoom = workspacePages.has(page);
             const width = host.screen.width || host.innerWidth;
             const scale = Math.min(1, width / desktopWidth);
+            const canvasHeight = Math.ceil(host.innerHeight / scale);
             const content = `width=${desktopWidth}, initial-scale=1, minimum-scale=1, maximum-scale=5, user-scalable=yes`;
+            const canvasStyle = `
+                html, body, #root, .stApp, [data-testid="stAppViewContainer"],
+                section[data-testid="stMain"], [data-testid="stMainBlockContainer"] {
+                    width: ${desktopWidth}px !important;
+                    min-width: ${desktopWidth}px !important;
+                    max-width: none !important;
+                }
+                #root, .stApp, [data-testid="stAppViewContainer"],
+                section[data-testid="stMain"] {
+                    height: ${canvasHeight}px !important;
+                    min-height: ${canvasHeight}px !important;
+                }
+                body.zovix-desktop-mobile section[data-testid="stMain"] .block-container
+                [data-testid="stHorizontalBlock"] {
+                    flex-direction: row !important;
+                    flex-wrap: nowrap !important;
+                }
+                body.zovix-desktop-mobile section[data-testid="stMain"] .block-container
+                [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] {
+                    min-width: 0 !important;
+                    max-width: none !important;
+                }
+                html, body { overflow: hidden !important; }
+                body { height: auto !important; }
+            `;
+            let canvasStyles = host.document.getElementById("zovix-mobile-desktop-canvas");
+            if (!canvasStyles) {
+                canvasStyles = host.document.createElement("style");
+                canvasStyles.id = "zovix-mobile-desktop-canvas";
+                host.document.head.appendChild(canvasStyles);
+            }
+            canvasStyles.textContent = canvasStyle;
+
             const previousPage = host.__zovixViewportPage;
             const needsZoomReset = lockZoom
                 && previousPage !== page
@@ -120,13 +154,15 @@ components.html(
                 viewport.setAttribute("content", content);
             }
 
-            host.document.documentElement.style.overflow = lockZoom ? "hidden" : "";
+            host.document.documentElement.style.overflowX = "hidden";
+            host.document.documentElement.style.overflowY = "hidden";
             host.document.body.style.width = `${desktopWidth}px`;
-            host.document.body.style.height = `${host.innerHeight}px`;
-            host.document.body.style.position = lockZoom ? "fixed" : "";
-            host.document.body.style.top = lockZoom ? "0" : "";
-            host.document.body.style.left = lockZoom ? "0" : "";
-            host.document.body.style.overflow = lockZoom ? "hidden" : "";
+            host.document.body.style.height = "auto";
+            host.document.body.style.position = "";
+            host.document.body.style.top = "";
+            host.document.body.style.left = "";
+            host.document.body.style.overflowX = "hidden";
+            host.document.body.style.overflowY = "hidden";
             host.document.body.style.transformOrigin = "top left";
             host.document.body.style.transform = `scale(${scale})`;
         };
