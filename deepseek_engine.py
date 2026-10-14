@@ -1,4 +1,8 @@
-"""Replicate-backed sales copy generation."""
+﻿"""Replicate-backed sales copy generation."""
+
+from dotenv import load_dotenv
+
+load_dotenv()
 
 import json
 import os

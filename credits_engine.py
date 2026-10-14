@@ -1,4 +1,8 @@
-"""Credit validation and deduction backed by the shared Supabase PostgreSQL adapter."""
+﻿"""Credit validation and deduction backed by the shared Supabase PostgreSQL adapter."""
+
+from dotenv import load_dotenv
+
+load_dotenv()
 
 import logging
 from datetime import datetime
@@ -16,16 +20,22 @@ FACE_VIDEO_WORD_PRICES = {
     "4K": ((50, 25), (85, 32), (120, 50)),
 }
 SALES_VIDEO_QUALITY_COSTS = {"Standard": 70, "HD": 85, "4K": 100}
+GHOST_ENGINE_TOKEN_COST = 25
+CINEMATIC_QUALITY_TOKEN_COSTS = {"Standard": 25, "HD": 40}
 
 
 def get_prompt_word_cost(engine_name, quality="Standard", word_count=0, duration_choice=None):
     """Return the word-band credit cost matching the face-video pricing rules."""
     engine_key = str(engine_name or "").strip().lower()
+    if engine_key == "ghost engine":
+        return 40 if quality == "HD" else max(0, int(GHOST_ENGINE_TOKEN_COST))
     if engine_key == "deepseek ai blueprint":
         return 4
     if engine_key == "cinematic engine":
-        duration_key = str(duration_choice or "").lower()
-        return 50 if "1 minute" in duration_key or "60s" in duration_key else 20
+        return CINEMATIC_QUALITY_TOKEN_COSTS.get(
+            quality,
+            CINEMATIC_QUALITY_TOKEN_COSTS["Standard"],
+        )
     if engine_key == "ai sales video":
         return SALES_VIDEO_QUALITY_COSTS.get(quality, SALES_VIDEO_QUALITY_COSTS["Standard"])
 

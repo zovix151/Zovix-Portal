@@ -1,3 +1,7 @@
+﻿from dotenv import load_dotenv
+
+load_dotenv()
+
 # ========================================================
 # DEEPINFRA FACE VIDEO ENGINE - COMPLETE FIXED
 # ========================================================

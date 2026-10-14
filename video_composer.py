@@ -1,4 +1,8 @@
-"""FFmpeg-based sales video composition utilities."""
+﻿"""FFmpeg-based sales video composition utilities."""
+
+from dotenv import load_dotenv
+
+load_dotenv()
 
 import html
 import os

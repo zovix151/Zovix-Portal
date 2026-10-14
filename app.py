@@ -1,14 +1,11 @@
+from pathlib import Path
+
+from dotenv import load_dotenv
+
+load_dotenv(dotenv_path=Path(__file__).resolve().parent / ".env")
+HAS_DOTENV = True
+
 import os
-try:
-    from dotenv import load_dotenv
-    HAS_DOTENV = True
-except Exception:
-    HAS_DOTENV = False
-
-    def load_dotenv(*args, **kwargs):
-        return False
-
-load_dotenv()
 import cv2
 import time
 import uuid
@@ -35,7 +32,6 @@ import sys
 import logging
 import pickle
 import tempfile
-from pathlib import Path
 from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageFont, ImageOps
 import streamlit as st
 import streamlit.components.v1 as components
@@ -67,7 +63,7 @@ components.html(
         const desktopWidth = 1440;
         const workspacePages = new Set([
             "studio", "studio_mode", "payments", "profile", "scheduler",
-            "subusers", "factory", "portfolio", "tutorials",
+            "subusers", "factory", "portfolio", "tutorials", "ghost_engine",
             "documentation", "community", "support"
         ]);
         host.document.body.classList.add("zovix-desktop-mobile");
@@ -1030,7 +1026,7 @@ if requested_page == "login":
         st.session_state["current_page"] = "landing"
         st.session_state["auth_redirect_mode"] = "Cinematic Engine"
         st.query_params["page"] = "landing"
-elif requested_page in {"studio", "studio_mode", "payments", "profile", "scheduler", "subusers", "factory", "portfolio", "tutorials", "documentation", "community", "support"} and not st.session_state.get("is_logged_in", False):
+elif requested_page in {"studio", "studio_mode", "payments", "profile", "scheduler", "subusers", "factory", "portfolio", "tutorials", "documentation", "community", "support", "ghost_engine"} and not st.session_state.get("is_logged_in", False):
     st.session_state["current_page"] = "landing"
     st.session_state.pop("auth_redirect_mode", None)
     st.query_params["page"] = "landing"
@@ -1038,7 +1034,7 @@ elif requested_page in {"landing", "studio"}:
     st.session_state["current_page"] = requested_page
 elif requested_page == "studio_mode":
     st.session_state["current_page"] = "studio_mode"
-elif requested_page in {"payments", "profile", "scheduler", "subusers", "factory", "portfolio", "tutorials", "documentation", "community", "support"}:
+elif requested_page in {"payments", "profile", "scheduler", "subusers", "factory", "portfolio", "tutorials", "documentation", "community", "support", "ghost_engine"}:
     st.session_state["current_page"] = requested_page
 if "is_logged_in" not in st.session_state:
     st.session_state["is_logged_in"] = False
@@ -5593,43 +5589,133 @@ def _enhance_workshop_face_prompt(prompt, negative_prompt):
     return prompt_text, negative_text
 
 
+def _enhance_workshop_prompt_gpt4o(prompt, negative_prompt=""):
+    api_key = get_system_secret("OPENAI_API_KEY")
+    if not api_key:
+        raise RuntimeError("OPENAI_API_KEY is not configured for GPT-4o prompt enhancement.")
+
+    response = requests.post(
+        "https://api.openai.com/v1/chat/completions",
+        headers={"Authorization": "Bearer " + api_key, "Content-Type": "application/json"},
+        json={
+            "model": "gpt-4o",
+            "messages": [
+                {
+                    "role": "system",
+                    "content": (
+                        "Rewrite the user's image idea as one vivid, cinematic, photorealistic prompt optimized for "
+                        "Flux Dev. Preserve the requested subject, style, and intent. Add precise composition, "
+                        "lighting, camera, material, texture, and realism details without introducing unrelated "
+                        "subjects. Respect the negative constraints. Return only the finished prompt, with no "
+                        "explanation or quotation marks."
+                    ),
+                },
+                {
+                    "role": "user",
+                    "content": (
+                        f"Image idea:\n{str(prompt or '').strip()}\n\n"
+                        f"Negative constraints:\n{str(negative_prompt or '').strip() or 'None provided'}"
+                    ),
+                },
+            ],
+            "temperature": 0.7,
+            "max_tokens": 500,
+        },
+        timeout=60,
+    )
+    if response.status_code != 200:
+        raise RuntimeError(f"GPT-4o prompt enhancement returned HTTP {response.status_code}: {response.text[:400]}")
+    result = response.json()
+    choices = result.get("choices") or []
+    enhanced_prompt = str((choices[0].get("message") or {}).get("content") or "").strip() if choices else ""
+    if not enhanced_prompt:
+        raise RuntimeError("GPT-4o returned an empty enhanced prompt.")
+    return enhanced_prompt
+
+
+WORKSHOP_QUALITY_SETTINGS = {
+    "Standard": {
+        "credits": 2,
+        "megapixels": "1",
+        "num_inference_steps": 28,
+        "output_long_edge": 1920,
+    },
+    "HD": {
+        "credits": 3,
+        "megapixels": "1",
+        "num_inference_steps": 40,
+        "output_long_edge": 2560,
+    },
+    "Pro": {
+        "credits": 4,
+        "megapixels": "1",
+        "num_inference_steps": 50,
+        "output_long_edge": 3840,
+    },
+}
+
+WORKSHOP_MODEL_BY_QUALITY = {
+    "Standard": ("black-forest-labs/flux-dev", "Flux Dev"),
+    "HD": ("stability-ai/sdxl", "SDXL"),
+    "Pro": ("black-forest-labs/flux-1.1-pro", "Flux Pro"),
+}
+
+WORKSHOP_SDXL_DIMENSIONS = {
+    "16:9": (1344, 768),
+    "9:16": (768, 1344),
+    "1:1": (1024, 1024),
+    "21:9": (1472, 640),
+    "4:5": (896, 1152),
+    "3:2": (1216, 832),
+}
+
+
 def _generate_replicate_workshop_image(prompt, aspect_ratio, negative_prompt, quality, output_dir):
     token = _get_replicate_image_token()
     if not token:
         raise RuntimeError("REPLICATE_API_TOKEN is not configured.")
 
-    quality_model_defaults = {
-        "Standard": "black-forest-labs/flux-schnell",
-        "HD": "black-forest-labs/flux-dev",
-        "Pro": "black-forest-labs/flux-1.1-pro",
-    }
-    model_env_keys = {
-        "Standard": "REPLICATE_WORKSHOP_STANDARD_MODEL",
-        "HD": "REPLICATE_WORKSHOP_HD_MODEL",
-        "Pro": "REPLICATE_WORKSHOP_PRO_MODEL",
-    }
     quality_name = str(quality or "Standard")
-    model_ref = _clean_secret_value(
-        os.getenv(model_env_keys.get(quality_name, ""), "")
-        or os.getenv("REPLICATE_WORKSHOP_MODEL", "")
-        or quality_model_defaults.get(quality_name, quality_model_defaults["Standard"])
+    quality_settings = WORKSHOP_QUALITY_SETTINGS.get(
+        quality_name, WORKSHOP_QUALITY_SETTINGS["Standard"]
+    )
+    model_ref, model_label = WORKSHOP_MODEL_BY_QUALITY.get(
+        quality_name, WORKSHOP_MODEL_BY_QUALITY["Standard"]
     )
     ratio = aspect_ratio if aspect_ratio in {"16:9", "9:16", "1:1", "21:9", "4:5", "3:2"} else "16:9"
     effective_prompt, effective_negative_prompt = _enhance_workshop_face_prompt(prompt, negative_prompt)
-    if effective_negative_prompt:
+    if effective_negative_prompt and model_ref != "stability-ai/sdxl":
         effective_prompt += f" Avoid these unwanted elements: {effective_negative_prompt}"
     input_payload = {
         "prompt": effective_prompt,
-        "aspect_ratio": ratio,
-        "output_format": "png",
-        "num_outputs": 1,
     }
-    if quality_name == "Standard":
-        input_payload["output_quality"] = 80
-    elif quality_name == "HD":
-        input_payload.update({"megapixels": "1", "num_inference_steps": 28})
+    if model_ref == "black-forest-labs/flux-dev":
+        input_payload.update({
+            "aspect_ratio": ratio,
+            "output_format": "png",
+            "num_outputs": 1,
+            "megapixels": quality_settings["megapixels"],
+            "num_inference_steps": quality_settings["num_inference_steps"],
+            "guidance": 3.5,
+            "go_fast": False,
+        })
+    elif model_ref == "stability-ai/sdxl":
+        width, height = WORKSHOP_SDXL_DIMENSIONS[ratio]
+        input_payload.update({
+            "negative_prompt": effective_negative_prompt,
+            "width": width,
+            "height": height,
+            "num_outputs": 1,
+            "num_inference_steps": 50,
+            "guidance_scale": 7.5,
+            "scheduler": "K_EULER",
+            "refine": "no_refiner",
+        })
     else:
-        input_payload.update({"megapixels": "2", "output_quality": 100, "prompt_upsampling": True, "safety_tolerance": 2})
+        input_payload.update({
+            "aspect_ratio": ratio,
+            "output_format": "png",
+        })
     payload = {"input": input_payload}
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
     prediction_url = f"https://api.replicate.com/v1/models/{model_ref}/predictions"
@@ -5657,8 +5743,18 @@ def _generate_replicate_workshop_image(prompt, aspect_ratio, negative_prompt, qu
             image_response.raise_for_status()
             if len(image_response.content) < 10000:
                 raise RuntimeError("Replicate returned an empty image.")
+            with Image.open(io.BytesIO(image_response.content)) as generated_image:
+                generated_image = generated_image.convert("RGB")
+                output_long_edge = quality_settings["output_long_edge"]
+                upscale_factor = output_long_edge / max(generated_image.size)
+                if upscale_factor > 1:
+                    output_size = (
+                        round(generated_image.width * upscale_factor),
+                        round(generated_image.height * upscale_factor),
+                    )
+                    generated_image = generated_image.resize(output_size, Image.Resampling.LANCZOS)
             output_path = Path(output_dir) / f"replicate_workshop_{uuid.uuid4().hex[:8]}.png"
-            output_path.write_bytes(image_response.content)
+            generated_image.save(output_path, format="PNG", optimize=True)
             return str(output_path)
         if status in {"failed", "canceled", "cancelled"}:
             raise RuntimeError(f"Replicate prediction {status}: {prediction.get('error') or prediction}")
@@ -5666,10 +5762,11 @@ def _generate_replicate_workshop_image(prompt, aspect_ratio, negative_prompt, qu
     raise TimeoutError(f"Replicate image prediction timed out after {int(os.getenv('REPLICATE_WORKSHOP_TIMEOUT', '240'))} seconds.")
 
 
-def generate_pro_image(prompt, aspect_ratio="16:9", negative_prompt="", quality="Standard", runpod_api_key=None):
-    """Generate a Workshop image with Replicate, Stability, then ComfyUI RunPod."""
+def generate_pro_image(prompt, aspect_ratio="16:9", negative_prompt="", quality="Standard", runpod_api_key=None, strict_provider=False):
+    """Generate an image with Replicate and, unless strict, configured fallbacks."""
     output_dir = Path("workshop_outputs")
     output_dir.mkdir(parents=True, exist_ok=True)
+
     replicate_error = "Replicate was not attempted."
     stability_error = "STABILITY_API_KEY is not configured."
     fallback_error = "RunPod fallback was not attempted."
@@ -5680,24 +5777,26 @@ def generate_pro_image(prompt, aspect_ratio="16:9", negative_prompt="", quality=
             prompt, aspect_ratio, negative_prompt, quality, output_dir
         )
         if output_path and os.path.exists(output_path):
-            model_ref = _clean_secret_value(
-                os.getenv({
-                    "Standard": "REPLICATE_WORKSHOP_STANDARD_MODEL",
-                    "HD": "REPLICATE_WORKSHOP_HD_MODEL",
-                    "Pro": "REPLICATE_WORKSHOP_PRO_MODEL",
-                }.get(str(quality), ""), "")
-                or os.getenv("REPLICATE_WORKSHOP_MODEL", "")
-                or {
-                    "Standard": "black-forest-labs/flux-schnell",
-                    "HD": "black-forest-labs/flux-dev",
-                    "Pro": "black-forest-labs/flux-1.1-pro",
-                }.get(str(quality), "black-forest-labs/flux-schnell")
+            st.session_state["workshop_image_engine_used"] = (
+                f"Replicate ({WORKSHOP_MODEL_BY_QUALITY.get(str(quality), WORKSHOP_MODEL_BY_QUALITY['Standard'])[1]})"
             )
-            st.session_state["workshop_image_engine_used"] = f"Replicate ({model_ref})"
             return output_path
     except Exception as exc:
         replicate_error = str(exc)
+        if strict_provider:
+            model_label = WORKSHOP_MODEL_BY_QUALITY.get(
+                str(quality), WORKSHOP_MODEL_BY_QUALITY["Standard"]
+            )[1]
+            st.session_state["workshop_image_error"] = f"{model_label}: {replicate_error}"
+            logger.error("%s Workshop generation failed: %s", model_label, exc)
+            return None
         logger.warning("Replicate Workshop generation failed; trying Stability AI: %s", exc)
+    if strict_provider:
+        model_label = WORKSHOP_MODEL_BY_QUALITY.get(
+            str(quality), WORKSHOP_MODEL_BY_QUALITY["Standard"]
+        )[1]
+        st.session_state["workshop_image_error"] = f"{model_label}: {replicate_error}"
+        return None
     stability_key = (STABILITY_API_KEY or os.getenv("STABILITY_API_KEY") or get_system_secret("STABILITY_API_KEY") or "").strip()
 
     if stability_key and stability_key.lower() != "mock":
@@ -11599,10 +11698,13 @@ def run_creative_workshop():
             </h4>
             """, unsafe_allow_html=True)
 
+            workshop_aspect_options = ["16:9", "9:16", "1:1", "21:9", "4:5", "3:2"]
+            if st.session_state.get("workshop_aspect_ratio_choice") not in workshop_aspect_options:
+                st.session_state["workshop_aspect_ratio_choice"] = workshop_aspect_options[0]
             st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">📐 Select Aspect Ratio</p>', unsafe_allow_html=True)
             workshop_ar = st.selectbox(
                 "Aspect Ratio",
-                ["16:9", "9:16", "1:1", "21:9", "4:5", "3:2"],
+                workshop_aspect_options,
                 key="workshop_aspect_ratio_choice",
                 label_visibility="collapsed"
             )
@@ -11632,6 +11734,7 @@ def run_creative_workshop():
                 key="workshop_quality",
                 label_visibility="collapsed"
             )
+            workshop_quality_settings = WORKSHOP_QUALITY_SETTINGS[workshop_quality]
 
             st.markdown("<br>", unsafe_allow_html=True)
 
@@ -11641,8 +11744,7 @@ def run_creative_workshop():
                 if not workshop_prompt_str.strip():
                     st.error("❌ Please enter an image description.")
                 else:
-                    quality_map = {"Standard": 2, "HD": 3, "Pro": 4}
-                    required_tokens = quality_map.get(workshop_quality, 2)
+                    required_tokens = workshop_quality_settings["credits"]
 
                     if st.session_state.get('user_credits', 0) < required_tokens:
                         st.error(f"❌ Insufficient credits! Required: {required_tokens}, Available: {st.session_state.get('user_credits', 0)}")
@@ -11659,38 +11761,43 @@ def run_creative_workshop():
                                 st.session_state['user_credits'] = get_user_credits_db(st.session_state["logged_user"])
                                 st.session_state['credit_balance'] = st.session_state['user_credits']
 
-                                with st.spinner("Generating ZOVIX Creative..."):
-                                    img_path = generate_pro_image(
+                                with st.spinner("Generating by ZOVIX..."):
+                                    enhanced_workshop_prompt = _enhance_workshop_prompt_gpt4o(
                                         workshop_prompt_str,
+                                        workshop_neg_prompt_str,
+                                    )
+                                    img_path = generate_pro_image(
+                                        enhanced_workshop_prompt,
                                         workshop_ar,
                                         workshop_neg_prompt_str,
                                         workshop_quality,
-                                        None
+                                        None,
+                                        True,
                                     )
 
-                                    if img_path and os.path.exists(img_path):
-                                        st.session_state["workshop_active_image"] = img_path
+                                if img_path and os.path.exists(img_path):
+                                    st.session_state["workshop_active_image"] = img_path
 
-                                        timestamp = time.strftime("%Y%m%d_%H%M%S")
-                                        file_name = f"workshop_{timestamp}.png"
-                                        save_render_to_db(
-                                            st.session_state["logged_user"],
-                                            file_name,
-                                            workshop_prompt_str[:100],
-                                            img_path,
-                                            "Creative Workshop",
-                                            required_tokens
-                                        )
-                                        st.session_state["history_renders"] = load_renders_history_db(st.session_state["logged_user"])
+                                    timestamp = time.strftime("%Y%m%d_%H%M%S")
+                                    file_name = f"workshop_{timestamp}.png"
+                                    save_render_to_db(
+                                        st.session_state["logged_user"],
+                                        file_name,
+                                        workshop_prompt_str[:100],
+                                        img_path,
+                                        "Creative Workshop",
+                                        required_tokens
+                                    )
+                                    st.session_state["history_renders"] = load_renders_history_db(st.session_state["logged_user"])
 
-                                        _show_generation_success()
-                                        st.rerun()
-                                    else:
-                                        refund_face_video_credits(required_tokens, "Creative Workshop image generation returned no output")
-                                        provider_error = st.session_state.get("workshop_image_error")
-                                        st.error("❌ Image generation failed. Credits have been returned.")
-                                        if provider_error:
-                                            st.warning(provider_error)
+                                    _show_generation_success()
+                                    st.rerun()
+                                else:
+                                    refund_face_video_credits(required_tokens, "Creative Workshop image generation returned no output")
+                                    provider_error = st.session_state.get("workshop_image_error")
+                                    st.error("❌ Image generation failed. Credits have been returned.")
+                                    if provider_error:
+                                        st.warning(provider_error)
                         except Exception as e:
                             if credits_deducted:
                                 refund_face_video_credits(required_tokens, f"Creative Workshop generation error: {e}")
@@ -15111,9 +15218,9 @@ def run_cinematic_engine():
     # ============================================
     st.markdown("""
     <div class="cinematic-header studio-mode-photo-hero--cinematic">
-        <span class="badge">🎬 AI-POWERED</span>
-        <h2>Cinematic <span class="highlight">Engine</span></h2>
-        <p>Transform your ideas into professional cinematic videos with AI</p>
+        <span class="badge">🎬 AI-POWERED STORY VIDEO</span>
+        <h2><span class="highlight">Story Video</span></h2>
+        <p>Turn your story idea into a cinematic video with AI.</p>
     </div>
     """, unsafe_allow_html=True)
     # ============================================
@@ -15300,9 +15407,9 @@ def run_cinematic_engine():
         st.markdown('<p class="compact-label" style="margin: 10px 0 4px 0;">📊 Render Quality</p>', unsafe_allow_html=True)
         cinematic_quality = st.selectbox(
             "Quality",
-            ["Standard", "HD", "Pro"],
+            ["Standard", "HD"],
             key="cinematic_quality",
-                        label_visibility="collapsed"
+            label_visibility="collapsed",
         )
         
         col_btn1, col_btn2 = st.columns([4, 1])
@@ -16816,12 +16923,26 @@ elif st.session_state["current_page"] == "studio_mode":
             padding-block: 84px !important;
             background-image: url("/app/static/studio_sales_engine.webp") !important;
         }
-        section[data-testid="stMain"] [class*="st-key-studio_change_mode_btn"] {
+        section[data-testid="stMain"] [data-testid="stHorizontalBlock"]:has(.st-key-studio_change_mode_btn) {
             position: relative !important;
-            display: flex !important;
-            justify-content: flex-end !important;
+            z-index: 30 !important;
+            height: 0 !important;
+            margin: 0 !important;
+            overflow: visible !important;
+            pointer-events: none !important;
+        }
+        section[data-testid="stMain"] [data-testid="stColumn"]:has(.st-key-studio_change_mode_btn) {
+            position: absolute !important;
+            top: 30px !important;
+            right: 18px !important;
+            flex: none !important;
+            width: 190px !important;
+            min-width: 0 !important;
+            pointer-events: auto !important;
+        }
+        section[data-testid="stMain"] [class*="st-key-studio_change_mode_btn"] {
             width: 100% !important;
-            margin: 0 0 14px !important;
+            margin: 0 !important;
         }
         section[data-testid="stMain"] [class*="st-key-studio_change_mode_btn"] button {
             min-height: 42px !important;
@@ -16989,9 +17110,14 @@ elif st.session_state["current_page"] == "studio_mode":
                 height: clamp(220px, 62svh, 340px) !important;
                 min-height: 220px !important;
             }
+            section[data-testid="stMain"] [data-testid="stColumn"]:has(.st-key-studio_change_mode_btn) {
+                top: 26px !important;
+                right: 10px !important;
+                width: 160px !important;
+            }
             section[data-testid="stMain"] [class*="st-key-studio_change_mode_btn"] button {
                 min-height: 40px !important;
-                padding: 0 14px !important;
+                padding: 0 12px !important;
                 font-size: 12px !important;
             }
         }
@@ -17074,19 +17200,12 @@ elif st.session_state["current_page"] == "studio_mode":
         }
     </style>
     """, unsafe_allow_html=True)
-    face_avatar_path = Path(__file__).resolve().parent / "static" / "face_studio_ai_avatar.svg"
-    face_avatar_data = base64.b64encode(face_avatar_path.read_bytes()).decode("ascii")
     st.markdown(
         '<style>section[data-testid="stMain"] .studio-mode-photo-hero--face {'
-        'background-image: url("data:image/svg+xml;base64,' + face_avatar_data + '") !important;'
-        'background-position: center 32% !important;}</style>',
+        'background-image: url("/app/static/studio_face_video_guide.webp") !important;'
+        'background-position: center 44% !important;}</style>',
         unsafe_allow_html=True,
     )
-    if st.button("← Back to Studio", key="studio_change_mode_btn", type="secondary"):
-        st.session_state["current_page"] = "studio"
-        st.query_params["page"] = "studio"
-        st.rerun()
-
 elif st.session_state["current_page"] == "payments":
     if not st.session_state.get("is_logged_in", False):
         st.session_state["current_page"] = "landing"
@@ -17616,58 +17735,63 @@ elif st.session_state["current_page"] == "profile":
                 width=76,
                 caption="Current profile photo",
             )
-        with st.form("creator_profile_form"):
-            creator_name_input = st.text_input(
-                "Display name",
-                value=profile_display_name,
-                max_chars=120,
-                placeholder="Your name",
-            )
-            creator_avatar_upload = st.file_uploader(
-                "Profile photo",
-                type=["png", "jpg", "jpeg", "webp"],
-                help="Upload a square or portrait photo (up to 5 MB).",
-            )
-            profile_submitted = st.form_submit_button("Save profile", type="primary")
+        creator_avatar_upload = st.file_uploader(
+            "Profile photo",
+            type=["png", "jpg", "jpeg", "webp"],
+            help="Upload a square or portrait photo (up to 5 MB).",
+            key="creator_profile_avatar_upload",
+        )
+        avatar_to_save = profile_avatar_data
+        avatar_error = None
+        if creator_avatar_upload is not None:
+            uploaded_bytes = creator_avatar_upload.getvalue()
+            if len(uploaded_bytes) > 5 * 1024 * 1024:
+                avatar_error = "Profile photo must be 5 MB or smaller."
+            else:
+                try:
+                    with Image.open(io.BytesIO(uploaded_bytes)) as source_image:
+                        if source_image.width > 5000 or source_image.height > 5000:
+                            raise ValueError("Profile photo dimensions must be 5000 × 5000 pixels or smaller.")
+                        normalized_avatar = ImageOps.fit(
+                            source_image.convert("RGB"),
+                            (256, 256),
+                            method=Image.Resampling.LANCZOS,
+                        )
+                        avatar_buffer = io.BytesIO()
+                        normalized_avatar.save(avatar_buffer, format="JPEG", quality=82, optimize=True)
+                        avatar_to_save = base64.b64encode(avatar_buffer.getvalue()).decode("ascii")
+                    st.image(
+                        io.BytesIO(base64.b64decode(avatar_to_save)),
+                        width=76,
+                        caption="New profile photo preview",
+                    )
+                except (OSError, ValueError) as error:
+                    avatar_error = str(error) or "Choose a valid image file."
+            if avatar_error:
+                st.error(avatar_error)
+        creator_name_input = st.text_input(
+            "Display name",
+            value=profile_display_name,
+            max_chars=120,
+            placeholder="Your name",
+        )
+        profile_submitted = st.button("Save profile", type="primary", key="save_creator_profile")
 
         if profile_submitted:
             clean_display_name = creator_name_input.strip()
             if not clean_display_name:
                 st.error("Enter a display name to create your profile.")
+            elif avatar_error:
+                st.error(avatar_error)
             else:
-                avatar_to_save = profile_avatar_data
-                avatar_error = None
-                if creator_avatar_upload is not None:
-                    uploaded_bytes = creator_avatar_upload.getvalue()
-                    if len(uploaded_bytes) > 5 * 1024 * 1024:
-                        avatar_error = "Profile photo must be 5 MB or smaller."
-                    else:
-                        try:
-                            with Image.open(io.BytesIO(uploaded_bytes)) as source_image:
-                                if source_image.width > 5000 or source_image.height > 5000:
-                                    raise ValueError("Profile photo dimensions must be 5000 × 5000 pixels or smaller.")
-                                normalized_avatar = ImageOps.fit(
-                                    source_image.convert("RGB"),
-                                    (256, 256),
-                                    method=Image.Resampling.LANCZOS,
-                                )
-                                avatar_buffer = io.BytesIO()
-                                normalized_avatar.save(avatar_buffer, format="JPEG", quality=82, optimize=True)
-                                avatar_to_save = base64.b64encode(avatar_buffer.getvalue()).decode("ascii")
-                        except (OSError, ValueError) as error:
-                            avatar_error = str(error) or "Choose a valid image file."
-
-                if avatar_error:
-                    st.error(avatar_error)
+                try:
+                    save_creator_profile(profile_username, clean_display_name, avatar_to_save)
+                except sqlite3.Error:
+                    logger.exception("Unable to save creator profile for %s", profile_username)
+                    st.error("Your creator profile could not be saved. Please try again.")
                 else:
-                    try:
-                        save_creator_profile(profile_username, clean_display_name, avatar_to_save)
-                    except sqlite3.Error:
-                        logger.exception("Unable to save creator profile for %s", profile_username)
-                        st.error("Your creator profile could not be saved. Please try again.")
-                    else:
-                        st.success("Creator profile saved.")
-                        st.rerun()
+                    st.success("Creator profile saved.")
+                    st.rerun()
 
     stat_columns = st.columns(4, gap="small")
     profile_stats = [
@@ -17795,6 +17919,28 @@ elif st.session_state["current_page"] == "profile":
 
     if st.session_state.get("2fa_setup_mode", False):
         show_2fa_modal()
+    st.stop()
+
+elif st.session_state["current_page"] == "ghost_engine":
+    if not st.session_state.get("is_logged_in", False):
+        st.session_state["current_page"] = "landing"
+        st.query_params["page"] = "landing"
+        st.stop()
+    if st.session_state.get("2fa_enabled", False) and not st.session_state.get("2fa_verified", False):
+        show_2fa_modal()
+        st.stop()
+    st.markdown(get_premium_theme_css(), unsafe_allow_html=True)
+    from ghost_engine_studio import render_ghost_engine_studio
+    def _reload_ghost_engine_portfolio(username):
+        load_renders_history_db.clear()
+        return load_renders_history_db(username)
+
+    render_ghost_engine_studio(
+        save_output_callback=save_render_to_db,
+        load_portfolio_callback=_reload_ghost_engine_portfolio,
+        deduct_tokens_callback=validate_and_deduct_tokens,
+        refund_tokens_callback=refund_face_video_credits,
+    )
     st.stop()
 
 elif st.session_state["current_page"] in {"scheduler", "subusers", "factory", "portfolio", "tutorials", "documentation", "community", "support"}:
@@ -20376,6 +20522,7 @@ elif st.session_state["current_page"] == "studio":
         ("🧠", "Dynamic UI", "Dynamic UI Mode", "Adapt your creative workspace to each project.", "photo-1497366811353-6870744d04b2"),
         ("💜", "Live Emotions", "Live Emotion Mode", "Bring characters to life with expressive voices.", "photo-1508214751196-bcfd4ca60f91"),
         ("⚡", "Upscaler", "Upscaler Mode", "Enhance image detail and resolution.", "photo-1519681393784-d120267933ba"),
+        ("👻", "Ghost Engine", "ghost_engine", "Create cinematic videos with a coordinated AI production pipeline.", "photo-1500530855697-b586d89ba3ee"),
     ]
     engine_cards_html = ""
 
@@ -20449,7 +20596,7 @@ elif st.session_state["current_page"] == "studio":
             min-height: 100vh;
             padding: 6px 18px 20px;
             color: var(--zd-ink);
-            background: #ffffff;
+            background: #f1f5fb;
         }
         .zd-sidebar { display:flex; flex-direction:column; min-height:calc(100vh - 34px); padding:4px 10px 8px 2px; border-right:1px solid #edf0f5; }
         .zd-brand { display:flex; align-items:center; gap:10px; margin:4px 0 24px; color:#152238; text-decoration:none; }
@@ -20470,12 +20617,15 @@ elif st.session_state["current_page"] == "studio":
         .zd-nav a:hover, .zd-nav a.active { color:#263d62; background:#edf3ff; }
         .zd-nav a.active { font-weight:750; }
         .zd-nav-icon { width:17px; text-align:center; font-size:14px; }
+        .zd-ghost-engine-link { display:flex; align-items:center; gap:10px; min-height:38px; margin:9px 0 2px; padding:0 10px; color:#fff !important; border-radius:9px; background:linear-gradient(100deg,#25264f,#5555d9); box-shadow:0 5px 14px rgba(61,69,176,.2); text-decoration:none !important; font:750 12px/1.2 'Inter',sans-serif; }
+        .zd-ghost-engine-link:hover { color:#fff !important; background:linear-gradient(100deg,#34366d,#6867f2); }
+        .zd-ghost-engine-link span { width:18px; text-align:center; font-size:16px; }
         .zd-nav-rule { height:1px; margin:12px 7px 3px; background:#edf0f5; }
         .zd-sidebar-promo { margin-top:auto; padding:14px 12px; color:#fff; border-radius:13px; background:linear-gradient(145deg,#161f40,#41255a 64%,#27205b); }
         .zd-sidebar-promo strong { display:block; font-size:12px; }
         .zd-sidebar-promo p { margin:6px 0 10px; color:#dce1f5; font-size:9px; line-height:1.5; }
         .zd-sidebar-promo a { display:inline-flex; padding:7px 10px; color:#fff; background:#6657ef; border-radius:7px; font-size:9px; font-weight:750; text-decoration:none; }
-        .zd-main { min-width:0; }
+        .zd-main { min-width:0; background:transparent; }
         .zd-topbar { display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:39px; margin:0 0 12px; }
         .zd-breadcrumb { color:#738198; font-size:10px; font-weight:650; }
         .zd-user { display:flex; align-items:center; gap:8px; color:#26354c; text-decoration:none; font-size:10px; font-weight:750; }
@@ -20912,22 +21062,23 @@ elif st.session_state["current_page"] == "studio":
             position:relative;
             display:flex;
             flex-direction:column;
-            min-height:300px;
+            min-height:320px;
             height:auto;
-            overflow:visible;
-            padding:20px 20px 22px !important;
-            border:1px solid rgba(115,164,222,.32);
-            border-radius:15px;
+            overflow:hidden;
+            padding:24px 20px 16px !important;
+            border:1px solid rgba(207,222,244,.9);
+            border-radius:20px;
             background:
-                linear-gradient(90deg,rgba(239,246,255,.84) 0%,rgba(239,246,255,.72) 38%,rgba(239,246,255,.38) 50%,rgba(239,246,255,0) 58%,rgba(239,246,255,0) 100%),
+                linear-gradient(90deg,rgba(239,246,255,.9) 0%,rgba(239,246,255,.78) 42%,rgba(239,246,255,.35) 72%,rgba(239,246,255,.12) 100%),
                 url('/app/static/studio_hero.webp') center 45%/cover no-repeat;
-            box-shadow:0 8px 22px rgba(33,57,91,.14);
+            box-shadow:0 12px 30px rgba(42,80,140,.12);
         }
         .st-key-studio_hero_container [data-testid="stVerticalBlock"] {
             width:100%;
             gap:0 !important;
         }
         .st-key-studio_hero_container .zd-hero {
+            box-sizing:border-box;
             min-height:0;
             overflow:visible;
             align-items:flex-start;
@@ -20938,7 +21089,7 @@ elif st.session_state["current_page"] == "studio":
             box-shadow:none;
         }
         .st-key-studio_hero_container .zd-hero::before { display:none; }
-        .st-key-studio_hero_container .zd-hero-copy { max-width:720px; }
+        .st-key-studio_hero_container .zd-hero-copy { max-width:58%; }
         .st-key-studio_hero_container .zd-hero-kicker { color:#213957; }
         .st-key-studio_hero_container .zd-hero h1 { color:#101f3d; text-shadow:0 1px 0 rgba(255,255,255,.45); }
         .st-key-studio_hero_container .zd-hero h1 span { color:#3478ff; }
@@ -20949,34 +21100,64 @@ elif st.session_state["current_page"] == "studio":
             z-index:2;
             width:100%;
             box-sizing:border-box;
-            margin:14px 0 0;
-            padding:5px;
-            border:1px solid rgba(129,171,229,.56);
-            border-radius:12px;
-            background:rgba(255,255,255,.97);
-            box-shadow:0 1px 0 rgba(255,255,255,.95) inset,
-                0 3px 0 rgba(49,91,151,.12),
-                0 8px 18px rgba(12,29,58,.2);
+            margin:0;
+            padding:0;
+            border:0;
+            border-radius:0;
+            background:transparent;
+            box-shadow:none;
+            backdrop-filter:none;
+        }
+        .st-key-studio_hero_controls {
+            position:relative;
+            z-index:2;
+            box-sizing:border-box;
+            width:100%;
+            margin-top:16px;
+            padding:7px 9px 9px;
+            border:1px solid rgba(255,255,255,.82);
+            border-radius:14px;
+            background:rgba(255,255,255,.78);
+            box-shadow:0 5px 18px rgba(37,68,117,.14);
             backdrop-filter:blur(10px);
         }
+        .st-key-studio_hero_prompt_form [data-testid="stVerticalBlock"] {
+            gap:8px !important;
+        }
         .st-key-studio_hero_prompt_form [data-testid="stHorizontalBlock"] {
+            display:flex !important;
+            flex-wrap:nowrap !important;
             align-items:center;
-            gap:4px !important;
+            gap:8px !important;
+        }
+        .st-key-studio_hero_prompt_form [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:first-child {
+            flex:1 1 0% !important;
+            width:auto !important;
+            min-width:0 !important;
+        }
+        .st-key-studio_hero_prompt_form [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:last-child {
+            flex:0 0 112px !important;
+            width:112px !important;
+            min-width:112px !important;
+        }
+        .st-key-studio_hero_prompt_form [data-testid="stTextInput"] {
+            width:100%;
         }
         .st-key-studio_hero_prompt_form [data-testid="stTextInput"] input {
             min-height:42px !important;
             padding:0 10px !important;
             color:#233650 !important;
-            border:1px solid transparent !important;
-            border-radius:8px !important;
-            background:transparent !important;
+            border:1px solid #e2eaf5 !important;
+            border-radius:10px !important;
+            background:rgba(255,255,255,.94) !important;
             box-shadow:none !important;
         }
         .st-key-studio_hero_prompt_form [data-testid="stTextInput"] input::placeholder {
             color:#7889a3 !important;
         }
         .st-key-studio_hero_prompt_form [data-testid="stFormSubmitButton"] > button {
-            min-height:42px !important;
+            width:100% !important;
+            min-height:40px !important;
             padding:0 17px !important;
             border:0 !important;
             border-radius:8px !important;
@@ -20987,7 +21168,7 @@ elif st.session_state["current_page"] == "studio":
         }
         .st-key-studio_creation_type_choices {
             width:100%;
-            margin-top:9px;
+            margin-top:10px;
         }
         .st-key-studio_creation_type_choices [data-testid="stHorizontalBlock"] {
             display:flex !important;
@@ -21025,12 +21206,10 @@ elif st.session_state["current_page"] == "studio":
             background:#f0f3ff !important;
         }
         .st-key-studio_creation_type_choices [data-testid="stButton"] > button[kind="primary"] {
-            color:#3156bd !important;
-            border-color:#aebfff !important;
-            background:#edf2ff !important;
-            box-shadow:0 1px 0 rgba(255,255,255,.95) inset,
-                0 2px 0 rgba(73,91,198,.1),
-                0 4px 9px rgba(73,91,198,.13) !important;
+            color:#fff !important;
+            border-color:transparent !important;
+            background:linear-gradient(110deg,#2584f4,#7150ed) !important;
+            box-shadow:0 4px 11px rgba(76,91,210,.24) !important;
         }
         .zd-recent-placeholder {
             min-height:72px;
@@ -21055,6 +21234,9 @@ elif st.session_state["current_page"] == "studio":
             border-radius:12px;
             background:#fff;
             box-shadow:0 5px 15px rgba(26,47,77,.045);
+        }
+        .st-key-studio_credits_panel > [data-testid="stVerticalBlock"] {
+            gap:6px !important;
         }
         .st-key-studio_credit_amount_row [data-testid="stHorizontalBlock"],
         .st-key-studio_plan_row [data-testid="stHorizontalBlock"],
@@ -21313,7 +21495,7 @@ elif st.session_state["current_page"] == "studio":
         }
         .zd-sidebar-promo p { color:#69758c; }
         .zd-sidebar-promo a { background:linear-gradient(100deg,#4c54e8,#16b6e6); }
-        [data-testid="stColumn"]:has([class*="st-key-studio_recent_"]) [data-testid="stImage"] img {
+        section[data-testid="stMain"] [data-testid="stHorizontalBlock"]:has([data-testid="stImage"]):has([class*="st-key-studio_recent_"]) > [data-testid="stColumn"] [data-testid="stImage"] img {
             height:72px;
             object-fit:cover;
             border-radius:8px;
@@ -21337,8 +21519,8 @@ elif st.session_state["current_page"] == "studio":
             display:flex;
             align-items:flex-end;
             isolation:isolate;
-            min-height:88px;
-            aspect-ratio:2.65 / 1;
+            min-height:0;
+            aspect-ratio:16 / 9;
             overflow:hidden;
             padding:9px;
             color:#fff;
@@ -21372,6 +21554,7 @@ elif st.session_state["current_page"] == "studio":
             width:100%;
             height:100%;
             object-fit:cover;
+            object-position:center;
         }
         .zd-engine-photo-icon {
             position:relative;
@@ -21431,9 +21614,14 @@ elif st.session_state["current_page"] == "studio":
         }
         @media (max-width:760px) {
             section[data-testid="stMain"] .block-container { padding:6px 10px 16px !important; }
-            .st-key-studio_hero_container { min-height:0; padding:17px 12px 18px !important; }
+            .st-key-studio_hero_container { min-height:300px; padding:18px 14px 14px !important; border-radius:16px; }
             .st-key-studio_hero_container .zd-hero { min-height:0; padding:0; }
-            .st-key-studio_hero_prompt_form { margin:12px 0 0; }
+            .st-key-studio_hero_prompt_form [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:last-child {
+                flex-basis:104px !important;
+                width:104px !important;
+                min-width:104px !important;
+            }
+            .st-key-studio_hero_prompt_form { margin:0; }
             .st-key-studio_hero_prompt_form [data-testid="stHorizontalBlock"] {
                 flex-wrap:nowrap !important;
                 gap:7px !important;
@@ -21450,31 +21638,27 @@ elif st.session_state["current_page"] == "studio":
             }
             .st-key-studio_creation_type_choices [data-testid="stHorizontalBlock"] {
                 display:flex !important;
-                flex-wrap:wrap !important;
+                flex-wrap:nowrap !important;
+                overflow-x:auto !important;
                 gap:7px !important;
+                scrollbar-width:none;
             }
             .st-key-studio_creation_type_choices [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] {
-                flex:1 1 calc(33.333% - 7px) !important;
+                flex:0 0 auto !important;
                 width:auto !important;
                 min-width:0 !important;
-                max-width:calc(33.333% - 5px) !important;
+                max-width:none !important;
             }
             .st-key-studio_creation_type_choices [data-testid="stButton"] > button {
                 box-sizing:border-box !important;
-                min-height:42px !important;
+                min-height:34px !important;
                 height:auto !important;
-                padding:7px 6px !important;
-                font-size:10px !important;
+                padding:0 9px !important;
+                font-size:9px !important;
                 line-height:1.25 !important;
-                white-space:normal !important;
+                white-space:nowrap !important;
             }
             .zd-hero h1 { white-space:normal; }
-        }
-        @media (max-width:380px) {
-            .st-key-studio_creation_type_choices [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] {
-                flex-basis:calc(50% - 7px) !important;
-                max-width:calc(50% - 4px) !important;
-            }
         }
         .zovix-dashboard, .zd-footer {
             font-family:'Inter',sans-serif;
@@ -21620,6 +21804,888 @@ elif st.session_state["current_page"] == "studio":
             font-size:13px !important;
             font-weight:700 !important;
         }
+        .st-key-studio_credits_panel {
+            padding:16px !important;
+            border:1px solid #e3ebf6 !important;
+            border-radius:16px !important;
+            background:linear-gradient(180deg,#fff 0%,#fbfdff 100%) !important;
+            box-shadow:0 8px 22px rgba(37,65,105,.07) !important;
+        }
+        .st-key-studio_credits_panel > [data-testid="stVerticalBlock"] { gap:7px !important; }
+        .st-key-studio_credits_panel .zd-credit-heading {
+            display:flex;
+            align-items:center;
+            gap:6px;
+            margin:0 !important;
+            color:#263b5b;
+            font:700 10px/1.2 'Inter',Arial,sans-serif;
+            white-space:nowrap;
+        }
+        .st-key-studio_credits_panel .zd-credit-heading-icon {
+            display:grid;
+            width:17px;
+            height:17px;
+            flex:0 0 17px;
+            place-items:center;
+            color:#f2a900;
+            border-radius:5px;
+            background:#fff5d9;
+            font-size:10px;
+        }
+        .st-key-studio_credits_panel .zd-balance {
+            justify-content:center;
+            min-width:0;
+            gap:8px;
+            margin:0 !important;
+        }
+        .st-key-studio_credits_panel .zd-balance-icon {
+            width:24px;
+            height:24px;
+            flex:0 0 24px;
+            color:#3974e8;
+            border-radius:7px;
+            background:#edf4ff;
+            font-size:12px;
+        }
+        .st-key-studio_credits_panel .zd-balance > span:last-child {
+            display:grid !important;
+            min-width:0;
+            justify-items:center;
+            gap:3px;
+            text-align:center;
+        }
+        .st-key-studio_credits_panel .zd-balance strong {
+            display:block !important;
+            color:#172b4d;
+            font:750 17px/1 'Inter',Arial,sans-serif;
+            letter-spacing:-.02em;
+            white-space:nowrap;
+        }
+        .st-key-studio_credits_panel .zd-balance small {
+            display:block !important;
+            margin:0;
+            color:#76859b;
+            font:500 8px/1.2 'Inter',Arial,sans-serif;
+            white-space:nowrap;
+        }
+        .zd-credit-details {
+            display:inline-flex;
+            align-items:center;
+            gap:4px;
+            margin:0 0 0 32px;
+            color:#3974dc !important;
+            font:600 8px/1.25 'Inter',Arial,sans-serif;
+            text-decoration:none !important;
+            white-space:nowrap;
+        }
+        .zd-credit-details:hover { color:#2456bd !important; text-decoration:underline !important; }
+        .st-key-studio_add_credits_inline [data-testid="stButton"] > button {
+            min-height:32px !important;
+            padding:0 8px !important;
+            color:#fff !important;
+            border:0 !important;
+            border-radius:8px !important;
+            background:linear-gradient(100deg,#2788f5 0%,#4d66ec 58%,#8350e8 100%) !important;
+            box-shadow:0 4px 10px rgba(76,105,220,.2) !important;
+            font:700 10px/1 'Inter',Arial,sans-serif !important;
+            white-space:nowrap !important;
+        }
+        .st-key-studio_add_credits_inline [data-testid="stButton"] > button:hover {
+            color:#fff !important;
+            filter:brightness(1.04);
+        }
+        .st-key-studio_add_credits_inline [data-testid="stButton"] p {
+            margin:0 !important;
+            font:inherit !important;
+            white-space:nowrap !important;
+        }
+        .st-key-studio_plan_row, .st-key-studio_credits_panel .zd-mini-stats { display:none !important; }
+        /* Studio visual refresh: keep all existing media and actions intact. */
+        :root {
+            --studio-bg:#f1f5fb;
+            --studio-surface:#ffffff;
+            --studio-text:#172b4d;
+            --studio-muted:#65758e;
+            --studio-line:#e4ebf5;
+            --studio-teal:#18b8c6;
+            --studio-coral:#ff8c91;
+        }
+        html, body, .stApp, [data-testid="stAppViewContainer"],
+        section[data-testid="stMain"], section[data-testid="stMain"] .block-container {
+            background:#f1f5fb !important;
+            color:#172b4d !important;
+            font-family:'Inter',Arial,sans-serif !important;
+        }
+        section[data-testid="stMain"] .block-container { padding:10px 16px 26px !important; }
+        section[data-testid="stMain"] [data-testid="stHorizontalBlock"] { gap:12px !important; }
+        .zd-section-head { margin:20px 0 11px; }
+        .zd-section-head h2, .zd-lower-head h2, .st-key-studio-native-actions h2 {
+            color:#172b4d !important;
+            font:750 17px/1.25 'Inter',Arial,sans-serif !important;
+            letter-spacing:-.025em;
+        }
+        .zd-section-head p, .zd-lower-head p { color:#71819a !important; font-size:11px; line-height:1.5; }
+        .zd-creations-head { margin:0; padding:0 2px; }
+        .zd-creations-head p { margin-top:4px; color:#71819a !important; font-size:11px; line-height:1.5; }
+        .zd-creations-heading { display:flex; align-items:flex-start; gap:9px; }
+        .zd-creations-heading > span {
+            display:grid;
+            width:25px;
+            height:25px;
+            flex:0 0 25px;
+            place-items:center;
+            color:#3478e5;
+            border:1px solid #dce8ff;
+            border-radius:8px;
+            background:#f1f6ff;
+            font-size:13px;
+        }
+        .st-key-studio_creations_section {
+            box-sizing:border-box;
+            margin-top:18px;
+            padding:18px;
+            border:1px solid #e4ebf5;
+            border-radius:16px;
+            background:#fff;
+            box-shadow:0 7px 20px rgba(37,65,105,.055);
+        }
+        .st-key-studio_creations_section [data-testid="stHorizontalBlock"]:has(.zd-creations-head) {
+            align-items:center;
+            margin:0;
+            padding:0;
+            border:0;
+            background:transparent;
+        }
+        .st-key-studio_creations_section [data-testid="stHorizontalBlock"]:has([data-testid="stImage"]):has([class*="st-key-studio_recent_"]) {
+            margin:10px 0 0;
+            padding:0;
+            border:0;
+            border-radius:0;
+            background:transparent;
+            box-shadow:none;
+        }
+        .zd-section-head a, .zd-lower-head a { color:#3769d7; font-size:11px; }
+        .zd-nav a {
+            min-height:35px;
+            color:#4b5f7a;
+            border-radius:10px;
+            font:550 11px/1.35 'Inter',Arial,sans-serif;
+        }
+        .zd-nav a:hover, .zd-nav a.active {
+            color:#245bc7;
+            background:#eaf1ff;
+        }
+        .zd-nav a.active { font-weight:700; }
+        .studio-sidebar-section-label { color:#64748b; font-size:9px; letter-spacing:.1em; }
+        .zd-brand-mark { border-radius:12px; box-shadow:0 5px 14px rgba(76,91,210,.18); }
+        .zd-brand-name { font-size:18px; }
+        .zd-brand-sub { color:#64748b; }
+        .zd-hero {
+            min-height:228px;
+            border:1px solid rgba(207,222,244,.9);
+            border-radius:20px;
+            box-shadow:0 12px 30px rgba(42,80,140,.12);
+        }
+        .st-key-studio_hero_container {
+            min-height:0;
+            height:auto;
+            padding:16px 18px 14px !important;
+            border:1px solid rgba(207,222,244,.9);
+            border-radius:20px;
+            background:
+                linear-gradient(90deg,rgba(239,246,255,.9) 0%,rgba(239,246,255,.78) 42%,rgba(239,246,255,.35) 72%,rgba(239,246,255,.12) 100%),
+                url('/app/static/studio_hero.webp') center 45%/cover no-repeat;
+            box-shadow:0 12px 30px rgba(42,80,140,.12);
+        }
+        .st-key-studio_hero_container .zd-hero h1 {
+            color:#14284b;
+            font:800 clamp(25px,2.3vw,34px)/1.12 'Inter',Arial,sans-serif;
+            letter-spacing:-.045em;
+        }
+        .st-key-studio_hero_container .zd-hero h1 span { color:#3979e8; }
+        .st-key-studio_hero_container .zd-hero-kicker { color:#536783; font-size:11px; }
+        .st-key-studio_hero_container .zd-hero p { color:#334865; font-size:11px; line-height:1.55; }
+        .st-key-studio_hero_container .zd-hero { min-height:148px; }
+        .st-key-studio_hero_prompt_form {
+            border:0;
+            border-radius:0;
+            background:transparent;
+            box-shadow:none;
+        }
+        .st-key-studio_hero_prompt_form [data-testid="stFormSubmitButton"] > button,
+        section[data-testid="stMain"] [data-testid="stButton"] > button[kind="primary"] {
+            background:linear-gradient(105deg,#13bdd0,#4778ed 66%,#7550e9) !important;
+            border-radius:10px !important;
+            box-shadow:0 5px 13px rgba(70,105,220,.2) !important;
+            font-family:'Inter',Arial,sans-serif !important;
+        }
+        .st-key-studio_creation_type_choices [data-testid="stButton"] > button {
+            min-height:35px !important;
+            border-color:#e0e8f3 !important;
+            border-radius:999px !important;
+            box-shadow:0 2px 7px rgba(33,57,91,.05) !important;
+            font:600 10px/1.25 'Inter',Arial,sans-serif !important;
+        }
+        .zd-engine-photo-card {
+            border-color:#e2eaf5;
+            border-radius:15px;
+            box-shadow:0 6px 16px rgba(37,65,105,.08);
+            display:grid;
+            width:100%;
+            height:auto;
+            min-height:0;
+            box-sizing:border-box;
+            aspect-ratio:auto;
+            grid-template-columns:minmax(0,1fr);
+            grid-template-rows:auto 72px;
+            align-items:start;
+            padding:0;
+            color:#172b4d;
+            background:#fff;
+        }
+        .zd-engine-photo-card::before { display:none; }
+        .zd-engine-photo-card:hover { box-shadow:0 11px 23px rgba(37,65,105,.14); }
+        .zd-engine-photo-card img {
+            position:relative;
+            grid-row:1;
+            display:block;
+            width:100%;
+            height:auto;
+            aspect-ratio:1 / 1;
+            object-fit:cover;
+        }
+        .zd-engine-photo-icon {
+            position:absolute;
+            z-index:2;
+            top:8px;
+            left:8px;
+            width:27px;
+            height:27px;
+            border-radius:9px;
+        }
+        .zd-engine-photo-copy {
+            grid-row:2;
+            box-sizing:border-box;
+            min-height:72px;
+            align-content:center;
+            gap:4px;
+            margin:0;
+            padding:10px 30px 11px 11px;
+        }
+        .zd-engine-photo-copy strong { color:#1c3152; }
+        .zd-engine-photo-copy small {
+            display:-webkit-box;
+            overflow:hidden;
+            color:#6b7b92;
+            -webkit-box-orient:vertical;
+            -webkit-line-clamp:2;
+        }
+        .zd-engine-grid {
+            display:grid;
+            grid-template-columns:repeat(4,minmax(0,1fr));
+            align-items:stretch;
+            gap:12px;
+            margin-top:10px;
+        }
+        .zd-engine-grid > * { min-width:0; }
+        .zd-engine-photo-arrow {
+            right:9px;
+            bottom:10px;
+            width:20px;
+            height:20px;
+            color:#3973db;
+            border-color:#dce7f5;
+            background:#f2f6ff;
+        }
+        .zd-engine-photo-copy strong { font:700 11px/1.25 'Inter',Arial,sans-serif; }
+        .zd-engine-photo-copy small { font:500 9px/1.4 'Inter',Arial,sans-serif; }
+        .st-key-studio_creations_section [data-testid="stHorizontalBlock"]:has([data-testid="stImage"]):has([class*="st-key-studio_recent_"]) > [data-testid="stColumn"] {
+            box-sizing:border-box;
+            min-width:0;
+            padding:8px !important;
+            border:1px solid #dfe7f2;
+            border-radius:15px;
+            background:#fff;
+            box-shadow:0 7px 19px rgba(37,65,105,.075);
+        }
+        .st-key-studio_creations_section [data-testid="stHorizontalBlock"]:has([data-testid="stImage"]):has([class*="st-key-studio_recent_"]) > [data-testid="stColumn"] [data-testid="stImage"] img {
+            height:94px;
+            object-fit:cover;
+            border-radius:10px;
+        }
+        .zd-lower-section, .st-key-studio-credits-panel, .st-key-studio_credits_panel,
+        .st-key-studio-native-actions, .st-key-studio_quick_actions_panel {
+            border-color:#e4ebf5;
+            border-radius:16px;
+            background:#fff;
+            box-shadow:0 7px 20px rgba(37,65,105,.055);
+        }
+        .zd-lower-section { margin-top:18px; padding:18px; }
+        .zd-community-section { margin-top:18px; padding:18px; }
+        .zd-engine-photo-card, .st-key-studio_creations_section [data-testid="stHorizontalBlock"]:has([data-testid="stImage"]):has([class*="st-key-studio_recent_"]) > [data-testid="stColumn"] {
+            outline:1px solid rgba(255,255,255,.82);
+            outline-offset:-3px;
+        }
+        .zd-section-head { padding:0 2px; }
+        .zd-future-card, .zd-panel {
+            border-color:#e5ecf6;
+            border-radius:14px;
+            background:#fff;
+            box-shadow:0 5px 15px rgba(37,65,105,.055);
+        }
+        .zd-panel { padding:14px; }
+        .zd-panel-head { color:#263b5b; font:700 12px/1.35 'Inter',Arial,sans-serif; }
+        .zd-future-card {
+            display:flex;
+            min-width:0;
+            min-height:0;
+            flex-direction:column;
+            overflow:hidden;
+            align-items:stretch;
+            padding:6px;
+            border:1px solid #e2eaf5;
+            border-radius:10px;
+            box-shadow:0 4px 12px rgba(37,65,105,.06);
+        }
+        .zd-future-card img {
+            display:block;
+            width:100%;
+            height:clamp(86px,10vw,144px);
+            object-fit:cover;
+            border:1px solid #e2eaf5;
+            border-radius:9px;
+        }
+        .zd-future-copy {
+            display:flex;
+            flex:1;
+            flex-direction:column;
+            width:100%;
+            padding:7px 2px 3px;
+        }
+        .zd-future-copy small {
+            color:#3769d7;
+            font:700 7px/1.2 'Inter',Arial,sans-serif;
+            letter-spacing:.06em;
+        }
+        .zd-future-copy strong {
+            display:block;
+            margin:4px 0 0;
+            color:#203653;
+            font:700 9px/1.35 'Inter',Arial,sans-serif;
+        }
+        .zd-future-copy p {
+            margin:4px 0 0;
+            color:#71819a;
+            font:450 8px/1.45 'Inter',Arial,sans-serif;
+        }
+        .zd-future-link {
+            display:inline-flex;
+            margin-top:auto;
+            padding-top:7px;
+            color:#3769d7 !important;
+            font-size:8px;
+            font-weight:700;
+            text-decoration:none !important;
+        }
+        .zd-future-link:hover { text-decoration:underline !important; }
+        .zd-community-grid {
+            grid-template-columns:repeat(4,minmax(0,1fr));
+            align-items:start;
+            gap:9px;
+        }
+        .zd-community-creation {
+            min-width:0;
+            overflow:hidden;
+            padding:6px;
+            border:1px solid #e2eaf5;
+            border-radius:10px;
+            background:#fff;
+            box-shadow:0 4px 12px rgba(37,65,105,.06);
+        }
+        .zd-community-creation img {
+            display:block;
+            width:100%;
+            height:clamp(112px,12vw,180px);
+            object-fit:cover;
+            border:1px solid #e2eaf5;
+            border-radius:9px;
+        }
+        .zd-community-creation-copy { min-width:0; padding:5px 1px 0; }
+        .zd-community-creation-copy > strong {
+            display:block;
+            overflow:hidden;
+            color:#203653;
+            font:700 9px/1.3 'Inter',Arial,sans-serif;
+            text-overflow:ellipsis;
+            white-space:nowrap;
+        }
+        .zd-community-creation-meta {
+            display:flex;
+            min-width:0;
+            align-items:center;
+            justify-content:space-between;
+            gap:4px;
+            margin-top:5px;
+        }
+        .zd-community-creator {
+            display:flex;
+            min-width:0;
+            align-items:center;
+            gap:4px;
+            color:#526680;
+            font:600 8px/1.2 'Inter',Arial,sans-serif;
+        }
+        .zd-community-avatar {
+            display:grid;
+            width:16px;
+            height:16px;
+            flex:0 0 16px;
+            place-items:center;
+            color:#fff;
+            border-radius:50%;
+            background:linear-gradient(135deg,#2788f5,#8350e8);
+            font:750 7px/1 'Inter',Arial,sans-serif;
+        }
+        .zd-community-creator-name {
+            display:block;
+            min-width:0;
+            overflow:hidden;
+            text-overflow:ellipsis;
+            white-space:nowrap;
+        }
+        .zd-community-engagement {
+            flex:0 0 auto;
+            color:#c45c78;
+            font:650 7px/1.2 'Inter',Arial,sans-serif;
+            white-space:nowrap;
+        }
+        .zd-community-meta-bottom {
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:4px;
+        }
+        .zd-community-tag {
+            display:inline-flex;
+            max-width:100%;
+            overflow:hidden;
+            margin-top:5px;
+            padding:3px 5px;
+            color:#3769d7;
+            border-radius:999px;
+            background:#f0f5ff;
+            font:650 7px/1 'Inter',Arial,sans-serif;
+            text-overflow:ellipsis;
+            white-space:nowrap;
+        }
+        .zd-community-age {
+            overflow:hidden;
+            color:#78869a;
+            font:500 7px/1.2 'Inter',Arial,sans-serif;
+            text-overflow:ellipsis;
+            white-space:nowrap;
+        }
+        .zd-community-note {
+            margin:9px 0 0;
+            color:#7c8798;
+            font:450 9px/1.45 'Inter',Arial,sans-serif;
+        }
+        .zd-creation-tag {
+            display:inline-flex;
+            align-items:center;
+            gap:4px;
+            margin:0;
+            padding:2px 0;
+            color:#314968;
+            background:transparent;
+            font:650 8px/1.2 'Inter',Arial,sans-serif;
+            white-space:nowrap;
+        }
+        .zd-creation-type-icon {
+            display:grid;
+            width:13px;
+            height:13px;
+            flex:0 0 13px;
+            place-items:center;
+            color:#3769d7;
+            border:1px solid #dce8ff;
+            border-radius:50%;
+            background:#f0f5ff;
+            font-size:7px;
+        }
+        .zd-creation-meta-line {
+            display:flex;
+            min-width:0;
+            align-items:center;
+            justify-content:space-between;
+            gap:5px;
+            margin-top:8px;
+        }
+        .zd-creation-timestamp {
+            display:block;
+            margin:0;
+            overflow:hidden;
+            color:#71819a;
+            font:500 8px/1.35 'Inter',Arial,sans-serif;
+            text-align:right;
+            text-overflow:ellipsis;
+            white-space:nowrap;
+        }
+        .st-key-studio_creations_view_all [data-testid="stButton"] > button {
+            min-height:28px !important;
+            padding:4px 2px !important;
+            color:#3769d7 !important;
+            border:0 !important;
+            background:transparent !important;
+            box-shadow:none !important;
+            font-size:9px !important;
+            text-align:right !important;
+            white-space:nowrap !important;
+        }
+        .st-key-studio_creations_section [data-testid="stHorizontalBlock"]:has([data-testid="stImage"]):has([class*="st-key-studio_recent_"]) {
+            flex-wrap:nowrap !important;
+            gap:8px !important;
+        }
+        .st-key-studio_creations_section [data-testid="stHorizontalBlock"]:has([data-testid="stImage"]):has([class*="st-key-studio_recent_"]) > [data-testid="stColumn"] {
+            min-width:0 !important;
+            padding:7px !important;
+        }
+        [class*="st-key-studio_recent_"] [data-testid="stButton"] > button,
+        [class*="st-key-studio_favorite_"] [data-testid="stButton"] > button {
+            display:block !important;
+            width:26px !important;
+            min-width:26px !important;
+            min-height:26px !important;
+            margin-left:auto !important;
+            padding:3px !important;
+            border-radius:8px !important;
+            font-size:11px !important;
+        }
+        @media (max-width:760px) {
+            .st-key-studio_creations_section [data-testid="stHorizontalBlock"]:has([data-testid="stImage"]):has([class*="st-key-studio_recent_"]) {
+                overflow-x:auto !important;
+                scrollbar-width:thin;
+            }
+            .st-key-studio_creations_section [data-testid="stHorizontalBlock"]:has([data-testid="stImage"]):has([class*="st-key-studio_recent_"]) > [data-testid="stColumn"] {
+                flex:0 0 145px !important;
+            }
+        }
+        .zd-engine-photo-arrow { font-size:0; }
+        .zd-engine-photo-arrow::after {
+            content:"→";
+            font:600 13px/1 'Inter',Arial,sans-serif;
+        }
+        .zd-account-copy { display:grid; align-content:center; min-height:38px; color:#263b5b; }
+        .zd-account-copy strong { font:700 11px/1.25 'Inter',Arial,sans-serif; }
+        .zd-account-copy small { margin-top:3px; color:#71819a; font:500 9px/1.2 'Inter',Arial,sans-serif; }
+        .st-key-studio_quick_actions_panel {
+            padding:14px !important;
+            border:1px solid #e4ebf5 !important;
+        }
+        .st-key-studio_credits_panel {
+            padding:12px !important;
+            border:1px solid #e3e9f2 !important;
+            border-radius:12px !important;
+            background:#fff !important;
+            box-shadow:0 5px 15px rgba(26,47,77,.045) !important;
+        }
+        .st-key-studio_credits_panel > [data-testid="stVerticalBlock"] { gap:7px !important; }
+        section[data-testid="stMain"] .st-key-studio_add_credits_inline,
+        section[data-testid="stMain"] .st-key-studio_add_credits_inline [data-testid="stButton"] {
+            width:100% !important;
+        }
+        section[data-testid="stMain"] .st-key-studio_add_credits_inline [data-testid="stButton"] > button {
+            display:flex !important;
+            width:100% !important;
+            min-height:32px !important;
+            align-items:center !important;
+            justify-content:center !important;
+            gap:6px !important;
+            padding:0 10px !important;
+            white-space:nowrap !important;
+            font:700 10px/1 'Inter',Arial,sans-serif !important;
+        }
+        section[data-testid="stMain"] .st-key-studio_add_credits_inline [data-testid="stButton"] > button > div {
+            width:auto !important;
+            flex:0 0 auto !important;
+            white-space:nowrap !important;
+        }
+        section[data-testid="stMain"] .st-key-studio_add_credits_inline [data-testid="stButton"] p {
+            margin:0 !important;
+            white-space:nowrap !important;
+        }
+        .st-key-studio_quick_actions_panel {
+            padding:12px !important;
+            border:1px solid #e4ebf5 !important;
+            border-radius:12px !important;
+            background:#fff !important;
+            box-shadow:0 5px 15px rgba(26,47,77,.045) !important;
+        }
+        .st-key-studio_quick_actions_panel .zd-panel-head {
+            margin:0 0 8px !important;
+            color:#263b5b !important;
+            font:700 11px/1.25 'Inter',Arial,sans-serif !important;
+        }
+        section[data-testid="stMain"] [class*="st-key-studio_quick_action_"] {
+            margin:0 0 7px !important;
+        }
+        section[data-testid="stMain"] [class*="st-key-studio_quick_action_"] [data-testid="stButton"] > button {
+            box-sizing:border-box !important;
+            display:flex !important;
+            width:100% !important;
+            min-height:38px !important;
+            align-items:center !important;
+            justify-content:flex-start !important;
+            gap:3px !important;
+            padding:0 8px 0 12px !important;
+            color:#425672 !important;
+            border:1px solid #e6edf6 !important;
+            border-radius:9px !important;
+            background:#fff !important;
+            box-shadow:0 2px 7px rgba(34,55,88,.045) !important;
+            font:550 10px/1.2 'Inter',Arial,sans-serif !important;
+            text-align:left !important;
+            white-space:nowrap !important;
+        }
+        section[data-testid="stMain"] [class*="st-key-studio_quick_action_"] [data-testid="stButton"] > button:hover {
+            color:#315fc4 !important;
+            border-color:#cbd8f0 !important;
+            background:#f4f7ff !important;
+        }
+        section[data-testid="stMain"] [class*="st-key-studio_quick_action_"] [data-testid="stButton"] > button::before {
+            display:inline-flex;
+            width:16px;
+            min-width:16px;
+            flex:0 0 16px;
+            align-items:center;
+            justify-content:center;
+            font-size:12px;
+            line-height:1;
+        }
+        section[data-testid="stMain"] .st-key-studio_quick_action_0 [data-testid="stButton"] > button::before { content:"👥"; }
+        section[data-testid="stMain"] .st-key-studio_quick_action_1 [data-testid="stButton"] > button::before { content:"◷"; }
+        section[data-testid="stMain"] .st-key-studio_quick_action_2 [data-testid="stButton"] > button::before { content:"▣"; }
+        section[data-testid="stMain"] .st-key-studio_quick_action_3 [data-testid="stButton"] > button::before { content:"▶"; }
+        section[data-testid="stMain"] .st-key-studio_quick_action_4 [data-testid="stButton"] > button::before { content:"▣"; }
+        section[data-testid="stMain"] [class*="st-key-studio_quick_action_"] [data-testid="stButton"] > button > div {
+            display:flex !important;
+            min-width:0 !important;
+            flex:1 1 auto !important;
+            align-items:center !important;
+            justify-content:flex-start !important;
+            overflow:hidden !important;
+            text-align:left !important;
+            white-space:nowrap !important;
+        }
+        section[data-testid="stMain"] [class*="st-key-studio_quick_action_"] [data-testid="stButton"] > button > div > div {
+            display:flex !important;
+            width:100% !important;
+            min-width:0 !important;
+            justify-content:flex-start !important;
+            text-align:left !important;
+        }
+        section[data-testid="stMain"] [class*="st-key-studio_quick_action_"] [data-testid="stButton"] p {
+            min-width:0 !important;
+            width:100% !important;
+            flex:1 1 auto !important;
+            margin:0 !important;
+            overflow:hidden !important;
+            text-align:left !important;
+            text-overflow:ellipsis !important;
+            white-space:nowrap !important;
+        }
+        section[data-testid="stMain"] [class*="st-key-studio_quick_action_"] [data-testid="stButton"] > button::after {
+            flex:0 0 auto;
+            color:#8b9bb2;
+            content:"›";
+            font:600 15px/1 'Inter',Arial,sans-serif;
+        }
+        section[data-testid="stMain"] [data-testid="stButton"] > button {
+            justify-content:flex-start !important;
+            padding-left:12px !important;
+            text-align:left !important;
+        }
+        section[data-testid="stMain"] [class*="st-key-studio_sidebar_action_"] [data-testid="stButton"] > button,
+        section[data-testid="stMain"] .st-key-studio_sidebar_ghost_engine [data-testid="stButton"] > button,
+        section[data-testid="stMain"] [class*="st-key-studio_library_"] [data-testid="stButton"] > button,
+        section[data-testid="stMain"] [class*="st-key-studio_resource_"] [data-testid="stButton"] > button,
+        section[data-testid="stMain"] .st-key-studio_sidebar_logout [data-testid="stButton"] > button {
+            width:calc(100% - 6px) !important;
+            margin-left:6px !important;
+        }
+        section[data-testid="stMain"] [data-testid="stButton"] > button > div {
+            width:100% !important;
+            justify-content:flex-start !important;
+            text-align:left !important;
+        }
+        section[data-testid="stMain"] [data-testid="stButton"] > button p {
+            width:100% !important;
+            margin-left:0 !important;
+            text-align:left !important;
+        }
+        section[data-testid="stMain"] .st-key-studio_dashboard_notifications [data-testid="stButton"] > button p,
+        section[data-testid="stMain"] .st-key-studio_account_profile [data-testid="stButton"] > button p {
+            width:auto !important;
+            text-align:center !important;
+        }
+        section[data-testid="stMain"] .st-key-studio_dashboard_notifications [data-testid="stButton"] > button,
+        section[data-testid="stMain"] .st-key-studio_account_profile [data-testid="stButton"] > button {
+            padding-left:0 !important;
+        }
+        section[data-testid="stMain"] .st-key-studio_account_profile,
+        section[data-testid="stMain"] .st-key-studio_account_profile [data-testid="stButton"],
+        section[data-testid="stMain"] .st-key-studio_account_profile [data-testid="stButton"] > button {
+            box-sizing:border-box !important;
+            width:38px !important;
+            min-width:38px !important;
+            max-width:38px !important;
+        }
+        section[data-testid="stMain"] .st-key-studio_account_profile [data-testid="stButton"] > button {
+            display:grid !important;
+            height:38px !important;
+            min-height:38px !important;
+            margin:0 auto !important;
+            padding:0 !important;
+            place-items:center !important;
+            overflow:hidden !important;
+            border:2px solid #fff !important;
+            border-radius:50% !important;
+            background-color:#3974e8 !important;
+            box-shadow:0 2px 7px rgba(46,81,156,.22) !important;
+            font-size:18px !important;
+            text-align:center !important;
+        }
+        section[data-testid="stMain"] .st-key-studio_account_profile [data-testid="stButton"] > button > div {
+            width:auto !important;
+            justify-content:center !important;
+        }
+        section[data-testid="stMain"] .st-key-studio_account_profile [data-testid="stButton"] p {
+            width:auto !important;
+            margin:0 !important;
+            line-height:1 !important;
+        }
+        section[data-testid="stMain"] .st-key-studio_topbar_logout,
+        section[data-testid="stMain"] .st-key-studio_topbar_logout [data-testid="stButton"] {
+            width:max-content !important;
+        }
+        section[data-testid="stMain"] .st-key-studio_topbar_logout [data-testid="stButton"] > button {
+            width:auto !important;
+            min-width:0 !important;
+            min-height:34px !important;
+            padding:0 9px !important;
+            color:#52647e !important;
+            border:1px solid #e1e8f2 !important;
+            border-radius:9px !important;
+            background:#fff !important;
+            box-shadow:none !important;
+            font:600 10px/1 'Inter',Arial,sans-serif !important;
+            white-space:nowrap !important;
+        }
+        section[data-testid="stMain"] .st-key-studio_topbar_logout [data-testid="stButton"] > button > div {
+            width:auto !important;
+        }
+        section[data-testid="stMain"] .st-key-studio_topbar_logout [data-testid="stButton"] p {
+            width:auto !important;
+            margin:0 !important;
+        }
+        section[data-testid="stMain"] .st-key-studio_credits_panel .zd-balance strong {
+            font-size:24px !important;
+            line-height:1 !important;
+        }
+        section[data-testid="stMain"] .st-key-studio_credits_panel .zd-balance small {
+            font-size:9px !important;
+            line-height:1.25 !important;
+        }
+        section[data-testid="stMain"] .st-key-studio_add_credits_inline [data-testid="stButton"] > button {
+            box-sizing:border-box !important;
+            display:flex !important;
+            width:100% !important;
+            min-height:36px !important;
+            align-items:center !important;
+            justify-content:center !important;
+            padding:0 10px !important;
+            color:#253b59 !important;
+            border:1px solid #e0e8f2 !important;
+            border-radius:9px !important;
+            background:#fff !important;
+            box-shadow:0 2px 7px rgba(34,55,88,.045) !important;
+            font:650 13px/1 'Inter',Arial,sans-serif !important;
+            white-space:nowrap !important;
+        }
+        section[data-testid="stMain"] .st-key-studio_add_credits_inline [data-testid="stButton"] > button:hover {
+            color:#315fc4 !important;
+            border-color:#cbd8f0 !important;
+            background:#f4f7ff !important;
+            filter:none !important;
+        }
+        section[data-testid="stMain"] .st-key-studio_add_credits_inline [data-testid="stButton"] p {
+            margin:0 !important;
+            font:inherit !important;
+            white-space:nowrap !important;
+        }
+        .zd-action-list { gap:7px; }
+        .zd-action-list a {
+            min-height:37px;
+            border-color:#e6edf6;
+            border-radius:10px;
+            color:#425672;
+            background:#fff;
+            font:550 10px/1.3 'Inter',Arial,sans-serif;
+        }
+        .zd-action-list a:hover { background:#f3f7ff; border-color:#d2def1; }
+        .zd-footer { color:#78879d; border-color:#e5ebf4; font-size:10px; }
+        section[data-testid="stMain"] [data-testid="stButton"] > button {
+            color:#405572 !important;
+            background:#fff !important;
+            border-color:#e0e8f2 !important;
+            border-radius:10px !important;
+            box-shadow:0 2px 7px rgba(34,55,88,.045) !important;
+            font:600 11px/1.35 'Inter',Arial,sans-serif !important;
+        }
+        section[data-testid="stMain"] [data-testid="stButton"] > button:hover {
+            color:#315fc4 !important;
+            background:#f4f7ff !important;
+            border-color:#cbd8f0 !important;
+        }
+        section[data-testid="stMain"] [data-testid="stTextInput"] input {
+            color:#273b58 !important;
+            border-color:#dce5f1 !important;
+            border-radius:10px !important;
+            background:#fff !important;
+            font:500 12px 'Inter',Arial,sans-serif !important;
+        }
+        section[data-testid="stMain"] [data-testid="stTextInput"] input::placeholder { color:#8795aa !important; }
+        section[data-testid="stMain"] [data-testid="stCaptionContainer"],
+        section[data-testid="stMain"] [data-testid="stMarkdownContainer"] p { color:#6b7b91; }
+        section[data-testid="stMain"] [data-testid="stExpander"] {
+            border-color:#e3eaf4;
+            border-radius:14px;
+            background:#fff;
+        }
+        @media (max-width:760px) {
+            section[data-testid="stMain"] .block-container { padding:8px 12px 20px !important; }
+            .st-key-studio_hero_container { min-height:0; padding:14px 12px 12px !important; border-radius:16px; }
+            .st-key-studio_hero_container .zd-hero { min-height:124px; padding:0; }
+            .zd-engine-photo-card {
+                grid-template-rows:auto 72px;
+                border-radius:13px;
+            }
+            .zd-engine-photo-card img { height:auto; }
+            .zd-engine-photo-copy { min-height:72px; }
+            .zd-engine-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; }
+            .zd-community-grid {
+                grid-auto-flow:column;
+                grid-auto-columns:150px;
+                grid-template-columns:none;
+                overflow-x:auto;
+                padding-bottom:8px;
+                scroll-snap-type:x mandatory;
+                scrollbar-width:thin;
+            }
+            .zd-community-creation { scroll-snap-align:start; }
+            .zd-community-creation img { height:112px; }
+            .zd-community-creator-name { display:block; }
+        }
         </style>
         """,
         unsafe_allow_html=True,
@@ -21628,9 +22694,9 @@ elif st.session_state["current_page"] == "studio":
     sidebar_groups = [
         ("WORKSPACE", [
             ("🏠", "Dashboard", "?page=studio", True),
-            ("🎬", "Cinematic", f"?page=studio_mode&amp;mode={urllib.parse.quote('Cinematic Engine', safe='')}", False),
+            ("🎬", "Story Video", f"?page=studio_mode&amp;mode={urllib.parse.quote('Cinematic Engine', safe='')}", False),
             ("👤", "Face Studio", f"?page=studio_mode&amp;mode={urllib.parse.quote('Face Video Mode', safe='')}", False),
-            ("🎨", "Creative Workshop", f"?page=studio_mode&amp;mode={urllib.parse.quote('Creative Workshop Mode', safe='')}", False),
+            ("🎨", "Image", f"?page=studio_mode&amp;mode={urllib.parse.quote('Creative Workshop Mode', safe='')}", False),
             ("⬡", "Blueprint", f"?page=studio_mode&amp;mode={urllib.parse.quote('Blueprints Mode', safe='')}", False),
             ("✏️", "Draw", f"?page=studio_mode&amp;mode={urllib.parse.quote('Draw Mode', safe='')}", False),
             ("✂️", "Editor", f"?page=studio_mode&amp;mode={urllib.parse.quote('Video Editor Mode', safe='')}", False),
@@ -21662,6 +22728,7 @@ elif st.session_state["current_page"] == "studio":
       <aside class="zd-sidebar">
         <a class="zd-brand" href="?page=studio"><span class="zd-brand-mark">Z</span><span><span class="zd-brand-name">ZOVIX</span><small class="zd-brand-sub">AI CREATIVE STUDIO</small></span></a>
         {''.join(sidebar_nav_html)}
+        <a class="zd-ghost-engine-link" href="?page=ghost_engine"><span>🎬</span>Cinematic</a>
         <div class="zd-nav-label">TOOLS &amp; RESOURCES</div>
         <nav class="zd-nav">
           <a href="?page=landing#how-it-works"><span class="zd-nav-icon">▤</span>Tutorials</a>
@@ -21691,7 +22758,7 @@ elif st.session_state["current_page"] == "studio":
           </div>
           <p class="zd-community-note">These are product priorities, not promised release dates. Scope and timing may change.</p>
         </section>
-        <section class="zd-lower-section" id="studio-community">
+        <section class="zd-community-section" id="studio-community">
           <div class="zd-lower-head"><div><h2>Community Inspiration</h2><p>Ideas and visual references to spark your next creation.</p></div><a href="?page=studio#engines">Explore AI engines&nbsp; →</a></div>
           <div class="zd-community-grid">
             <a class="zd-community-card" href="?page=studio_mode&amp;mode=Cinematic%20Engine" style="--community-image:url('/app/static/studio_cinematic_engine.webp')"><strong>Into the wild · Cinematic</strong></a>
@@ -21744,6 +22811,208 @@ elif st.session_state["current_page"] == "studio":
             st.session_state["standalone_return_sidebar_tab"] = "🚀 Zovix Mass Factory"
         st.rerun()
 
+    def render_dashboard_creations():
+        with st.container(key="studio_creations_section"):
+            creations_header_columns = st.columns([0.77, 0.23], gap="small")
+            with creations_header_columns[0]:
+                st.markdown(
+                    "<div class='zd-section-head zd-creations-head'><div class='zd-creations-heading'>"
+                    "<span aria-hidden='true'>✦</span><div><h2>Your Creations</h2>"
+                    "<p>Your recently generated content. Keep creating!</p></div></div></div>",
+                    unsafe_allow_html=True,
+                )
+            with creations_header_columns[1]:
+                if st.button("View all creations →", key="studio_creations_view_all", width="stretch"):
+                    st.session_state["studio_favorites_only"] = False
+                    _dashboard_go("portfolio")
+
+            favorite_keys = set(st.session_state.get("studio_favorite_keys", []))
+            visible_history = [
+                (index, item)
+                for index, item in enumerate(dashboard_history)
+                if (
+                    not search_query
+                    or search_query in str(item.get("file_name", "")).casefold()
+                    or search_query in str(
+                        item.get("generation_type") or item.get("portfolio_type") or item.get("quality") or ""
+                    ).casefold()
+                    or search_query in str(item.get("prompt", "")).casefold()
+                )
+                and (
+                    not st.session_state.get("studio_favorites_only", False)
+                    or str(
+                        item.get("path") or item.get("face_path") or item.get("video_path") or item.get("file_name", "")
+                    ) in favorite_keys
+                )
+            ]
+            recent_history = visible_history[:4]
+            if recent_history:
+                recent_columns = st.columns(4, gap="small")
+                for column, (index, item) in zip(recent_columns, recent_history):
+                    title = str(item.get("file_name", "Untitled creation"))
+                    item_path = str(
+                        item.get("path") or item.get("face_path") or item.get("video_path") or ""
+                    )
+                    favorite_key = item_path or title
+                    generation_type = str(
+                        item.get("generation_type") or item.get("portfolio_type") or "AI Creation"
+                    ).strip()
+                    generation_type_key = generation_type.casefold()
+                    engine_label = next(
+                        (
+                            label for match, label in (
+                                ("cinematic", "Cinematic"),
+                                ("face", "Face Studio"),
+                                ("expressive", "Face Studio"),
+                                ("workshop", "Creative"),
+                                ("creative", "Creative"),
+                                ("blueprint", "Blueprint"),
+                                ("draw", "Draw"),
+                                ("editor", "Editor"),
+                                ("sales", "Sales Video"),
+                                ("agent", "AI Agent"),
+                                ("live emotion", "Live Emotions"),
+                                ("image", "Image"),
+                                ("upscal", "Upscaler"),
+                                ("dynamic", "Dynamic UI"),
+                            )
+                            if match in generation_type_key
+                        ),
+                        "AI Creation",
+                    )
+                    raw_timestamp = str(item.get("timestamp") or item.get("created_at") or "").strip()
+                    display_timestamp = "Recently created"
+                    if raw_timestamp:
+                        for timestamp_format in (
+                            "%b %d, %Y - %I:%M %p",
+                            "%b %d, %Y %I:%M %p",
+                            "%Y-%m-%d %H:%M:%S",
+                        ):
+                            try:
+                                display_timestamp = datetime.strptime(
+                                    raw_timestamp, timestamp_format
+                                ).strftime("%b %d, %Y · %I:%M %p").replace(" 0", " ")
+                                break
+                            except ValueError:
+                                continue
+                        else:
+                            try:
+                                display_timestamp = datetime.fromisoformat(
+                                    raw_timestamp.replace("Z", "+00:00")
+                                ).strftime("%b %d, %Y · %I:%M %p").replace(" 0", " ")
+                            except ValueError:
+                                display_timestamp = raw_timestamp[:48]
+                    title_text = str(item.get("prompt") or "").strip()
+                    if not title_text:
+                        title_text = Path(title).stem.replace("_", " ").replace("-", " ").strip()
+                    creation_label = {
+                        "Cinematic": "Cinematic Video",
+                        "Image": "Image Generation",
+                    }.get(engine_label, engine_label)
+                    creation_icon = "▧" if engine_label == "Image" else "✦"
+                    thumbnail_path = str(item.get("thumbnail_path") or "").strip()
+                    with column:
+                        thumbnail_extensions = {".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp"}
+                        fallback_thumbnail = (
+                            Path(__file__).resolve().parent
+                            / "static"
+                            / {
+                                "Cinematic": "studio_cinematic_engine.webp",
+                                "Face Studio": "studio_expressive_face_background.webp",
+                                "Creative": "studio_creative_workshop_engine.webp",
+                                "Blueprint": "studio_blueprint_engine.webp",
+                                "Draw": "studio_draw_engine.webp",
+                                "Editor": "studio_editor_engine.webp",
+                                "AI Agent": "studio_ai_agent_engine.webp",
+                                "Sales Video": "studio_sales_engine.webp",
+                                "Image": "studio_draw_engine.webp",
+                                "Dynamic UI": "studio_dynamic_ui_engine.webp",
+                            }.get(engine_label, "studio_cinematic_engine.webp")
+                        )
+                        thumbnail_candidates = (thumbnail_path, item_path)
+                        image_preview = next(
+                            (
+                                candidate
+                                for candidate in thumbnail_candidates
+                                if candidate
+                                and os.path.isfile(candidate)
+                                and os.path.splitext(candidate.split("?", 1)[0])[1].lower() in thumbnail_extensions
+                            ),
+                            None,
+                        )
+                        video_preview = next(
+                            (
+                                candidate
+                                for candidate in thumbnail_candidates
+                                if candidate
+                                and os.path.isfile(candidate)
+                                and os.path.splitext(candidate.split("?", 1)[0])[1].lower() not in thumbnail_extensions
+                            ),
+                            None,
+                        )
+                        if image_preview:
+                            st.image(image_preview, width="stretch")
+                        elif video_preview:
+                            video_capture = cv2.VideoCapture(video_preview)
+                            try:
+                                has_frame, video_frame = video_capture.read()
+                            finally:
+                                video_capture.release()
+                            if has_frame:
+                                st.image(
+                                    cv2.cvtColor(video_frame, cv2.COLOR_BGR2RGB),
+                                    width="stretch",
+                                )
+                            elif fallback_thumbnail.is_file():
+                                st.image(str(fallback_thumbnail), width="stretch")
+                            else:
+                                st.markdown(
+                                    "<div class='zd-recent-placeholder'>▶<small>VIDEO</small></div>",
+                                    unsafe_allow_html=True,
+                                )
+                        elif fallback_thumbnail.is_file():
+                            st.image(str(fallback_thumbnail), width="stretch")
+                        else:
+                            st.markdown(
+                                "<div class='zd-recent-placeholder'>✦<small>CREATION</small></div>",
+                                unsafe_allow_html=True,
+                            )
+                        st.markdown(
+                            f"<div class='zd-creation-meta-line'><span class='zd-creation-tag' "
+                            f"title='{html_lib.escape(title_text, quote=True)}'><span class='zd-creation-type-icon' "
+                            f"aria-hidden='true'>{creation_icon}</span>{html_lib.escape(creation_label)}</span>"
+                            f"<small class='zd-creation-timestamp'>{html_lib.escape(display_timestamp)}</small></div>",
+                            unsafe_allow_html=True,
+                        )
+                        recent_actions = st.columns([0.68, 0.32], gap="small")
+                        with recent_actions[0]:
+                            if st.button(
+                                "⋮",
+                                key=f"studio_recent_{index}",
+                                width="stretch",
+                                help="Open in My Creations",
+                            ):
+                                st.session_state["portfolio_return_sidebar_tab"] = "🚀 Zovix Mass Factory"
+                                st.session_state["studio_favorites_only"] = False
+                                _dashboard_go("portfolio")
+                        with recent_actions[1]:
+                            if st.button(
+                                "♥" if favorite_key in favorite_keys else "♡",
+                                key=f"studio_favorite_{index}",
+                                help="Remove from favorites" if favorite_key in favorite_keys else "Add to favorites",
+                                width="stretch",
+                            ):
+                                if favorite_key in favorite_keys:
+                                    favorite_keys.remove(favorite_key)
+                                else:
+                                    favorite_keys.add(favorite_key)
+                                st.session_state["studio_favorite_keys"] = sorted(favorite_keys)
+                                st.rerun()
+            elif search_query or st.session_state.get("studio_favorites_only", False):
+                st.info("No creations match these filters.")
+            else:
+                st.info("Your creations will appear here after you generate your first project.")
+
     if st.session_state.pop("studio_clear_search_next", False):
         st.session_state["studio_dashboard_search"] = ""
 
@@ -21757,9 +23026,9 @@ elif st.session_state["current_page"] == "studio":
         )
         sidebar_actions = [
             ("🏠  Dashboard", "studio"),
-            ("🎬  Cinematic", "mode:Cinematic Engine"),
+            ("🎬  Story Video", "mode:Cinematic Engine"),
             ("👤  Face Studio", "mode:Face Video Mode"),
-            ("🎨  Creative Workshop", "mode:Creative Workshop Mode"),
+            ("🎨  Image", "mode:Creative Workshop Mode"),
             ("⬡  Blueprint", "mode:Blueprints Mode"),
             ("✏️  Draw", "mode:Draw Mode"),
             ("✂️  Editor", "mode:Video Editor Mode"),
@@ -21767,10 +23036,13 @@ elif st.session_state["current_page"] == "studio":
             ("📣  Sales Video", "mode:AI Sales Mode"),
             ("🧠  Dynamic UI", "mode:Dynamic UI Mode"),
             ("💜  Live Emotions", "mode:Live Emotion Mode"),
+            ("⚡  Upscaler", "mode:Upscaler Mode"),
         ]
         for index, (label, action) in enumerate(sidebar_actions):
             if st.button(label, key=f"studio_sidebar_action_{index}", width="stretch"):
                 _dashboard_go(action)
+        if st.button("🎬  Cinematic", key="studio_sidebar_ghost_engine", width="stretch"):
+            _dashboard_go("ghost_engine")
         st.markdown(
             "<div class='studio-sidebar-section-label'>Library</div>",
             unsafe_allow_html=True,
@@ -21800,15 +23072,6 @@ elif st.session_state["current_page"] == "studio":
         ]:
             if st.button(label, key=f"studio_resource_{label}", width="stretch"):
                 _dashboard_go(action)
-        st.divider()
-        st.markdown(
-            "<div class='zd-sidebar-promo'><strong>👑 Go Pro</strong>"
-            "<p>Unlock more creative power and priority processing.</p>"
-            "<a href='?page=payments'>Upgrade Now →</a></div>",
-            unsafe_allow_html=True,
-        )
-        if st.button("↩ Log out", key="studio_sidebar_logout", width="stretch"):
-            _dashboard_go("logout")
 
     with dashboard_columns[1]:
         search_query = st.text_input(
@@ -21833,75 +23096,68 @@ elif st.session_state["current_page"] == "studio":
                 """,
                 unsafe_allow_html=True,
             )
-            with st.form("studio_hero_prompt_form", border=False):
-                prompt_columns = st.columns([0.8, 0.2], gap="small")
-                with prompt_columns[0]:
-                    dashboard_prompt = st.text_input(
-                        "Describe your idea",
-                        placeholder="e.g. Create a cinematic scene of a warrior in a fantasy world...",
-                        key="studio_dashboard_prompt",
-                        label_visibility="collapsed",
-                    )
-                with prompt_columns[1]:
-                    prompt_submitted = st.form_submit_button(
-                        "✦ Generate",
-                        type="primary",
-                        width="stretch",
-                    )
-            creation_options = [
-                ("Cinematic Scene", "◉  Cinematic Scene"),
-                ("Character", "♙  Character"),
-                ("Image", "▧  Image"),
-                ("Voice", "♫  Voice"),
-                ("Video", "▶  Video"),
-            ]
-            st.session_state.setdefault("studio_quick_creation_type", "Cinematic Scene")
-            creation_type = st.session_state["studio_quick_creation_type"]
-            with st.container(key="studio_creation_type_choices"):
-                creation_columns = st.columns(5, gap="small")
-                for index, (column, (option, label)) in enumerate(zip(creation_columns, creation_options)):
-                    with column:
-                        if st.button(
-                            label,
-                            key=f"studio_creation_type_{index}",
-                            type="primary" if creation_type == option else "secondary",
+            with st.container(key="studio_hero_controls"):
+                with st.form("studio_hero_prompt_form", border=False):
+                    prompt_columns = st.columns([0.76, 0.24], gap="small")
+                    with prompt_columns[0]:
+                        dashboard_prompt = st.text_input(
+                            "Describe your idea",
+                            placeholder="Describe your idea... (e.g. a cinematic scene, character, product, etc.)",
+                            key="studio_dashboard_prompt",
+                            label_visibility="collapsed",
+                        )
+                    with prompt_columns[1]:
+                        prompt_submitted = st.form_submit_button(
+                            "✦ Generate",
+                            type="primary",
                             width="stretch",
-                        ):
-                            st.session_state["studio_quick_creation_type"] = option
-                            st.rerun()
+                        )
+                creation_options = [
+                    ("Cinematic", "🎬  Cinematic"),
+                    ("Face Studio", "👤  Face Studio"),
+                    ("Creative Workshop", "🎨  Creative"),
+                    ("Blueprint", "⬡  Blueprint"),
+                    ("Draw", "✏️  Draw"),
+                ]
+                if st.session_state.get("studio_quick_creation_type") not in {
+                    option for option, _ in creation_options
+                }:
+                    st.session_state["studio_quick_creation_type"] = "Cinematic"
+                creation_type = st.session_state["studio_quick_creation_type"]
+                with st.container(key="studio_creation_type_choices"):
+                    creation_columns = st.columns(5, gap="small")
+                    for index, (column, (option, label)) in enumerate(zip(creation_columns, creation_options)):
+                        with column:
+                            if st.button(
+                                label,
+                                key=f"studio_creation_type_{index}",
+                                type="primary" if creation_type == option else "secondary",
+                                width="stretch",
+                            ):
+                                st.session_state["studio_quick_creation_type"] = option
+                                st.rerun()
         if prompt_submitted:
             if not dashboard_prompt.strip():
                 st.error("Enter a prompt before starting a project.")
             else:
                 selected_mode = {
-                    "Cinematic Scene": "Cinematic Engine",
-                    "Character": "Face Video Mode",
-                    "Image": "Creative Workshop Mode",
-                    "Voice": "Live Emotion Mode",
-                    "Video": "Cinematic Engine",
+                    "Cinematic": "Cinematic Engine",
+                    "Face Studio": "Face Video Mode",
+                    "Creative Workshop": "Creative Workshop Mode",
+                    "Blueprint": "Blueprints Mode",
+                    "Draw": "Draw Mode",
                 }[creation_type]
                 st.session_state["studio_prompt_value"] = dashboard_prompt.strip()
                 st.session_state["user_prompt"] = dashboard_prompt.strip()
                 st.session_state["studio_mode_radio"] = "💡 Autonomous AI Topic"
                 _dashboard_go(f"mode:{selected_mode}")
 
-        engine_header_columns = st.columns([0.77, 0.23], gap="small")
-        with engine_header_columns[0]:
-            st.markdown(
-                "<div class='zd-section-head'><div><h2>AI Engines</h2>"
-                f"<p>{len(engine_cards)} specialized engines. Endless creative possibilities.</p></div></div>",
-                unsafe_allow_html=True,
-            )
-        with engine_header_columns[1]:
-            show_all_engines = st.session_state.get("studio_show_all_engines", False)
-            if st.button(
-                "Show less ↑" if show_all_engines else "View all engines →",
-                key="studio_view_all_engines",
-                width="stretch",
-            ):
-                st.session_state["studio_show_all_engines"] = not show_all_engines
-                st.rerun()
-        engine_pool = engine_cards if (search_query or st.session_state.get("studio_show_all_engines", False)) else engine_cards[:9]
+        st.markdown(
+            "<div class='zd-section-head'><div><h2>AI Engines</h2>"
+            f"<p>{len(engine_cards)} specialized engines. Endless creative possibilities.</p></div></div>",
+            unsafe_allow_html=True,
+        )
+        engine_pool = engine_cards
         visible_engines = [
             card for card in engine_pool
             if not search_query
@@ -21909,168 +23165,56 @@ elif st.session_state["current_page"] == "studio":
             or search_query in card[2].casefold()
             or search_query in card[3].casefold()
         ]
-        for row_start in range(0, len(visible_engines), 3):
-            engine_columns = st.columns(3, gap="small")
-            for column, card in zip(
-                engine_columns,
-                visible_engines[row_start:row_start + 3],
-            ):
-                icon, title, mode, description, image = card
-                with column:
-                    supplied_image = {
-                        0: "studio_cinematic_engine.webp",
-                        1: "studio_face_generate.webp",
-                        2: "studio_creative_workshop_engine.webp",
-                        3: "studio_blueprint_engine.webp",
-                        4: "studio_draw_engine.webp",
-                        5: "studio_editor_engine.webp",
-                        7: "studio_sales_engine.webp",
-                        6: "studio_ai_agent_engine.webp",
-                        9: "studio_live_emotions_engine.webp",
-                        8: "studio_dynamic_ui_engine.webp",
-                    }.get(engine_cards.index(card))
-                    image_source = (
-                        f"/app/static/{supplied_image}"
-                        if supplied_image and os.path.isfile(os.path.join("static", supplied_image))
-                        else f"https://images.unsplash.com/{image}?auto=format&fit=crop&w=900&q=82"
-                    )
-                    engine_mode_url = urllib.parse.quote(mode, safe="")
-                    st.markdown(
-                        f"<a class='zd-engine-photo-card' href='?page=studio_mode&amp;mode={engine_mode_url}' "
-                        f"aria-label='{html_lib.escape(title, quote=True)}: "
-                        f"{html_lib.escape(description, quote=True)}'>"
-                        f"<img src='{html_lib.escape(image_source, quote=True)}' alt='' loading='eager' decoding='async'>"
-                        f"<span class='zd-engine-photo-icon' aria-hidden='true'>{html_lib.escape(icon)}</span>"
-                        "<span class='zd-engine-photo-copy'>"
-                        f"<strong>{html_lib.escape(title)}</strong>"
-                        f"<small>{html_lib.escape(description)}</small></span>"
-                        "<span class='zd-engine-photo-arrow' aria-hidden='true'>›</span></a>",
-                        unsafe_allow_html=True,
-                    )
+        supplied_engine_images = {
+            0: "studio_cinematic_engine.webp",
+            1: "studio_expressive_face_background.webp",
+            2: "studio_creative_workshop_engine.webp",
+            3: "studio_blueprint_engine.webp",
+            4: "studio_draw_engine.webp",
+            5: "studio_editor_engine.webp",
+            6: "studio_ai_agent_engine.webp",
+            7: "studio_sales_engine.webp",
+            8: "studio_dynamic_ui_engine.webp",
+            9: "studio_live_emotions_engine.webp",
+            10: "studio_upscaler_creature.png",
+            11: "ghost_engine_cityscape.png",
+        }
+        engine_card_html = []
+        for card in visible_engines:
+            icon, title, mode, description, image = card
+            supplied_image = supplied_engine_images.get(engine_cards.index(card))
+            supplied_image_path = (
+                Path(__file__).resolve().parent / "static" / supplied_image
+                if supplied_image
+                else None
+            )
+            image_source = (
+                f"/app/static/{supplied_image}"
+                if supplied_image_path and supplied_image_path.is_file()
+                else f"https://images.unsplash.com/{image}?auto=format&fit=crop&w=900&q=82"
+            )
+            engine_url = (
+                "?page=ghost_engine"
+                if mode == "ghost_engine"
+                else f"?page=studio_mode&amp;mode={urllib.parse.quote(mode, safe='')}"
+            )
+            engine_card_html.append(
+                f"<a class='zd-engine-photo-card' href='{engine_url}' "
+                f"aria-label='{html_lib.escape(title, quote=True)}: "
+                f"{html_lib.escape(description, quote=True)}'>"
+                f"<img src='{html_lib.escape(image_source, quote=True)}' alt='' loading='eager' decoding='async'>"
+                f"<span class='zd-engine-photo-icon' aria-hidden='true'>{html_lib.escape(icon)}</span>"
+                "<span class='zd-engine-photo-copy'>"
+                f"<strong>{html_lib.escape(title)}</strong>"
+                f"<small>{html_lib.escape(description)}</small></span>"
+                "<span class='zd-engine-photo-arrow' aria-hidden='true'>›</span></a>"
+            )
+        st.markdown(
+            f"<section class='zd-engine-grid' id='engines'>{''.join(engine_card_html)}</section>",
+            unsafe_allow_html=True,
+        )
         if search_query and not visible_engines:
             st.info("No AI engines match your search.")
-
-        st.markdown(
-            "<div class='zd-section-head'><div><h2>Your Creations</h2>"
-            "<p>Manage and access your generated content.</p></div></div>",
-            unsafe_allow_html=True,
-        )
-        favorite_keys = set(st.session_state.get("studio_favorite_keys", []))
-        visible_history = [
-            (index, item)
-            for index, item in enumerate(dashboard_history)
-            if (
-                not search_query
-                or search_query in str(item.get("file_name", "")).casefold()
-                or search_query in str(
-                    item.get("generation_type") or item.get("portfolio_type") or item.get("quality") or ""
-                ).casefold()
-                or search_query in str(item.get("prompt", "")).casefold()
-            )
-            and (
-                not st.session_state.get("studio_favorites_only", False)
-                or str(
-                    item.get("path") or item.get("face_path") or item.get("video_path") or item.get("file_name", "")
-                ) in favorite_keys
-            )
-        ]
-        if visible_history:
-            for row_start in range(0, len(visible_history), 5):
-                recent_columns = st.columns(5, gap="small")
-                for column, (index, item) in zip(
-                    recent_columns,
-                    visible_history[row_start:row_start + 5],
-                ):
-                    title = str(item.get("file_name", "Untitled creation"))
-                    item_path = str(
-                        item.get("path") or item.get("face_path") or item.get("video_path") or ""
-                    )
-                    favorite_key = item_path or title
-                    with column:
-                        extension = os.path.splitext(item_path.split("?", 1)[0])[1].lower()
-                        if item_path and os.path.isfile(item_path) and extension in {
-                            ".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp"
-                        }:
-                            st.image(item_path, width="stretch")
-                        else:
-                            st.markdown(
-                                "<div class='zd-recent-placeholder'>✦<small>CREATION</small></div>",
-                                unsafe_allow_html=True,
-                            )
-                        st.markdown(
-                            f"<div class='zd-recent-copy'><strong>{html_lib.escape(title)}</strong>"
-                            f"<small>{html_lib.escape(str(item.get('generation_type') or item.get('portfolio_type') or item.get('quality') or 'AI creation'))}</small></div>",
-                            unsafe_allow_html=True,
-                        )
-                        recent_actions = st.columns([0.75, 0.25], gap="small")
-                        with recent_actions[0]:
-                            if st.button(
-                                f"Open {title[:22]}",
-                                key=f"studio_recent_{index}",
-                                width="stretch",
-                            ):
-                                st.session_state["portfolio_return_sidebar_tab"] = "🚀 Zovix Mass Factory"
-                                st.session_state["studio_favorites_only"] = False
-                                _dashboard_go("portfolio")
-                        with recent_actions[1]:
-                            if st.button(
-                                "★" if favorite_key in favorite_keys else "☆",
-                                key=f"studio_favorite_{index}",
-                                help="Remove from favorites" if favorite_key in favorite_keys else "Add to favorites",
-                                width="stretch",
-                            ):
-                                if favorite_key in favorite_keys:
-                                    favorite_keys.remove(favorite_key)
-                                else:
-                                    favorite_keys.add(favorite_key)
-                                st.session_state["studio_favorite_keys"] = sorted(favorite_keys)
-                                st.rerun()
-            if st.button("View all creations", key="studio_recent_all", width="stretch"):
-                st.session_state["studio_favorites_only"] = False
-                _dashboard_go("portfolio")
-        elif search_query or st.session_state.get("studio_favorites_only", False):
-            st.info("No creations match these filters.")
-        else:
-            st.info("Your creations will appear here after you generate your first project.")
-
-        st.markdown(
-            """
-            <section class="zd-lower-section" id="studio-future">
-              <div class="zd-lower-head">
-                <div><h2>What’s Ahead</h2><p>Product priorities we’re exploring for the ZOVIX studio.</p></div>
-                <span>Future</span>
-              </div>
-              <div class="zd-future-grid">
-                <article class="zd-future-card">
-                  <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&amp;fit=crop&amp;w=480&amp;q=78" alt="Team planning product improvements" loading="lazy">
-                  <div class="zd-future-copy"><small>NOW · EXPERIENCE</small><strong>Simpler creative workflows</strong><p>Make it easier to choose an engine and move from idea to result.</p></div>
-                </article>
-                <article class="zd-future-card">
-                  <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&amp;fit=crop&amp;w=480&amp;q=78" alt="Creative team collaborating" loading="lazy">
-                  <div class="zd-future-copy"><small>NEXT · CREATION</small><strong>More connected tools</strong><p>Explore smoother ways to refine and continue creative projects.</p></div>
-                </article>
-                <article class="zd-future-card">
-                  <img src="https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&amp;fit=crop&amp;w=480&amp;q=78" alt="Modern creative workspace" loading="lazy">
-                  <div class="zd-future-copy"><small>EXPLORING · PLATFORM</small><strong>A connected creator studio</strong><p>Improve project organization, previews and handoffs.</p></div>
-                </article>
-              </div>
-              <p class="zd-community-note">These are product priorities, not promised release dates. Scope and timing may change.</p>
-            </section>
-            <section class="zd-lower-section" id="studio-community">
-              <div class="zd-lower-head">
-                <div><h2>Community Creations</h2><p>Visual inspiration to spark your next project.</p></div>
-                <a href="?page=studio#engines">Explore AI engines&nbsp; →</a>
-              </div>
-              <div class="zd-community-grid">
-                <a class="zd-community-card" href="?page=studio_mode&amp;mode=Cinematic%20Engine" style="--community-image:url('/app/static/studio_cinematic_engine.webp')"><strong>Into the wild · Cinematic</strong></a>
-                <a class="zd-community-card" href="?page=studio_mode&amp;mode=Creative%20Workshop%20Mode" style="--community-image:url('/app/static/studio_hero.webp')"><strong>Quiet reflections · Visual concept</strong></a>
-                <a class="zd-community-card" href="?page=studio_mode&amp;mode=Blueprints%20Mode" style="--community-image:url('/app/static/studio_cinematic_story_background.webp')"><strong>The last light · Scene idea</strong></a>
-              </div>
-              <p class="zd-community-note">Illustrative inspiration photography, not member-submitted creations. Start your own project with one of the <a href="?page=studio#engines">AI engines above</a>.</p>
-            </section>
-            """,
-            unsafe_allow_html=True,
-        )
 
         footer_columns = st.columns(4, gap="small")
         with footer_columns[0]:
@@ -22081,8 +23225,8 @@ elif st.session_state["current_page"] == "studio":
             if st.button("Community", key="studio_footer_community", width="stretch"):
                 _dashboard_go("community")
         with footer_columns[2]:
-            if st.button("Future", key="studio_footer_future", width="stretch"):
-                st.session_state["studio_footer_notice"] = "Future items are product priorities, not promised release dates."
+            if st.button("What’s Ahead", key="studio_footer_future", width="stretch"):
+                st.session_state["studio_footer_notice"] = "What’s Ahead highlights ways to explore engines, community and plans."
                 st.rerun()
         with footer_columns[3]:
             if st.button("Privacy Policy", key="studio_footer_privacy", width="stretch"):
@@ -22095,43 +23239,52 @@ elif st.session_state["current_page"] == "studio":
             show_privacy_policy()
 
     with dashboard_columns[2]:
-        topbar_columns = st.columns([0.68, 0.32], gap="small")
+        topbar_columns = st.columns([0.34, 0.66], gap="small")
         with topbar_columns[0]:
             if st.button("🔔", key="studio_dashboard_notifications", width="stretch"):
                 st.toast("You're all caught up.")
         with topbar_columns[1]:
-            if safe_profile_avatar:
-                st.markdown(
-                    f"<style>.st-key-studio_account_profile [data-testid='stButton'] > button "
-                    f"{{background-image:url('data:image/jpeg;base64,{safe_profile_avatar}') !important;"
-                    "background-size:cover !important;background-position:center !important;"
-                    "color:transparent !important;font-size:0 !important;}}</style>",
-                    unsafe_allow_html=True,
-                )
-            if st.button(
-                avatar_initial,
-                key="studio_account_profile",
-                width="stretch",
-                help=f"Open {display_name}'s profile",
-            ):
-                _dashboard_go("profile")
-        with st.container(key="studio_credits_panel"):
-            st.markdown("<div class='zd-panel-head'>✨ Credits Balance</div>", unsafe_allow_html=True)
-            with st.container(key="studio_credit_amount_row"):
-                credit_columns = st.columns([0.48, 0.52], gap="small")
-                with credit_columns[0]:
+            profile_columns = st.columns([0.24, 0.76], gap="small")
+            with profile_columns[0]:
+                if safe_profile_avatar:
                     st.markdown(
-                        f"<div class='zd-balance'><span class='zd-balance-icon'>✦</span>"
-                        f"<span><strong>{credit_balance:,}</strong><small>Available credits</small></span></div>",
+                        f"<style>.st-key-studio_account_profile [data-testid='stButton'] > button "
+                        f"{{background-image:url('data:image/jpeg;base64,{safe_profile_avatar}') !important;"
+                        "background-size:cover !important;background-position:center !important;"
+                        "color:transparent !important;font-size:0 !important;}}</style>",
                         unsafe_allow_html=True,
                     )
-                with credit_columns[1]:
-                    if st.button(
-                        "＋ Add Credits",
-                        key="studio_add_credits_inline",
-                        width="stretch",
-                    ):
-                        _dashboard_go("payments")
+                if st.button(
+                    "👤",
+                    key="studio_account_profile",
+                    width="stretch",
+                    help=f"Open {display_name}'s profile",
+                ):
+                    _dashboard_go("profile")
+            with profile_columns[1]:
+                if st.button("↩ Log out", key="studio_topbar_logout"):
+                    _dashboard_go("logout")
+        with st.container(key="studio_credits_panel"):
+            st.markdown(
+                "<div class='zd-credit-heading'><span class='zd-credit-heading-icon' aria-hidden='true'>👑</span>"
+                "<strong>Your Credits Balance</strong></div>",
+                unsafe_allow_html=True,
+            )
+            st.markdown(
+                f"<div class='zd-balance'><span class='zd-balance-icon'>▶</span>"
+                f"<span><strong>{credit_balance:,}</strong><small>Available credits</small></span></div>",
+                unsafe_allow_html=True,
+            )
+            st.markdown(
+                "<a class='zd-credit-details' href='?page=payments'>View Details&nbsp; →</a>",
+                unsafe_allow_html=True,
+            )
+            if st.button(
+                "🎁 Buy Credits",
+                key="studio_add_credits_inline",
+                width="stretch",
+            ):
+                _dashboard_go("payments")
 
             with st.container(key="studio_plan_row"):
                 plan_columns = st.columns([0.64, 0.36], gap="small")
@@ -22154,48 +23307,84 @@ elif st.session_state["current_page"] == "studio":
                 "<div><strong>HD</strong><span>Quality</span></div><div><strong>Fast</strong><span>Processing</span></div></div>",
                 unsafe_allow_html=True,
             )
-        st.markdown("<div class='zd-panel-head'>Quick Actions</div>", unsafe_allow_html=True)
-        for index, (label, action) in enumerate([
-            ("▣ Portfolio", "portfolio"),
-            ("👥 Sub Users", "subusers"),
-            ("◷ Scheduler", "scheduler"),
-            ("▣ My Creations", "portfolio"),
-            ("▶ Watch Tutorial", "help"),
-            ("♧ Join Community", "community"),
-        ]):
-            if st.button(label, key=f"studio_quick_action_{index}", width="stretch"):
-                _dashboard_go(action)
-        st.markdown("<div class='zd-panel-head'>Recent Creations</div>", unsafe_allow_html=True)
-        if dashboard_history:
-            for index, item in enumerate(dashboard_history[:5]):
-                title = html_lib.escape(str(item.get("file_name") or "Untitled creation"))
-                item_path = str(item.get("path") or item.get("face_path") or item.get("video_path") or "")
-                item_type = html_lib.escape(str(
-                    item.get("generation_type") or item.get("portfolio_type") or "AI creation"
-                ))
-                recent_columns = st.columns([0.28, 0.72], gap="small")
-                with recent_columns[0]:
-                    extension = os.path.splitext(item_path.split("?", 1)[0])[1].lower()
-                    if item_path and os.path.isfile(item_path) and extension in {
-                        ".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp"
-                    }:
-                        st.image(item_path, width="stretch")
-                    else:
-                        st.markdown(
-                            "<div class='zd-recent-placeholder'>✦</div>",
-                            unsafe_allow_html=True,
-                        )
-                with recent_columns[1]:
-                    st.markdown(
-                        f"<div class='zd-recent-feed-copy'><strong>{title}</strong>"
-                        f"<small>{item_type}</small></div>",
-                        unsafe_allow_html=True,
-                    )
-                    if st.button("Open", key=f"studio_right_recent_{index}", width="stretch"):
-                        st.session_state["portfolio_return_sidebar_tab"] = "🚀 Zovix Mass Factory"
-                        _dashboard_go("portfolio")
-        else:
-            st.caption("Your generated work will appear here.")
+        with st.container(key="studio_quick_actions_panel", border=True):
+            st.markdown("<div class='zd-panel-head'>Quick Actions</div>", unsafe_allow_html=True)
+            for index, (label, action) in enumerate([
+                ("Sub User", "subusers"),
+                ("Scheduler", "scheduler"),
+                ("My Creation", "portfolio"),
+                ("Watch Tutorial", "tutorials"),
+                ("Go to Library", "portfolio"),
+            ]):
+                if st.button(label, key=f"studio_quick_action_{index}", width="stretch"):
+                    _dashboard_go(action)
+
+    creations_columns = st.columns([0.20, 0.80], gap="small")
+    with creations_columns[1]:
+        render_dashboard_creations()
+
+    future_columns = st.columns([0.20, 0.80], gap="small")
+    with future_columns[1]:
+        st.markdown(
+            """
+            <section class="zd-lower-section" id="studio-future">
+              <div class="zd-lower-head">
+                <div><h2>What’s Ahead</h2><p>Your creative journey with ZOVIX continues. Explore what’s next!</p></div>
+                <a href="?page=studio#engines">View all&nbsp; →</a>
+              </div>
+              <div class="zd-future-grid">
+                <article class="zd-future-card">
+                  <img src="/app/static/studio_cinematic_engine.webp" alt="Cinematic creative engine preview" loading="lazy">
+                  <div class="zd-future-copy"><small>EXPLORE · ENGINES</small><strong>Explore More Engines</strong><p>Try Face Studio, Creative Workshop and more to expand your creativity.</p><a class="zd-future-link" href="?page=studio#engines">Explore Now&nbsp; →</a></div>
+                </article>
+                <article class="zd-future-card">
+                  <img src="/app/static/studio_creative_workshop_engine.webp" alt="Creative community artwork preview" loading="lazy">
+                  <div class="zd-future-copy"><small>CONNECT · CREATORS</small><strong>Join the Community</strong><p>Connect with creators, share your work and get inspired.</p><a class="zd-future-link" href="?page=community">Visit Community&nbsp; →</a></div>
+                </article>
+                <article class="zd-future-card">
+                  <img src="/app/static/studio_expressive_face_background.webp" alt="Premium creator tools preview" loading="lazy">
+                  <div class="zd-future-copy"><small>UNLOCK · PRO</small><strong>Upgrade to Pro</strong><p>Get more credits, premium features and unlock your full potential.</p><a class="zd-future-link" href="?page=payments">Go Pro&nbsp; →</a></div>
+                </article>
+              </div>
+            </section>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    community_columns = st.columns([0.20, 0.80], gap="small")
+    with community_columns[1]:
+        st.markdown(
+            f"""
+            <section class="zd-lower-section zd-community-section" id="studio-community">
+              <div class="zd-lower-head">
+                <div><h2>Community Creations</h2><p>Amazing creations from our talented community. Get inspired and create your own!</p></div>
+                <a href="?page=community">View All&nbsp; →</a>
+              </div>
+              <div class="zd-community-grid">
+                {''.join(
+                    f"<article class='zd-community-creation'>"
+                    f"<img src='/app/static/{image}' alt='{html_lib.escape(title, quote=True)}' loading='lazy'>"
+                    f"<div class='zd-community-creation-copy'><strong>{html_lib.escape(title)}</strong>"
+                    f"<div class='zd-community-creation-meta'><span class='zd-community-creator'>"
+                    f"<span class='zd-community-avatar' title='{html_lib.escape(creator, quote=True)}' "
+                    f"aria-label='Creator {html_lib.escape(creator, quote=True)}'>{html_lib.escape(initials)}</span>"
+                    f"<span class='zd-community-creator-name'>{html_lib.escape(creator)}</span></span>"
+                    f"<span class='zd-community-engagement'>♡ {likes}</span></div>"
+                    f"<div class='zd-community-meta-bottom'><span class='zd-community-tag'>{html_lib.escape(tag)}</span>"
+                    f"<span class='zd-community-age'>{html_lib.escape(age)}</span></div></div></article>"
+                    for title, creator, initials, likes, tag, image, age in [
+                        ("Into the wild", "@ArtSoul", "A", "124", "Cinematic", "community_bottle_ocean.png", "2 days ago"),
+                        ("Portraits with a point of view", "@ZenCreator", "Z", "98", "Face Studio", "community_sunset_portrait.png", "3 days ago"),
+                        ("Colorful creative concepts", "@PixelDreams", "P", "156", "Creative", "community_floating_islands.jpg", "4 days ago"),
+                        ("Stories made to stand out", "@VFXRider", "V", "67", "Cinematic", "community_floating_tree.png", "5 days ago"),
+                    ]
+                )}
+              </div>
+              <p class="zd-community-note">Community showcase includes supplied creative examples; creator handles and engagement figures are illustrative. Start your own project with one of the <a href="?page=studio#engines">AI engines above</a>.</p>
+            </section>
+            """,
+            unsafe_allow_html=True,
+        )
 
     st.stop()
 
@@ -22959,15 +24148,67 @@ def render_engine_portfolio_section(include_discovery=True):
     """, unsafe_allow_html=True)
 if st.session_state.get("current_page") == "studio_mode":
     active_studio_mode = st.session_state.get("studio_active_mode", "Cinematic Engine")
+    _, back_column = st.columns([0.82, 0.18], vertical_alignment="center")
+    with back_column:
+        if st.button(
+            "← Back to Studio",
+            key="studio_change_mode_btn",
+            type="secondary",
+            use_container_width=True,
+        ):
+            st.session_state["current_page"] = "studio"
+            st.query_params["page"] = "studio"
+            st.rerun()
     render_active_studio_mode()
     render_engine_portfolio_section(include_discovery=active_studio_mode == "Cinematic Engine")
+    if active_studio_mode == "Cinematic Engine":
+        st.markdown(
+            """
+            <div role="contentinfo" style="text-align:center;padding:18px 12px 24px;color:#64748b;font-family:Inter,Arial,sans-serif;font-size:12px">
+              <p style="margin:0 0 8px">© 2026 ZOVIX. All rights reserved.</p>
+              <nav style="display:flex;justify-content:center;flex-wrap:wrap;gap:16px">
+                <a href="#" style="color:#64748b;text-decoration:none">Privacy Policy</a>
+                <a href="#" style="color:#64748b;text-decoration:none">Terms</a>
+                <a href="#" style="color:#64748b;text-decoration:none">Support</a>
+              </nav>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
     st.markdown("""
     <style>
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) > div[data-testid="stMainBlockContainer"],
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .block-container {
+            padding-top: 0 !important;
+            margin-top: 0 !important;
+        }
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn)
+        [data-testid="stMainBlockContainer"] [data-testid="stVerticalBlock"] > div:has(.st-key-studio_change_mode_btn) {
+            margin-bottom: -22px !important;
+        }
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn)
+        .studio-mode-photo-hero,
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn)
+        .cinematic-header,
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn)
+        .editor-header,
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn)
+        .face-header {
+            margin-top: 0 !important;
+        }
         @media (max-width: 768px) {
             section[data-testid="stMain"] .block-container {
                 width: 100% !important;
                 max-width: 100% !important;
                 padding: 12px !important;
+            }
+            section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) > div[data-testid="stMainBlockContainer"],
+            section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .block-container {
+                padding-top: 0 !important;
+            }
+            section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn)
+            [data-testid="stMainBlockContainer"] [data-testid="stVerticalBlock"] > div:has(.st-key-studio_change_mode_btn) {
+                margin-bottom: -18px !important;
             }
             section[data-testid="stMain"] .block-container [data-testid="stHorizontalBlock"] {
                 display: flex !important;
@@ -23089,6 +24330,335 @@ if st.session_state.get("current_page") == "studio_mode":
             > [data-testid="stColumn"] {
                 max-width: 100% !important;
             }
+        }
+    </style>
+    """, unsafe_allow_html=True)
+    st.markdown("""
+    <style>
+        section[data-testid="stMain"],
+        section[data-testid="stMain"] .block-container {
+            --engine-ink: #17324d;
+            --engine-copy: #40566d;
+            --engine-muted: #718198;
+            --engine-line: #dce6f0;
+            --engine-cyan: #19b9c6;
+            --engine-blue: #367de8;
+            color: var(--engine-copy) !important;
+            background: #f7f9fc !important;
+            font-family: 'Inter', sans-serif !important;
+        }
+        section[data-testid="stMain"] > div[data-testid="stMainBlockContainer"] {
+            box-sizing: border-box !important;
+            width: 100% !important;
+            max-width: none !important;
+            padding: 0 !important;
+        }
+        section[data-testid="stMain"] .block-container {
+            box-sizing: border-box !important;
+            width: 100% !important;
+            max-width: 1520px !important;
+            margin: 0 auto !important;
+            padding: 0 clamp(32px, 4vw, 56px) 30px !important;
+        }
+        section[data-testid="stMain"] .studio-mode-photo-hero.studio-mode-photo-hero,
+        section[data-testid="stMain"] .cinematic-header.cinematic-header,
+        section[data-testid="stMain"] .editor-header.editor-header,
+        section[data-testid="stMain"] .face-header.face-header {
+            min-height: clamp(260px, 26vw, 360px) !important;
+            margin: 0 0 22px !important;
+            overflow: hidden !important;
+            border: 1px solid rgba(255,255,255,.88) !important;
+            border-radius: 24px !important;
+            background-color: #dceafa !important;
+            box-shadow:
+                0 22px 48px rgba(28,57,94,.16),
+                0 7px 16px rgba(28,57,94,.10),
+                inset 0 1px 0 rgba(255,255,255,.9) !important;
+            transform: perspective(1600px) rotateX(.35deg);
+            transform-origin: center;
+            transition: transform .32s ease, box-shadow .32s ease !important;
+        }
+        section[data-testid="stMain"] .studio-mode-photo-hero.studio-mode-photo-hero::before,
+        section[data-testid="stMain"] .cinematic-header.cinematic-header::before,
+        section[data-testid="stMain"] .editor-header.editor-header::before,
+        section[data-testid="stMain"] .face-header.face-header::before {
+            z-index: 0 !important;
+            border-radius: inherit !important;
+            background:
+                linear-gradient(105deg, rgba(244,250,255,.82), rgba(238,247,255,.55) 42%, rgba(18,42,75,.03) 78%),
+                linear-gradient(180deg, rgba(255,255,255,.2), transparent 38%, rgba(8,20,40,.12)) !important;
+        }
+        section[data-testid="stMain"] .studio-mode-photo-hero.studio-mode-photo-hero::after,
+        section[data-testid="stMain"] .cinematic-header.cinematic-header::after,
+        section[data-testid="stMain"] .editor-header.editor-header::after,
+        section[data-testid="stMain"] .face-header.face-header::after {
+            position: absolute !important;
+            z-index: 0 !important;
+            inset: 0 !important;
+            border: 1px solid rgba(255,255,255,.35) !important;
+            border-radius: inherit !important;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.65), inset 0 -1px 0 rgba(24,54,91,.08) !important;
+            content: "" !important;
+            pointer-events: none !important;
+        }
+        section[data-testid="stMain"] .studio-mode-photo-hero.studio-mode-photo-hero h2,
+        section[data-testid="stMain"] .studio-mode-photo-hero.studio-mode-photo-hero p,
+        section[data-testid="stMain"] .studio-mode-photo-hero.studio-mode-photo-hero > span:first-child,
+        section[data-testid="stMain"] .cinematic-header.cinematic-header h2,
+        section[data-testid="stMain"] .cinematic-header.cinematic-header p,
+        section[data-testid="stMain"] .cinematic-header.cinematic-header .badge,
+        section[data-testid="stMain"] .editor-header.editor-header h2,
+        section[data-testid="stMain"] .editor-header.editor-header p,
+        section[data-testid="stMain"] .editor-header.editor-header .badge,
+        section[data-testid="stMain"] .face-header.face-header h2,
+        section[data-testid="stMain"] .face-header.face-header p,
+        section[data-testid="stMain"] .face-header.face-header .badge {
+            position: relative !important;
+            z-index: 1 !important;
+        }
+        @media (hover: hover) {
+            section[data-testid="stMain"] .studio-mode-photo-hero.studio-mode-photo-hero:hover,
+            section[data-testid="stMain"] .cinematic-header.cinematic-header:hover,
+            section[data-testid="stMain"] .editor-header.editor-header:hover,
+            section[data-testid="stMain"] .face-header.face-header:hover {
+                box-shadow:
+                    0 28px 56px rgba(28,57,94,.2),
+                    0 10px 22px rgba(28,57,94,.13),
+                    inset 0 1px 0 rgba(255,255,255,.95) !important;
+                transform: perspective(1600px) rotateX(0deg) translateY(-3px);
+            }
+        }
+        @media (max-width: 768px) {
+            section[data-testid="stMain"] .block-container {
+                max-width: none !important;
+                padding: 0 22px 22px !important;
+            }
+            section[data-testid="stMain"] .studio-mode-photo-hero.studio-mode-photo-hero,
+            section[data-testid="stMain"] .cinematic-header.cinematic-header,
+            section[data-testid="stMain"] .editor-header.editor-header,
+            section[data-testid="stMain"] .face-header.face-header {
+                min-height: 260px !important;
+                margin-bottom: 20px !important;
+                border-radius: 20px !important;
+            }
+        }
+        @media (max-width: 480px) {
+            section[data-testid="stMain"] .block-container {
+                padding-right: 18px !important;
+                padding-left: 18px !important;
+            }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            section[data-testid="stMain"] .studio-mode-photo-hero.studio-mode-photo-hero,
+            section[data-testid="stMain"] .cinematic-header.cinematic-header,
+            section[data-testid="stMain"] .editor-header.editor-header,
+            section[data-testid="stMain"] .face-header.face-header {
+                transition: none !important;
+                transform: none !important;
+            }
+        }
+        section[data-testid="stMain"] .block-container
+        *:not([data-testid="stIconMaterial"]):not(.material-symbols-rounded):not(.material-symbols-outlined),
+        section[data-testid="stMain"] .block-container
+        *:not([data-testid="stIconMaterial"]):not(.material-symbols-rounded):not(.material-symbols-outlined)::before,
+        section[data-testid="stMain"] .block-container
+        *:not([data-testid="stIconMaterial"]):not(.material-symbols-rounded):not(.material-symbols-outlined)::after {
+            font-family: 'Inter', sans-serif !important;
+        }
+        section[data-testid="stMain"] .block-container
+        :not(button):not(button *):not(svg):not(path):not(video):not(iframe) {
+            color: var(--engine-copy) !important;
+            -webkit-text-fill-color: var(--engine-copy) !important;
+        }
+        section[data-testid="stMain"] .block-container.block-container h1,
+        section[data-testid="stMain"] .block-container.block-container h2,
+        section[data-testid="stMain"] .block-container.block-container h3,
+        section[data-testid="stMain"] .block-container.block-container h4,
+        section[data-testid="stMain"] .block-container.block-container h5,
+        section[data-testid="stMain"] .block-container.block-container h6,
+        section[data-testid="stMain"] .block-container.block-container strong,
+        section[data-testid="stMain"] .block-container.block-container b {
+            color: var(--engine-ink) !important;
+            -webkit-text-fill-color: var(--engine-ink) !important;
+            font-weight: 700 !important;
+        }
+        section[data-testid="stMain"] .block-container.block-container a {
+            color: var(--engine-blue) !important;
+            -webkit-text-fill-color: var(--engine-blue) !important;
+        }
+        section[data-testid="stMain"] .studio-mode-photo-hero.studio-mode-photo-hero h2,
+        section[data-testid="stMain"] .cinematic-header.cinematic-header h2,
+        section[data-testid="stMain"] .editor-header.editor-header h2,
+        section[data-testid="stMain"] .face-header.face-header h2 {
+            color: var(--engine-ink) !important;
+            -webkit-text-fill-color: var(--engine-ink) !important;
+            text-shadow: 0 2px 16px rgba(255,255,255,.96) !important;
+        }
+        section[data-testid="stMain"] .studio-mode-photo-hero.studio-mode-photo-hero h2 span,
+        section[data-testid="stMain"] .cinematic-header.cinematic-header h2 span,
+        section[data-testid="stMain"] .editor-header.editor-header h2 span,
+        section[data-testid="stMain"] .face-header.face-header h2 span {
+            background-image: linear-gradient(100deg, var(--engine-cyan), var(--engine-blue)) !important;
+            -webkit-background-clip: text !important;
+            background-clip: text !important;
+            -webkit-text-fill-color: transparent !important;
+        }
+        section[data-testid="stMain"] .studio-mode-photo-hero.studio-mode-photo-hero p,
+        section[data-testid="stMain"] .cinematic-header.cinematic-header p,
+        section[data-testid="stMain"] .editor-header.editor-header p,
+        section[data-testid="stMain"] .face-header.face-header p {
+            color: var(--engine-copy) !important;
+            -webkit-text-fill-color: var(--engine-copy) !important;
+            text-shadow: 0 1px 12px rgba(255,255,255,.96) !important;
+        }
+        section[data-testid="stMain"] .studio-mode-photo-hero.studio-mode-photo-hero > span:first-child,
+        section[data-testid="stMain"] .cinematic-header.cinematic-header .badge,
+        section[data-testid="stMain"] .editor-header.editor-header .badge,
+        section[data-testid="stMain"] .face-header.face-header .badge {
+            color: var(--engine-blue) !important;
+            -webkit-text-fill-color: var(--engine-blue) !important;
+            background: rgba(255,255,255,.9) !important;
+            border: 1px solid rgba(54,125,232,.16) !important;
+            border-radius: 999px !important;
+        }
+        section[data-testid="stMain"]:has(.face-header) > div[data-testid="stMainBlockContainer"] {
+            padding-top: 4px !important;
+            margin-top: 0 !important;
+        }
+        section[data-testid="stMain"]:has(.face-header) .block-container {
+            padding-top: 4px !important;
+            margin-top: 0 !important;
+        }
+        section[data-testid="stMain"]:has(.face-header) [class*="st-key-studio_change_mode_btn"] {
+            margin-top: 0 !important;
+            margin-bottom: 4px !important;
+        }
+        section[data-testid="stMain"] .face-header.studio-mode-photo-hero--face {
+            min-height: clamp(300px, 31vw, 420px) !important;
+            align-items: flex-end !important;
+            justify-content: center !important;
+            gap: 8px !important;
+            padding: 38px clamp(24px, 5vw, 72px) !important;
+            border: 1px solid rgba(255,255,255,.82) !important;
+            border-radius: 34px 104px 34px 104px !important;
+            background-position: center 44% !important;
+            box-shadow: 0 26px 64px rgba(8,25,51,.24), 0 0 0 8px rgba(255,255,255,.42), inset 0 1px 0 rgba(255,255,255,.8) !important;
+            text-align: right !important;
+        }
+        section[data-testid="stMain"] .face-header.studio-mode-photo-hero--face::before {
+            border-radius: inherit !important;
+            background: linear-gradient(270deg, rgba(5,14,31,.84) 0%, rgba(5,14,31,.65) 34%, rgba(5,14,31,.12) 72%, rgba(5,14,31,0) 100%), linear-gradient(0deg, rgba(4,12,28,.28), transparent 62%) !important;
+        }
+        section[data-testid="stMain"] .face-header.studio-mode-photo-hero--face h2,
+        section[data-testid="stMain"] .face-header.studio-mode-photo-hero--face p {
+            width: min(54%, 700px) !important;
+            margin-left: auto !important;
+            text-align: right !important;
+        }
+        section[data-testid="stMain"] .face-header.studio-mode-photo-hero--face .badge {
+            width: fit-content !important;
+            margin-left: auto !important;
+            text-align: right !important;
+        }
+        section[data-testid="stMain"] .face-header.studio-mode-photo-hero--face h2 {
+            color: #fff !important;
+            -webkit-text-fill-color: #fff !important;
+            font-size: clamp(30px, 3.5vw, 48px) !important;
+            text-shadow: 0 3px 22px rgba(0,0,0,.38) !important;
+        }
+        section[data-testid="stMain"] .face-header.studio-mode-photo-hero--face h2 span {
+            background-image: linear-gradient(100deg, #89e8ff, #a7a2ff) !important;
+        }
+        section[data-testid="stMain"] .face-header.studio-mode-photo-hero--face p {
+            color: rgba(255,255,255,.9) !important;
+            -webkit-text-fill-color: rgba(255,255,255,.9) !important;
+            text-shadow: 0 2px 14px rgba(0,0,0,.4) !important;
+        }
+        section[data-testid="stMain"] .face-header.studio-mode-photo-hero--face .badge {
+            color: #edf5ff !important;
+            -webkit-text-fill-color: #edf5ff !important;
+            background: rgba(14,30,58,.5) !important;
+            border: 1px solid rgba(211,228,255,.46) !important;
+            box-shadow: 0 8px 22px rgba(0,0,0,.2) !important;
+            text-shadow: none !important;
+            backdrop-filter: blur(12px);
+        }
+        @media (max-width: 768px) {
+            section[data-testid="stMain"] .face-header.studio-mode-photo-hero--face {
+                min-height: 300px !important;
+                padding: 32px 22px !important;
+                border-radius: 24px 70px 24px 70px !important;
+                background-position: 42% center !important;
+            }
+            section[data-testid="stMain"] .face-header.studio-mode-photo-hero--face h2,
+            section[data-testid="stMain"] .face-header.studio-mode-photo-hero--face p {
+                width: 72% !important;
+            }
+        }
+        section[data-testid="stMain"] [data-testid="stVerticalBlockBorderWrapper"],
+        section[data-testid="stMain"] [data-testid="stExpander"] details {
+            color: var(--engine-copy) !important;
+            background: #fff !important;
+            border-color: var(--engine-line) !important;
+            box-shadow: 0 5px 18px rgba(31,65,102,.055) !important;
+        }
+        section[data-testid="stMain"] input,
+        section[data-testid="stMain"] textarea,
+        section[data-testid="stMain"] [data-baseweb="select"] > div {
+            color: var(--engine-ink) !important;
+            -webkit-text-fill-color: var(--engine-ink) !important;
+            background: #fff !important;
+            border-color: #cfdae7 !important;
+            font-family: 'Inter', sans-serif !important;
+        }
+        section[data-testid="stMain"] input::placeholder,
+        section[data-testid="stMain"] textarea::placeholder {
+            color: var(--engine-muted) !important;
+            -webkit-text-fill-color: var(--engine-muted) !important;
+            opacity: 1 !important;
+        }
+        section[data-testid="stMain"] [data-testid="stFileUploaderDropzone"] {
+            background: #f7fbff !important;
+            border-color: #c9d9eb !important;
+        }
+        section[data-testid="stMain"] [data-testid="stButton"] > button {
+            color: #fff !important;
+            -webkit-text-fill-color: #fff !important;
+            background: linear-gradient(105deg, var(--engine-cyan), var(--engine-blue)) !important;
+            border: 1px solid transparent !important;
+            border-radius: 9px !important;
+            box-shadow: 0 5px 14px rgba(54,125,232,.16) !important;
+            font-family: 'Inter', sans-serif !important;
+            font-weight: 650 !important;
+            letter-spacing: 0 !important;
+        }
+        section[data-testid="stMain"] [data-testid="stButton"] > button:hover {
+            background: linear-gradient(105deg, #12aab8, #286bd2) !important;
+            box-shadow: 0 7px 18px rgba(54,125,232,.23) !important;
+        }
+        section[data-testid="stMain"] [class*="st-key-studio_change_mode_btn"] > div > button {
+            color: var(--engine-ink) !important;
+            -webkit-text-fill-color: var(--engine-ink) !important;
+            background: #fff !important;
+            border-color: var(--engine-line) !important;
+            box-shadow: 0 4px 12px rgba(31,65,102,.07) !important;
+        }
+        section[data-testid="stMain"] [data-testid="stRadio"] [role="radiogroup"] {
+            color: var(--engine-copy) !important;
+            background: #f5f9fd !important;
+            border-color: var(--engine-line) !important;
+        }
+        section[data-testid="stMain"] .block-container
+        [style*="background: rgba(10,10,15"],
+        section[data-testid="stMain"] .block-container
+        [style*="background: rgba(18,19,26"],
+        section[data-testid="stMain"] .block-container
+        [style*="background: rgba(10,10,12"],
+        section[data-testid="stMain"] .block-container
+        [style*="background: #06070a"] {
+            color: var(--engine-copy) !important;
+            background: #f5f9fd !important;
+            border-color: var(--engine-line) !important;
         }
     </style>
     """, unsafe_allow_html=True)

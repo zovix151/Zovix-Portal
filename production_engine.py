@@ -1,4 +1,4 @@
-"""
+﻿"""
 ==========================================================================
 ZOVIX PRODUCTION MEDIA ENGINE - RunPod Infrastructure
 ==========================================================================
@@ -7,6 +7,10 @@ Cost Target:  Under Rs. 0.50 per video/voice generation
 Languages:    Bhojpuri, Hindi, Bengali, Tamil, Telugu, Gujarati + more
 ==========================================================================
 """
+
+from dotenv import load_dotenv
+
+load_dotenv()
 
 import os
 import io

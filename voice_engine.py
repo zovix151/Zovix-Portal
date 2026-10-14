@@ -1,4 +1,8 @@
-"""Replicate-first voice generation with Edge-TTS fallback."""
+﻿"""Replicate-first voice generation with Edge-TTS fallback."""
+
+from dotenv import load_dotenv
+
+load_dotenv()
 
 import asyncio
 import logging
@@ -10,6 +14,11 @@ import requests
 
 logger = logging.getLogger("Zovix.SalesVoice")
 
+ELEVENLABS_MODELS = {
+    "Multilingual v2 (natural, multilingual)": "eleven_multilingual_v2",
+    "Turbo v2.5 (faster)": "eleven_turbo_v2_5",
+    "Flash v2.5 (lowest latency)": "eleven_flash_v2_5",
+}
 
 _LANGUAGE_VOICES = {
     "English": "en-US-JennyNeural",
@@ -55,8 +64,52 @@ def _elevenlabs_api_key():
     return str(key or "").strip()
 
 
-def generate_voice_elevenlabs(script, output_path, voice_id):
-    """Generate MP3 speech with ElevenLabs using the selected sales voice."""
+def list_elevenlabs_voices():
+    """Return the voices available to the configured ElevenLabs account."""
+    api_key = _elevenlabs_api_key()
+    if not api_key:
+        raise RuntimeError("ELEVENLABS_API_KEY is not configured.")
+    try:
+        response = requests.get(
+            "https://api.elevenlabs.io/v1/voices",
+            headers={"xi-api-key": api_key, "Accept": "application/json"},
+            timeout=20,
+        )
+    except requests.RequestException as exc:
+        raise RuntimeError(f"Could not load ElevenLabs voices: {exc}") from exc
+    if response.status_code != 200:
+        detail = str(getattr(response, "text", "") or "").replace("\n", " ")[:240]
+        raise RuntimeError(
+            f"ElevenLabs voice list returned HTTP {response.status_code}: {detail}"
+        )
+    try:
+        payload = response.json()
+    except ValueError as exc:
+        raise RuntimeError("ElevenLabs returned an invalid voice-list response.") from exc
+
+    voices = payload.get("voices") if isinstance(payload, dict) else None
+    if not isinstance(voices, list):
+        raise RuntimeError("ElevenLabs voice-list response has no voices collection.")
+    available = []
+    for voice in voices:
+        if not isinstance(voice, dict):
+            continue
+        voice_id = str(voice.get("voice_id") or "").strip()
+        name = str(voice.get("name") or "").strip()
+        if voice_id and name:
+            available.append({"voice_id": voice_id, "name": name})
+    if not available:
+        raise RuntimeError("No usable voices are available in this ElevenLabs account.")
+    return available
+
+
+def generate_voice_elevenlabs(
+    script,
+    output_path,
+    voice_id,
+    model_id="eleven_multilingual_v2",
+):
+    """Generate MP3 speech with the selected ElevenLabs voice and model."""
     if not str(script or "").strip():
         raise ValueError("Voice script is empty.")
     api_key = _elevenlabs_api_key()
@@ -64,13 +117,16 @@ def generate_voice_elevenlabs(script, output_path, voice_id):
         raise RuntimeError("ELEVENLABS_API_KEY is not configured.")
     if not str(voice_id or "").strip():
         raise RuntimeError("No ElevenLabs voice is selected.")
+    selected_model = str(model_id or "eleven_multilingual_v2").strip()
+    if selected_model not in ELEVENLABS_MODELS.values():
+        raise ValueError(f"Unsupported ElevenLabs model: {selected_model!r}.")
 
     response = requests.post(
         f"https://api.elevenlabs.io/v1/text-to-speech/{str(voice_id).strip()}",
         headers={"xi-api-key": api_key, "Accept": "audio/mpeg", "Content-Type": "application/json"},
         json={
             "text": str(script).strip(),
-            "model_id": "eleven_multilingual_v2",
+            "model_id": selected_model,
             "voice_settings": {"stability": 0.45, "similarity_boost": 0.75},
         },
         timeout=60,

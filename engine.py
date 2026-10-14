@@ -1,3 +1,7 @@
+﻿from dotenv import load_dotenv
+
+load_dotenv()
+
 import os
 import time
 import uuid
@@ -1023,9 +1027,15 @@ def _draw_replicate(prompt, style, canvas_size, timeout=60):
     enhanced = _enhance_prompt(prompt, style)
     try:
         headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
-        payload = {"version": "black-forest-labs/flux-schnell", "input": {"prompt": enhanced, "width": canvas_size[0], "height": canvas_size[1], "num_outputs": 1}}
-        create = requests.post("https://api.replicate.com/v1/predictions", json=payload, headers=headers, timeout=15)
-        if create.status_code != 201: return None
+        model_ref = "black-forest-labs/flux-dev"
+        payload = {"input": {"prompt": enhanced, "width": canvas_size[0], "height": canvas_size[1], "num_outputs": 1}}
+        create = requests.post(
+            f"https://api.replicate.com/v1/models/{model_ref}/predictions",
+            json=payload,
+            headers=headers,
+            timeout=15,
+        )
+        if create.status_code not in {200, 201, 202}: return None
         get_url = create.json().get("urls", {}).get("get")
         if not get_url: return None
         for _ in range(30):

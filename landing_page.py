@@ -34,6 +34,7 @@ class WorldClassLandingPage:
         self._render_blueprint_engine_guide()
         self._render_ai_upscaler_guide()
         self._render_video_editor_guide()
+        self._render_sales_video_guide()
         self._render_engine_output_gallery()
         self._render_features()
         self._render_about()
@@ -796,16 +797,13 @@ class WorldClassLandingPage:
         .zx-root a { text-decoration: none; }
         .zx-stage {
             --y-scale: min(calc(var(--p) * 1.25), calc((100svh - 100px) * 0.0017));
+            --followup-top: max(calc(100svh - 65px), calc(var(--p) * 530));
             position: relative;
             height: calc(max(calc(100svh - 65px), calc(var(--p) * 554)) + calc(var(--p) * 460));
         }
-        .zx-followup {
+        .zx-followup-item {
             --y-scale: var(--p);
-            position: absolute;
-            top: max(calc(100svh - 65px), calc(var(--p) * 530));
-            left: 0;
-            width: 100%;
-            height: calc(var(--p) * 460);
+            top: calc(var(--followup-top) + var(--p) * var(--y));
         }
         .zx-a {
             position: absolute; left: calc(var(--p) * var(--x)); top: calc(var(--y-scale) * var(--y));
@@ -904,7 +902,7 @@ class WorldClassLandingPage:
         .zx-demo-time .zx-i { font-size: calc(var(--p) * 9); }
 
         .zx-stats {
-            z-index: 2; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)) minmax(0, .78fr); align-items: center;
+            z-index: 2; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: center;
             background: rgba(255, 255, 255, .96); border: 1px solid rgba(40, 80, 160, .08);
             border-radius: calc(var(--p) * 11); box-shadow: 0 calc(var(--p) * 10) calc(var(--p) * 28) rgba(50, 90, 170, .13);
         }
@@ -936,7 +934,7 @@ class WorldClassLandingPage:
         }
         .zx-stat b { display: block; font: 800 calc(var(--p) * 19)/1.05 'Inter', sans-serif; color: #14284b; }
         .zx-stat span { display: block; margin-top: calc(var(--p) * 2); font: 500 calc(var(--p) * 7.6)/1.2 'Inter', sans-serif; color: #5a6a86; }
-        .zx-tagline { position: relative; padding-left: calc(var(--p) * 22); font: 700 calc(var(--p) * 13.5)/1.1 'Caveat', cursive; color: #1d4f9c; transform: rotate(-4deg); }
+        .zx-tagline { position: relative; padding-left: calc(var(--p) * 8); border-left: 1px solid rgba(40, 80, 160, .1); font: 700 calc(var(--p) * 12.5)/1.1 'Caveat', cursive; color: #1d4f9c; transform: rotate(-4deg); }
         .zx-tagline svg { display: block; width: 78%; height: calc(var(--p) * 8); margin-top: calc(var(--p) * 2); }
 
         .zx-pill {
@@ -1646,7 +1644,7 @@ class WorldClassLandingPage:
             border-radius: 28px 120px 28px 120px;
             background:
                 linear-gradient(180deg, rgba(9, 20, 31, .08) 10%, rgba(9, 20, 31, .22) 42%, rgba(9, 20, 31, .88) 100%),
-                url('/app/static/studio_cinematic_story_background.webp') center 48%/cover;
+                url('/app/static/studio_cinematic_engine..png') center 48%/cover;
             box-shadow: 0 34px 70px rgba(20, 42, 57, .24), 0 0 0 10px rgba(255, 255, 255, .28);
             transform: perspective(1200px) rotateY(-7deg) rotateX(2deg);
             transition: transform .4s ease, box-shadow .4s ease;
@@ -1715,6 +1713,26 @@ class WorldClassLandingPage:
         }
         .creative-workshop-guide .cinematic-guide-cta {
             background: linear-gradient(110deg, #f97316, #ec4899 72%, #7656ed);
+            box-shadow: 0 8px 22px rgba(220, 105, 54, .24);
+        }
+        .sales-video-guide::before { background: radial-gradient(ellipse, rgba(245, 158, 11, .12), transparent 68%); }
+        .sales-video-guide .glow-text {
+            background: linear-gradient(100deg, #f59e0b, #ec4899 58%, #7656ed);
+            -webkit-background-clip: text;
+            background-clip: text;
+        }
+        .sales-video-guide .cinematic-guide-visual {
+            min-height: 0;
+            aspect-ratio: 16 / 9;
+            background: #11182a url('/app/static/studio_sales_engine.webp') center/contain no-repeat;
+            box-shadow: 0 34px 70px rgba(141, 83, 44, .2), 0 0 0 10px rgba(255, 255, 255, .28);
+        }
+        .sales-video-guide .cinematic-guide-visual::after { display: none; }
+        .sales-video-guide .cinematic-flow-number {
+            background: linear-gradient(135deg, #f59e0b, #ec4899);
+        }
+        .sales-video-guide .cinematic-guide-cta {
+            background: linear-gradient(110deg, #f59e0b, #ec4899 72%, #7656ed);
             box-shadow: 0 8px 22px rgba(220, 105, 54, .24);
         }
         .live-emotion-voice-guide::before { background: radial-gradient(ellipse, rgba(32, 189, 181, .12), transparent 68%); }
@@ -2133,7 +2151,6 @@ class WorldClassLandingPage:
         .zx-stage > .zx-stats {
             left: calc(var(--p) * var(--x) - clamp(18px, 2vw, 32px));
         }
-        .zx-stage .zx-stats { top: max(calc(var(--y-scale) * 553), calc(100svh - 150px)); }
         .zx-stage .zx-badge { font-size: clamp(12px, calc(var(--p) * 9.2), 15px); }
         .zx-stage .zx-btn { font-size: clamp(12px, calc(var(--p) * 9.5), 15px); }
         .zx-stage .zx-btn-primary { width: calc(var(--p) * 225); }
@@ -2142,31 +2159,30 @@ class WorldClassLandingPage:
         .zx-stage .zx-stat b { font-size: clamp(24px, calc(var(--p) * 23.5), 31px); }
         .zx-stage .zx-stat span { font-size: clamp(10px, calc(var(--p) * 9.6), 13px); }
         .zx-stage .zx-tagline { font-size: clamp(19px, calc(var(--p) * 16.5), 23px); }
-        .zx-followup {
-            left: clamp(-32px, -2vw, -18px);
-            width: calc(100% + 32px);
+        .zx-stage > .zx-followup-item {
+            left: calc(var(--p) * var(--x) + clamp(-32px, -2vw, -18px));
+            top: calc(var(--followup-top) + var(--p) * var(--y));
         }
-        .zx-followup .zx-hiw-title { width: calc(var(--p) * 360); font-size: clamp(26px, calc(var(--p) * 31), 41px); }
-        .zx-followup .zx-hiw-text { font-size: clamp(13px, calc(var(--p) * 11.5), 17px); }
-        .zx-followup .zx-pill { font-size: clamp(10px, calc(var(--p) * 8), 13px); }
-        .zx-followup .zx-watch { font-size: clamp(13px, calc(var(--p) * 10.5), 16px); }
-        .zx-followup .zx-step-t { font-size: clamp(14px, calc(var(--p) * 13.5), 19px); }
-        .zx-followup .zx-step-d { font-size: clamp(12px, calc(var(--p) * 10.8), 16px); }
-        .zx-followup .zx-num { font-size: clamp(12px, calc(var(--p) * 9), 14px); }
-        .zx-followup .zx-mock-input { font-size: clamp(12px, calc(var(--p) * 8.3), 14px); }
-        .zx-followup .zx-eng-title { font-size: clamp(13px, calc(var(--p) * 11), 17px); }
-        .zx-followup .zx-eng-sub { font-size: clamp(12px, calc(var(--p) * 10), 16px); }
-        .zx-followup .zx-eng-card b { font-size: clamp(14px, calc(var(--p) * 10.8), 18px); }
-        .zx-followup .zx-eng-card span { font-size: clamp(12px, calc(var(--p) * 9.2), 15px); }
+        .zx-followup-item.zx-hiw-title { width: calc(var(--p) * 360); font-size: clamp(26px, calc(var(--p) * 31), 41px); }
+        .zx-followup-item.zx-hiw-text { font-size: clamp(13px, calc(var(--p) * 11.5), 17px); }
+        .zx-followup-item.zx-pill { font-size: clamp(10px, calc(var(--p) * 8), 13px); }
+        .zx-followup-item.zx-watch { font-size: clamp(13px, calc(var(--p) * 10.5), 16px); }
+        .zx-followup-item.zx-step .zx-step-t { font-size: clamp(14px, calc(var(--p) * 13.5), 19px); }
+        .zx-followup-item.zx-step .zx-step-d { font-size: clamp(12px, calc(var(--p) * 10.8), 16px); }
+        .zx-followup-item.zx-step .zx-num { font-size: clamp(12px, calc(var(--p) * 9), 14px); }
+        .zx-followup-item.zx-step .zx-mock-input { font-size: clamp(12px, calc(var(--p) * 8.3), 14px); }
+        .zx-followup-item.zx-eng-title { font-size: clamp(13px, calc(var(--p) * 11), 17px); }
+        .zx-followup-item.zx-eng-sub { font-size: clamp(12px, calc(var(--p) * 10), 16px); }
+        .zx-followup-item.zx-eng .zx-eng-card b { font-size: clamp(14px, calc(var(--p) * 10.8), 18px); }
+        .zx-followup-item.zx-eng .zx-eng-card span { font-size: clamp(12px, calc(var(--p) * 9.2), 15px); }
         @media (max-width: 900px) {
             .landing-nav, .landing-nav.scrolled {
                 height: 60px;
                 padding: 0 18px;
             }
-            .zx-followup { position: static; left: auto; width: 100%; height: auto; }
             .zx-stage .zx-sub { width: 100% !important; }
             .zx-stage .zx-stats { top: auto; }
-            .zx-followup .zx-hiw-title { width: auto; font-size: clamp(26px, calc(var(--p) * 30), 38px); }
+            .zx-stage > .zx-hiw-title { width: auto; font-size: clamp(26px, calc(var(--p) * 30), 38px); }
             .zx-logo-mark { width: 32px; }
             .landing-nav .nav-links a.nav-cta-btn {
                 min-height: 38px;
@@ -2265,8 +2281,7 @@ class WorldClassLandingPage:
             .zx-stage > .zx-checks,
             .zx-stage > .zx-demo,
             .zx-stage > .zx-stats,
-            .zx-stage > .zx-followup,
-            .zx-followup .zx-a {
+            .zx-stage > .zx-followup-item {
                 position: relative !important;
                 inset: auto !important;
                 top: auto !important;
@@ -2371,25 +2386,19 @@ class WorldClassLandingPage:
                 padding: 6px 10px !important;
                 font-size: 19px !important;
             }
-            .zx-stage > .zx-followup {
-                display: flex !important;
-                flex-direction: column !important;
-                gap: 12px !important;
-                padding: 8px 0 0 !important;
-            }
-            .zx-followup .zx-a {
+            .zx-stage > .zx-followup-item {
                 flex: none !important;
             }
-            .zx-followup .zx-hiw-title,
-            .zx-followup .zx-hiw-text {
+            .zx-stage > .zx-hiw-title,
+            .zx-stage > .zx-hiw-text {
                 width: 100% !important;
             }
-            .zx-followup .zx-eng {
+            .zx-stage > .zx-eng {
                 display: grid !important;
                 grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
                 gap: 8px !important;
             }
-            .zx-followup .zx-step {
+            .zx-stage > .zx-step {
                 min-height: 0 !important;
             }
         }
@@ -2402,6 +2411,212 @@ class WorldClassLandingPage:
                 flex-basis: 100% !important;
             }
         }
+
+        /* Final landing-page polish: clearer type, calmer motion, and consistent controls. */
+        .zx-root {
+            -webkit-font-smoothing: antialiased;
+            text-rendering: optimizeLegibility;
+        }
+        .landing-nav .nav-links a:not(.nav-cta-btn):not(.zx-login) {
+            color: #53627a;
+            font-weight: 600;
+            transition: color .18s ease;
+        }
+        .landing-nav .nav-links a:not(.nav-cta-btn):not(.zx-login):hover { color: #176bd2; }
+        .landing-nav .nav-links a.nav-cta-btn {
+            transition: transform .18s ease, box-shadow .18s ease;
+        }
+        .landing-nav .nav-links a.nav-cta-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 9px 22px rgba(42, 150, 215, .24);
+        }
+        .zx-stage .zx-h1 {
+            letter-spacing: -.045em !important;
+            text-wrap: balance;
+        }
+        .zx-stage .zx-sub {
+            color: #40516e;
+            line-height: 1.62;
+            text-wrap: pretty;
+        }
+        .zx-btn { transition: transform .2s ease, box-shadow .2s ease, background .2s ease; }
+        .zx-btn:focus-visible, .landing-nav a:focus-visible {
+            outline: 3px solid #397dea;
+            outline-offset: 4px;
+        }
+        .zx-demo { transition: transform .24s ease, box-shadow .24s ease; }
+        .zx-demo:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 calc(var(--p) * 20) calc(var(--p) * 44) rgba(60, 100, 200, .34),
+                0 0 0 calc(var(--p) * 6) rgba(170, 200, 255, .25);
+        }
+        .zx-tile img { transition: transform .35s ease, filter .35s ease; }
+        .zx-tile:hover img { transform: scale(1.035); }
+        .zx-step, .zx-eng-card {
+            transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+        }
+        .zx-step:hover, .zx-eng-card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(59, 130, 246, .24);
+            box-shadow: 0 calc(var(--p) * 12) calc(var(--p) * 28) rgba(40, 70, 140, .14);
+        }
+        @media (min-width: 901px) {
+            .zx-stage { min-height: 690px; }
+            .zx-stage .zx-checks { color: #40516e; }
+        }
+        @media (max-width: 900px) {
+            .zx-stage .zx-h1 { text-wrap: balance; }
+            .zx-stage .zx-demo { height: auto; aspect-ratio: 16 / 9; }
+            .zx-stage .zx-sub { max-width: 58ch; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .zx-demo, .zx-tile img, .zx-step, .zx-eng-card,
+            .landing-nav .nav-links a.nav-cta-btn { transition: none !important; }
+            .zx-demo:hover, .zx-step:hover, .zx-eng-card:hover,
+            .landing-nav .nav-links a.nav-cta-btn:hover { transform: none; }
+        }
+
+        /* Match the reference's clean Inter typography, soft cards, and tighter rhythm. */
+        .stApp, [data-testid="stAppViewContainer"], section.main {
+            background: #f7faff !important;
+            color: #14284b !important;
+            font-family: 'Inter', Arial, sans-serif !important;
+        }
+        .stApp :is(h1, h2, h3, h4, h5, p, a, button, span, li, summary, label),
+        .zx-root :is(h1, h2, h3, h4, h5, p, a, button, span, li) {
+            font-family: 'Inter', Arial, sans-serif;
+        }
+        .stApp :is(h1, h2, h3, h4, h5) { color: #14284b; letter-spacing: -.035em; }
+        .stApp .zx-i { font-family: 'Material Symbols Rounded' !important; }
+        .stApp :is(p, .section-header p, .feature-card p, .step-item p,
+            .cinematic-flow-step p, .about-pillar p, .blog-post p,
+            .changelog-card p, .roadmap-card p, .testimonial-card .text,
+            .faq-answer, .pricing-card .plan-description) {
+            color: #5c6b82;
+            line-height: 1.6;
+        }
+        .section-header h2, .cta-container h2,
+        .cinematic-guide-copy .section-header h2,
+        .about-section .section-header h2,
+        .engine-gallery-section .section-header h2,
+        .features-section .section-header h2 {
+            font-family: 'Inter', Arial, sans-serif !important;
+            font-weight: 800 !important;
+            letter-spacing: -.04em;
+            line-height: 1.12 !important;
+        }
+        .features-section, .how-it-works, .stats-section, .testimonials-section,
+        .pricing-section, .faq-section, .cta-section, .engine-gallery-section,
+        .about-section, .blog-section, .changelog-section, .roadmap-section,
+        .careers-section, .cinematic-guide {
+            padding-top: clamp(34px, 4vw, 58px);
+            padding-bottom: clamp(34px, 4vw, 58px);
+        }
+        .features-section, .testimonials-section, .pricing-section, .faq-section,
+        .cta-section, .engine-gallery-section, .about-section,
+        .blog-section, .changelog-section, .roadmap-section, .careers-section {
+            max-width: 1320px;
+            margin-right: auto;
+            margin-left: auto;
+        }
+        .section-header { margin-bottom: clamp(22px, 2.6vw, 34px); }
+        .features-grid, .testimonials-grid, .pricing-grid,
+        .engine-gallery-grid, .blog-post-grid, .changelog-grid, .roadmap-grid {
+            gap: clamp(12px, 1.4vw, 20px);
+        }
+        .feature-card, .testimonial-card, .pricing-card, .stat-item,
+        .faq-item, .step-item, .cinematic-flow-step, .about-pillar,
+        .engine-gallery-card, .blog-post, .changelog-card, .roadmap-card,
+        .ready-create-step {
+            color: #14284b;
+            background: rgba(255, 255, 255, .94);
+            border: 1px solid #e3ebf5;
+            border-radius: 18px;
+            box-shadow: 0 8px 24px rgba(35, 68, 112, .065);
+        }
+        .feature-card, .testimonial-card { padding: clamp(20px, 2.2vw, 28px); }
+        .feature-card h3, .step-item h4, .pricing-card .plan-name,
+        .footer-col h5, .cinematic-flow-step h3, .about-pillar h3,
+        .blog-post h3, .changelog-card h3, .roadmap-card h3,
+        .ready-create-step h3 {
+            color: #14284b;
+            font-family: 'Inter', Arial, sans-serif !important;
+            font-weight: 700;
+            letter-spacing: -.02em;
+        }
+        .pricing-card .features li { color: #5c6b82; border-bottom-color: #e8eef6; }
+        .step-item, .cinematic-flow-step, .about-pillar, .ready-create-step {
+            padding: clamp(16px, 1.8vw, 22px);
+        }
+        .cinematic-guide-inner { gap: clamp(24px, 3.4vw, 48px); }
+        .cinematic-guide-copy .section-header { margin-bottom: 20px; }
+        .cinematic-flow { gap: 11px; }
+        .cinematic-flow-step { box-shadow: 0 6px 18px rgba(35, 68, 112, .055); }
+        .engine-gallery-card { overflow: hidden; }
+        .engine-gallery-card-copy, .blog-post-copy, .changelog-card-copy,
+        .roadmap-card-copy { padding: clamp(15px, 1.8vw, 22px); }
+        .engine-gallery-card h3, .blog-post h3, .changelog-card h3, .roadmap-card h3 {
+            font-size: clamp(16px, 1.35vw, 19px);
+            line-height: 1.3;
+        }
+        .pricing-card { padding: 22px 18px; }
+        .pricing-card.featured-plan { border-color: #8cdbde; }
+        .faq-list { display: grid; gap: 10px; }
+        .faq-item { margin: 0; padding: 17px 20px; }
+        .faq-question { color: #14284b; font: 650 15px/1.45 'Inter', Arial, sans-serif; }
+        .faq-answer { color: #5c6b82; }
+        .stat-item { box-shadow: none; }
+        .engine-gallery-engine { color: #168da7; }
+        .engine-gallery-card p, .engine-gallery-note { color: #5c6b82; }
+        .zx-hiw-title, .zx-eng-title, .zx-step-t, .zx-eng-card b,
+        .zx-followup-item.zx-hiw-title, .zx-followup-item.zx-eng-title,
+        .zx-followup-item.zx-step .zx-step-t, .zx-followup-item.zx-eng .zx-eng-card b {
+            font-family: 'Inter', Arial, sans-serif !important;
+            letter-spacing: -.035em;
+        }
+        .zx-step, .zx-eng-card { border-radius: 16px; }
+        .zx-step-d, .zx-eng-card span { color: #5c6b82; }
+        /* Keep the headline on the intended three lines at laptop widths. */
+        .zx-stage .zx-h1 {
+            width: calc(var(--p) * 500) !important;
+            font-size: clamp(28px, calc(var(--p) * 45), 60px) !important;
+            line-height: 1.04 !important;
+            letter-spacing: -.045em !important;
+            white-space: nowrap;
+        }
+        .zx-stage .zx-sub {
+            width: calc(var(--p) * 450) !important;
+            max-width: calc(var(--p) * 450);
+        }
+        @media (min-width: 901px) {
+            .zx-stage {
+                --followup-top: max(calc(100svh - 112px), calc(var(--p) * 500));
+                height: calc(max(calc(100svh - 112px), calc(var(--p) * 500)) + calc(var(--p) * 460));
+            }
+        }
+        @media (max-width: 900px) {
+            .zx-stage .zx-h1 {
+                width: 100% !important;
+                font-size: clamp(32px, 7vw, 52px) !important;
+                line-height: 1.05 !important;
+                white-space: normal;
+            }
+            .zx-stage .zx-sub { width: 100% !important; max-width: 58ch; }
+        }
+        .landing-footer { color: #53627a; background: #fff; }
+        .landing-footer :is(p, a) { color: #5c6b82; }
+        @media (max-width: 900px) {
+            .cinematic-guide-inner { gap: 22px; }
+            .features-grid, .testimonials-grid { gap: 14px; }
+            .pricing-section .subscription-plans-grid,
+            .pricing-section .one-time-plans-grid { gap: 12px; }
+        }
+        @media (max-width: 640px) {
+            .section-header { margin-bottom: 20px; }
+            .feature-card, .testimonial-card, .pricing-card { border-radius: 16px; }
+            .faq-item { padding: 15px 16px; }
+        }
+
         </style>
         """, unsafe_allow_html=True)
 
@@ -2460,23 +2675,6 @@ class WorldClassLandingPage:
             for label, pid, x, y, w, h, rot, ry, small in tiles
         )
 
-        stats = [
-            ("smart_display", "#2f6bff", "50K+", "Videos Created"),
-            ("groups", "#2f6bff", "15K+", "Active Creators"),
-            ("public", "#1d8fe8", "180+", "Countries Supported"),
-            ("star", "#6a4cf2", "4.9/5", "User Rating"),
-        ]
-        stats_html = "".join(
-            f"<div class='zx-stat'><span class='zx-stat-ico'><i class='zx-i' style='color:{color}'>{icon}</i></span><div><b>{number}</b><span>{label}</span></div></div>"
-            for icon, color, number, label in stats
-        )
-        tagline = (
-            "<div class='zx-tagline'>More than a tool,<br>it's your creative partner."
-            "<svg viewBox='0 0 120 10' preserveAspectRatio='none' aria-hidden='true'><defs><linearGradient id='zxu' x1='0' x2='1'>"
-            "<stop offset='0' stop-color='#17c6e0'/><stop offset='1' stop-color='#3b6df0'/></linearGradient></defs>"
-            "<path d='M2 7 C30 1 80 1 118 6' fill='none' stroke='url(#zxu)' stroke-width='2.2' stroke-linecap='round'/></svg></div>"
-        )
-
         steps = [
             (458, 182, "lightbulb", "01", "Your Idea", "Type a prompt or upload an image. Be as creative as you want.",
              "<div class='zx-mock zx-mock-input'>A cinematic scene with a futuristic city...</div>"),
@@ -2491,12 +2689,12 @@ class WorldClassLandingPage:
              f"<div class='zx-mock zx-mock-thumb' style=\"background-image:url('{photo('1470071459604-3b5ec3a7fe05')}')\"><span><i class='zx-i'>play_arrow</i></span></div>"),
         ]
         steps_html = "".join(
-            f"<div class='zx-a zx-step' style='{pos(x + 42, 20, w, 168)}'><span class='zx-ficon'><i class='zx-i'>{icon}</i></span>"
+            f"<div class='zx-a zx-followup-item zx-step' style='{pos(x + 42, 20, w, 168)}'><span class='zx-ficon'><i class='zx-i'>{icon}</i></span>"
             f"<span class='zx-num'>{num}</span><div class='zx-step-t'>{title}</div><div class='zx-step-d'>{desc}</div>{mock}</div>"
             for x, w, icon, num, title, desc, mock in steps
         )
         arrows_html = "".join(
-            f"<div class='zx-a zx-arrow' style='{pos(x + 42, 58, 18, 18)}'><i class='zx-i'>arrow_forward</i></div>" for x in (648, 861)
+            f"<div class='zx-a zx-followup-item zx-arrow' style='{pos(x + 42, 58, 18, 18)}'><i class='zx-i'>arrow_forward</i></div>" for x in (648, 861)
         )
 
         engines = [
@@ -2507,12 +2705,40 @@ class WorldClassLandingPage:
             ("brush", "#f97316", "#fff0e2", "Draw", "Art &amp; illustrations"),
             ("tune", "#ef4444", "#ffe8e8", "Editor", "Edit &amp; assemble"),
             ("smart_toy", "#3b82f6", "#e4f0ff", "AI Agent", "Automate &amp; create"),
-            ("campaign", "#f59e0b", "#fff3da", "Sales Video", "Business &amp; marketing"),
+            ("campaign", "#f59e0b", "#fff3da", "Sales Video", "Product ads &amp; marketing"),
             ("favorite", "#ec4899", "#ffe6ef", "Live Emotions", "Real character emotions"),
         ]
-        engines_html = "".join(
-            f"<div class='zx-eng-card'><span class='zx-eico' style='background:{bg}'><i class='zx-i' style='color:{color}'>{icon}</i></span><b>{name}</b><span>{desc}</span></div>"
-            for icon, color, bg, name, desc in engines
+        def render_engine_card(icon, color, bg, name, desc):
+            content = (
+                f"<span class='zx-eico' style='background:{bg}'>"
+                f"<i class='zx-i' style='color:{color}'>{icon}</i></span>"
+                f"<b>{name}</b><span>{desc}</span>"
+            )
+            if name == "Sales Video":
+                return (
+                    "<a class='zx-eng-card' href='#sales-video' "
+                    "aria-label='Learn about Sales Video' "
+                    "style='color:inherit;text-decoration:none'>"
+                    f"{content}</a>"
+                )
+            return f"<div class='zx-eng-card'>{content}</div>"
+
+        engines_html = "".join(render_engine_card(*engine) for engine in engines)
+
+        stats_html = (
+            f"<div class='zx-a zx-stats' style='{pos(625, 465, 510, 62)}'>"
+            "<div class='zx-stat'><span class='zx-stat-ico' style='background:#e6f8fa'>"
+            "<i class='zx-i' style='color:#20bdb5'>public</i></span>"
+            "<div><b>180+</b><span>Countries Supported</span></div></div>"
+            "<div class='zx-stat'><span class='zx-stat-ico' style='background:#f0ebff'>"
+            "<i class='zx-i' style='color:#7656ed'>star</i></span>"
+            "<div><b>4.9/5</b><span>User Rating</span></div></div>"
+            "<div class='zx-tagline'>More than a tool,<br>it's your creative partner."
+            "<svg viewBox='0 0 120 10' preserveAspectRatio='none' aria-hidden='true'><defs>"
+            "<linearGradient id='zxu' x1='0' x2='1'><stop offset='0' stop-color='#17c6e0'/>"
+            "<stop offset='1' stop-color='#3b6df0'/></linearGradient></defs>"
+            "<path d='M2 7 C30 1 80 1 118 6' fill='none' stroke='url(#zxu)' stroke-width='2.2' "
+            "stroke-linecap='round'/></svg></div></div>"
         )
 
         waves = (
@@ -2539,29 +2765,29 @@ class WorldClassLandingPage:
             f"<div class='zx-a zx-cta' style='{pos(160, 465, 440)}'>"
             "<a class='zx-btn zx-btn-primary' href='?page=login' target='_self'><i class='zx-i'>rocket_launch</i>Start Creating Free<i class='zx-i'>arrow_forward</i></a>"
             "<a class='zx-btn zx-btn-ghost' href='#how-it-works'><i class='zx-i'>play_arrow</i>Watch ZOVIX in Action</a></div>"
+            f"{stats_html}"
             f"<div class='zx-a zx-checks' style='{pos(160, 518, 440)}'><span>No Credit Card Required</span><span>Instant Access</span><span>Free Plan Available</span></div>"
-            f"<a class='zx-a zx-demo' href='#how-it-works' aria-label='Watch the ZOVIX cinematic demo' style=\"{pos(690, 213, 394, 220)};background-image:url('{photo('1493246507139-91e8fad9978e')}');\">"
+            f"<a class='zx-a zx-demo' href='#how-it-works' aria-label='Watch the ZOVIX cinematic demo' style=\"{pos(674, 225, 410, 230)};background-image:url('{photo('1493246507139-91e8fad9978e')}');\">"
             "<div class='zx-demo-title'><span class='zx-grad'>ZOVIX</span><small>CINEMATIC DEMO</small></div>"
             "<span class='zx-play'><i class='zx-i'>play_arrow</i></span>"
             "<span class='zx-demo-cap'>Real AI Generated Content</span>"
             "<span class='zx-demo-time'><i class='zx-i'>schedule</i>2:18</span></a>"
-            f"<div class='zx-a zx-stats' style='{pos(160, 545, 905, 65)}'>{stats_html}{tagline}</div>"
         )
         how_it_works = (
-            f"<div class='zx-a zx-pill' id='how-it-works' style='{pos(35, 0, 90)}'><i class='zx-i'>bolt</i>HOW IT WORKS</div>"
-            f"<div class='zx-a zx-hiw-title' style='{pos(35, 20, 360)}'>From a Simple Idea to<br>a Stunning Masterpiece</div>"
-            f"<div class='zx-a zx-hiw-text' style='{pos(35, 100, 360)}'><b>Just describe your vision.</b> ZOVIX's AI engines do the rest — turning your imagination into high-quality visuals, videos, and complete creative experiences.</div>"
-            f"<a class='zx-a zx-watch' href='#engines' style='{pos(35, 205, 200)}'><i class='zx-i'>play_arrow</i><span>Watch How It Works</span></a>"
+            f"<div class='zx-a zx-followup-item zx-pill' id='how-it-works' style='{pos(35, 0, 90)}'><i class='zx-i'>bolt</i>HOW IT WORKS</div>"
+            f"<div class='zx-a zx-followup-item zx-hiw-title' style='{pos(35, 20, 360)}'>From a Simple Idea to<br>a Stunning Masterpiece</div>"
+            f"<div class='zx-a zx-followup-item zx-hiw-text' style='{pos(35, 100, 360)}'><b>Just describe your vision.</b> ZOVIX's AI engines do the rest — turning your imagination into high-quality visuals, videos, and complete creative experiences.</div>"
+            f"<a class='zx-a zx-followup-item zx-watch' href='#engines' style='{pos(35, 205, 200)}'><i class='zx-i'>play_arrow</i><span>Watch How It Works</span></a>"
             f"{steps_html}{arrows_html}"
         )
         explore = (
-            f"<div class='zx-a zx-eng-title' id='engines' style='{pos(35, 260, 400)}'>Explore ZOVIX Engines</div>"
-            f"<div class='zx-a zx-eng-sub' style='{pos(35, 282, 500)}'>Multiple specialized engines. Endless creative possibilities.</div>"
-            f"<div class='zx-a zx-eng' style='{pos(35, 310, 1110)}'>{engines_html}</div>"
+            f"<div class='zx-a zx-followup-item zx-eng-title' id='engines' style='{pos(35, 260, 400)}'>Explore ZOVIX Engines</div>"
+            f"<div class='zx-a zx-followup-item zx-eng-sub' style='{pos(35, 282, 500)}'>Multiple specialized engines. Endless creative possibilities.</div>"
+            f"<div class='zx-a zx-followup-item zx-eng' style='{pos(35, 310, 1110)}'>{engines_html}</div>"
         )
         st.markdown(
             f"{self._navbar_html()}<div class='zx-landing'><div class='zx-root'><div class='zx-stage'>{waves}"
-            f"<div class='zx-strip'>{tile_html}</div>{hero}{cube}<div class='zx-followup'>{how_it_works}{explore}</div></div></div></div>",
+            f"<div class='zx-strip'>{tile_html}</div>{hero}{cube}{how_it_works}{explore}</div></div></div>",
             unsafe_allow_html=True,
         )
 
@@ -2570,7 +2796,7 @@ class WorldClassLandingPage:
             """
             <section class="cinematic-guide" id="cinematic-engine">
                 <div class="cinematic-guide-inner">
-                    <div class="cinematic-guide-visual" role="img" aria-label="Cinematic sunset landscape">
+                    <div class="cinematic-guide-visual" role="img" aria-label="Futuristic city above the clouds at sunrise">
                         <div class="cinematic-visual-top"><span>🎬</span> Cinematic Engine</div>
                         <div class="cinematic-visual-copy">
                             <div class="eyebrow">From your imagination to the screen</div>
@@ -2911,88 +3137,126 @@ class WorldClassLandingPage:
             unsafe_allow_html=True,
         )
 
+    def _render_sales_video_guide(self):
+        st.markdown(
+            """
+            <section class="cinematic-guide sales-video-guide" id="sales-video">
+                <div class="cinematic-guide-inner">
+                    <div class="cinematic-guide-visual" role="img" aria-label="ZOVIX AI Sales Video Engine creating a product promotion"></div>
+                    <div class="cinematic-guide-copy">
+                        <div class="section-header">
+                            <div class="tag">📣 How Sales Video works</div>
+                            <h2>Turn product details<br><span class="glow-text">into a sales video</span></h2>
+                            <p>Share what you are selling and who it is for. Build a product-focused script, choose a voice and language, then create a promotional video.</p>
+                        </div>
+                        <div class="cinematic-flow">
+                            <article class="cinematic-flow-step">
+                                <span class="cinematic-flow-number">01</span>
+                                <div><h3>Add your product</h3><p>Upload a clear product image and enter the product name, price and category.</p></div>
+                            </article>
+                            <article class="cinematic-flow-step">
+                                <span class="cinematic-flow-number">02</span>
+                                <div><h3>Write or generate a script</h3><p>Enter your own short sales script or generate script variations using your product details and extra instructions.</p></div>
+                            </article>
+                            <article class="cinematic-flow-step">
+                                <span class="cinematic-flow-number">03</span>
+                                <div><h3>Choose voice and quality</h3><p>Select a language, voice, tone and video quality to fit your promotion.</p></div>
+                            </article>
+                            <article class="cinematic-flow-step">
+                                <span class="cinematic-flow-number">04</span>
+                                <div><h3>Generate and review</h3><p>Create the product video, then review the result before sharing it with your audience.</p></div>
+                            </article>
+                        </div>
+                        <a class="cinematic-guide-cta" href="?page=login" target="_self">Try Sales Video <span aria-hidden="true">→</span></a>
+                    </div>
+                </div>
+            </section>
+            """,
+            unsafe_allow_html=True,
+        )
+
     def _render_engine_output_gallery(self):
         outputs = [
             (
                 "Cinematic Engine",
                 "Mountain film scene",
                 "A cinematic landscape frame to set the mood for a travel story or short film.",
-                "1506905925346-21bda4d32df4",
+                "studio_cinematic_engine.webp",
                 "Cinematic mountain landscape",
             ),
             (
                 "Face Video Studio",
                 "Talking-head portrait",
                 "A portrait concept for a presenter-style clip with spoken dialogue and lip-sync.",
-                "1534528741775-53994a69daeb",
+                "studio_face_generate.webp",
                 "Portrait for a talking-head video",
             ),
             (
                 "Expressive Face Video",
                 "Expressive character",
                 "A character portrait concept for a voice-led performance with expressive facial motion.",
-                "1508214751196-bcfd4ca60f91",
+                "studio_expressive_face_background.webp",
                 "Expressive character portrait",
             ),
             (
                 "Creative Workshop",
                 "Colorful poster artwork",
                 "An art-forward visual direction for a poster, thumbnail, banner or social post.",
-                "1549490349-8643362247b5",
+                "studio_creative_workshop_engine.webp",
                 "Colorful abstract poster artwork",
             ),
             (
                 "Live Emotion Voice",
                 "Voiceover mood",
                 "A studio-inspired voice concept for narration that carries a chosen emotional tone.",
-                "1590602847861-f357a9332bbc",
+                "studio_live_emotion_voice_background.webp",
                 "Audio recording setup for voiceover",
             ),
             (
                 "Blueprint Engine",
                 "Architectural concept",
                 "A visual reference for exploring building layouts and technical design concepts.",
-                "1518709268805-4e9042af9f23",
+                "studio_blueprint_engine.webp",
                 "Architectural design concept",
             ),
             (
                 "AI Upscaler",
                 "High-detail landscape",
                 "A detailed photo concept suited to enlarging and preparing visuals for larger displays.",
-                "1470252649378-9c29740c9fa8",
+                "studio_hero.webp",
                 "High-detail landscape image",
             ),
             (
                 "Video Editor",
                 "Edited film sequence",
                 "A production still representing how clips, effects and music come together in a finished edit.",
-                "1574717024653-61fd2cf4d44d",
+                "studio_editor_engine.webp",
                 "Video editing production setup",
             ),
             (
                 "Cinematic Engine",
                 "City story frame",
                 "An urban establishing-shot idea for a documentary, promo or cinematic sequence.",
-                "1480714378408-67cf0d13bc1b",
-                "City skyline cinematic frame",
+                "studio_ai_agent_engine.webp",
+                "AI-powered engine visual",
             ),
             (
                 "Creative Workshop",
                 "Creative campaign visual",
                 "A polished campaign image direction for a brand banner or promotional creative.",
-                "1497366754035-f200968a6e72",
+                "studio_creative_workshop_background.webp",
                 "Creative workspace campaign visual",
             ),
         ]
         cards = "".join(
             "<article class='engine-gallery-card'>"
-            f"<img src='https://images.unsplash.com/photo-{photo_id}?auto=format&amp;fit=crop&amp;w=720&amp;q=82' "
+            f"<img src='/app/static/{photo_file}' "
             f"alt='{escape(alt)}' loading='lazy'>"
             "<div class='engine-gallery-card-copy'>"
             f"<span class='engine-gallery-engine'>{escape(engine)}</span>"
             f"<h3>{escape(title)}</h3><p>{escape(description)}</p>"
             "</div></article>"
-            for engine, title, description, photo_id, alt in outputs
+            for engine, title, description, photo_file, alt in outputs
         )
         st.markdown(
             "<section class='engine-gallery-section' id='engine-output-gallery'>"
@@ -3053,31 +3317,31 @@ class WorldClassLandingPage:
                 "Creative workflow",
                 "From a simple idea to a stronger prompt",
                 "Name your subject, setting, mood and visual style. A few specific details can help guide an image or video generation toward the result you have in mind.",
-                "photo-1455390582262-044cdead277a",
-                "Creator writing down an idea",
+                "studio_creative_workshop_background.webp",
+                "Creative artwork concept for a visual workflow",
             ),
             (
                 "Engine guide",
                 "Choose the right engine for your project",
                 "Start with the output you need: use Cinematic for story-led video, Creative Workshop for artwork, Live Emotion Voice for expressive audio, or Blueprint for design concepts.",
-                "photo-1497366754035-f200968a6e72",
-                "Creative studio workspace",
+                "studio_ai_agent_engine.webp",
+                "AI-powered studio engine concept",
             ),
             (
                 "Finishing touches",
                 "Make your final video feel complete",
                 "Bring clips together in Video Editor, choose transitions and effects, then add background music or optional narration before reviewing the export.",
-                "photo-1574717024653-61fd2cf4d44d",
-                "Video creator editing a project",
+                "studio_video_editor_guide.webp",
+                "Video editing workspace concept",
             ),
         ]
         cards = "".join(
             "<article class='blog-post'>"
-            f"<img src='https://images.unsplash.com/{photo_id}?auto=format&amp;fit=crop&amp;w=900&amp;q=84' "
+            f"<img src='/app/static/{photo_file}' "
             f"alt='{escape(alt)}' loading='lazy'>"
             f"<div class='blog-post-copy'><span class='blog-post-topic'>{escape(topic)}</span>"
             f"<h3>{escape(title)}</h3><p>{escape(description)}</p></div></article>"
-            for topic, title, description, photo_id, alt in posts
+            for topic, title, description, photo_file, alt in posts
         )
         st.markdown(
             "<section class='blog-section' id='blog'>"
@@ -3098,31 +3362,31 @@ class WorldClassLandingPage:
                 "AI creation suite",
                 "More ways to bring an idea to life",
                 "Explore dedicated tools for cinematic video, expressive faces and voices, image creation, blueprints, upscaling and video editing.",
-                "photo-1516321318423-f06f85e504b3",
-                "Creative team reviewing digital work",
+                "studio_cinematic_engine.webp",
+                "Cinematic visual for AI video creation",
             ),
             (
                 "Engine walkthroughs",
                 "A clearer path from prompt to result",
                 "Step-by-step guides explain what each engine does, what to prepare and how to refine an output for your project.",
-                "photo-1516321497487-e288fb19713f",
-                "Creator planning a digital project",
+                "studio_face_video_guide.webp",
+                "Portrait concept for an engine walkthrough",
             ),
             (
                 "Output inspiration",
                 "See what each tool can help create",
                 "Browse visual examples across video, portraits, artwork, voice and design, then choose an engine to start your own work.",
-                "photo-1497366754035-f200968a6e72",
-                "Bright creative studio workspace",
+                "studio_creative_workshop_engine.webp",
+                "Creative artwork concept for output inspiration",
             ),
         ]
         cards = "".join(
             "<article class='changelog-card'>"
-            f"<img src='https://images.unsplash.com/{photo_id}?auto=format&amp;fit=crop&amp;w=900&amp;q=84' "
+            f"<img src='/app/static/{photo_file}' "
             f"alt='{escape(alt)}' loading='lazy'>"
             f"<div class='changelog-card-copy'><span class='changelog-card-label'>{escape(label)}</span>"
             f"<h3>{escape(title)}</h3><p>{escape(description)}</p></div></article>"
-            for label, title, description, photo_id, alt in updates
+            for label, title, description, photo_file, alt in updates
         )
         st.markdown(
             "<section class='changelog-section' id='changelog'>"
@@ -3143,31 +3407,31 @@ class WorldClassLandingPage:
                 "NOW · EXPERIENCE",
                 "Make every engine easier to use",
                 "Keep improving the path from choosing an engine to getting a polished result, with clearer guidance, useful defaults and simpler workflows.",
-                "photo-1454165804606-c3d57bc86b40",
-                "Team organizing plans around a workspace",
+                "studio_dynamic_ui_engine.webp",
+                "Digital product experience concept",
             ),
             (
                 "NEXT · CREATION",
                 "Bring more creative controls together",
                 "Explore smoother ways to refine generated video, image and voice outputs, and make it easier to continue a project across creation tools.",
-                "photo-1516321318423-f06f85e504b3",
-                "Creative team collaborating on digital work",
+                "studio_creative_workshop_background.webp",
+                "Creative artwork and tools concept",
             ),
             (
                 "EXPLORING · PLATFORM",
                 "Build a more connected creator studio",
                 "Look at ways to improve project organization, previews and handoffs, so creators can move from first idea to finished work with less friction.",
-                "photo-1497366754035-f200968a6e72",
-                "Bright modern creative studio",
+                "studio_ai_agent_engine.webp",
+                "AI-powered creative platform concept",
             ),
         ]
         cards = "".join(
             "<article class='roadmap-card'>"
-            f"<img src='https://images.unsplash.com/{photo_id}?auto=format&amp;fit=crop&amp;w=900&amp;q=84' "
+            f"<img src='/app/static/{photo_file}' "
             f"alt='{escape(alt)}' loading='lazy'>"
             f"<div class='roadmap-card-copy'><span class='roadmap-card-label'>{escape(stage)}</span>"
             f"<h3>{escape(title)}</h3><p>{escape(description)}</p></div></article>"
-            for stage, title, description, photo_id, alt in priorities
+            for stage, title, description, photo_file, alt in priorities
         )
         st.markdown(
             "<section class='roadmap-section' id='roadmap'>"
