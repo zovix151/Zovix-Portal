@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 load_dotenv(dotenv_path=Path(__file__).resolve().parent / ".env")
 
 import io
+import base64
 import logging
 import os
 import time
@@ -262,11 +263,30 @@ def generate_flux_keyframe(config_dict: dict) -> str:
         raise RuntimeError("REPLICATE_API_TOKEN or REPLICATE_API_KEY must be configured.")
 
     flux_input = {"prompt": flux_prompt.strip(), "aspect_ratio": "16:9", "output_format": "png"}
+    face_reference = config_dict.get("face_reference_bytes")
+    if face_reference:
+        try:
+            with Image.open(io.BytesIO(face_reference)) as reference:
+                reference = ImageOps.contain(reference.convert("RGB"), (640, 640))
+                encoded = io.BytesIO()
+                reference.save(encoded, format="JPEG", quality=78, optimize=True)
+            reference_bytes = encoded.getvalue()
+            if len(reference_bytes) > 256 * 1024:
+                raise ValueError("Face reference image must be small enough to process safely.")
+            flux_input["image_prompt"] = (
+                "data:image/jpeg;base64," + base64.b64encode(reference_bytes).decode("ascii")
+            )
+        except (UnidentifiedImageError, OSError) as exc:
+            raise ValueError("Face Lock needs a valid PNG, JPEG, or WebP image.") from exc
     try:
         flux_output = _run_replicate_model(_FLUX_MODEL, flux_input, token)
     except _ReplicateSubmissionError as exc:
         if exc.status_code not in {402, 429}:
             raise
+        if face_reference:
+            raise RuntimeError(
+                "Face Lock requires Flux Pro, but Flux Pro was unavailable. Please try again later."
+            ) from exc
         logger.warning("Flux Pro unavailable; trying fallback image model %s.", _FLUX_FALLBACK_MODEL)
         flux_output = _run_replicate_model(_FLUX_FALLBACK_MODEL, flux_input, token)
     keyframe_url = _find_output_url(flux_output, ("image", "images", "output", "url"))

@@ -66,7 +66,6 @@ components.html(
             "subusers", "factory", "portfolio", "tutorials", "ghost_engine",
             "documentation", "community", "support"
         ]);
-        host.document.body.classList.add("zovix-desktop-mobile");
         if (!host.document.getElementById("zovix-mobile-desktop-spacing")) {
             const style = host.document.createElement("style");
             style.id = "zovix-mobile-desktop-spacing";
@@ -88,6 +87,34 @@ components.html(
         const getPage = () => new URLSearchParams(host.location.search).get("page") || "landing";
         const updateViewport = () => {
             const page = getPage();
+            if (page === "landing") {
+                if (host.__zovixMobileLayoutMode !== "responsive") {
+                    const canvasStyles = host.document.getElementById("zovix-mobile-desktop-canvas");
+                    if (canvasStyles) canvasStyles.remove();
+                    host.document.body.classList.remove("zovix-desktop-mobile");
+                    viewport.setAttribute(
+                        "content",
+                        "width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=5, user-scalable=yes"
+                    );
+                    host.document.documentElement.style.overflowX = "hidden";
+                    host.document.documentElement.style.overflowY = "";
+                    host.document.body.style.width = "";
+                    host.document.body.style.height = "";
+                    host.document.body.style.position = "";
+                    host.document.body.style.top = "";
+                    host.document.body.style.left = "";
+                    host.document.body.style.overflowX = "";
+                    host.document.body.style.overflowY = "";
+                    host.document.body.style.transformOrigin = "";
+                    host.document.body.style.transform = "";
+                    host.__zovixMobileLayoutMode = "responsive";
+                }
+                host.__zovixViewportPage = page;
+                return;
+            }
+
+            host.__zovixMobileLayoutMode = "desktop";
+            host.document.body.classList.add("zovix-desktop-mobile");
             const lockZoom = workspacePages.has(page);
             const width = host.screen.width || host.innerWidth;
             const scale = Math.min(1, width / desktopWidth);
@@ -1921,29 +1948,34 @@ def normalize_account_username(username):
 
 
 def preload_logged_in_user_data(username):
-    """Keep a short-lived session cache so the same user profile isn't reloaded on every rerun."""
+    """Keep profile and shared generation history cached between quick Streamlit reruns."""
     username = normalize_account_username(username or "")
     if not username:
         return
 
-    last_loaded = st.session_state.get("user_profile_cache_ts", 0)
     cached_user = st.session_state.get("user_profile_loaded_for")
-    if cached_user == username and (time.time() - float(last_loaded)) < 5:
+    same_user = cached_user == username
+    history_last_loaded = st.session_state.get("user_history_cache_ts", 0)
+    if not same_user or (time.time() - float(history_last_loaded)) >= 10:
+        st.session_state["history_renders"] = load_renders_history_db(username)
+        st.session_state["face_video_history"] = load_face_video_history_db(username)
+        st.session_state["sales_video_history"] = load_sales_video_history_db(username)
+        latest_sales = st.session_state["sales_video_history"][0] if st.session_state["sales_video_history"] else None
+        if latest_sales:
+            st.session_state["sales_video_output"] = latest_sales.get("video_path")
+            st.session_state["sales_video_thumbnail"] = latest_sales.get("thumbnail_path")
+            st.session_state["sales_video_caption"] = latest_sales.get("caption_path")
+            st.session_state["sales_video_quality"] = latest_sales.get("quality", "Standard")
+            st.session_state["sales_funnel"] = latest_sales.get("funnel", {})
+            st.session_state["sales_script"] = latest_sales.get("prompt", "")
+        st.session_state["user_history_cache_ts"] = time.time()
+
+    last_loaded = st.session_state.get("user_profile_cache_ts", 0)
+    if same_user and (time.time() - float(last_loaded)) < 5:
         return
 
     st.session_state["xp_points"] = get_user_xp_db(username)
     st.session_state["creator_level"] = 1 + (st.session_state["xp_points"] // 100)
-    st.session_state["history_renders"] = load_renders_history_db(username)
-    st.session_state["face_video_history"] = load_face_video_history_db(username)
-    st.session_state["sales_video_history"] = load_sales_video_history_db(username)
-    latest_sales = st.session_state["sales_video_history"][0] if st.session_state["sales_video_history"] else None
-    if latest_sales:
-        st.session_state["sales_video_output"] = latest_sales.get("video_path")
-        st.session_state["sales_video_thumbnail"] = latest_sales.get("thumbnail_path")
-        st.session_state["sales_video_caption"] = latest_sales.get("caption_path")
-        st.session_state["sales_video_quality"] = latest_sales.get("quality", "Standard")
-        st.session_state["sales_funnel"] = latest_sales.get("funnel", {})
-        st.session_state["sales_script"] = latest_sales.get("prompt", "")
     st.session_state["user_credits"] = get_user_credits_db(username)
     st.session_state["credit_balance"] = st.session_state["user_credits"]
     st.session_state["user_profile_loaded_for"] = username
@@ -3971,6 +4003,10 @@ def process_video_billing(username, duration_minutes, total_scenes, stock_scenes
         conn.close()
 
 def save_render_to_db(username, file_name, prompt, path, generation_type="General", cost_inr=None):
+    username = normalize_account_username(username)
+    if not username:
+        logger.error("Cannot save generation history without an account identity.")
+        return False
     conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     cursor = conn.cursor()
     try:
@@ -3991,12 +4027,18 @@ def save_render_to_db(username, file_name, prompt, path, generation_type="Genera
             cursor.execute("INSERT OR IGNORE INTO history (username, file_name, timestamp, prompt, path) VALUES (?, ?, ?, ?, ?)",
                            (username, file_name, timestamp, prompt, path))
         conn.commit()
+        return True
     except Exception as e:
         logger.error(f"Save render error: {e}")
+        return False
     finally:
         conn.close()
 
 def save_face_video_to_db(username, file_name, prompt, path, face_path, quality="Standard", credits_charged=None):
+    username = normalize_account_username(username)
+    if not username:
+        logger.error("Cannot save face-video history without an account identity.")
+        return False
     conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     cursor = conn.cursor()
     try:
@@ -4011,8 +4053,10 @@ def save_face_video_to_db(username, file_name, prompt, path, face_path, quality=
             (username, file_name, timestamp, prompt, path, face_path, quality, credits_charged, cost_inr),
         )
         conn.commit()
+        return True
     except Exception as e:
         logger.error(f"Save face video error: {e}")
+        return False
     finally:
         conn.close()
 
@@ -4059,8 +4103,8 @@ def save_sales_video_to_db(username, file_name, prompt, video_path, thumbnail_pa
     finally:
         conn.close()
 
-@st.cache_data(show_spinner=False, ttl=30)
 def load_sales_video_history_db(username):
+    username = normalize_account_username(username)
     conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     cursor = conn.cursor()
     history = []
@@ -4082,7 +4126,7 @@ def load_sales_video_history_db(username):
         """)
         cursor.execute(
             "SELECT file_name, timestamp, prompt, video_path, thumbnail_path, caption_path, funnel_json, quality, credits_charged "
-            "FROM sales_video_history WHERE username = ? ORDER BY id DESC",
+            "FROM sales_video_history WHERE LOWER(TRIM(username)) = LOWER(TRIM(?)) ORDER BY id DESC",
             (normalize_account_username(username),),
         )
         for row in cursor.fetchall():
@@ -4101,8 +4145,8 @@ def load_sales_video_history_db(username):
         conn.close()
     return history
 
-@st.cache_data(show_spinner=False, ttl=30)
 def load_renders_history_db(username):
+    username = normalize_account_username(username)
     conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     cursor = conn.cursor()
     history = []
@@ -4113,7 +4157,7 @@ def load_renders_history_db(username):
         has_cost = "cost_inr" in columns
         
         if has_gen_type and has_cost:
-            cursor.execute("SELECT file_name, timestamp, prompt, path, generation_type, cost_inr FROM history WHERE username = ? ORDER BY id DESC", (username,))
+            cursor.execute("SELECT file_name, timestamp, prompt, path, generation_type, cost_inr FROM history WHERE LOWER(TRIM(username)) = LOWER(TRIM(?)) ORDER BY id DESC", (username,))
             rows = cursor.fetchall()
             for row in rows:
                 history.append({
@@ -4121,7 +4165,7 @@ def load_renders_history_db(username):
                     "path": row[3], "generation_type": row[4], "cost_inr": row[5] or 0.0
                 })
         elif has_gen_type:
-            cursor.execute("SELECT file_name, timestamp, prompt, path, generation_type FROM history WHERE username = ? ORDER BY id DESC", (username,))
+            cursor.execute("SELECT file_name, timestamp, prompt, path, generation_type FROM history WHERE LOWER(TRIM(username)) = LOWER(TRIM(?)) ORDER BY id DESC", (username,))
             rows = cursor.fetchall()
             for row in rows:
                 history.append({
@@ -4129,7 +4173,7 @@ def load_renders_history_db(username):
                     "path": row[3], "generation_type": row[4], "cost_inr": 0.0
                 })
         else:
-            cursor.execute("SELECT file_name, timestamp, prompt, path FROM history WHERE username = ? ORDER BY id DESC", (username,))
+            cursor.execute("SELECT file_name, timestamp, prompt, path FROM history WHERE LOWER(TRIM(username)) = LOWER(TRIM(?)) ORDER BY id DESC", (username,))
             rows = cursor.fetchall()
             for row in rows:
                 history.append({
@@ -4294,8 +4338,8 @@ def show_admin_dashboard():
     finally:
         conn.close()
 
-@st.cache_data(show_spinner=False, ttl=30)
 def load_face_video_history_db(username):
+    username = normalize_account_username(username)
     conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     cursor = conn.cursor()
     history = []
@@ -4306,7 +4350,7 @@ def load_face_video_history_db(username):
         billing_columns = ", credits_charged, cost_inr" if has_billing else ""
         cursor.execute(
             "SELECT file_name, timestamp, prompt, path, face_path, quality"
-            f"{billing_columns} FROM face_video_history WHERE username = ? ORDER BY id DESC",
+            f"{billing_columns} FROM face_video_history WHERE LOWER(TRIM(username)) = LOWER(TRIM(?)) ORDER BY id DESC",
             (username,),
         )
         rows = cursor.fetchall()
@@ -9311,7 +9355,6 @@ def render_ai_sales_ui():
                                 quality=sales_quality,
                                 credits_charged=required_tokens,
                             )
-                            load_sales_video_history_db.clear()
                             st.session_state["sales_video_history"] = load_sales_video_history_db(sales_username)
                         _show_generation_success()
                         st.rerun()
@@ -11574,65 +11617,161 @@ def generate_blueprint(prompt, blueprint_type="floor_plan", render_mode="2D Tech
 # UPSCALER MODE - FIXED ✅
 # ========================================================
 
-def upscale_image_fixed(image_path, scale_factor=2, enhancement_type="standard", quality="Standard"):
-    """Production-safe image upscaler using Pillow-based enhancement fallback."""
+def upscale_image_fixed(
+    image_path,
+    scale_factor=4,
+    enhancement_type="standard",
+    quality="Standard",
+    restore_faces=True,
+    face_fidelity=0.7,
+    progress_callback=None,
+):
+    """Restore face and background details first, then run Real-ESRGAN."""
     if not image_path or not os.path.exists(image_path):
-        logger.warning(f"Upscaler received invalid image path: {image_path}")
+        logger.warning("Upscaler received invalid image path: %s", image_path)
         return None
+
+    restored_source_path = None
+    output_path = None
+    codeformer_fallback = False
+    st.session_state["upscaler_codeformer_fallback"] = False
+
+    def report_progress(message):
+        if callable(progress_callback):
+            progress_callback(message)
 
     try:
-        with Image.open(image_path) as img:
-            if getattr(img, "is_animated", False):
-                img = img.convert("RGBA")
-            else:
-                img = ImageOps.exif_transpose(img)
+        token = _get_replicate_image_token()
+        if not token:
+            raise RuntimeError("Replicate is not configured. Add REPLICATE_API_TOKEN to .env or Streamlit secrets.")
 
-            if img.mode in ("RGBA", "LA", "P"):
-                img = img.convert("RGBA")
-            else:
-                img = img.convert("RGB")
+        scale_factor = int(scale_factor)
+        if scale_factor not in {4, 6}:
+            raise ValueError("Choose a supported upscale factor: 4x or 6x.")
+        quality_name = str(quality or "Standard")
+        if quality_name not in {"Standard", "HD"}:
+            raise ValueError("Choose Standard or HD quality.")
+        face_fidelity = float(face_fidelity)
+        if not 0.6 <= face_fidelity <= 0.8:
+            raise ValueError("Face fidelity must stay between 0.6 and 0.8.")
 
-            width, height = img.size
-            new_width = max(1, int(width * max(1, int(scale_factor))))
-            new_height = max(1, int(height * max(1, int(scale_factor))))
+        codeformer_model_ref = "sczhou/codeformer"
+        model_ref = "nightmareai/real-esrgan"
+        import replicate
 
-            if enhancement_type == "standard":
-                resized = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
-            elif enhancement_type == "sharp":
-                resized = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
-                resized = ImageEnhance.Sharpness(resized).enhance(1.5)
-            elif enhancement_type == "smooth":
-                resized = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
-                resized = resized.filter(ImageFilter.SMOOTH_MORE)
+        client = replicate.Client(api_token=token)
+
+        def read_replicate_image(model_output, stage_name):
+            output_url = _extract_replicate_image_url(model_output)
+            if output_url:
+                response = requests.get(output_url, timeout=120)
+                response.raise_for_status()
+                return response.content
+            file_output = model_output[0] if isinstance(model_output, (list, tuple)) and model_output else model_output
+            if isinstance(file_output, (bytes, bytearray, memoryview)):
+                return bytes(file_output)
+            if isinstance(file_output, os.PathLike):
+                file_output = os.fspath(file_output)
+            if isinstance(file_output, str) and os.path.isfile(file_output):
+                with open(file_output, "rb") as result_file:
+                    return result_file.read()
+            read_output = getattr(file_output, "read", None)
+            if not callable(read_output):
+                raise RuntimeError(f"{stage_name} completed without returning an image.")
+            image_bytes = read_output()
+            if isinstance(image_bytes, str):
+                image_bytes = image_bytes.encode("utf-8")
+            if not image_bytes:
+                raise RuntimeError(f"{stage_name} returned an empty image file.")
+            return image_bytes
+
+        super_resolution_input = image_path
+        if restore_faces:
+            logger.info("Restoring face/background first with CodeFormer (fidelity=%.2f).", face_fidelity)
+            report_progress("Enhancing facial details with CodeFormer…")
+            try:
+                with open(image_path, "rb") as source_file:
+                    restored_output = client.run(
+                        codeformer_model_ref,
+                        input={
+                            "image": source_file,
+                            "upscale": 2,
+                            "face_upsample": True,
+                            "background_enhance": True,
+                            "codeformer_fidelity": face_fidelity,
+                        },
+                    )
+                restored_bytes = read_replicate_image(restored_output, "CodeFormer face restoration")
+                os.makedirs("upscaled_outputs", exist_ok=True)
+                restored_source_path = f"upscaled_outputs/restored_source_{uuid.uuid4().hex[:8]}.png"
+                with Image.open(io.BytesIO(restored_bytes)) as restored_image:
+                    ImageOps.exif_transpose(restored_image).convert("RGB").save(
+                        restored_source_path, format="PNG", optimize=True
+                    )
+                super_resolution_input = restored_source_path
+            except Exception as codeformer_error:
+                codeformer_fallback = True
+                logger.warning(
+                    "CodeFormer failed; using original image with Real-ESRGAN face enhancement: %s",
+                    codeformer_error,
+                )
+                report_progress("Face restoration unavailable; switching to Real-ESRGAN face enhancement…")
+
+        logger.info("Running Real-ESRGAN %dx super-resolution (%s).", scale_factor, quality_name)
+        report_progress(f"Scaling image to {scale_factor}× with Real-ESRGAN…")
+        with open(super_resolution_input, "rb") as restored_file:
+            upscaled_output = client.run(
+                model_ref,
+                input={
+                    "image": restored_file,
+                    "scale": scale_factor,
+                    "face_enhance": codeformer_fallback,
+                },
+            )
+        output_bytes = read_replicate_image(upscaled_output, "Real-ESRGAN upscaling")
+
+        with Image.open(io.BytesIO(output_bytes)) as model_image:
+            resized = ImageOps.exif_transpose(model_image).convert("RGB")
+            if restore_faces:
+                # Mild color recovery for faded prints without aggressive per-channel shifts.
+                resized = ImageEnhance.Color(resized).enhance(1.05)
+                resized = ImageEnhance.Contrast(resized).enhance(1.04)
+            if enhancement_type == "sharp":
+                resized = ImageEnhance.Sharpness(resized).enhance(1.15)
             elif enhancement_type == "enhance":
-                resized = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
-                resized = ImageEnhance.Contrast(resized).enhance(1.2)
-                resized = ImageEnhance.Color(resized).enhance(1.1)
+                resized = ImageEnhance.Contrast(resized).enhance(1.08)
+                resized = ImageEnhance.Color(resized).enhance(1.08)
             elif enhancement_type == "cinematic":
-                resized = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
-                resized = ImageEnhance.Contrast(resized).enhance(1.3)
-                resized = ImageEnhance.Color(resized).enhance(1.2)
-                resized = ImageEnhance.Brightness(resized).enhance(1.05)
+                resized = ImageEnhance.Contrast(resized).enhance(1.12)
+                resized = ImageEnhance.Color(resized).enhance(1.1)
+                resized = ImageEnhance.Brightness(resized).enhance(1.02)
             elif enhancement_type == "neon":
-                resized = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
-                resized = ImageEnhance.Contrast(resized).enhance(1.5)
-                resized = ImageEnhance.Color(resized).enhance(1.4)
-            else:
-                resized = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
+                resized = ImageEnhance.Contrast(resized).enhance(1.2)
+                resized = ImageEnhance.Color(resized).enhance(1.15)
 
-            if resized.mode == "RGBA":
-                output_mode = "RGBA"
-            else:
-                output_mode = "RGB"
-
-            os.makedirs("upscaled_outputs", exist_ok=True)
-            output_path = f"upscaled_outputs/upscaled_{uuid.uuid4().hex[:8]}.png"
-            resized.save(output_path, optimize=True)
-            logger.info(f"Upscaler completed successfully: {output_path}")
-            return output_path
+        os.makedirs("upscaled_outputs", exist_ok=True)
+        output_path = f"upscaled_outputs/upscaled_{uuid.uuid4().hex[:8]}.png"
+        resized.save(output_path, format="PNG", optimize=True)
+        if codeformer_fallback:
+            engine_label = "Zovix Real-ESRGAN Face Enhancement Fallback"
+        else:
+            engine_label = "Zovix Photo Restore + Real-ESRGAN" if restore_faces else "Zovix Real-ESRGAN Super-Resolution"
+        st.session_state["upscaler_engine_used"] = f"{engine_label} · {model_ref}"
+        st.session_state["upscaler_effective_scale"] = scale_factor
+        st.session_state["upscaler_faces_restored"] = bool(restore_faces)
+        st.session_state["upscaler_face_fidelity"] = face_fidelity if restore_faces else None
+        st.session_state["upscaler_codeformer_fallback"] = codeformer_fallback
+        logger.info("Photo restoration pipeline completed successfully: %s", output_path)
+        return output_path
     except Exception as e:
-        logger.exception(f"Upscaler failed for {image_path}: {e}")
+        if output_path:
+            safe_remove_file(output_path)
+        st.session_state["upscaler_error"] = str(e)
+        logger.exception("Replicate photo restoration failed for %s: %s", image_path, e)
         return None
+    finally:
+        if restored_source_path:
+            safe_remove_file(restored_source_path)
 
 
 def run_creative_workshop():
@@ -11926,7 +12065,7 @@ def run_upscaler_mode():
             font-size: 12px;
             margin: 4px 0 0 0;
         ">
-            AI-powered image upscaling • Detail restoration • 4K enhancement
+            AI image upscaling • Detail restoration • detail-preserving HD
         </p>
     </div>
     """, unsafe_allow_html=True)
@@ -11967,30 +12106,61 @@ def run_upscaler_mode():
             
             # Scale Factor
             st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">🔍 Scale Factor</p>', unsafe_allow_html=True)
+            if not st.session_state.get("us_scale_4x_default_migrated"):
+                st.session_state["us_scale_factor"] = 4
+                st.session_state["us_scale_4x_default_migrated"] = True
+            if st.session_state.get("us_scale_factor") not in {4, 6}:
+                st.session_state["us_scale_factor"] = 4
             scale_factor = st.select_slider(
                 "Scale Factor",
-                options=[2, 4, 8],
-                value=2,
+                options=[4, 6],
+                value=4,
                 key="us_scale_factor",
                 label_visibility="collapsed"
             )
             
             # Enhancement Type
             st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">🎨 Enhancement Method</p>', unsafe_allow_html=True)
+            if st.session_state.get("us_enhancement_type") == "smooth":
+                st.session_state["us_enhancement_type"] = "standard"
             enhancement_type = st.selectbox(
                 "Enhancement",
-                ["standard", "sharp", "smooth", "enhance", "cinematic", "neon"],
+                ["standard", "sharp", "enhance", "cinematic", "neon"],
                 key="us_enhancement_type",
                 label_visibility="collapsed"
             )
             
             # Quality
             st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">📊 Upscale Quality</p>', unsafe_allow_html=True)
+            if st.session_state.get("us_quality") not in {"Standard", "HD"}:
+                st.session_state["us_quality"] = "HD" if st.session_state.get("us_quality") == "4K" else "Standard"
             us_quality = st.selectbox(
                 "Quality",
-                ["Standard", "HD", "4K"],
+                ["Standard", "HD"],
                 key="us_quality",
                 label_visibility="collapsed"
+            )
+            st.caption("Photo restoration pipeline: CodeFormer face and background cleanup first, then Real-ESRGAN super-resolution. Default scale is 4x.")
+            restore_faces = st.checkbox(
+                "Restore and clean face details",
+                value=True,
+                key="us_face_restore",
+                help="Restores the face before super-resolution; background enhancement also reduces faded detail and noise.",
+            )
+            if st.session_state.get("us_face_fidelity", 0.7) < 0.6 or st.session_state.get("us_face_fidelity", 0.7) > 0.8:
+                st.session_state["us_face_fidelity"] = 0.7
+            face_fidelity = (
+                st.slider(
+                    "Face fidelity (lower = stronger cleanup)",
+                    min_value=0.6,
+                    max_value=0.8,
+                    value=0.7,
+                    step=0.05,
+                    key="us_face_fidelity",
+                    help="0.6 reconstructs more detail; 0.8 preserves the source face more closely.",
+                )
+                if restore_faces
+                else 0.7
             )
             
             st.markdown("<br>", unsafe_allow_html=True)
@@ -12002,9 +12172,11 @@ def run_upscaler_mode():
                 # Validate
                 if not st.session_state.get("us_temp_image") or not os.path.exists(st.session_state["us_temp_image"]):
                     st.error("Please upload an image first.")
+                elif not _get_replicate_image_token():
+                    st.error("Replicate is not configured. Add REPLICATE_API_TOKEN to .env or Streamlit secrets.")
                 else:
                     # Deduct credits
-                    quality_map = {"Standard": 2, "HD": 3, "4K": 4}
+                    quality_map = {"Standard": 2, "HD": 3}
                     required_tokens = quality_map.get(us_quality, 2)
                     
                     if st.session_state.get('user_credits', 0) < required_tokens:
@@ -12014,25 +12186,33 @@ def run_upscaler_mode():
                         deduct_credits_db(st.session_state["logged_user"], required_tokens)
                         st.session_state['user_credits'] = get_user_credits_db(st.session_state["logged_user"])
                         
-                        with st.spinner("Generating ZOVIX Upscaler..."):
+                        with st.status("Preparing photo restoration…", expanded=True) as upscale_status:
+                            def update_upscale_status(message):
+                                upscale_status.update(label=message, state="running", expanded=True)
+
                             # Call upscale function
                             upscaled_path = upscale_image_fixed(
                                 st.session_state["us_temp_image"],
                                 scale_factor,
                                 enhancement_type,
-                                us_quality
+                                us_quality,
+                                restore_faces=restore_faces,
+                                face_fidelity=face_fidelity,
+                                progress_callback=update_upscale_status,
                             )
                             
                             if upscaled_path and os.path.exists(upscaled_path):
+                                upscale_status.update(label="Photo restoration complete", state="complete", expanded=False)
                                 st.session_state["active_upscaled_image"] = upscaled_path
                                 
                                 # Save to history
                                 timestamp = time.strftime("%Y%m%d_%H%M%S")
-                                file_name = f"upscaled_{scale_factor}x_{timestamp}.png"
+                                effective_scale = st.session_state.get("upscaler_effective_scale", scale_factor)
+                                file_name = f"upscaled_{effective_scale}x_{timestamp}.png"
                                 save_render_to_db(
                                     st.session_state["logged_user"],
                                     file_name,
-                                    f"Upscaled {scale_factor}x with {enhancement_type}",
+                                    f"{st.session_state.get('upscaler_engine_used', 'Zovix Upscaler')} {effective_scale}x, {us_quality}, {enhancement_type}",
                                     upscaled_path,
                                     "Upscaler",
                                     required_tokens
@@ -12042,8 +12222,10 @@ def run_upscaler_mode():
                                 _show_generation_success()
                                 st.rerun()
                             else:
+                                upscale_status.update(label="Photo restoration failed", state="error", expanded=True)
                                 refund_face_video_credits(required_tokens, "Upscaler returned no output")
-                                st.error("Image upscaling failed. Please try a different image or settings.")
+                                error_message = st.session_state.pop("upscaler_error", None)
+                                st.error(f"Replicate upscaling failed: {error_message or 'No image output was returned.'}")
     
     with us_col2:
         with st.container(border=True):
@@ -12061,6 +12243,8 @@ def run_upscaler_mode():
             
             active_upscaled = st.session_state.get("active_upscaled_image")
             if active_upscaled and os.path.exists(active_upscaled):
+                if st.session_state.get("upscaler_codeformer_fallback"):
+                    st.warning("CodeFormer was unavailable. The image was upscaled with Real-ESRGAN face enhancement.")
                 # Display original and upscaled side by side
                 orig_path = st.session_state.get("us_temp_image")
                 
@@ -12071,7 +12255,7 @@ def run_upscaler_mode():
                         st.image(orig_path, width="stretch")
                 
                 with col_up:
-                    st.markdown('<p style="font-family: Inter; font-size: 10px; color: #45f3ff; text-align: center;">⚡ Upscaled</p>', unsafe_allow_html=True)
+                    st.markdown('<p style="font-family: Inter; font-size: 10px; color: #45f3ff; text-align: center;">⚡ Restored and upscaled</p>', unsafe_allow_html=True)
                     st.image(active_upscaled, width="stretch")
                 
                 st.markdown("<br>", unsafe_allow_html=True)
@@ -12096,6 +12280,9 @@ def run_upscaler_mode():
                         </p>
                         <p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 2px 0;">
                             🎨 Enhancement: <span style="color: #45f3ff;">{st.session_state.get('us_enhancement_type', 'standard')}</span>
+                        </p>
+                        <p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 2px 0;">
+                            Face restoration: <span style="color: #45f3ff;">{'On' if st.session_state.get('upscaler_faces_restored') else 'Off'}</span>
                         </p>
                     </div>
                     """, unsafe_allow_html=True)
@@ -14781,6 +14968,16 @@ def _run_cinematic_generation_job(job_id, script_text, duration_choice, selected
         if not success or not os.path.exists(output_path) or os.path.getsize(output_path) <= 1000:
             raise RuntimeError("Video compilation failed. Check API keys and FFmpeg output.")
 
+        history_saved = save_render_to_db(
+            username,
+            f"cinematic_{Path(output_path).name}",
+            script_text,
+            str(Path(output_path).resolve()),
+            "Cinematic Engine",
+        )
+        if not history_saved:
+            logger.error("Cinematic output completed but could not be saved to shared account history.")
+
         _save_cinematic_job(job_id, {
             "status": "Completed",
             "video_path": output_path,
@@ -15210,6 +15407,45 @@ def run_cinematic_engine():
             border-radius: 0 0 10px 10px !important;
             padding: 8px 12px !important;
         }
+        .st-key-studio_audio_bgm_volume_slider [data-testid="stThumbValue"],
+        .st-key-studio_audio_bgm_volume_slider .stSliderValue {
+            display: none !important;
+        }
+        .st-key-studio_audio_bgm_volume_slider [data-testid="stSlider"] {
+            position: relative !important;
+            z-index: 0 !important;
+            overflow: visible !important;
+        }
+        .cinematic-render-log-spacer { height: 16px; clear: both; }
+
+        /* Keep Story Video text readable when the platform-wide theme loads later. */
+        section[data-testid="stMain"]:has(.st-key-studio_mode_radio) .cinematic-header h2,
+        section[data-testid="stMain"]:has(.st-key-studio_mode_radio) .cinematic-header h2 .highlight {
+            font-size: clamp(20px, 2.2vw, 30px) !important;
+            line-height: 1.25 !important;
+            white-space: normal !important;
+            overflow-wrap: anywhere !important;
+            -webkit-text-fill-color: transparent !important;
+        }
+        section[data-testid="stMain"]:has(.st-key-studio_mode_radio) .cinematic-header p,
+        section[data-testid="stMain"]:has(.st-key-studio_mode_radio) .block-container [data-testid="stMarkdownContainer"] p,
+        section[data-testid="stMain"]:has(.st-key-studio_mode_radio) .block-container [data-testid="stMarkdownContainer"] li,
+        section[data-testid="stMain"]:has(.st-key-studio_mode_radio) .block-container [data-testid="stExpander"] summary,
+        section[data-testid="stMain"]:has(.st-key-studio_mode_radio) .block-container [data-testid="stWidgetLabel"],
+        section[data-testid="stMain"]:has(.st-key-studio_mode_radio) .block-container [data-testid="stCaptionContainer"] {
+            line-height: 1.55 !important;
+            white-space: normal !important;
+            overflow-wrap: anywhere !important;
+            word-break: normal !important;
+            text-overflow: clip !important;
+        }
+        section[data-testid="stMain"]:has(.st-key-studio_mode_radio) .block-container .compact-label {
+            display: block !important;
+            max-width: 100% !important;
+            line-height: 1.45 !important;
+            white-space: normal !important;
+            overflow-wrap: anywhere !important;
+        }
     </style>
     """, unsafe_allow_html=True)
     
@@ -15540,89 +15776,6 @@ def run_cinematic_engine():
             
             st.markdown("<hr style='border-color: rgba(255,255,255,0.06); margin: 12px 0;'>", unsafe_allow_html=True)
             
-            # Face Lock
-            st.markdown("""
-            <h4 style="font-family: 'Orbitron', sans-serif; font-size: 11px; color: #EC4899; margin-bottom: 8px; letter-spacing: 0.5px;">
-                🔒 FACE LOCK SECURITY
-            </h4>
-            """, unsafe_allow_html=True)
-            face_lock_enabled = st.toggle("Enable Face Lock", value=False, key="face_lock_enabled_toggle")
-            if face_lock_enabled:
-                # Step 1: Upload reference face image
-                if "face_lock_ref" not in st.session_state:
-                    st.session_state["face_lock_ref"] = None
-                    st.session_state["face_lock_unlocked"] = False
-                
-                col_ref, col_scan = st.columns(2)
-                with col_ref:
-                    face_lock_image = st.file_uploader("📸 Upload Your Face (Reference)", type=['jpg', 'jpeg', 'png', 'webp'], key="face_lock_upload")
-                    if face_lock_image:
-                        face_lock_path = f"face_videos/face_lock_{uuid.uuid4().hex[:8]}.png"
-                        with open(face_lock_path, "wb") as f:
-                            f.write(face_lock_image.getbuffer())
-                        st.session_state["face_lock_ref"] = face_lock_path
-                        st.image(face_lock_path, caption="Reference Face", width=200)
-                        st.success("✅ Reference face saved!")
-                
-                # Step 2: Face verification via webcam/live cam
-                with col_scan:
-                    if st.session_state["face_lock_ref"] and os.path.exists(st.session_state["face_lock_ref"]):
-                        if st.button("🔍 Scan & Verify Face", key="face_lock_verify_btn", width="stretch"):
-                            with st.spinner("🔄 Running face recognition..."):
-                                try:
-                                    from deepface import DeepFace
-                                    # Open webcam capture
-                                    import cv2
-                                    cap = cv2.VideoCapture(0)
-                                    if not cap.isOpened():
-                                        st.error("❌ Webcam not accessible. Enable camera permissions.")
-                                    else:
-                                        ret, frame = cap.read()
-                                        cap.release()
-                                        if ret:
-                                            live_path = f"face_videos/face_lock_live_{uuid.uuid4().hex[:8]}.png"
-                                            cv2.imwrite(live_path, frame)
-                                            result = DeepFace.verify(
-                                                img1_path=st.session_state["face_lock_ref"],
-                                                img2_path=live_path,
-                                                enforce_detection=False
-                                            )
-                                            os.remove(live_path)
-                                            if result.get("verified"):
-                                                st.session_state["face_lock_unlocked"] = True
-                                                st.success("✅ Face Match! Workspace Unlocked! 🎉")
-                                                st.balloons()
-                                            else:
-                                                st.session_state["face_lock_unlocked"] = False
-                                                st.error("❌ Face does not match! Access Denied")
-                                                st.warning("⚠️ Distance: " + str(round(result.get("distance", 1), 4)))
-                                        else:
-                                            st.error("❌ Could not capture from webcam")
-                                except ImportError:
-                                    st.error("❌ DeepFace not installed. Run: pip install deepface")
-                                except Exception as e:
-                                    st.error(f"❌ Face verification error: {e}")
-                        
-                        if st.session_state.get("face_lock_unlocked"):
-                            st.success("🔓 Workspace UNLOCKED - Full access granted")
-                        else:
-                            st.warning("🔒 Workspace LOCKED - Verify face to unlock")
-                    else:
-                        st.info("📸 Upload a reference face first, then verify")
-                
-                # Show status
-                if st.session_state.get("face_lock_unlocked"):
-                    st.success("🔓 Face Lock: ACTIVE & UNLOCKED")
-                elif st.session_state["face_lock_ref"]:
-                    st.warning("🔒 Face Lock: ACTIVE but LOCKED - Verify your face")
-                else:
-                    st.info("📸 Face Lock: Setup incomplete - Upload reference photo")
-            else:
-                st.session_state["face_lock_unlocked"] = False
-                st.info("🔓 Face Lock Disabled - Workspace is open")
-            
-            st.markdown("<hr style='border-color: rgba(255,255,255,0.06); margin: 12px 0;'>", unsafe_allow_html=True)
-            
             # Audio Mixing
             st.markdown("""
             <h4 style="font-family: 'Orbitron', sans-serif; font-size: 11px; color: #EC4899; margin-bottom: 8px; letter-spacing: 0.5px;">
@@ -15632,11 +15785,17 @@ def run_cinematic_engine():
             uploaded_bgm = st.file_uploader("Upload Custom BGM Track", type=['mp3', 'wav'], key="studio_audio_bgm_uploader")
             if uploaded_bgm is not None:
                 st.info("✅ Custom BGM uploaded. Will be used instead of library selection.")
-            bgm_volume = st.slider(
+            previous_bgm_volume = st.session_state.get("studio_audio_bgm_volume_slider")
+            if isinstance(previous_bgm_volume, (int, float)) and 0 <= previous_bgm_volume <= 1:
+                st.session_state["studio_audio_bgm_volume_slider"] = round(previous_bgm_volume * 100)
+            bgm_volume_percent = st.slider(
                 "BGM Audio Level Mixer",
-                0.0, 1.0, 0.30, step=0.05,
-                key="studio_audio_bgm_volume_slider"
+                0, 100, 30, step=5,
+                format="%d%%",
+                key="studio_audio_bgm_volume_slider",
             )
+            bgm_volume = bgm_volume_percent / 100.0
+            st.caption(f"Background music level: {bgm_volume_percent}%")
     
     with video_canvas_col:
         with st.container(border=True):
@@ -15684,27 +15843,49 @@ def run_cinematic_engine():
     # ========================================================
     # RENDER LOGS (At bottom)
     # ========================================================
+    st.markdown('<div class="cinematic-render-log-spacer"></div>', unsafe_allow_html=True)
     with st.expander("📊 View Render Logs & Metadata", expanded=False):
+        st.markdown("""
+        <style>
+            table.cinematic-render-metadata {
+                width: 100%; table-layout: fixed; border-collapse: collapse;
+                color: #263638 !important; font: 13px/1.5 'Inter', sans-serif !important;
+            }
+            table.cinematic-render-metadata td {
+                width: 50%; padding: 9px 12px !important; vertical-align: top;
+                white-space: normal !important; overflow-wrap: anywhere !important;
+                word-break: normal !important; line-height: 1.5 !important;
+            }
+            table.cinematic-render-metadata tr + tr td { border-top: 1px solid #e7eeec; }
+            table.cinematic-render-metadata .metadata-heading { color: #168a86 !important; font-weight: 750 !important; }
+            table.cinematic-render-metadata .metadata-key { color: #354345 !important; font-weight: 650 !important; }
+            table.cinematic-render-metadata .metadata-value { color: #6c5b27 !important; }
+            table.cinematic-render-metadata .metadata-status { color: #087f5b !important; font-weight: 700 !important; }
+            @media (max-width: 520px) {
+                table.cinematic-render-metadata td { padding: 8px !important; font-size: 12px !important; }
+            }
+        </style>
+        """, unsafe_allow_html=True)
         st.markdown(f"""
-            <table style="width: 100%; border-collapse: collapse; font-family: 'Inter'; font-size: 12px; color: #94a3b8;">
+            <table class="cinematic-render-metadata" style="width: 100%; border-collapse: collapse; font-family: 'Inter'; font-size: 12px; color: #94a3b8;">
                 <tr style="border-bottom: 1px solid rgba(255,192,203,0.06);">
-                    <td style="padding: 6px 0; font-weight: bold; color: #EC4899;">Parameter</td>
-                    <td style="padding: 6px 0; font-weight: bold; color: #EC4899;">Value</td>
+                    <td class="metadata-heading">Parameter</td>
+                    <td class="metadata-heading">Value</td>
                 </tr>
                 <tr style="border-bottom: 1px solid rgba(255,192,203,0.06);">
-                    <td style="padding: 6px 0; color: #ffffff;">Aspect Ratio</td>
-                    <td style="padding: 6px 0; color: #b8860b;">{st.session_state['aspect_ratio']}</td>
+                    <td class="metadata-key">Aspect Ratio</td>
+                    <td class="metadata-value">{st.session_state['aspect_ratio']}</td>
                 </tr>
                 <tr style="border-bottom: 1px solid rgba(255,192,203,0.06);">
-                    <td style="padding: 6px 0; color: #ffffff;">Voice</td>
-                    <td style="padding: 6px 0; color: #b8860b;">{st.session_state['voice_profile']}</td>
+                    <td class="metadata-key">Voice</td>
+                    <td class="metadata-value">{st.session_state['voice_profile']}</td>
                 </tr>
                 <tr style="border-bottom: 1px solid rgba(255,192,203,0.06);">
-                    <td style="padding: 6px 0; color: #ffffff;">Model</td>
-                    <td style="padding: 6px 0; color: #b8860b;">{selected_model}</td>
+                    <td class="metadata-key">Model</td>
+                    <td class="metadata-value">{selected_model}</td>
                 </tr>
                 <tr>
-                    <td style="padding: 6px 0; color: #ffffff;">Status</td>
+                    <td class="metadata-key">Status</td>
                     <td style="padding: 6px 0; color: #10b981; font-weight: bold;">{'✅ Successfully Compiled' if os.path.exists('final_shorts.mp4') else '⏳ Waiting for render'}</td>
                 </tr>
             </table>
@@ -16663,6 +16844,12 @@ def render_user_portfolio_section():
     if username.lower().strip() == "rajmehta886297@gmail.com":
         show_admin_dashboard()
         return
+
+    if st.button("↻ Sync latest creations", key="portfolio_sync_latest"):
+        account_id = normalize_account_username(username)
+        st.session_state["history_renders"] = load_renders_history_db(account_id)
+        st.session_state["face_video_history"] = load_face_video_history_db(account_id)
+        st.session_state["sales_video_history"] = load_sales_video_history_db(account_id)
 
     portfolio_items = []
     for item in st.session_state.get("history_renders", []):
@@ -17932,7 +18119,6 @@ elif st.session_state["current_page"] == "ghost_engine":
     st.markdown(get_premium_theme_css(), unsafe_allow_html=True)
     from ghost_engine_studio import render_ghost_engine_studio
     def _reload_ghost_engine_portfolio(username):
-        load_renders_history_db.clear()
         return load_renders_history_db(username)
 
     render_ghost_engine_studio(
@@ -20522,7 +20708,7 @@ elif st.session_state["current_page"] == "studio":
         ("🧠", "Dynamic UI", "Dynamic UI Mode", "Adapt your creative workspace to each project.", "photo-1497366811353-6870744d04b2"),
         ("💜", "Live Emotions", "Live Emotion Mode", "Bring characters to life with expressive voices.", "photo-1508214751196-bcfd4ca60f91"),
         ("⚡", "Upscaler", "Upscaler Mode", "Enhance image detail and resolution.", "photo-1519681393784-d120267933ba"),
-        ("👻", "Ghost Engine", "ghost_engine", "Create cinematic videos with a coordinated AI production pipeline.", "photo-1500530855697-b586d89ba3ee"),
+        ("🎥", "Story Video", "ghost_engine", "Create cinematic story videos with a coordinated AI production pipeline.", "photo-1500530855697-b586d89ba3ee"),
     ]
     engine_cards_html = ""
 
@@ -22006,6 +22192,9 @@ elif st.session_state["current_page"] == "studio":
         .st-key-studio_hero_container .zd-hero-kicker { color:#536783; font-size:11px; }
         .st-key-studio_hero_container .zd-hero p { color:#334865; font-size:11px; line-height:1.55; }
         .st-key-studio_hero_container .zd-hero { min-height:148px; }
+        .st-key-studio_engine_header { margin-top:0 !important; }
+        .st-key-studio_engine_header [data-testid="stVerticalBlock"] { gap:0 !important; }
+        .st-key-studio_engine_header .zd-section-head { margin:6px 0 8px !important; }
         .st-key-studio_hero_prompt_form {
             border:0;
             border-radius:0;
@@ -22331,6 +22520,42 @@ elif st.session_state["current_page"] == "studio":
             text-overflow:ellipsis;
             white-space:nowrap;
         }
+        .st-key-studio_creations_sidebar {
+            margin-top:10px !important;
+            padding:12px !important;
+            border:1px solid #e4ebf5 !important;
+            border-radius:14px !important;
+            background:#fff !important;
+            box-shadow:0 6px 16px rgba(37,65,105,.06) !important;
+        }
+        .st-key-studio_creations_sidebar > [data-testid="stVerticalBlock"] { gap:6px !important; }
+        .st-key-studio_creations_sidebar .zd-panel-head { color:#243652; font:750 12px/1.25 'Inter',Arial,sans-serif; }
+        .st-key-studio_sidebar_creation_0,
+        .st-key-studio_sidebar_creation_1,
+        .st-key-studio_sidebar_creation_2 {
+            padding:7px 0 !important;
+            border-bottom:1px solid #edf1f6 !important;
+        }
+        .st-key-studio_sidebar_creation_2 { border-bottom:0 !important; }
+        .st-key-studio_creations_sidebar [data-testid="stImage"] img {
+            width:100% !important;
+            height:62px !important;
+            object-fit:cover !important;
+            border-radius:8px !important;
+        }
+        .st-key-studio_sidebar_creation_0 [data-testid="stHorizontalBlock"],
+        .st-key-studio_sidebar_creation_1 [data-testid="stHorizontalBlock"],
+        .st-key-studio_sidebar_creation_2 [data-testid="stHorizontalBlock"] { gap:6px !important; }
+        .st-key-studio_creations_sidebar [class*="st-key-studio_sidebar_creation_open_"] [data-testid="stButton"] > button,
+        .st-key-studio_creations_sidebar [class*="st-key-studio_sidebar_creation_favorite_"] [data-testid="stButton"] > button {
+            min-height:23px !important;
+            padding:2px 4px !important;
+            font-size:8px !important;
+        }
+        .zd-sidebar-creation-copy { display:grid; min-width:0; gap:3px; }
+        .zd-sidebar-creation-copy strong { overflow:hidden; color:#293c58; font-size:9px; line-height:1.3; text-overflow:ellipsis; white-space:nowrap; }
+        .zd-sidebar-creation-copy small { overflow:hidden; color:#7b899d; font-size:8px; text-overflow:ellipsis; white-space:nowrap; }
+        .zd-sidebar-creation-actions { margin-top:3px; }
         .st-key-studio_creations_view_all [data-testid="stButton"] > button {
             min-height:28px !important;
             padding:4px 2px !important;
@@ -22564,6 +22789,53 @@ elif st.session_state["current_page"] == "studio":
             margin:0 !important;
             line-height:1 !important;
         }
+        section[data-testid="stMain"] [data-testid="stHorizontalBlock"]:has(.st-key-studio_account_profile) {
+            align-items:flex-start !important;
+        }
+        section[data-testid="stMain"] [data-testid="stHorizontalBlock"]:has(.st-key-studio_account_profile) > [data-testid="stColumn"] {
+            align-self:flex-start !important;
+        }
+        section[data-testid="stMain"] .st-key-studio_account_profile {
+            align-self:flex-start !important;
+            margin-top:0 !important;
+        }
+        section[data-testid="stMain"] .st-key-studio_dashboard_notifications,
+        section[data-testid="stMain"] .st-key-studio_account_profile,
+        section[data-testid="stMain"] .st-key-studio_topbar_logout {
+            align-self:flex-start !important;
+            margin-top:0 !important;
+            padding-top:0 !important;
+        }
+        section[data-testid="stMain"] .st-key-studio_dashboard_notifications,
+        section[data-testid="stMain"] .st-key-studio_dashboard_notifications [data-testid="stButton"],
+        section[data-testid="stMain"] .st-key-studio_dashboard_notifications [data-testid="stButton"] > button {
+            box-sizing:border-box !important;
+            width:40px !important;
+            min-width:40px !important;
+            max-width:40px !important;
+        }
+        section[data-testid="stMain"] .st-key-studio_dashboard_notifications [data-testid="stButton"] > button,
+        section[data-testid="stMain"] .st-key-studio_account_profile [data-testid="stButton"] > button {
+            display:grid !important;
+            place-items:center !important;
+            height:40px !important;
+            min-height:40px !important;
+            margin:0 !important;
+            padding:0 !important;
+            border-radius:50% !important;
+        }
+        section[data-testid="stMain"] .st-key-studio_dashboard_notifications [data-testid="stButton"] > button > div,
+        section[data-testid="stMain"] .st-key-studio_account_profile [data-testid="stButton"] > button > div {
+            width:auto !important;
+            justify-content:center !important;
+        }
+        section[data-testid="stMain"] .st-key-studio_dashboard_notifications [data-testid="stButton"] > button p,
+        section[data-testid="stMain"] .st-key-studio_account_profile [data-testid="stButton"] > button p {
+            width:auto !important;
+            margin:0 !important;
+            line-height:1 !important;
+            text-align:center !important;
+        }
         section[data-testid="stMain"] .st-key-studio_topbar_logout,
         section[data-testid="stMain"] .st-key-studio_topbar_logout [data-testid="stButton"] {
             width:max-content !important;
@@ -22571,7 +22843,8 @@ elif st.session_state["current_page"] == "studio":
         section[data-testid="stMain"] .st-key-studio_topbar_logout [data-testid="stButton"] > button {
             width:auto !important;
             min-width:0 !important;
-            min-height:34px !important;
+            min-height:40px !important;
+            height:40px !important;
             padding:0 9px !important;
             color:#52647e !important;
             border:1px solid #e1e8f2 !important;
@@ -22589,6 +22862,8 @@ elif st.session_state["current_page"] == "studio":
             margin:0 !important;
         }
         section[data-testid="stMain"] .st-key-studio_credits_panel .zd-balance strong {
+            color:#3974e8 !important;
+            -webkit-text-fill-color:#3974e8 !important;
             font-size:24px !important;
             line-height:1 !important;
         }
@@ -22634,6 +22909,22 @@ elif st.session_state["current_page"] == "studio":
         }
         .zd-action-list a:hover { background:#f3f7ff; border-color:#d2def1; }
         .zd-footer { color:#78879d; border-color:#e5ebf4; font-size:10px; }
+        .st-key-studio_bottom_footer {
+            position:relative !important;
+            display:block !important;
+            clear:both !important;
+            width:100% !important;
+            margin-top:24px !important;
+            padding:14px 0 8px !important;
+            border-top:1px solid #e5ebf4 !important;
+            z-index:0 !important;
+        }
+        .st-key-studio_bottom_footer [data-testid="stHorizontalBlock"],
+        .st-key-studio_bottom_footer [data-testid="stColumn"],
+        .st-key-studio_bottom_footer [data-testid="stButton"] {
+            position:static !important;
+            transform:none !important;
+        }
         section[data-testid="stMain"] [data-testid="stButton"] > button {
             color:#405572 !important;
             background:#fff !important;
@@ -23013,8 +23304,104 @@ elif st.session_state["current_page"] == "studio":
             else:
                 st.info("Your creations will appear here after you generate your first project.")
 
-    if st.session_state.pop("studio_clear_search_next", False):
-        st.session_state["studio_dashboard_search"] = ""
+    def render_dashboard_creations_sidebar():
+        with st.container(key="studio_creations_sidebar"):
+            heading_columns = st.columns([0.68, 0.32], gap="small")
+            with heading_columns[0]:
+                st.markdown("<div class='zd-panel-head'>Your Creations</div>", unsafe_allow_html=True)
+            with heading_columns[1]:
+                if st.button("View all", key="studio_sidebar_creations_view_all", width="stretch"):
+                    st.session_state["studio_favorites_only"] = False
+                    _dashboard_go("portfolio")
+
+            favorite_keys = set(st.session_state.get("studio_favorite_keys", []))
+            visible_items = [
+                (index, item)
+                for index, item in enumerate(dashboard_history)
+                if not st.session_state.get("studio_favorites_only", False)
+                or str(item.get("path") or item.get("face_path") or item.get("video_path") or item.get("file_name", "")) in favorite_keys
+            ][:3]
+            if not visible_items:
+                st.caption("Your latest creations will appear here.")
+                return
+
+            thumbnail_by_engine = {
+                "Face Studio": "studio_expressive_face_background.webp",
+                "Creative": "studio_creative_workshop_engine.webp",
+                "Blueprint": "studio_blueprint_engine.webp",
+                "Draw": "studio_draw_engine.webp",
+                "Editor": "studio_editor_engine.webp",
+                "AI Agent": "studio_ai_agent_engine.webp",
+                "Sales Video": "studio_sales_engine.webp",
+                "Image": "studio_draw_engine.webp",
+                "Live Emotions": "studio_live_emotions_engine.webp",
+            }
+            for position, (index, item) in enumerate(visible_items):
+                title = str(item.get("prompt") or item.get("file_name") or "Untitled creation").strip()
+                if len(title) > 35:
+                    title = title[:32].rstrip() + "..."
+                item_path = str(item.get("path") or item.get("face_path") or item.get("video_path") or "")
+                favorite_key = item_path or str(item.get("file_name") or title)
+                generation_type = str(item.get("generation_type") or item.get("portfolio_type") or "AI Creation").strip()
+                generation_type_key = generation_type.casefold()
+                engine_label = next(
+                    (label for match, label in (
+                        ("face", "Face Studio"), ("expressive", "Face Studio"),
+                        ("workshop", "Creative"), ("creative", "Creative"),
+                        ("blueprint", "Blueprint"), ("draw", "Draw"),
+                        ("editor", "Editor"), ("sales", "Sales Video"),
+                        ("agent", "AI Agent"), ("live", "Live Emotions"),
+                        ("image", "Image"), ("upscal", "Upscaler"),
+                        ("dynamic", "Dynamic UI"), ("cinematic", "Cinematic"),
+                    ) if match in generation_type_key),
+                    "AI Creation",
+                )
+                thumbnail_path = str(item.get("thumbnail_path") or "")
+                thumbnail_extensions = {".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp"}
+                preview_path = next((candidate for candidate in (thumbnail_path, item_path)
+                                     if candidate and os.path.isfile(candidate)
+                                     and os.path.splitext(candidate.split("?", 1)[0])[1].lower() in thumbnail_extensions), None)
+                video_path = next((candidate for candidate in (thumbnail_path, item_path)
+                                   if candidate and os.path.isfile(candidate)
+                                   and os.path.splitext(candidate.split("?", 1)[0])[1].lower() not in thumbnail_extensions), None)
+                fallback = Path(__file__).resolve().parent / "static" / thumbnail_by_engine.get(engine_label, "studio_cinematic_engine.webp")
+
+                with st.container(key=f"studio_sidebar_creation_{position}"):
+                    image_column, details_column = st.columns([0.38, 0.62], gap="small")
+                    with image_column:
+                        if preview_path:
+                            st.image(preview_path, width="stretch")
+                        elif video_path:
+                            capture = cv2.VideoCapture(video_path)
+                            try:
+                                has_frame, frame = capture.read()
+                            finally:
+                                capture.release()
+                            if has_frame:
+                                st.image(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), width="stretch")
+                            elif fallback.is_file():
+                                st.image(str(fallback), width="stretch")
+                        elif fallback.is_file():
+                            st.image(str(fallback), width="stretch")
+                    with details_column:
+                        st.markdown(
+                            f"<div class='zd-sidebar-creation-copy'><strong title='{html_lib.escape(title, quote=True)}'>{html_lib.escape(title)}</strong>"
+                            f"<small>{html_lib.escape(engine_label)} · {html_lib.escape(str(item.get('timestamp') or item.get('created_at') or 'Recently created')[:24])}</small></div>",
+                            unsafe_allow_html=True,
+                        )
+                        action_columns = st.columns([0.64, 0.36], gap="small")
+                        with action_columns[0]:
+                            if st.button("Open", key=f"studio_sidebar_creation_open_{index}", width="stretch"):
+                                st.session_state["studio_favorites_only"] = False
+                                _dashboard_go("portfolio")
+                        with action_columns[1]:
+                            if st.button("★" if favorite_key in favorite_keys else "☆", key=f"studio_sidebar_creation_favorite_{index}", width="stretch"):
+                                if favorite_key in favorite_keys:
+                                    favorite_keys.remove(favorite_key)
+                                else:
+                                    favorite_keys.add(favorite_key)
+                                st.session_state["studio_favorite_keys"] = sorted(favorite_keys)
+                                st.rerun()
 
     dashboard_columns = st.columns([0.20, 0.56, 0.24], gap="small")
     with dashboard_columns[0]:
@@ -23074,12 +23461,7 @@ elif st.session_state["current_page"] == "studio":
                 _dashboard_go(action)
 
     with dashboard_columns[1]:
-        search_query = st.text_input(
-            "Search Studio",
-            placeholder="Search anything... (e.g. create a cinematic scene)",
-            key="studio_dashboard_search",
-            label_visibility="collapsed",
-        ).strip().casefold()
+        search_query = ""
 
         if notice := st.session_state.pop("studio_dashboard_notice", None):
             st.info(notice)
@@ -23152,11 +23534,12 @@ elif st.session_state["current_page"] == "studio":
                 st.session_state["studio_mode_radio"] = "💡 Autonomous AI Topic"
                 _dashboard_go(f"mode:{selected_mode}")
 
-        st.markdown(
-            "<div class='zd-section-head'><div><h2>AI Engines</h2>"
-            f"<p>{len(engine_cards)} specialized engines. Endless creative possibilities.</p></div></div>",
-            unsafe_allow_html=True,
-        )
+        with st.container(key="studio_engine_header"):
+            st.markdown(
+                "<div class='zd-section-head'><div><h2>AI Engines</h2>"
+                f"<p>{len(engine_cards)} specialized engines. Endless creative possibilities.</p></div></div>",
+                unsafe_allow_html=True,
+            )
         engine_pool = engine_cards
         visible_engines = [
             card for card in engine_pool
@@ -23216,54 +23599,31 @@ elif st.session_state["current_page"] == "studio":
         if search_query and not visible_engines:
             st.info("No AI engines match your search.")
 
-        footer_columns = st.columns(4, gap="small")
-        with footer_columns[0]:
-            if st.button("AI Engines", key="studio_footer_engines", width="stretch"):
-                st.session_state["studio_clear_search_next"] = True
-                st.rerun()
-        with footer_columns[1]:
-            if st.button("Community", key="studio_footer_community", width="stretch"):
-                _dashboard_go("community")
-        with footer_columns[2]:
-            if st.button("What’s Ahead", key="studio_footer_future", width="stretch"):
-                st.session_state["studio_footer_notice"] = "What’s Ahead highlights ways to explore engines, community and plans."
-                st.rerun()
-        with footer_columns[3]:
-            if st.button("Privacy Policy", key="studio_footer_privacy", width="stretch"):
-                st.session_state["show_studio_privacy_policy"] = not st.session_state.get("show_studio_privacy_policy", False)
-                st.rerun()
-        footer_notice = st.session_state.pop("studio_footer_notice", None)
-        if footer_notice:
-            st.info(footer_notice)
-        if st.session_state.get("show_studio_privacy_policy", False):
-            show_privacy_policy()
-
     with dashboard_columns[2]:
-        topbar_columns = st.columns([0.34, 0.66], gap="small")
+        topbar_columns = st.columns([0.17, 0.17, 0.66], gap="small", vertical_alignment="top")
         with topbar_columns[0]:
             if st.button("🔔", key="studio_dashboard_notifications", width="stretch"):
                 st.toast("You're all caught up.")
+            if safe_profile_avatar:
+                st.markdown(
+                    f"<style>section[data-testid='stMain'] .st-key-studio_account_profile "
+                    f"[data-testid='stButton'] > button "
+                    f"{{background-image:url('data:image/jpeg;base64,{safe_profile_avatar}') !important;"
+                    "background-size:cover !important;background-position:center !important;"
+                    "color:transparent !important;font-size:0 !important;}}</style>",
+                    unsafe_allow_html=True,
+                )
         with topbar_columns[1]:
-            profile_columns = st.columns([0.24, 0.76], gap="small")
-            with profile_columns[0]:
-                if safe_profile_avatar:
-                    st.markdown(
-                        f"<style>.st-key-studio_account_profile [data-testid='stButton'] > button "
-                        f"{{background-image:url('data:image/jpeg;base64,{safe_profile_avatar}') !important;"
-                        "background-size:cover !important;background-position:center !important;"
-                        "color:transparent !important;font-size:0 !important;}}</style>",
-                        unsafe_allow_html=True,
-                    )
-                if st.button(
-                    "👤",
-                    key="studio_account_profile",
-                    width="stretch",
-                    help=f"Open {display_name}'s profile",
-                ):
-                    _dashboard_go("profile")
-            with profile_columns[1]:
-                if st.button("↩ Log out", key="studio_topbar_logout"):
-                    _dashboard_go("logout")
+            if st.button(
+                "👤",
+                key="studio_account_profile",
+                width="stretch",
+                help=f"Open {display_name}'s profile",
+            ):
+                _dashboard_go("profile")
+        with topbar_columns[2]:
+            if st.button("↩ Log out", key="studio_topbar_logout"):
+                _dashboard_go("logout")
         with st.container(key="studio_credits_panel"):
             st.markdown(
                 "<div class='zd-credit-heading'><span class='zd-credit-heading-icon' aria-hidden='true'>👑</span>"
@@ -23318,13 +23678,35 @@ elif st.session_state["current_page"] == "studio":
             ]):
                 if st.button(label, key=f"studio_quick_action_{index}", width="stretch"):
                     _dashboard_go(action)
-
-    creations_columns = st.columns([0.20, 0.80], gap="small")
-    with creations_columns[1]:
-        render_dashboard_creations()
+        render_dashboard_creations_sidebar()
 
     future_columns = st.columns([0.20, 0.80], gap="small")
     with future_columns[1]:
+        st.markdown(
+            """
+            <section class="zd-lower-section zd-upcoming-section" id="studio-upcoming">
+              <div class="zd-lower-head">
+                <div><h2>Future Features</h2><p>New ways to create, customize and share are on the horizon.</p></div>
+                <span>Coming Soon</span>
+              </div>
+              <div class="zd-future-grid">
+                <article class="zd-future-card">
+                  <img src="/app/static/studio_cinematic_engine.webp" alt="Story video feature preview" loading="lazy">
+                  <div class="zd-future-copy"><small>CREATE · STORY VIDEO</small><strong>Story Video</strong><p>Turn your ideas into connected scenes with a beginning, middle and end.</p></div>
+                </article>
+                <article class="zd-future-card">
+                  <img src="/app/static/studio_expressive_face_background.webp" alt="Creative controls feature preview" loading="lazy">
+                  <div class="zd-future-copy"><small>PERSONALIZE · CONTROL</small><strong>More Creative Control</strong><p>Shape the look, mood and details of each creation with more precision.</p></div>
+                </article>
+                <article class="zd-future-card">
+                  <img src="/app/static/studio_creative_workshop_engine.webp" alt="Creator collaboration feature preview" loading="lazy">
+                  <div class="zd-future-copy"><small>SHARE · COLLABORATE</small><strong>Creator Collaboration</strong><p>Share ideas and build inspiring projects together with other creators.</p></div>
+                </article>
+              </div>
+            </section>
+            """,
+            unsafe_allow_html=True,
+        )
         st.markdown(
             """
             <section class="zd-lower-section" id="studio-future">
@@ -23386,6 +23768,30 @@ elif st.session_state["current_page"] == "studio":
             unsafe_allow_html=True,
         )
 
+    with st.container(key="studio_bottom_footer"):
+        footer_notice = st.session_state.pop("studio_footer_notice", None)
+        if footer_notice:
+            st.info(footer_notice)
+        if st.session_state.get("show_studio_privacy_policy", False):
+            show_privacy_policy()
+
+        footer_columns = st.columns([0.20, 0.80], gap="small")
+        with footer_columns[1]:
+            footer_actions = st.columns(4, gap="small")
+            with footer_actions[0]:
+                if st.button("AI Engines", key="studio_footer_engines", width="stretch"):
+                    st.rerun()
+            with footer_actions[1]:
+                if st.button("Community", key="studio_footer_community", width="stretch"):
+                    _dashboard_go("community")
+            with footer_actions[2]:
+                if st.button("What's Ahead", key="studio_footer_future", width="stretch"):
+                    st.session_state["studio_footer_notice"] = "What's Ahead highlights ways to explore engines, community and plans."
+                    st.rerun()
+            with footer_actions[3]:
+                if st.button("Privacy Policy", key="studio_footer_privacy", width="stretch"):
+                    st.session_state["show_studio_privacy_policy"] = not st.session_state.get("show_studio_privacy_policy", False)
+                    st.rerun()
     st.stop()
 
     with st.sidebar.expander("🟢 System Health", expanded=False):
@@ -23760,6 +24166,101 @@ def render_engine_portfolio_section(include_discovery=True):
 
     st.markdown("<hr style='border-color: rgba(255,255,255,0.06); margin: 25px 0;'>", unsafe_allow_html=True)
 
+    st.markdown("""
+    <style>
+        section[data-testid="stMain"] [class*="st-key-engine_gallery_card_"] {
+            min-width: 0 !important;
+            height: 100% !important;
+        }
+        section[data-testid="stMain"] [class*="st-key-engine_gallery_card_"] [data-testid="stVerticalBlockBorderWrapper"] {
+            height: 100% !important;
+            padding: 14px !important;
+            border: 1px solid #dce8e5 !important;
+            border-radius: 16px !important;
+            background: linear-gradient(155deg, #ffffff 0%, #f8fbfa 100%) !important;
+            box-shadow: 0 6px 18px rgba(34, 67, 67, .07) !important;
+        }
+        section[data-testid="stMain"] [class*="st-key-engine_gallery_card_"] [data-testid="stVideo"] video {
+            width: 100% !important;
+            aspect-ratio: 16 / 9 !important;
+            object-fit: cover !important;
+            border-radius: 12px !important;
+            background: #101b20 !important;
+        }
+        section[data-testid="stMain"] [class*="st-key-engine_gallery_card_"] [data-testid="stMarkdownContainer"] div {
+            max-width: 100% !important;
+            white-space: normal !important;
+            overflow-wrap: anywhere !important;
+            line-height: 1.45 !important;
+        }
+        section[data-testid="stMain"] [class*="st-key-engine_gallery_card_"] [data-testid="stMarkdownContainer"] div[style*="font-family: 'Orbitron'"] {
+            overflow: visible !important;
+            text-overflow: clip !important;
+            color: #244548 !important;
+            font-family: 'Inter', sans-serif !important;
+            font-size: 13px !important;
+            font-weight: 700 !important;
+        }
+        section[data-testid="stMain"] [class*="st-key-engine_gallery_card_"] [data-testid="stMarkdownContainer"] p[style*="height: 36px"] {
+            height: auto !important;
+            min-height: 42px !important;
+            overflow: visible !important;
+            text-overflow: clip !important;
+            white-space: normal !important;
+            overflow-wrap: anywhere !important;
+            color: #607274 !important;
+            font: 400 12px/1.5 'Inter', sans-serif !important;
+        }
+        section[data-testid="stMain"] [class*="st-key-engine_gallery_card_"] [data-testid="stMarkdownContainer"] img {
+            width: 100% !important;
+            height: 190px !important;
+            max-height: 190px !important;
+            object-fit: cover !important;
+            border-radius: 12px !important;
+        }
+        section[data-testid="stMain"] [class*="st-key-engine_gallery_card_"] [data-testid="stMarkdownContainer"] div:has(> img) {
+            height: 190px !important;
+            border-radius: 12px !important;
+            background: #eef4f3 !important;
+        }
+        section[data-testid="stMain"] [class*="st-key-engine_gallery_card_"] [data-testid="stImage"] img {
+            width: 100% !important;
+            height: 190px !important;
+            object-fit: cover !important;
+            border-radius: 12px !important;
+        }
+        section[data-testid="stMain"] .engine-gallery-title {
+            display: block !important;
+            min-height: 36px !important;
+            margin: 0 0 9px !important;
+            color: #244548 !important;
+            font: 700 13px/1.4 'Inter', sans-serif !important;
+            white-space: normal !important;
+            overflow-wrap: anywhere !important;
+        }
+        section[data-testid="stMain"] .engine-gallery-prompt {
+            min-height: 42px !important;
+            margin: 8px 0 4px !important;
+            color: #607274 !important;
+            font: 400 12px/1.5 'Inter', sans-serif !important;
+            white-space: normal !important;
+            overflow-wrap: anywhere !important;
+        }
+        @media (max-width: 768px) {
+            section[data-testid="stMain"] [class*="st-key-engine_gallery_card_"] [data-testid="stVerticalBlockBorderWrapper"] {
+                padding: 10px !important;
+                border-radius: 13px !important;
+            }
+            section[data-testid="stMain"] [class*="st-key-engine_gallery_card_"] [data-testid="stImage"] img {
+                height: 150px !important;
+            }
+            section[data-testid="stMain"] [class*="st-key-engine_gallery_card_"] [data-testid="stMarkdownContainer"] div:has(> img) {
+                height: 150px !important;
+            }
+        }
+    </style>
+    """, unsafe_allow_html=True)
+
     current_mode = st.session_state.get("studio_active_mode", "Cinematic Engine")
     preview_key_prefix = "engine_portfolio_shared"
 
@@ -23907,6 +24408,14 @@ def render_engine_portfolio_section(include_discovery=True):
 
         return valid_items, gallery_title, no_items_msg, display_type
 
+    if st.session_state.get("engine_gallery_loaded_mode") != current_mode:
+        st.caption("Engine controls load first. Open this engine’s gallery when you need its saved previews.")
+        gallery_button_key = re.sub(r"[^a-zA-Z0-9_]", "_", current_mode)
+        if st.button("📂 Load Engine Gallery", key=f"load_engine_gallery_{gallery_button_key}", width="stretch"):
+            st.session_state["engine_gallery_loaded_mode"] = current_mode
+            st.rerun()
+        return
+
     valid_items, gallery_title, no_items_msg, display_type = get_mode_portfolio(current_mode)
     st.markdown(f"<h3 style='font-family: Orbitron; font-size: 16px; color:  #EC4899; margin-bottom: 15px; letter-spacing: 0.5px;'>{gallery_title}</h3>", unsafe_allow_html=True)
 
@@ -23917,7 +24426,7 @@ def render_engine_portfolio_section(include_discovery=True):
             audio_cols = st.columns(3)
             for idx, item in enumerate(valid_items[:6]):
                 with audio_cols[idx % 3]:
-                    with st.container(border=True):
+                    with st.container(border=True, key=f"engine_gallery_card_audio_{idx}"):
                         emotion = item.get("emotion", "neutral")
                         emoji_map = {"neutral": "😐", "happy": "😊", "sad": "😢", "angry": "😡", "excited": "🤩", "serious": "😤", "mysterious": "🕵️"}
                         emotion_emoji = emoji_map.get(emotion, "😐")
@@ -23943,7 +24452,7 @@ def render_engine_portfolio_section(include_discovery=True):
             text_cols = st.columns(2)
             for idx, item in enumerate(valid_items):
                 with text_cols[idx % 2]:
-                    with st.container(border=True):
+                    with st.container(border=True, key=f"engine_gallery_card_text_{idx}"):
                         st.markdown(f"""
                             <div style="font-family: 'Orbitron'; font-size: 10px; color: #EC4899; font-weight: bold; margin-bottom: 4px;">
                                 📝 {item.get("file_name", "Output")}
@@ -23958,7 +24467,7 @@ def render_engine_portfolio_section(include_discovery=True):
             video_cols = st.columns(3)
             for idx, item in enumerate(valid_items[:9]):
                 with video_cols[idx % 3]:
-                    with st.container(border=True):
+                    with st.container(border=True, key=f"engine_gallery_card_video_{idx}"):
                         file_path = item.get("path", "")
                         file_name = item.get("file_name", "Untitled")
                         prompt = item.get("prompt", "")
@@ -24003,10 +24512,10 @@ def render_engine_portfolio_section(include_discovery=True):
                                 st.session_state["portfolio_preview_path"] = file_path
                                 st.session_state["portfolio_preview_name"] = file_name
         else:
-            image_cols = st.columns(4)
+            image_cols = st.columns(3)
             for idx, item in enumerate(valid_items[:8]):
-                with image_cols[idx % 4]:
-                    with st.container(border=True):
+                with image_cols[idx % 3]:
+                    with st.container(border=True, key=f"engine_gallery_card_image_{idx}"):
                         file_path = item.get("path", "")
                         file_name = item.get("file_name", "Untitled")
                         prompt = item.get("prompt", "")

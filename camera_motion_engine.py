@@ -125,35 +125,6 @@ def _fit_frame_to_output(frame: np.ndarray) -> np.ndarray:
     return _fit_frame_to_size(frame, _OUTPUT_SIZE)
 
 
-def _replace_temporal_outlier(
-    previous: np.ndarray,
-    current: np.ndarray,
-    following: np.ndarray,
-) -> np.ndarray:
-    """Replace an isolated decoded-frame corruption when both neighbors agree."""
-    def difference(left: np.ndarray, right: np.ndarray) -> float:
-        left_small = cv2.resize(cv2.cvtColor(left, cv2.COLOR_BGR2GRAY), (64, 36))
-        right_small = cv2.resize(cv2.cvtColor(right, cv2.COLOR_BGR2GRAY), (64, 36))
-        return float(cv2.absdiff(left_small, right_small).mean())
-
-    neighbor_delta = difference(previous, following)
-    previous_delta = difference(previous, current)
-    following_delta = difference(current, following)
-    if (
-        neighbor_delta <= 18.0
-        and previous_delta >= max(35.0, neighbor_delta * 3.0)
-        and following_delta >= max(35.0, neighbor_delta * 3.0)
-    ):
-        logger.warning(
-            "Replacing isolated I2V frame outlier (neighbor delta %.1f; frame deltas %.1f/%.1f).",
-            neighbor_delta,
-            previous_delta,
-            following_delta,
-        )
-        return cv2.addWeighted(previous, 0.5, following, 0.5, 0)
-    return current
-
-
 def _normalize_i2v_video(
     source: Path,
     output: Path,
@@ -180,7 +151,7 @@ def _normalize_i2v_video(
         [
             ffmpeg, "-y", "-i", str(source), "-vf", filters,
             "-an", "-c:v", "libx264", "-profile:v", "main", "-level:v", "4.1",
-            "-preset", "fast", "-crf", "18", "-r", str(_FPS), "-fps_mode", "cfr",
+            "-preset", "veryfast", "-crf", "17", "-r", str(_FPS), "-fps_mode", "cfr",
             "-movflags", "+faststart", str(output),
         ],
         capture_output=True,
@@ -836,7 +807,6 @@ def _run_i2v_prediction(
 
     _OUTPUT_ROOT.mkdir(parents=True, exist_ok=True)
     download_path = _OUTPUT_ROOT / f".i2v-{uuid.uuid4().hex}.mp4"
-    decoded_path = _OUTPUT_ROOT / f".i2v-decoded-{uuid.uuid4().hex}.mp4"
     output_path = _OUTPUT_ROOT / f"motion_i2v_{uuid.uuid4().hex}.mp4"
     try:
         try:
@@ -853,46 +823,13 @@ def _run_i2v_prediction(
         if not capture.isOpened():
             raise RuntimeError("Image-to-video returned an unreadable video.")
         source_fps = float(capture.get(cv2.CAP_PROP_FPS))
-        if not math.isfinite(source_fps) or source_fps <= 0:
-            capture.release()
-            raise RuntimeError("Image-to-video returned invalid frame-rate metadata.")
-        writer = cv2.VideoWriter(
-            str(decoded_path),
-            cv2.VideoWriter_fourcc(*"mp4v"),
-            source_fps,
-            _OUTPUT_SIZE,
-        )
-        if not writer.isOpened():
-            capture.release()
-            raise RuntimeError("Could not initialize the character-motion MP4 encoder.")
-        frame_limit = round(duration * source_fps)
-        written = 0
-        try:
-            success, previous = capture.read()
-            if success:
-                previous = _fit_frame_to_output(previous)
-                writer.write(previous)
-                written += 1
-            success, current = capture.read() if written < frame_limit else (False, None)
-            if success:
-                current = _fit_frame_to_output(current)
-                while written < frame_limit:
-                    success, following = capture.read()
-                    if not success:
-                        writer.write(current)
-                        written += 1
-                        break
-                    following = _fit_frame_to_output(following)
-                    writer.write(_replace_temporal_outlier(previous, current, following))
-                    written += 1
-                    previous, current = current, following
-        finally:
-            capture.release()
-            writer.release()
-        if written < 2 or not decoded_path.is_file() or decoded_path.stat().st_size == 0:
-            raise RuntimeError("Character-motion video contained too few valid frames.")
+        source_frame_count = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
+        capture.release()
+        if not math.isfinite(source_fps) or source_fps <= 0 or source_frame_count < 2:
+            raise RuntimeError("Image-to-video returned invalid frame metadata.")
+        written = min(source_frame_count, round(duration * source_fps))
         _normalize_i2v_video(
-            decoded_path, output_path, written, duration, source_fps
+            download_path, output_path, written, duration, source_fps
         )
         return str(output_path), video_url
     except Exception as exc:
@@ -900,7 +837,6 @@ def _run_i2v_prediction(
         raise RuntimeError(f"Could not process the returned I2V video: {exc}") from exc
     finally:
         download_path.unlink(missing_ok=True)
-        decoded_path.unlink(missing_ok=True)
 
 
 def _render_2d_camera_motion(keyframe_path: str, motion_type: str, duration: float) -> str:

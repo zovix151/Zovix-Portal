@@ -345,6 +345,19 @@ def render_ghost_engine_studio(
                 index=4,
                 key="ghost_atmosphere_fx",
             )
+            face_lock = st.checkbox(
+                "🔒 Face Lock",
+                key="ghost_face_lock_enabled",
+                help="Use a reference face to guide the generated character's facial identity.",
+            )
+            face_reference = None
+            if face_lock:
+                face_reference = st.file_uploader(
+                    "Face reference image",
+                    type=["png", "jpg", "jpeg", "webp"],
+                    key="ghost_face_reference",
+                    help="Upload a clear, front-facing image. It guides the Flux keyframe and may incur model usage charges.",
+                )
             character_action = st.selectbox(
                 "Character Action",
                 list(_CHARACTER_ACTION_OPTIONS),
@@ -367,11 +380,11 @@ def render_ghost_engine_studio(
                 list(GHOST_QUALITY_PROFILES),
                 index=0,
                 key="ghost_video_quality",
-                help="Standard: 720p/30. HD: 1080p/48 with 2x enhancement.",
+                help="Standard: 720p/30. HD: 1080p/30 with 2x enhancement.",
             )
             quality_descriptions = {
                 "Standard": "720p · 30 FPS · fast render",
-                "HD": "1080p · 48 FPS · 2x enhancement · higher detail",
+                "HD": "1080p · 30 FPS · 2x enhancement · higher detail",
             }
             st.caption(quality_descriptions[quality])
             run_clicked = st.button(
@@ -391,6 +404,8 @@ def render_ghost_engine_studio(
             if run_clicked:
                 if not script.strip():
                     st.warning("Enter a script or scene prompt to begin.")
+                elif face_lock and face_reference is None:
+                    st.warning("Upload a face reference image to use Face Lock.")
                 elif not get_openai_api_key():
                     st.error(
                         "OPENAI_API_KEY is not loaded. Add it to the project .env file or Streamlit secrets."
@@ -423,6 +438,11 @@ def render_ghost_engine_studio(
                                         "atmosphere_fx": atmosphere_fx,
                                         "character_action": character_action,
                                     },
+                                    face_reference_bytes=(
+                                        face_reference.getvalue()
+                                        if face_lock and face_reference
+                                        else None
+                                    ),
                                     quality=quality,
                                 )
                                 generation_succeeded = True
@@ -474,7 +494,7 @@ def render_ghost_engine_studio(
                     st.download_button(
                         "Download Zovix Cinematic Video",
                         data=video_bytes,
-                        file_name="zovix_cinematic_video.mp4",
+                        file_name="Zovix Cinematic Video.mp4",
                         mime="video/mp4",
                         use_container_width=True,
                     )

@@ -20,12 +20,12 @@ ROOT = Path(__file__).resolve().parent
 OUTPUT_DIR = ROOT / "static" / "outputs"
 GHOST_QUALITY_PROFILES = {
     "Standard": {
-        "scale": 1, "size": (1280, 720), "fps": 30, "crf": 22,
+        "scale": 2, "size": (1280, 720), "fps": 30, "crf": 20,
         "preset": "ultrafast", "profile": "main", "level": "4.0",
     },
     "HD": {
-        "scale": 2, "size": (1920, 1080), "fps": 48, "crf": 18,
-        "preset": "fast", "profile": "high", "level": "4.2",
+        "scale": 2, "size": (1920, 1080), "fps": 30, "crf": 18,
+        "preset": "veryfast", "profile": "high", "level": "4.2",
     },
 }
 
@@ -73,19 +73,18 @@ def _quality_filter_chain(
         resize_filter = (
             f"scale=trunc(iw*{scale}/2)*2:trunc(ih*{scale}/2)*2:flags=lanczos"
         )
-    if fast_render:
-        return (
-            f"{resize_filter},fps={target_fps:g},"
-            "eq=contrast=1.05:saturation=1.05:brightness=0.003"
-        )
-    return (
-        "hqdn3d=1.2:1.2:3:3,"
-        f"{resize_filter},"
-        f"minterpolate=fps={target_fps:g}:mi_mode=mci:mc_mode=aobmc:me_mode=bidir:vsbmc=1,"
-        "eq=contrast=1.08:saturation=1.08:brightness=0.005:gamma=0.98,"
-        "colorbalance=rs=0.018:gs=0.004:bs=-0.018:rh=-0.008:gh=0:bh=0.012,"
-        "unsharp=5:5:0.4:3:3:0.12"
-    )
+    filters = []
+    if not fast_render:
+        # Keep noise reduction light; temporal denoising and motion interpolation
+        # were both expensive at 1080p and softened the generated frames.
+        filters.append("hqdn3d=0.5:0.5:1.2:1.2")
+    filters.extend([
+        resize_filter,
+        f"fps={target_fps:g}",
+        "eq=contrast=1.04:saturation=1.05:brightness=0.002",
+        "unsharp=5:5:0.4:3:3:0.12",
+    ])
+    return ",".join(filters)
 
 
 def _neural_upscale(
@@ -149,7 +148,7 @@ def _neural_upscale(
                     encode = subprocess.run(
                         [ffmpeg, "-y", "-framerate", f"{source_fps:.6f}",
                          "-i", str(output_frames / "%08d.png"), "-vf",
-                         _quality_filter_chain(1, target_fps, output_size).split(",", 1)[1],
+                         quality_filters,
                          "-c:v", "libx264", "-preset", preset, "-crf", str(crf),
                          *codec_options,
                          "-pix_fmt", "yuv420p", "-r", f"{target_fps:g}",
@@ -361,6 +360,7 @@ def run_zovix_ghost_engine(
     voice_id: str | None = None,
     quality: str | None = None,
     voice_model: str | None = None,
+    face_reference_bytes: bytes | None = None,
 ) -> str:
     """Run the direct GPT-4o → Flux Pro → image-to-video workflow."""
     if not isinstance(user_script, str) or not user_script.strip():
@@ -414,6 +414,12 @@ def run_zovix_ghost_engine(
             f"{lighting_setup} lighting, {atmosphere_fx} atmosphere. "
             "Compose with consistent subject identity, cinematic framing, and clean frame edges."
         )
+        if face_reference_bytes:
+            config["face_reference_bytes"] = face_reference_bytes
+            config["flux_prompt"] += (
+                " Use the supplied face reference to preserve the same person's facial identity, "
+                "age, and key facial features in the main subject."
+            )
         apply_character_action_to_config(config, character_action)
         logger.info(
             "Ghost Engine stage completed: %s in %.2fs.",

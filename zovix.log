@@ -25971,3 +25971,812 @@ ConnectionResetError: [WinError 10054] An existing connection was forcibly close
 2026-10-14 22:48:53,158 - Zovix - INFO - Using Supabase PostgreSQL database
 2026-10-14 22:51:20,497 - Zovix - INFO - Using Supabase PostgreSQL database
 2026-10-14 22:51:23,768 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 15:32:11,473 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 15:32:13,179 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-15 15:32:13,187 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-15 15:32:13,188 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-15 15:32:14,724 - Zovix - INFO - Database initialized successfully
+2026-10-15 15:32:23,794 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 15:32:25,273 - Zovix - INFO - Database initialized successfully
+2026-10-15 15:36:09,023 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 15:36:10,786 - Zovix - INFO - Database initialized successfully
+2026-10-15 15:39:00,761 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 15:39:02,917 - Zovix - INFO - Database initialized successfully
+2026-10-15 15:41:14,016 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 15:41:18,918 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 15:41:21,482 - asyncio - ERROR - Exception in callback _ProactorBasePipeTransport._call_connection_lost(None)
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost(None)>
+Traceback (most recent call last):
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\asyncio\events.py", line 80, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\asyncio\proactor_events.py", line 162, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-10-15 15:41:21,545 - asyncio - ERROR - Exception in callback _ProactorBasePipeTransport._call_connection_lost(None)
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost(None)>
+Traceback (most recent call last):
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\asyncio\events.py", line 80, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\asyncio\proactor_events.py", line 162, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-10-15 15:43:59,305 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 15:44:04,094 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 15:49:21,716 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 15:49:26,186 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 15:49:28,239 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 15:49:28,742 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 15:56:00,036 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 15:56:06,076 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 15:58:41,736 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 15:58:46,456 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 15:58:50,552 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 15:58:51,447 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:01:37,045 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:01:41,892 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:01:46,522 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:01:47,025 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:02:12,536 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:02:17,632 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:07:25,734 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:07:30,615 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:12:24,707 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:12:29,102 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:12:58,410 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:15:19,509 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:15:19,612 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:15:38,897 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:16:04,127 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:16:04,240 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:16:11,317 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:16:15,716 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:16:18,509 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:16:28,756 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:16:32,301 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:16:34,909 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:16:35,869 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:18:12,553 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:18:17,631 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:18:26,562 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:18:29,686 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:18:34,134 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:18:35,128 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:18:43,392 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:18:49,400 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:18:58,196 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:19:03,602 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:19:13,376 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:19:15,913 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:23:29,568 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:23:35,549 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:23:39,656 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:23:40,529 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:26:24,851 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:26:29,060 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:26:34,034 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:26:34,524 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:27:07,283 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:27:10,265 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-15 16:27:10,274 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-15 16:27:10,275 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-15 16:27:12,400 - Zovix - INFO - Database initialized successfully
+2026-10-15 16:27:17,082 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:27:18,899 - Zovix - INFO - Database initialized successfully
+2026-10-15 16:27:33,819 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:27:35,332 - Zovix - INFO - Database initialized successfully
+2026-10-15 16:29:53,226 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:29:57,943 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:30:00,020 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:30:00,543 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:31:20,779 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:31:26,380 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:31:28,074 - asyncio - ERROR - Exception in callback _ProactorBasePipeTransport._call_connection_lost(None)
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost(None)>
+Traceback (most recent call last):
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\asyncio\events.py", line 80, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\asyncio\proactor_events.py", line 162, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-10-15 16:31:28,423 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:31:29,076 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:32:58,611 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:33:02,914 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:33:06,510 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:33:06,987 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:35:29,610 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:35:40,344 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:35:42,107 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:35:46,674 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:35:48,051 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:35:50,346 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:35:50,884 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:41:57,455 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:42:02,998 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:42:04,830 - asyncio - ERROR - Exception in callback _ProactorBasePipeTransport._call_connection_lost(None)
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost(None)>
+Traceback (most recent call last):
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\asyncio\events.py", line 80, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\asyncio\proactor_events.py", line 162, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-10-15 16:42:05,295 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:42:05,459 - asyncio - ERROR - Exception in callback _ProactorBasePipeTransport._call_connection_lost(None)
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost(None)>
+Traceback (most recent call last):
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\asyncio\events.py", line 80, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\asyncio\proactor_events.py", line 162, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-10-15 16:42:06,219 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:44:01,893 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:44:05,875 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:44:08,435 - asyncio - ERROR - Exception in callback _ProactorBasePipeTransport._call_connection_lost(None)
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost(None)>
+Traceback (most recent call last):
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\asyncio\events.py", line 80, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\asyncio\proactor_events.py", line 162, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-10-15 16:44:08,480 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:44:08,675 - asyncio - ERROR - Exception in callback _ProactorBasePipeTransport._call_connection_lost(None)
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost(None)>
+Traceback (most recent call last):
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\asyncio\events.py", line 80, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\asyncio\proactor_events.py", line 162, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-10-15 16:44:09,352 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:48:08,607 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:48:12,635 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:48:15,142 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:48:15,705 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:49:30,857 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:49:35,521 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:51:42,727 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:51:45,923 - Zovix - INFO - Database initialized successfully
+2026-10-15 16:52:07,766 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:52:14,195 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:52:16,096 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:52:17,351 - asyncio - ERROR - Exception in callback _ProactorBasePipeTransport._call_connection_lost(None)
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost(None)>
+Traceback (most recent call last):
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\asyncio\events.py", line 80, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\asyncio\proactor_events.py", line 162, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-10-15 16:52:17,780 - asyncio - ERROR - Exception in callback _ProactorBasePipeTransport._call_connection_lost(None)
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost(None)>
+Traceback (most recent call last):
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\asyncio\events.py", line 80, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\asyncio\proactor_events.py", line 162, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-10-15 16:52:17,804 - asyncio - ERROR - Exception in callback _ProactorBasePipeTransport._call_connection_lost(None)
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost(None)>
+Traceback (most recent call last):
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\asyncio\events.py", line 80, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\asyncio\proactor_events.py", line 162, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-10-15 16:52:43,389 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:53:28,562 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:59:18,374 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:59:28,115 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:59:34,495 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:59:42,563 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 16:59:49,070 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 17:00:54,611 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 17:00:59,617 - Zovix.Layer6 - INFO - Ghost Engine pipeline started.
+2026-10-15 17:01:02,869 - Zovix.Layer6 - INFO - Ghost Engine stage completed: Layer 1: spatial direction in 3.25s.
+2026-10-15 17:01:02,879 - flux_render_engine - INFO - Submitting Replicate prediction for black-forest-labs/flux-1.1-pro.
+2026-10-15 17:01:12,747 - flux_render_engine - INFO - Flux I2V keyframe saved at 1536x864 to C:\Zovix-Clean\static\outputs\keyframe_78a82efcaf.png.
+2026-10-15 17:01:12,748 - Zovix.Layer6 - INFO - Ghost Engine stage completed: Flux Pro keyframe in 9.88s.
+2026-10-15 17:01:16,688 - camera_motion_engine - WARNING - Image-to-video request returned HTTP 429; retrying in 1 seconds (1/1).
+2026-10-15 17:02:37,389 - camera_motion_engine - INFO - Replicate I2V (wan-video/wan-2.2-i2v-fast) completed after 67 status checks in 78.55s.
+2026-10-15 17:02:41,133 - camera_motion_engine - INFO - Hybrid router selected dynamic route for action=Cinematic Pose using model=wan-video/wan-2.2-i2v-fast.
+2026-10-15 17:02:41,133 - Zovix.Layer6 - INFO - Ghost Engine stage completed: Direct image-to-video in 88.39s.
+2026-10-15 17:03:40,543 - Zovix.Layer6 - WARNING - Real-ESRGAN unavailable; applied 2x Lanczos upscale, 48 FPS motion interpolation, and cinematic color grading.
+2026-10-15 17:03:40,547 - Zovix.Layer6 - INFO - Silent browser-ready master created with Lanczos fallback: C:\Zovix-Clean\static\outputs\browser_ready_69997e44f1.mp4
+2026-10-15 17:03:40,548 - Zovix.Layer6 - INFO - Ghost Engine stage completed: Browser-ready video mastering in 59.42s.
+2026-10-15 17:03:40,548 - Zovix.Layer6 - INFO - Ghost Engine pipeline completed in 160.93s: C:\Zovix-Clean\static\outputs\browser_ready_69997e44f1.mp4
+2026-10-15 17:03:42,687 - Zovix.Layer7 - INFO - Ghost Engine render complete: C:\Zovix-Clean\static\outputs\browser_ready_69997e44f1.mp4
+2026-10-15 17:03:42,787 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 17:03:46,721 - asyncio - ERROR - Exception in callback _ProactorBasePipeTransport._call_connection_lost(None)
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost(None)>
+Traceback (most recent call last):
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\asyncio\events.py", line 80, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\asyncio\proactor_events.py", line 162, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-10-15 17:05:06,487 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 17:06:57,225 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 17:07:02,868 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 17:08:24,007 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 17:08:28,439 - Zovix.Layer6 - INFO - Ghost Engine pipeline started.
+2026-10-15 17:08:31,686 - Zovix.Layer6 - INFO - Ghost Engine stage completed: Layer 1: spatial direction in 3.25s.
+2026-10-15 17:08:31,687 - flux_render_engine - INFO - Submitting Replicate prediction for black-forest-labs/flux-1.1-pro.
+2026-10-15 17:08:41,791 - flux_render_engine - INFO - Flux I2V keyframe saved at 1536x864 to C:\Zovix-Clean\static\outputs\keyframe_14c03e53df.png.
+2026-10-15 17:08:41,792 - Zovix.Layer6 - INFO - Ghost Engine stage completed: Flux Pro keyframe in 10.11s.
+2026-10-15 17:09:12,156 - camera_motion_engine - INFO - Replicate I2V (wan-video/wan-2.2-i2v-fast) completed after 26 status checks in 28.42s.
+2026-10-15 17:09:14,961 - camera_motion_engine - INFO - Hybrid router selected dynamic route for action=Cinematic Pose using model=wan-video/wan-2.2-i2v-fast.
+2026-10-15 17:09:14,961 - Zovix.Layer6 - INFO - Ghost Engine stage completed: Direct image-to-video in 33.17s.
+2026-10-15 17:09:15,203 - Zovix.Layer6 - WARNING - Real-ESRGAN unavailable; applied 1x Lanczos upscale, 30 FPS motion interpolation, and cinematic color grading.
+2026-10-15 17:09:15,205 - Zovix.Layer6 - INFO - Silent browser-ready master created with Lanczos fallback: C:\Zovix-Clean\static\outputs\browser_ready_3e91df0cd5.mp4
+2026-10-15 17:09:15,206 - Zovix.Layer6 - INFO - Ghost Engine stage completed: Browser-ready video mastering in 0.25s.
+2026-10-15 17:09:15,206 - Zovix.Layer6 - INFO - Ghost Engine pipeline completed in 46.77s: C:\Zovix-Clean\static\outputs\browser_ready_3e91df0cd5.mp4
+2026-10-15 17:09:16,400 - Zovix.Layer7 - INFO - Ghost Engine render complete: C:\Zovix-Clean\static\outputs\browser_ready_3e91df0cd5.mp4
+2026-10-15 17:09:16,498 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 17:17:00,861 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 17:24:28,067 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 17:24:33,094 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 17:24:40,126 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 17:24:41,121 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 17:24:41,950 - asyncio - ERROR - Exception in callback _ProactorBasePipeTransport._call_connection_lost(None)
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost(None)>
+Traceback (most recent call last):
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\asyncio\events.py", line 80, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\asyncio\proactor_events.py", line 162, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-10-15 17:26:04,492 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 17:26:44,862 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 17:27:15,004 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 17:28:27,678 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 17:29:09,535 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 17:29:16,399 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 17:29:19,378 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 17:29:25,669 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 17:29:26,998 - Zovix.Layer6 - INFO - Ghost Engine pipeline started.
+2026-10-15 17:29:30,822 - Zovix.Layer6 - INFO - Ghost Engine stage completed: Layer 1: spatial direction in 3.82s.
+2026-10-15 17:29:30,828 - flux_render_engine - INFO - Submitting Replicate prediction for black-forest-labs/flux-1.1-pro.
+2026-10-15 17:29:48,107 - flux_render_engine - INFO - Flux I2V keyframe saved at 1536x864 to C:\Zovix-Clean\static\outputs\keyframe_124a824750.png.
+2026-10-15 17:29:48,107 - Zovix.Layer6 - INFO - Ghost Engine stage completed: Flux Pro keyframe in 17.28s.
+2026-10-15 17:31:05,155 - camera_motion_engine - INFO - Replicate I2V (wan-video/wan-2.2-i2v-fast) completed after 63 status checks in 74.86s.
+2026-10-15 17:31:07,327 - camera_motion_engine - INFO - Hybrid router selected dynamic route for action=Wind Blowing using model=wan-video/wan-2.2-i2v-fast.
+2026-10-15 17:31:07,327 - Zovix.Layer6 - INFO - Ghost Engine stage completed: Direct image-to-video in 79.22s.
+2026-10-15 17:31:08,667 - Zovix.Layer6 - WARNING - Real-ESRGAN unavailable; applied 2x Lanczos upscale, 30 FPS motion interpolation, and cinematic color grading.
+2026-10-15 17:31:08,670 - Zovix.Layer6 - INFO - Silent browser-ready master created with Lanczos fallback: C:\Zovix-Clean\static\outputs\browser_ready_bfd9e96bcb.mp4
+2026-10-15 17:31:08,671 - Zovix.Layer6 - INFO - Ghost Engine stage completed: Browser-ready video mastering in 1.34s.
+2026-10-15 17:31:08,671 - Zovix.Layer6 - INFO - Ghost Engine pipeline completed in 101.67s: C:\Zovix-Clean\static\outputs\browser_ready_bfd9e96bcb.mp4
+2026-10-15 17:31:09,720 - Zovix.Layer7 - INFO - Ghost Engine render complete: C:\Zovix-Clean\static\outputs\browser_ready_bfd9e96bcb.mp4
+2026-10-15 17:31:09,818 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 17:31:14,550 - asyncio - ERROR - Exception in callback _ProactorBasePipeTransport._call_connection_lost(None)
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost(None)>
+Traceback (most recent call last):
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\asyncio\events.py", line 80, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\asyncio\proactor_events.py", line 162, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-10-15 17:31:14,550 - asyncio - ERROR - Exception in callback _ProactorBasePipeTransport._call_connection_lost(None)
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost(None)>
+Traceback (most recent call last):
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\asyncio\events.py", line 80, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\asyncio\proactor_events.py", line 162, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-10-15 17:31:14,899 - asyncio - ERROR - Exception in callback _ProactorBasePipeTransport._call_connection_lost(None)
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost(None)>
+Traceback (most recent call last):
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\asyncio\events.py", line 80, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\asyncio\proactor_events.py", line 162, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-10-15 17:31:47,827 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 17:33:59,635 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 17:38:58,419 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 17:39:10,204 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 17:39:47,984 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 17:40:05,312 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 17:40:07,209 - Zovix.Layer6 - INFO - Ghost Engine pipeline started.
+2026-10-15 17:40:11,208 - Zovix.Layer6 - INFO - Ghost Engine stage completed: Layer 1: spatial direction in 4.00s.
+2026-10-15 17:40:11,210 - flux_render_engine - INFO - Submitting Replicate prediction for black-forest-labs/flux-1.1-pro.
+2026-10-15 17:40:20,866 - flux_render_engine - INFO - Flux I2V keyframe saved at 1536x864 to C:\Zovix-Clean\static\outputs\keyframe_13b97c4fd7.png.
+2026-10-15 17:40:20,869 - Zovix.Layer6 - INFO - Ghost Engine stage completed: Flux Pro keyframe in 9.66s.
+2026-10-15 17:41:38,143 - camera_motion_engine - INFO - Replicate I2V (wan-video/wan-2.2-i2v-fast) completed after 61 status checks in 72.72s.
+2026-10-15 17:41:39,990 - camera_motion_engine - INFO - Hybrid router selected dynamic route for action=Cinematic Pose using model=wan-video/wan-2.2-i2v-fast.
+2026-10-15 17:41:39,991 - Zovix.Layer6 - INFO - Ghost Engine stage completed: Direct image-to-video in 79.12s.
+2026-10-15 17:41:41,289 - Zovix.Layer6 - WARNING - Real-ESRGAN unavailable; applied 2x Lanczos upscale, 30 FPS motion interpolation, and cinematic color grading.
+2026-10-15 17:41:41,293 - Zovix.Layer6 - INFO - Silent browser-ready master created with Lanczos fallback: C:\Zovix-Clean\static\outputs\browser_ready_8f35cbfbf8.mp4
+2026-10-15 17:41:41,295 - Zovix.Layer6 - INFO - Ghost Engine stage completed: Browser-ready video mastering in 1.30s.
+2026-10-15 17:41:41,295 - Zovix.Layer6 - INFO - Ghost Engine pipeline completed in 94.09s: C:\Zovix-Clean\static\outputs\browser_ready_8f35cbfbf8.mp4
+2026-10-15 17:41:42,371 - Zovix.Layer7 - INFO - Ghost Engine render complete: C:\Zovix-Clean\static\outputs\browser_ready_8f35cbfbf8.mp4
+2026-10-15 17:41:42,474 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 18:08:10,477 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 18:08:14,538 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 18:08:27,754 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 18:08:35,142 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 18:08:46,600 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 18:12:10,489 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 18:12:14,530 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 18:12:18,869 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 18:12:22,250 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 18:15:21,151 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 18:15:24,391 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 18:15:40,083 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 18:15:43,593 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 18:15:46,591 - asyncio - ERROR - Exception in callback _ProactorBasePipeTransport._call_connection_lost(None)
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost(None)>
+Traceback (most recent call last):
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\asyncio\events.py", line 80, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\asyncio\proactor_events.py", line 162, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-10-15 18:16:26,947 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 18:16:31,712 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 18:16:36,779 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 18:16:40,177 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 18:21:02,262 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 18:21:06,751 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 18:21:13,277 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 18:21:16,573 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 18:23:11,586 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 18:23:15,920 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 18:23:26,271 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 18:23:28,643 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 18:30:30,121 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 18:30:34,373 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 18:30:53,018 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 18:30:56,758 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 18:31:18,469 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 18:31:23,665 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 18:31:28,073 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 18:31:32,668 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 18:32:15,163 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 18:32:20,369 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 18:32:28,476 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 18:32:32,003 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 18:50:15,385 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 18:50:19,312 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 18:50:26,510 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 18:50:29,195 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 18:53:06,357 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 18:53:16,692 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 18:53:20,127 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 18:53:25,642 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 18:53:29,724 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 18:53:32,394 - Zovix - INFO - [TOKEN TXN] deduct_credits_db OK: -2 from 'zovixenterprises@gmail.com' -> new_total_balance=119
+2026-10-15 18:53:33,344 - Zovix - INFO - Starting Replicate upscaler nightmareai/real-esrgan at 2x (quality=Standard, enhancement=enhance).
+2026-10-15 18:53:35,336 - httpx - INFO - HTTP Request: POST https://api.replicate.com/v1/models/nightmareai/real-esrgan/predictions "HTTP/1.1 201 Created"
+2026-10-15 18:53:36,214 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/rvnfwmc0n9rge0d17yxss2zgj4 "HTTP/1.1 200 OK"
+2026-10-15 18:53:37,034 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/rvnfwmc0n9rge0d17yxss2zgj4 "HTTP/1.1 200 OK"
+2026-10-15 18:53:37,901 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/rvnfwmc0n9rge0d17yxss2zgj4 "HTTP/1.1 200 OK"
+2026-10-15 18:53:38,720 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/rvnfwmc0n9rge0d17yxss2zgj4 "HTTP/1.1 200 OK"
+2026-10-15 18:53:39,645 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/rvnfwmc0n9rge0d17yxss2zgj4 "HTTP/1.1 200 OK"
+2026-10-15 18:53:40,567 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/rvnfwmc0n9rge0d17yxss2zgj4 "HTTP/1.1 200 OK"
+2026-10-15 18:53:41,496 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/rvnfwmc0n9rge0d17yxss2zgj4 "HTTP/1.1 200 OK"
+2026-10-15 18:53:42,409 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/rvnfwmc0n9rge0d17yxss2zgj4 "HTTP/1.1 200 OK"
+2026-10-15 18:53:43,330 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/rvnfwmc0n9rge0d17yxss2zgj4 "HTTP/1.1 200 OK"
+2026-10-15 18:53:44,252 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/rvnfwmc0n9rge0d17yxss2zgj4 "HTTP/1.1 200 OK"
+2026-10-15 18:53:45,174 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/rvnfwmc0n9rge0d17yxss2zgj4 "HTTP/1.1 200 OK"
+2026-10-15 18:53:46,096 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/rvnfwmc0n9rge0d17yxss2zgj4 "HTTP/1.1 200 OK"
+2026-10-15 18:53:47,017 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/rvnfwmc0n9rge0d17yxss2zgj4 "HTTP/1.1 200 OK"
+2026-10-15 18:53:47,939 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/rvnfwmc0n9rge0d17yxss2zgj4 "HTTP/1.1 200 OK"
+2026-10-15 18:53:48,817 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/rvnfwmc0n9rge0d17yxss2zgj4 "HTTP/1.1 200 OK"
+2026-10-15 18:53:50,118 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/rvnfwmc0n9rge0d17yxss2zgj4 "HTTP/1.1 200 OK"
+2026-10-15 18:53:51,007 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/rvnfwmc0n9rge0d17yxss2zgj4 "HTTP/1.1 200 OK"
+2026-10-15 18:53:51,933 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/rvnfwmc0n9rge0d17yxss2zgj4 "HTTP/1.1 200 OK"
+2026-10-15 18:53:52,854 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/rvnfwmc0n9rge0d17yxss2zgj4 "HTTP/1.1 200 OK"
+2026-10-15 18:53:53,778 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/rvnfwmc0n9rge0d17yxss2zgj4 "HTTP/1.1 200 OK"
+2026-10-15 18:53:54,662 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/rvnfwmc0n9rge0d17yxss2zgj4 "HTTP/1.1 200 OK"
+2026-10-15 18:53:56,007 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/rvnfwmc0n9rge0d17yxss2zgj4 "HTTP/1.1 200 OK"
+2026-10-15 18:53:56,950 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/rvnfwmc0n9rge0d17yxss2zgj4 "HTTP/1.1 200 OK"
+2026-10-15 18:53:57,871 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/rvnfwmc0n9rge0d17yxss2zgj4 "HTTP/1.1 200 OK"
+2026-10-15 18:54:18,991 - Zovix - INFO - Replicate upscaler completed successfully: upscaled_outputs/upscaled_1726939a.png
+2026-10-15 18:54:21,146 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 18:54:50,041 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 18:55:32,218 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 18:55:41,064 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 18:56:20,179 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 18:56:25,374 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 18:56:40,233 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 18:56:45,233 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 18:56:49,559 - Zovix - INFO - [TOKEN TXN] deduct_credits_db OK: -3 from 'zovixenterprises@gmail.com' -> new_total_balance=116
+2026-10-15 18:56:50,309 - Zovix - INFO - Starting Replicate upscaler nightmareai/real-esrgan at 4x (quality=HD, enhancement=sharp).
+2026-10-15 18:56:54,024 - httpx - INFO - HTTP Request: POST https://api.replicate.com/v1/models/nightmareai/real-esrgan/predictions "HTTP/1.1 201 Created"
+2026-10-15 18:56:54,922 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/jct28bw8p9rg80d17yz8fr6e18 "HTTP/1.1 200 OK"
+2026-10-15 18:56:55,840 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/jct28bw8p9rg80d17yz8fr6e18 "HTTP/1.1 200 OK"
+2026-10-15 18:56:56,766 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/jct28bw8p9rg80d17yz8fr6e18 "HTTP/1.1 200 OK"
+2026-10-15 18:56:58,199 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/jct28bw8p9rg80d17yz8fr6e18 "HTTP/1.1 200 OK"
+2026-10-15 18:56:59,122 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/jct28bw8p9rg80d17yz8fr6e18 "HTTP/1.1 200 OK"
+2026-10-15 18:57:00,042 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/jct28bw8p9rg80d17yz8fr6e18 "HTTP/1.1 200 OK"
+2026-10-15 18:57:00,965 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/jct28bw8p9rg80d17yz8fr6e18 "HTTP/1.1 200 OK"
+2026-10-15 18:57:01,886 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/jct28bw8p9rg80d17yz8fr6e18 "HTTP/1.1 200 OK"
+2026-10-15 18:57:03,364 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/jct28bw8p9rg80d17yz8fr6e18 "HTTP/1.1 200 OK"
+2026-10-15 18:57:04,250 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/jct28bw8p9rg80d17yz8fr6e18 "HTTP/1.1 200 OK"
+2026-10-15 18:57:05,119 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/jct28bw8p9rg80d17yz8fr6e18 "HTTP/1.1 200 OK"
+2026-10-15 18:57:06,009 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/jct28bw8p9rg80d17yz8fr6e18 "HTTP/1.1 200 OK"
+2026-10-15 18:57:06,988 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/jct28bw8p9rg80d17yz8fr6e18 "HTTP/1.1 200 OK"
+2026-10-15 18:57:07,929 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/jct28bw8p9rg80d17yz8fr6e18 "HTTP/1.1 200 OK"
+2026-10-15 18:57:08,951 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/jct28bw8p9rg80d17yz8fr6e18 "HTTP/1.1 200 OK"
+2026-10-15 18:57:10,384 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/jct28bw8p9rg80d17yz8fr6e18 "HTTP/1.1 200 OK"
+2026-10-15 18:57:11,306 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/jct28bw8p9rg80d17yz8fr6e18 "HTTP/1.1 200 OK"
+2026-10-15 18:57:12,228 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/jct28bw8p9rg80d17yz8fr6e18 "HTTP/1.1 200 OK"
+2026-10-15 18:57:13,422 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/jct28bw8p9rg80d17yz8fr6e18 "HTTP/1.1 200 OK"
+2026-10-15 18:57:14,379 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/jct28bw8p9rg80d17yz8fr6e18 "HTTP/1.1 200 OK"
+2026-10-15 18:57:15,301 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/jct28bw8p9rg80d17yz8fr6e18 "HTTP/1.1 200 OK"
+2026-10-15 18:57:16,325 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/jct28bw8p9rg80d17yz8fr6e18 "HTTP/1.1 200 OK"
+2026-10-15 18:57:17,246 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/jct28bw8p9rg80d17yz8fr6e18 "HTTP/1.1 200 OK"
+2026-10-15 18:57:18,168 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/jct28bw8p9rg80d17yz8fr6e18 "HTTP/1.1 200 OK"
+2026-10-15 18:57:19,544 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/jct28bw8p9rg80d17yz8fr6e18 "HTTP/1.1 200 OK"
+2026-10-15 18:58:05,477 - Zovix - INFO - Replicate upscaler completed successfully: upscaled_outputs/upscaled_6d971d48.png
+2026-10-15 18:58:07,646 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 18:58:22,898 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 19:05:01,765 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 19:05:05,998 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 19:05:11,321 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 19:05:13,707 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 19:05:46,810 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 19:05:54,261 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 19:05:55,227 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 19:06:08,064 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 19:06:15,942 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 19:06:19,426 - Zovix - INFO - [TOKEN TXN] deduct_credits_db OK: -4 from 'zovixenterprises@gmail.com' -> new_total_balance=112
+2026-10-15 19:06:19,435 - Zovix - INFO - Starting Replicate upscaler nightmareai/real-esrgan at 8x (quality=4K, enhancement=standard).
+2026-10-15 19:06:20,446 - httpx - INFO - HTTP Request: POST https://api.replicate.com/v1/models/nightmareai/real-esrgan/predictions "HTTP/1.1 201 Created"
+2026-10-15 19:06:21,748 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:06:22,614 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:06:23,548 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:06:24,439 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:06:25,396 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:06:26,727 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:06:27,616 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:06:28,487 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:06:29,343 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:06:30,312 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:06:31,232 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:06:32,565 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:06:33,436 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:06:34,305 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:06:35,226 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:06:36,149 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:06:37,031 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:06:37,993 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:06:38,915 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:06:39,834 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:06:40,756 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:06:41,678 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:06:42,599 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:06:43,523 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:06:44,442 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:06:45,365 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:06:46,285 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:06:47,208 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:06:48,087 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:06:49,053 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:06:49,917 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:06:50,763 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:06:51,619 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:06:52,489 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:06:53,454 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:06:54,376 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:06:55,296 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:06:56,220 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:06:57,139 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:06:58,023 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:06:58,983 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:06:59,905 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:07:00,828 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:07:01,747 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:07:02,671 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:07:03,591 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:07:04,454 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:07:05,442 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:07:06,356 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:07:07,213 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:07:08,077 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:07:08,939 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:07:09,808 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:07:11,108 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:07:11,984 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:07:12,909 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:07:13,831 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:07:14,753 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:07:15,674 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:07:16,596 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:07:17,521 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:07:18,441 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:07:19,362 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:07:20,283 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:07:21,204 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:07:22,067 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:07:22,945 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:07:23,868 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/gm9pbcsd9xrg80d17z3td36fqg "HTTP/1.1 200 OK"
+2026-10-15 19:10:36,429 - Zovix - INFO - Replicate upscaler completed successfully: upscaled_outputs/upscaled_69cc0f74.png
+2026-10-15 19:10:38,452 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 19:11:01,078 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 19:17:02,039 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 19:17:05,523 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 19:17:14,734 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 19:17:18,184 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 19:17:50,348 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 19:17:59,000 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 19:18:04,710 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 19:18:18,654 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 19:18:23,483 - Zovix - INFO - [TOKEN TXN] deduct_credits_db OK: -2 from 'zovixenterprises@gmail.com' -> new_total_balance=110
+2026-10-15 19:18:23,491 - Zovix - INFO - Starting Replicate upscaler nightmareai/real-esrgan at 6x (quality=Standard, enhancement=sharp).
+2026-10-15 19:18:24,523 - httpx - INFO - HTTP Request: POST https://api.replicate.com/v1/models/nightmareai/real-esrgan/predictions "HTTP/1.1 201 Created"
+2026-10-15 19:18:25,389 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/1shf6chsqdrge0d17z9b713smm "HTTP/1.1 200 OK"
+2026-10-15 19:18:26,253 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/1shf6chsqdrge0d17z9b713smm "HTTP/1.1 200 OK"
+2026-10-15 19:18:27,114 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/1shf6chsqdrge0d17z9b713smm "HTTP/1.1 200 OK"
+2026-10-15 19:18:27,975 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/1shf6chsqdrge0d17z9b713smm "HTTP/1.1 200 OK"
+2026-10-15 19:18:28,844 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/1shf6chsqdrge0d17z9b713smm "HTTP/1.1 200 OK"
+2026-10-15 19:18:29,779 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/1shf6chsqdrge0d17z9b713smm "HTTP/1.1 200 OK"
+2026-10-15 19:18:30,699 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/1shf6chsqdrge0d17z9b713smm "HTTP/1.1 200 OK"
+2026-10-15 19:18:31,621 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/1shf6chsqdrge0d17z9b713smm "HTTP/1.1 200 OK"
+2026-10-15 19:18:32,544 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/1shf6chsqdrge0d17z9b713smm "HTTP/1.1 200 OK"
+2026-10-15 19:18:33,465 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/1shf6chsqdrge0d17z9b713smm "HTTP/1.1 200 OK"
+2026-10-15 19:18:34,385 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/1shf6chsqdrge0d17z9b713smm "HTTP/1.1 200 OK"
+2026-10-15 19:19:59,864 - Zovix - INFO - Replicate upscaler completed successfully: upscaled_outputs/upscaled_cba2f2be.png
+2026-10-15 19:20:02,181 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 19:22:32,982 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 19:24:35,822 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 19:24:40,042 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 19:24:57,453 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 19:25:09,858 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 19:25:13,958 - Zovix - INFO - [TOKEN TXN] deduct_credits_db OK: -2 from 'zovixenterprises@gmail.com' -> new_total_balance=108
+2026-10-15 19:25:13,967 - Zovix - INFO - Starting Replicate upscaler nightmareai/real-esrgan at 6x (quality=Standard, enhancement=enhance).
+2026-10-15 19:25:14,879 - httpx - INFO - HTTP Request: POST https://api.replicate.com/v1/models/nightmareai/real-esrgan/predictions "HTTP/1.1 201 Created"
+2026-10-15 19:25:15,759 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/mfrq65kwn1rg80d17zca3xdfrm "HTTP/1.1 200 OK"
+2026-10-15 19:25:16,634 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/mfrq65kwn1rg80d17zca3xdfrm "HTTP/1.1 200 OK"
+2026-10-15 19:25:17,516 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/mfrq65kwn1rg80d17zca3xdfrm "HTTP/1.1 200 OK"
+2026-10-15 19:25:18,930 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/mfrq65kwn1rg80d17zca3xdfrm "HTTP/1.1 200 OK"
+2026-10-15 19:25:19,818 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/mfrq65kwn1rg80d17zca3xdfrm "HTTP/1.1 200 OK"
+2026-10-15 19:25:20,713 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/mfrq65kwn1rg80d17zca3xdfrm "HTTP/1.1 200 OK"
+2026-10-15 19:25:21,634 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/mfrq65kwn1rg80d17zca3xdfrm "HTTP/1.1 200 OK"
+2026-10-15 19:25:22,558 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/mfrq65kwn1rg80d17zca3xdfrm "HTTP/1.1 200 OK"
+2026-10-15 19:25:23,479 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/mfrq65kwn1rg80d17zca3xdfrm "HTTP/1.1 200 OK"
+2026-10-15 19:25:24,406 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/mfrq65kwn1rg80d17zca3xdfrm "HTTP/1.1 200 OK"
+2026-10-15 19:25:25,298 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/mfrq65kwn1rg80d17zca3xdfrm "HTTP/1.1 200 OK"
+2026-10-15 19:25:26,191 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/mfrq65kwn1rg80d17zca3xdfrm "HTTP/1.1 200 OK"
+2026-10-15 19:25:27,085 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/mfrq65kwn1rg80d17zca3xdfrm "HTTP/1.1 200 OK"
+2026-10-15 19:26:58,975 - Zovix - INFO - Replicate upscaler completed successfully: upscaled_outputs/upscaled_551a0c86.png
+2026-10-15 19:27:00,289 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 19:27:31,122 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 19:33:45,235 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 19:33:49,415 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 19:34:13,865 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 19:34:17,822 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 19:38:48,731 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 19:42:02,317 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 19:42:12,536 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 19:42:20,399 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 19:42:22,167 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 19:42:48,730 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 19:42:52,296 - Zovix - INFO - [TOKEN TXN] deduct_credits_db OK: -2 from 'zovixenterprises@gmail.com' -> new_total_balance=106
+2026-10-15 19:42:52,305 - Zovix - INFO - Starting Replicate upscaler prunaai/p-image-upscale at 2x (quality=Standard, enhancement=enhance).
+2026-10-15 19:42:54,712 - httpx - INFO - HTTP Request: POST https://api.replicate.com/v1/models/prunaai/p-image-upscale/predictions "HTTP/1.1 201 Created"
+2026-10-15 19:42:55,604 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/8h1gmbn8phrmt0d17zm9r5jver "HTTP/1.1 200 OK"
+2026-10-15 19:42:56,565 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/8h1gmbn8phrmt0d17zm9r5jver "HTTP/1.1 200 OK"
+2026-10-15 19:42:57,485 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/8h1gmbn8phrmt0d17zm9r5jver "HTTP/1.1 200 OK"
+2026-10-15 19:42:58,409 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/8h1gmbn8phrmt0d17zm9r5jver "HTTP/1.1 200 OK"
+2026-10-15 19:42:59,332 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/8h1gmbn8phrmt0d17zm9r5jver "HTTP/1.1 200 OK"
+2026-10-15 19:43:00,251 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/8h1gmbn8phrmt0d17zm9r5jver "HTTP/1.1 200 OK"
+2026-10-15 19:43:10,800 - httpx - INFO - HTTP Request: POST https://api.replicate.com/v1/models/sczhou/codeformer/predictions "HTTP/1.1 404 Not Found"
+2026-10-15 19:43:10,804 - Zovix - ERROR - Replicate upscaler failed for temp_scenes/upload_81ee3e1d.png: Face restoration failed: ReplicateError Details:
+status: 404
+detail: The requested resource could not be found.
+Traceback (most recent call last):
+  File "C:\Zovix-Clean\app.py", line 11739, in upscale_image_fixed
+    restored_output = client.run(
+  File "c:\Zovix-Clean\.venv\lib\site-packages\replicate\client.py", line 157, in run
+    return run(self, ref, input, **params)
+  File "c:\Zovix-Clean\.venv\lib\site-packages\replicate\run.py", line 44, in run
+    prediction = client.models.predictions.create(
+  File "c:\Zovix-Clean\.venv\lib\site-packages\replicate\model.py", line 310, in create
+    resp = self._client._request(
+  File "c:\Zovix-Clean\.venv\lib\site-packages\replicate\client.py", line 87, in _request
+    _raise_for_status(resp)
+  File "c:\Zovix-Clean\.venv\lib\site-packages\replicate\client.py", line 367, in _raise_for_status
+    raise ReplicateError.from_response(resp)
+replicate.exceptions.ReplicateError: ReplicateError Details:
+status: 404
+detail: The requested resource could not be found.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Zovix-Clean\app.py", line 11766, in upscale_image_fixed
+    raise RuntimeError(f"Face restoration failed: {face_error}") from face_error
+RuntimeError: Face restoration failed: ReplicateError Details:
+status: 404
+detail: The requested resource could not be found.
+2026-10-15 19:43:12,233 - Zovix - INFO - [TOKEN TXN] add_credits OK: +2 (standard) to 'zovixenterprises@gmail.com' -> new_total_balance=108
+2026-10-15 19:43:13,871 - Zovix - INFO - Refunded 2 credits to zovixenterprises@gmail.com: Upscaler returned no output
+2026-10-15 19:50:17,064 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 19:50:21,549 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 19:50:26,974 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 19:50:29,389 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 19:51:19,704 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 19:51:22,006 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 19:51:32,770 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 19:51:52,536 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 19:51:53,811 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 19:52:04,718 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 19:52:08,287 - Zovix - INFO - [TOKEN TXN] deduct_credits_db OK: -2 from 'zovixenterprises@gmail.com' -> new_total_balance=106
+2026-10-15 19:52:08,303 - Zovix - INFO - Starting Replicate upscaler nightmareai/real-esrgan at 4x (quality=Standard, enhancement=enhance).
+2026-10-15 19:52:11,657 - httpx - INFO - HTTP Request: POST https://api.replicate.com/v1/models/nightmareai/real-esrgan/predictions "HTTP/1.1 201 Created"
+2026-10-15 19:52:12,539 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/2ahhqb987nrgc0d17zrtvrb7yg "HTTP/1.1 200 OK"
+2026-10-15 19:52:15,278 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/2ahhqb987nrgc0d17zrtvrb7yg "HTTP/1.1 200 OK"
+2026-10-15 19:52:16,699 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/2ahhqb987nrgc0d17zrtvrb7yg "HTTP/1.1 200 OK"
+2026-10-15 19:52:17,620 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/2ahhqb987nrgc0d17zrtvrb7yg "HTTP/1.1 200 OK"
+2026-10-15 19:52:18,539 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/2ahhqb987nrgc0d17zrtvrb7yg "HTTP/1.1 200 OK"
+2026-10-15 19:52:19,460 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/2ahhqb987nrgc0d17zrtvrb7yg "HTTP/1.1 200 OK"
+2026-10-15 19:52:20,384 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/2ahhqb987nrgc0d17zrtvrb7yg "HTTP/1.1 200 OK"
+2026-10-15 19:52:21,857 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/2ahhqb987nrgc0d17zrtvrb7yg "HTTP/1.1 200 OK"
+2026-10-15 19:52:23,352 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/2ahhqb987nrgc0d17zrtvrb7yg "HTTP/1.1 200 OK"
+2026-10-15 19:53:10,868 - httpx - INFO - HTTP Request: POST https://api.replicate.com/v1/predictions "HTTP/1.1 201 Created"
+2026-10-15 19:53:11,173 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/models/tencentarc/gfpgan/versions/0fbacf7afc6c144e5be9767cff80f25aff23e52b0708f17e20f9879b2f21516c "HTTP/1.1 200 OK"
+2026-10-15 19:53:12,096 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/6ws9cr0d1drmt0d17zs8pvbjzr "HTTP/1.1 200 OK"
+2026-10-15 19:53:13,016 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/6ws9cr0d1drmt0d17zs8pvbjzr "HTTP/1.1 200 OK"
+2026-10-15 19:53:13,938 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/6ws9cr0d1drmt0d17zs8pvbjzr "HTTP/1.1 200 OK"
+2026-10-15 19:53:14,859 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/6ws9cr0d1drmt0d17zs8pvbjzr "HTTP/1.1 200 OK"
+2026-10-15 19:53:15,782 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/6ws9cr0d1drmt0d17zs8pvbjzr "HTTP/1.1 200 OK"
+2026-10-15 19:53:16,704 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/6ws9cr0d1drmt0d17zs8pvbjzr "HTTP/1.1 200 OK"
+2026-10-15 19:53:17,625 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/6ws9cr0d1drmt0d17zs8pvbjzr "HTTP/1.1 200 OK"
+2026-10-15 19:53:18,570 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/6ws9cr0d1drmt0d17zs8pvbjzr "HTTP/1.1 200 OK"
+2026-10-15 19:53:19,468 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/6ws9cr0d1drmt0d17zs8pvbjzr "HTTP/1.1 200 OK"
+2026-10-15 19:53:20,359 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/6ws9cr0d1drmt0d17zs8pvbjzr "HTTP/1.1 200 OK"
+2026-10-15 19:53:21,257 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/6ws9cr0d1drmt0d17zs8pvbjzr "HTTP/1.1 200 OK"
+2026-10-15 19:53:22,643 - httpx - INFO - HTTP Request: GET https://api.replicate.com/v1/predictions/6ws9cr0d1drmt0d17zs8pvbjzr "HTTP/1.1 200 OK"
+2026-10-15 19:53:35,092 - Zovix - INFO - Replicate upscaler completed successfully: upscaled_outputs/upscaled_049c55cd.png
+2026-10-15 19:53:37,273 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 20:05:13,999 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 20:05:18,730 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 20:05:23,812 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 20:05:26,131 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 20:06:05,158 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 20:06:18,218 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 20:06:26,440 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 20:06:37,768 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 20:06:42,616 - Zovix - INFO - [TOKEN TXN] deduct_credits_db OK: -3 from 'zovixenterprises@gmail.com' -> new_total_balance=103
+2026-10-15 20:06:42,623 - Zovix - INFO - Restoring face/background first with CodeFormer (fidelity=0.70).
+2026-10-15 20:06:44,791 - httpx - INFO - HTTP Request: POST https://api.replicate.com/v1/models/sczhou/codeformer/predictions "HTTP/1.1 404 Not Found"
+2026-10-15 20:06:44,793 - Zovix - ERROR - Replicate photo restoration failed for temp_scenes/upload_dafe8adb.png: ReplicateError Details:
+status: 404
+detail: The requested resource could not be found.
+Traceback (most recent call last):
+  File "C:\Zovix-Clean\app.py", line 11671, in upscale_image_fixed
+    restored_output = client.run(
+  File "c:\Zovix-Clean\.venv\lib\site-packages\replicate\client.py", line 157, in run
+    return run(self, ref, input, **params)
+  File "c:\Zovix-Clean\.venv\lib\site-packages\replicate\run.py", line 44, in run
+    prediction = client.models.predictions.create(
+  File "c:\Zovix-Clean\.venv\lib\site-packages\replicate\model.py", line 310, in create
+    resp = self._client._request(
+  File "c:\Zovix-Clean\.venv\lib\site-packages\replicate\client.py", line 87, in _request
+    _raise_for_status(resp)
+  File "c:\Zovix-Clean\.venv\lib\site-packages\replicate\client.py", line 367, in _raise_for_status
+    raise ReplicateError.from_response(resp)
+replicate.exceptions.ReplicateError: ReplicateError Details:
+status: 404
+detail: The requested resource could not be found.
+2026-10-15 20:06:45,373 - Zovix - INFO - [TOKEN TXN] add_credits OK: +3 (standard) to 'zovixenterprises@gmail.com' -> new_total_balance=106
+2026-10-15 20:06:45,376 - Zovix - INFO - Refunded 3 credits to zovixenterprises@gmail.com: Upscaler returned no output
+2026-10-15 20:10:20,611 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 20:10:23,762 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 20:10:29,763 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 20:10:33,208 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 20:12:18,531 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 20:12:31,052 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 20:12:40,556 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 20:12:47,965 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 20:12:51,823 - Zovix - INFO - [TOKEN TXN] deduct_credits_db OK: -2 from 'zovixenterprises@gmail.com' -> new_total_balance=104
+2026-10-15 20:12:51,826 - Zovix - INFO - Restoring face/background first with CodeFormer (fidelity=0.75).
+2026-10-15 20:12:54,230 - httpx - INFO - HTTP Request: POST https://api.replicate.com/v1/predictions "HTTP/1.1 422 Unprocessable Entity"
+2026-10-15 20:12:54,230 - Zovix - ERROR - Replicate photo restoration failed for temp_scenes/upload_c481cfa0.png: ReplicateError Details:
+title: Invalid version or not permitted
+status: 422
+detail: The specified version does not exist (or perhaps you don't have permission to use it?)
+Traceback (most recent call last):
+  File "C:\Zovix-Clean\app.py", line 11676, in upscale_image_fixed
+    restored_output = client.run(
+  File "c:\Zovix-Clean\.venv\lib\site-packages\replicate\client.py", line 157, in run
+    return run(self, ref, input, **params)
+  File "c:\Zovix-Clean\.venv\lib\site-packages\replicate\run.py", line 40, in run
+    prediction = client.predictions.create(
+  File "c:\Zovix-Clean\.venv\lib\site-packages\replicate\prediction.py", line 373, in create
+    resp = self._client._request(
+  File "c:\Zovix-Clean\.venv\lib\site-packages\replicate\client.py", line 87, in _request
+    _raise_for_status(resp)
+  File "c:\Zovix-Clean\.venv\lib\site-packages\replicate\client.py", line 367, in _raise_for_status
+    raise ReplicateError.from_response(resp)
+replicate.exceptions.ReplicateError: ReplicateError Details:
+title: Invalid version or not permitted
+status: 422
+detail: The specified version does not exist (or perhaps you don't have permission to use it?)
+2026-10-15 20:12:54,747 - Zovix - INFO - [TOKEN TXN] add_credits OK: +2 (standard) to 'zovixenterprises@gmail.com' -> new_total_balance=106
+2026-10-15 20:12:54,748 - Zovix - INFO - Refunded 2 credits to zovixenterprises@gmail.com: Upscaler returned no output
+2026-10-15 20:15:41,408 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 20:15:45,233 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 20:15:48,025 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 20:15:49,046 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 20:15:59,409 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 20:16:10,610 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 20:16:16,170 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 20:16:19,409 - Zovix - INFO - [TOKEN TXN] deduct_credits_db OK: -2 from 'zovixenterprises@gmail.com' -> new_total_balance=104
+2026-10-15 20:16:19,413 - Zovix - INFO - Restoring face/background first with CodeFormer (fidelity=0.70).
+2026-10-15 20:16:22,298 - httpx - INFO - HTTP Request: POST https://api.replicate.com/v1/models/sczhou/codeformer/predictions "HTTP/1.1 404 Not Found"
+2026-10-15 20:16:22,299 - Zovix - ERROR - Replicate photo restoration failed for temp_scenes/upload_28927568.png: ReplicateError Details:
+status: 404
+detail: The requested resource could not be found.
+Traceback (most recent call last):
+  File "C:\Zovix-Clean\app.py", line 11684, in upscale_image_fixed
+    restored_output = client.run(
+  File "c:\Zovix-Clean\.venv\lib\site-packages\replicate\client.py", line 157, in run
+    return run(self, ref, input, **params)
+  File "c:\Zovix-Clean\.venv\lib\site-packages\replicate\run.py", line 44, in run
+    prediction = client.models.predictions.create(
+  File "c:\Zovix-Clean\.venv\lib\site-packages\replicate\model.py", line 310, in create
+    resp = self._client._request(
+  File "c:\Zovix-Clean\.venv\lib\site-packages\replicate\client.py", line 87, in _request
+    _raise_for_status(resp)
+  File "c:\Zovix-Clean\.venv\lib\site-packages\replicate\client.py", line 367, in _raise_for_status
+    raise ReplicateError.from_response(resp)
+replicate.exceptions.ReplicateError: ReplicateError Details:
+status: 404
+detail: The requested resource could not be found.
+2026-10-15 20:16:23,527 - Zovix - INFO - [TOKEN TXN] add_credits OK: +2 (standard) to 'zovixenterprises@gmail.com' -> new_total_balance=106
+2026-10-15 20:16:23,528 - Zovix - INFO - Refunded 2 credits to zovixenterprises@gmail.com: Upscaler returned no output
+2026-10-15 20:27:28,495 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 20:27:31,952 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 20:27:35,196 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 20:27:36,182 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 20:27:49,488 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 20:27:53,244 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 20:28:29,127 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 20:28:37,909 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 20:28:38,253 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 20:28:42,093 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 20:28:42,406 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 20:28:50,222 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 20:28:56,321 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 20:29:19,891 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 20:29:24,045 - Zovix - INFO - [TOKEN TXN] deduct_credits_db OK: -3 from 'zovixenterprises@gmail.com' -> new_total_balance=103
+2026-10-15 20:29:24,113 - Zovix - INFO - Restoring face/background first with CodeFormer (fidelity=0.70).
+2026-10-15 20:29:25,338 - httpx - INFO - HTTP Request: POST https://api.replicate.com/v1/models/sczhou/codeformer/predictions "HTTP/1.1 404 Not Found"
+2026-10-15 20:29:25,338 - Zovix - WARNING - CodeFormer failed; using original image with Real-ESRGAN face enhancement: ReplicateError Details:
+status: 404
+detail: The requested resource could not be found.
+2026-10-15 20:29:25,339 - Zovix - INFO - Running Real-ESRGAN 6x super-resolution (HD).
+2026-10-15 20:29:25,996 - httpx - INFO - HTTP Request: POST https://api.replicate.com/v1/models/nightmareai/real-esrgan/predictions "HTTP/1.1 429 Too Many Requests"
+2026-10-15 20:29:25,996 - Zovix - ERROR - Replicate photo restoration failed for temp_scenes/upload_32d30214.png: ReplicateError Details:
+status: 429
+detail: Request was throttled. Your rate limit for creating predictions is reduced to 6 requests per minute with a burst of 1 requests while you have less than $5.0 in credit. Your rate limit resets in ~10s.
+Traceback (most recent call last):
+  File "C:\Zovix-Clean\app.py", line 11723, in upscale_image_fixed
+    upscaled_output = client.run(
+  File "c:\Zovix-Clean\.venv\lib\site-packages\replicate\client.py", line 157, in run
+    return run(self, ref, input, **params)
+  File "c:\Zovix-Clean\.venv\lib\site-packages\replicate\run.py", line 44, in run
+    prediction = client.models.predictions.create(
+  File "c:\Zovix-Clean\.venv\lib\site-packages\replicate\model.py", line 310, in create
+    resp = self._client._request(
+  File "c:\Zovix-Clean\.venv\lib\site-packages\replicate\client.py", line 87, in _request
+    _raise_for_status(resp)
+  File "c:\Zovix-Clean\.venv\lib\site-packages\replicate\client.py", line 367, in _raise_for_status
+    raise ReplicateError.from_response(resp)
+replicate.exceptions.ReplicateError: ReplicateError Details:
+status: 429
+detail: Request was throttled. Your rate limit for creating predictions is reduced to 6 requests per minute with a burst of 1 requests while you have less than $5.0 in credit. Your rate limit resets in ~10s.
+2026-10-15 20:29:26,541 - Zovix - INFO - [TOKEN TXN] add_credits OK: +3 (standard) to 'zovixenterprises@gmail.com' -> new_total_balance=106
+2026-10-15 20:29:26,541 - Zovix - INFO - Refunded 3 credits to zovixenterprises@gmail.com: Upscaler returned no output
+2026-10-15 20:30:46,203 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 20:30:49,496 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 20:31:39,078 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 20:31:44,703 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 20:31:49,078 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-15 20:31:49,586 - Zovix - INFO - Using Supabase PostgreSQL database
