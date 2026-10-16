@@ -48,6 +48,27 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
+st.markdown(
+    """
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@400;500;600;700;800;900&display=swap');
+
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box !important;
+    }
+
+    html,
+    body,
+    .stApp {
+        font-family: 'Inter', sans-serif !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 components.html(
     """
     <script>
@@ -20971,16 +20992,40 @@ elif st.session_state["current_page"] == "studio":
         item
         for item in (
             list(st.session_state.get("history_renders", []) or [])
-            + list(st.session_state.get("face_video_history", []) or [])
-            + list(st.session_state.get("sales_video_history", []) or [])
+            + [
+                {**item, "generation_type": item.get("generation_type") or "Face Video"}
+                for item in (st.session_state.get("face_video_history", []) or [])
+                if isinstance(item, dict)
+            ]
+            + [
+                {**item, "generation_type": item.get("generation_type") or "AI Sales"}
+                for item in (st.session_state.get("sales_video_history", []) or [])
+                if isinstance(item, dict)
+            ]
         )
         if isinstance(item, dict)
     ]
+
+    def dashboard_history_timestamp(item):
+        raw_timestamp = str(item.get("timestamp") or item.get("created_at") or "").strip()
+        for timestamp_format in (
+            "%b %d, %Y - %I:%M %p",
+            "%b %d, %Y %I:%M %p",
+            "%Y-%m-%d %H:%M:%S",
+        ):
+            try:
+                return datetime.strptime(raw_timestamp, timestamp_format).timestamp()
+            except ValueError:
+                continue
+        try:
+            return datetime.fromisoformat(raw_timestamp.replace("Z", "+00:00")).timestamp()
+        except ValueError:
+            return 0.0
+
     dashboard_history.sort(
-        key=lambda item: str(item.get("timestamp") or item.get("created_at") or ""),
+        key=dashboard_history_timestamp,
         reverse=True,
     )
-    dashboard_history = dashboard_history[:6]
     recent_cards = []
 
     username = str(st.session_state.get("logged_user", "Creator")).strip()
@@ -23536,39 +23581,37 @@ elif st.session_state["current_page"] == "studio":
             }
             .st-key-studio_creations_section {
                 width:100% !important;
-                margin:20px 0 0 !important;
-                padding:20px !important;
-                border-color:#e0e8f4 !important;
-                border-radius:18px !important;
-                background:linear-gradient(145deg,#fff,#f8faff) !important;
-                box-shadow:0 10px 26px rgba(37,65,105,.08) !important;
-            }
-            .st-key-studio_creations_section [data-testid="stHorizontalBlock"]:has([data-testid="stImage"]):has([class*="st-key-studio_recent_"]) > [data-testid="stColumn"] {
+                margin:10px 0 0 !important;
                 padding:12px !important;
-                border-color:#dfe7f3 !important;
-                border-radius:16px !important;
-                box-shadow:0 8px 20px rgba(37,65,105,.09) !important;
-            }
-            .st-key-studio_creations_section [data-testid="stHorizontalBlock"]:has([data-testid="stImage"]):has([class*="st-key-studio_recent_"]) > [data-testid="stColumn"] [data-testid="stImage"] img {
-                width:100% !important;
-                height:180px !important;
-                object-fit:cover !important;
+                border-color:#e0e8f4 !important;
                 border-radius:12px !important;
+                background:linear-gradient(145deg,#fff,#f8faff) !important;
+                box-shadow:0 6px 16px rgba(37,65,105,.07) !important;
             }
-            .st-key-studio_creations_section [class*="st-key-studio_recent_"] [data-testid="stButton"] > button,
-            .st-key-studio_creations_section [class*="st-key-studio_favorite_"] [data-testid="stButton"] > button {
-                width:100% !important;
-                min-width:0 !important;
-                min-height:34px !important;
-                color:#3e5c88 !important;
-                border:1px solid #dce6f5 !important;
+            .st-key-studio_creations_section .zd-creations-head {
+                margin:0 0 8px !important;
+            }
+            .st-key-studio_creations_section .zd-creations-head h2 {
+                color:#243652 !important;
+                font:750 12px/1.25 'Inter',Arial,sans-serif !important;
+            }
+            .st-key-studio_creations_section [class*="st-key-studio_creation_output_"] {
+                overflow:hidden !important;
+                padding:4px !important;
+                border-color:#dfe7f3 !important;
                 border-radius:9px !important;
-                background:#f4f7fc !important;
-                font:700 11px/1 'Inter',Arial,sans-serif !important;
+                box-shadow:0 4px 10px rgba(37,65,105,.06) !important;
             }
-            .st-key-studio_creations_section [class*="st-key-studio_favorite_"] [data-testid="stButton"] > button {
-                color:#7659d6 !important;
-                background:#f5f1ff !important;
+            .st-key-studio_creations_section [data-testid="stImage"] img {
+                width:100% !important;
+                height:88px !important;
+                object-fit:cover !important;
+                border-radius:6px !important;
+            }
+            .st-key-studio_creations_section [data-testid="stAudio"],
+            .st-key-studio_creations_section [data-testid="stVideo"] {
+                width:100% !important;
+                max-width:100% !important;
             }
             @media (max-width:760px) {
                 .st-key-studio_creations_section [data-testid="stHorizontalBlock"]:has([data-testid="stImage"]):has([class*="st-key-studio_recent_"]) > [data-testid="stColumn"] {
@@ -23705,203 +23748,45 @@ elif st.session_state["current_page"] == "studio":
 
     def render_dashboard_creations():
         with st.container(key="studio_creations_section"):
-            creations_header_columns = st.columns([0.77, 0.23], gap="small")
-            with creations_header_columns[0]:
-                st.markdown(
-                    "<div class='zd-section-head zd-creations-head'><div class='zd-creations-heading'>"
-                    "<span aria-hidden='true'>✦</span><div><h2>Your Creations</h2>"
-                    "<p>Your recently generated content. Keep creating!</p></div></div></div>",
-                    unsafe_allow_html=True,
-                )
-            with creations_header_columns[1]:
-                if st.button("View all creations →", key="studio_creations_view_all", width="stretch"):
-                    st.session_state["studio_favorites_only"] = False
-                    _dashboard_go("portfolio")
+            st.markdown("<div class='zd-section-head zd-creations-head'><h2>Your Creations</h2></div>", unsafe_allow_html=True)
 
-            favorite_keys = set(st.session_state.get("studio_favorite_keys", []))
-            visible_history = [
-                (index, item)
-                for index, item in enumerate(dashboard_history)
-                if (
-                    not search_query
-                    or search_query in str(item.get("file_name", "")).casefold()
-                    or search_query in str(
-                        item.get("generation_type") or item.get("portfolio_type") or item.get("quality") or ""
-                    ).casefold()
-                    or search_query in str(item.get("prompt", "")).casefold()
-                )
-                and (
-                    not st.session_state.get("studio_favorites_only", False)
-                    or str(
-                        item.get("path") or item.get("face_path") or item.get("video_path") or item.get("file_name", "")
-                    ) in favorite_keys
-                )
-            ]
-            recent_history = visible_history[:4]
-            if recent_history:
-                recent_columns = st.columns(4, gap="small")
-                for column, (index, item) in zip(recent_columns, recent_history):
-                    title = str(item.get("file_name", "Untitled creation"))
-                    item_path = str(
-                        item.get("path") or item.get("face_path") or item.get("video_path") or ""
-                    )
-                    favorite_key = item_path or title
-                    generation_type = str(
-                        item.get("generation_type") or item.get("portfolio_type") or "AI Creation"
-                    ).strip()
-                    generation_type_key = generation_type.casefold()
-                    engine_label = next(
-                        (
-                            label for match, label in (
-                                ("cinematic", "Cinematic"),
-                                ("face", "Face Studio"),
-                                ("expressive", "Face Studio"),
-                                ("workshop", "Creative"),
-                                ("creative", "Creative"),
-                                ("blueprint", "Blueprint"),
-                                ("draw", "Draw"),
-                                ("editor", "Editor"),
-                                ("sales", "Sales Video"),
-                                ("agent", "AI Agent"),
-                                ("live emotion", "Live Emotions"),
-                                ("image", "Image"),
-                                ("upscal", "Upscaler"),
-                                ("dynamic", "Dynamic UI"),
-                            )
-                            if match in generation_type_key
-                        ),
-                        "AI Creation",
-                    )
-                    raw_timestamp = str(item.get("timestamp") or item.get("created_at") or "").strip()
-                    display_timestamp = "Recently created"
-                    if raw_timestamp:
-                        for timestamp_format in (
-                            "%b %d, %Y - %I:%M %p",
-                            "%b %d, %Y %I:%M %p",
-                            "%Y-%m-%d %H:%M:%S",
-                        ):
-                            try:
-                                display_timestamp = datetime.strptime(
-                                    raw_timestamp, timestamp_format
-                                ).strftime("%b %d, %Y · %I:%M %p").replace(" 0", " ")
-                                break
-                            except ValueError:
-                                continue
-                        else:
-                            try:
-                                display_timestamp = datetime.fromisoformat(
-                                    raw_timestamp.replace("Z", "+00:00")
-                                ).strftime("%b %d, %Y · %I:%M %p").replace(" 0", " ")
-                            except ValueError:
-                                display_timestamp = raw_timestamp[:48]
-                    title_text = str(item.get("prompt") or "").strip()
-                    if not title_text:
-                        title_text = Path(title).stem.replace("_", " ").replace("-", " ").strip()
-                    creation_label = {
-                        "Cinematic": "Cinematic Video",
-                        "Image": "Image Generation",
-                    }.get(engine_label, engine_label)
-                    creation_icon = "▧" if engine_label == "Image" else "✦"
-                    thumbnail_path = str(item.get("thumbnail_path") or "").strip()
-                    with column:
-                        thumbnail_extensions = {".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp"}
-                        fallback_thumbnail = (
-                            Path(__file__).resolve().parent
-                            / "static"
-                            / {
-                                "Cinematic": "studio_cinematic_engine.webp",
-                                "Face Studio": "studio_expressive_face_background.webp",
-                                "Creative": "studio_creative_workshop_engine.webp",
-                                "Blueprint": "studio_blueprint_engine.webp",
-                                "Draw": "studio_draw_engine.webp",
-                                "Editor": "studio_editor_engine.webp",
-                                "AI Agent": "studio_ai_agent_engine.webp",
-                                "Sales Video": "studio_sales_engine.webp",
-                                "Image": "studio_draw_engine.webp",
-                                "Dynamic UI": "studio_dynamic_ui_engine.webp",
-                            }.get(engine_label, "studio_cinematic_engine.webp")
-                        )
-                        thumbnail_candidates = (thumbnail_path, item_path)
-                        image_preview = next(
-                            (
-                                candidate
-                                for candidate in thumbnail_candidates
-                                if candidate
-                                and os.path.isfile(candidate)
-                                and os.path.splitext(candidate.split("?", 1)[0])[1].lower() in thumbnail_extensions
-                            ),
-                            None,
-                        )
-                        video_preview = next(
-                            (
-                                candidate
-                                for candidate in thumbnail_candidates
-                                if candidate
-                                and os.path.isfile(candidate)
-                                and os.path.splitext(candidate.split("?", 1)[0])[1].lower() not in thumbnail_extensions
-                            ),
-                            None,
-                        )
-                        if image_preview:
-                            st.image(image_preview, width="stretch")
-                        elif video_preview:
-                            video_capture = cv2.VideoCapture(video_preview)
-                            try:
-                                has_frame, video_frame = video_capture.read()
-                            finally:
-                                video_capture.release()
-                            if has_frame:
-                                st.image(
-                                    cv2.cvtColor(video_frame, cv2.COLOR_BGR2RGB),
-                                    width="stretch",
-                                )
-                            elif fallback_thumbnail.is_file():
-                                st.image(str(fallback_thumbnail), width="stretch")
+            def readable_media_extension(candidate):
+                if os.path.isfile(candidate):
+                    return os.path.splitext(candidate.split("?", 1)[0])[1].lower()
+                parsed = urllib.parse.urlsplit(candidate)
+                if parsed.scheme not in {"http", "https"}:
+                    return ""
+                return os.path.splitext(parsed.path)[1].lower()
+
+            output_extensions = {
+                ".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp",
+                ".mp4", ".mov", ".m4v", ".avi", ".mkv", ".webm", ".mpeg", ".mpg",
+                ".mp3", ".wav", ".m4a", ".ogg", ".aac", ".flac",
+            }
+            recent_outputs = []
+            for item in dashboard_history:
+                output_path = str(item.get("path") or item.get("video_path") or "").strip()
+                output_extension = readable_media_extension(output_path)
+                if output_extension in output_extensions:
+                    recent_outputs.append((output_path, output_extension))
+                if len(recent_outputs) == 6:
+                    break
+
+            if recent_outputs:
+                output_columns = st.columns(2, gap="small")
+                for index, (output_path, output_extension) in enumerate(recent_outputs):
+                    with output_columns[index % 2]:
+                        with st.container(key=f"studio_creation_output_{index}", border=True):
+                            if output_extension in {".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp"}:
+                                st.image(output_path, width="stretch")
+                            elif output_extension in {
+                                ".mp4", ".mov", ".m4v", ".avi", ".mkv", ".webm", ".mpeg", ".mpg"
+                            }:
+                                st.video(output_path)
                             else:
-                                st.markdown(
-                                    "<div class='zd-recent-placeholder'>▶<small>VIDEO</small></div>",
-                                    unsafe_allow_html=True,
-                                )
-                        elif fallback_thumbnail.is_file():
-                            st.image(str(fallback_thumbnail), width="stretch")
-                        else:
-                            st.markdown(
-                                "<div class='zd-recent-placeholder'>✦<small>CREATION</small></div>",
-                                unsafe_allow_html=True,
-                            )
-                        st.markdown(
-                            f"<div class='zd-creation-meta-line'><span class='zd-creation-tag' "
-                            f"title='{html_lib.escape(title_text, quote=True)}'><span class='zd-creation-type-icon' "
-                            f"aria-hidden='true'>{creation_icon}</span>{html_lib.escape(creation_label)}</span>"
-                            f"<small class='zd-creation-timestamp'>{html_lib.escape(display_timestamp)}</small></div>",
-                            unsafe_allow_html=True,
-                        )
-                        recent_actions = st.columns([0.68, 0.32], gap="small")
-                        with recent_actions[0]:
-                            if st.button(
-                                "Open",
-                                key=f"studio_recent_{index}",
-                                width="stretch",
-                                help="Open in My Creations",
-                            ):
-                                st.session_state["portfolio_return_sidebar_tab"] = "🚀 Zovix Mass Factory"
-                                st.session_state["studio_favorites_only"] = False
-                                _dashboard_go("portfolio")
-                        with recent_actions[1]:
-                            if st.button(
-                                "★" if favorite_key in favorite_keys else "☆",
-                                key=f"studio_favorite_{index}",
-                                help="Remove from favorites" if favorite_key in favorite_keys else "Add to favorites",
-                                width="stretch",
-                            ):
-                                if favorite_key in favorite_keys:
-                                    favorite_keys.remove(favorite_key)
-                                else:
-                                    favorite_keys.add(favorite_key)
-                                st.session_state["studio_favorite_keys"] = sorted(favorite_keys)
-                                st.rerun()
-            elif search_query or st.session_state.get("studio_favorites_only", False):
-                st.info("No creations match these filters.")
+                                st.audio(output_path)
+            elif dashboard_history:
+                st.info("No supported creations to preview yet.")
             else:
                 st.info("Your creations will appear here after you generate your first project.")
 
@@ -24279,8 +24164,6 @@ elif st.session_state["current_page"] == "studio":
             ]):
                 if st.button(label, key=f"studio_quick_action_{index}", width="stretch"):
                     _dashboard_go(action)
-    creations_columns = st.columns([0.20, 0.80], gap="small")
-    with creations_columns[1]:
         render_dashboard_creations()
 
     future_columns = st.columns([0.20, 0.80], gap="small")
