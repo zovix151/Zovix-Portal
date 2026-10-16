@@ -70,6 +70,10 @@ components.html(
                     margin-top: 0 !important;
                 }
                 html body [data-testid="stAppViewContainer"] section[data-testid="stMain"]
+                .block-container {
+                    padding-top: 3.5rem !important;
+                }
+                html body [data-testid="stAppViewContainer"] section[data-testid="stMain"]
                 > div[data-testid="stMainBlockContainer"] {
                     padding-top: 0 !important;
                     margin-top: 0 !important;
@@ -127,21 +131,30 @@ components.html(
             style.id = "zovix-workspace-top-spacing-v2";
             style.textContent = `
                 html body.zovix-full-width-workspace .stApp
-                [data-testid="stAppViewContainer"] > section[data-testid="stMain"],
+                [data-testid="stAppViewContainer"] > section[data-testid="stMain"] {
+                    margin-block-start: 0 !important;
+                    padding-block-start: 0 !important;
+                }
                 html body.zovix-full-width-workspace .stApp
                 [data-testid="stAppViewContainer"] > section[data-testid="stMain"]
-                > div[data-testid="stMainBlockContainer"],
+                > div[data-testid="stMainBlockContainer"] {
+                    margin-block-start: 0 !important;
+                    padding-block-start: 0 !important;
+                }
                 html body.zovix-full-width-workspace .stApp
                 [data-testid="stAppViewContainer"] > section[data-testid="stMain"]
                 > div[data-testid="stMainBlockContainer"] > [data-testid="stVerticalBlock"],
                 html body.zovix-full-width-workspace .stApp
                 [data-testid="stAppViewContainer"] > section[data-testid="stMain"]
-                > div[data-testid="stMainBlockContainer"] > [data-testid="stVerticalBlock"] > [data-testid="stElementContainer"]:first-child,
+                > div[data-testid="stMainBlockContainer"] > [data-testid="stVerticalBlock"] > [data-testid="stElementContainer"]:first-child {
+                    margin-block-start: 0 !important;
+                    padding-block-start: 0 !important;
+                }
                 html body.zovix-full-width-workspace .stApp
                 [data-testid="stAppViewContainer"] > section[data-testid="stMain"]
                 > div[data-testid="stMainBlockContainer"] .block-container {
                     margin-block-start: 0 !important;
-                    padding-block-start: 0 !important;
+                    padding-block-start: 3.5rem !important;
                 }
             `;
             host.document.head.appendChild(style);
@@ -150,7 +163,7 @@ components.html(
         if (!isMobile || !viewport) return;
 
         const desktopWidth = 1440;
-        const responsivePages = new Set(["landing", "studio", "studio_mode", "ghost_engine"]);
+        const responsivePages = new Set(["landing", "ghost_engine"]);
         const workspacePages = new Set([
             "studio", "studio_mode", "payments", "profile", "scheduler",
             "subusers", "factory", "portfolio", "tutorials", "ghost_engine",
@@ -12202,7 +12215,7 @@ def run_upscaler_mode():
         section[data-testid="stMain"]:has(.upscaler-design-root) [data-testid="stButton"] button,
         section[data-testid="stMain"]:has(.upscaler-design-root) [data-testid="stDownloadButton"] button { min-height:42px !important; border-radius:9px !important; font:700 12px 'Inter',Arial,sans-serif !important; }
         section[data-testid="stMain"]:has(.upscaler-design-root) .st-key-us_upscale_btn button { color:#fff !important; background:linear-gradient(105deg,#08b9d4,#6656e9) !important; border:0 !important; box-shadow:0 5px 14px rgba(73,112,221,.16) !important; }
-        .upscaler-hero { box-sizing:border-box; min-height:162px; display:flex; flex-direction:column; align-items:center; justify-content:center; margin:0 0 18px; padding:20px; text-align:center; border:1px solid #e4eafa; border-radius:14px; background:linear-gradient(112deg,#e6fbff 0%,#f5f7ff 54%,#f4eaff 100%); }
+        .upscaler-hero { box-sizing:border-box; min-height:162px; display:flex; flex-direction:column; align-items:center; justify-content:center; margin:12px 0 18px; padding:20px; overflow:visible; text-align:center; border:1px solid #e4eafa; border-radius:14px; background:linear-gradient(112deg,#e6fbff 0%,#f5f7ff 54%,#f4eaff 100%); }
         .upscaler-hero .badge { padding:6px 14px; border:1px solid #d8dff8; border-radius:20px; color:#6255dc; background:#ffffffb8; font:750 10px 'Inter',Arial,sans-serif; letter-spacing:1px; }
         .upscaler-hero h1 { margin:8px 0 2px; color:#18375e !important; font:800 clamp(27px,4vw,38px)/1.2 'Inter',Arial,sans-serif !important; }
         .upscaler-hero h1 span { color:#347dea !important; }
@@ -13305,7 +13318,7 @@ def run_video_editor_mode():
             background: #000000 !important;
             border-radius: 12px !important;
             border: 1px solid rgba(255,255,255,0.04) !important;
-            overflow: hidden !important;
+            overflow: visible !important;
         }
         
         /* ============================================
@@ -16308,7 +16321,7 @@ def get_premium_theme_css():
         margin: 0px !important;
     }
     .block-container {
-        padding-top: 0 !important;
+        padding-top: 3.5rem !important;
         padding-bottom: 2rem !important;
         padding-left: 2rem !important;
         padding-right: 2rem !important;
@@ -16781,7 +16794,7 @@ def get_premium_theme_css():
         .photo-slide-item img { height: 150px !important; }
     }
     @media (max-width: 768px) {
-        .block-container { padding-left: 0.75rem !important; padding-right: 0.75rem !important; padding-top: 0 !important; }
+        .block-container { padding-left: 0.75rem !important; padding-right: 0.75rem !important; padding-top: 3.5rem !important; }
         [data-testid="stSidebar"] { min-width: 0 !important; max-width: 100% !important; }
         [data-testid="stSidebar"] .stButton button { font-size: 12px !important; padding: 8px 10px !important; min-height: 42px !important; }
         .main-header { flex-wrap: wrap !important; gap: 10px !important; padding: 8px 0 12px 0 !important; }
@@ -17302,7 +17315,7 @@ elif st.session_state["current_page"] == "studio_mode":
             align-items: center !important;
             justify-content: center !important;
             gap: 8px !important;
-            overflow: hidden !important;
+            overflow: visible !important;
             padding: 36px clamp(20px, 5vw, 64px) !important;
             border: 0 !important;
             border-radius: 0 !important;
@@ -17427,7 +17440,7 @@ elif st.session_state["current_page"] == "studio_mode":
             max-width: none !important;
             box-sizing: border-box !important;
             margin-inline: 0 !important;
-            padding: 1.25rem clamp(16px, 2vw, 32px) 2rem !important;
+            padding: 3.5rem clamp(16px, 2vw, 32px) 2rem !important;
         }
         section[data-testid="stMain"] .block-container,
         section[data-testid="stMain"] .block-container * {
@@ -17489,7 +17502,7 @@ elif st.session_state["current_page"] == "studio_mode":
             section[data-testid="stMain"] .block-container {
                 width: 100% !important;
                 max-width: none !important;
-                padding: 1rem 12px 1.5rem !important;
+                padding: 3.5rem 12px 1.5rem !important;
             }
             section[data-testid="stMain"] .block-container [data-testid="stHorizontalBlock"] {
                 flex-wrap: wrap !important;
@@ -17636,7 +17649,7 @@ elif st.session_state["current_page"] == "payments":
         }
         section[data-testid="stMain"] .block-container {
             max-width: 1480px !important;
-            padding: 1.25rem clamp(20px, 3vw, 48px) 2.5rem !important;
+            padding: 3.5rem clamp(20px, 3vw, 48px) 2.5rem !important;
             margin: 0 auto !important;
         }
         .payment-page-hero {
@@ -17892,7 +17905,7 @@ elif st.session_state["current_page"] == "profile":
             width: 100% !important;
             max-width: 1320px !important;
             margin: 0 auto !important;
-            padding: 1.25rem clamp(16px, 3vw, 42px) 2.5rem !important;
+            padding: 3.5rem clamp(16px, 3vw, 42px) 2.5rem !important;
         }
         .profile-page-hero {
             display: flex;
@@ -18348,7 +18361,7 @@ elif st.session_state["current_page"] in {"scheduler", "subusers", "factory", "p
                 width: 100% !important;
                 max-width: 1440px !important;
                 margin: 0 auto !important;
-                padding: 1.25rem clamp(20px, 2.5vw, 36px) 2.5rem !important;
+                padding: 3.5rem clamp(20px, 2.5vw, 36px) 2.5rem !important;
             }
             .standalone-hero {
                 min-height: 142px;
@@ -19144,7 +19157,7 @@ elif st.session_state["current_page"] == "studio":
 
         /* GLOBAL */
         .stApp { font-family: 'Inter', sans-serif !important; color: #f8fafc !important; background: #06070a !important; }
-        .block-container { padding-top: 0 !important; }
+        .block-container { padding-top: 3.5rem !important; }
 
         /* HEADINGS */
         h1, h2, h3, h4, h5, h6 {
@@ -22340,7 +22353,7 @@ elif st.session_state["current_page"] == "studio":
         .st-key-studio_hero_container .zd-hero-kicker { color:#536783; font-size:11px; }
         .st-key-studio_hero_container .zd-hero p { color:#334865; font-size:11px; line-height:1.55; }
         .st-key-studio_hero_container .zd-hero { min-height:148px; }
-        .st-key-studio_engine_header { margin-top:0 !important; }
+        .st-key-studio_engine_header { margin-top:12px !important; }
         .st-key-studio_engine_header [data-testid="stVerticalBlock"] { gap:0 !important; }
         .st-key-studio_engine_header .zd-section-head { margin:6px 0 8px !important; }
         .st-key-studio_hero_prompt_form {
@@ -24902,9 +24915,12 @@ if st.session_state.get("current_page") == "studio_mode":
         )
     st.markdown("""
     <style>
-        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) > div[data-testid="stMainBlockContainer"],
-        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .block-container {
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) > div[data-testid="stMainBlockContainer"] {
             padding-top: 0 !important;
+            margin-top: 0 !important;
+        }
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .block-container {
+            padding-top: 3.5rem !important;
             margin-top: 0 !important;
         }
         section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn)
@@ -24915,17 +24931,19 @@ if st.session_state.get("current_page") == "studio_mode":
         .editor-header,
         section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn)
         .face-header {
-            margin-top: 0 !important;
+            margin-top: 12px !important;
         }
         @media (max-width: 768px) {
             section[data-testid="stMain"] .block-container {
                 width: 100% !important;
                 max-width: 100% !important;
-                padding: 12px !important;
+                padding: 3.5rem 12px 12px !important;
             }
-            section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) > div[data-testid="stMainBlockContainer"],
-            section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .block-container {
+            section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) > div[data-testid="stMainBlockContainer"] {
                 padding-top: 0 !important;
+            }
+            section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .block-container {
+                padding-top: 3.5rem !important;
             }
             section[data-testid="stMain"] .block-container [data-testid="stHorizontalBlock"] {
                 display: flex !important;
@@ -25075,15 +25093,15 @@ if st.session_state.get("current_page") == "studio_mode":
             width: 100% !important;
             max-width: 1520px !important;
             margin: 0 auto !important;
-            padding: 0 clamp(32px, 4vw, 56px) 30px !important;
+            padding: 3.5rem clamp(32px, 4vw, 56px) 30px !important;
         }
         section[data-testid="stMain"] .studio-mode-photo-hero.studio-mode-photo-hero,
         section[data-testid="stMain"] .cinematic-header.cinematic-header,
         section[data-testid="stMain"] .editor-header.editor-header,
         section[data-testid="stMain"] .face-header.face-header {
             min-height: clamp(260px, 26vw, 360px) !important;
-            margin: 0 0 22px !important;
-            overflow: hidden !important;
+            margin: 12px 0 22px !important;
+            overflow: visible !important;
             border: 1px solid rgba(255,255,255,.88) !important;
             border-radius: 24px !important;
             background-color: #dceafa !important;
@@ -25148,7 +25166,7 @@ if st.session_state.get("current_page") == "studio_mode":
         @media (max-width: 768px) {
             section[data-testid="stMain"] .block-container {
                 max-width: none !important;
-                padding: 0 22px 22px !important;
+                padding: 3.5rem 22px 22px !important;
             }
             section[data-testid="stMain"] .studio-mode-photo-hero.studio-mode-photo-hero,
             section[data-testid="stMain"] .cinematic-header.cinematic-header,
@@ -25239,11 +25257,11 @@ if st.session_state.get("current_page") == "studio_mode":
             border-radius: 999px !important;
         }
         section[data-testid="stMain"]:has(.face-header) > div[data-testid="stMainBlockContainer"] {
-            padding-top: 4px !important;
+            padding-top: 0 !important;
             margin-top: 0 !important;
         }
         section[data-testid="stMain"]:has(.face-header) .block-container {
-            padding-top: 4px !important;
+            padding-top: 3.5rem !important;
             margin-top: 0 !important;
         }
         section[data-testid="stMain"] .face-header.studio-mode-photo-hero--face {
@@ -25366,14 +25384,19 @@ if st.session_state.get("current_page") == "studio_mode":
             background: #f5f9fd !important;
             border-color: var(--engine-line) !important;
         }
-        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) > div[data-testid="stMainBlockContainer"],
-        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .block-container {
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) > div[data-testid="stMainBlockContainer"] {
             padding-top: 0 !important;
             margin-top: 0 !important;
         }
-        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn):has(.face-header) > div[data-testid="stMainBlockContainer"],
-        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn):has(.face-header) .block-container {
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .block-container {
+            padding-top: 3.5rem !important;
+            margin-top: 0 !important;
+        }
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn):has(.face-header) > div[data-testid="stMainBlockContainer"] {
             padding-top: 0 !important;
+        }
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn):has(.face-header) .block-container {
+            padding-top: 3.5rem !important;
         }
         section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) [data-testid="stElementContainer"]:has(.studio-mode-photo-hero--upscaler),
         section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) [data-testid="stElementContainer"]:has(.studio-mode-photo-hero--voice) {
@@ -25387,7 +25410,8 @@ if st.session_state.get("current_page") == "studio_mode":
         section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .upscaler-hero {
             box-sizing: border-box !important;
             min-height: 234px !important;
-            margin: 0 0 18px !important;
+            margin: 12px 0 18px !important;
+            overflow: visible !important;
             border-radius: 14px !important;
             transform: none !important;
             font-family: 'Inter', Arial, sans-serif !important;
@@ -25481,7 +25505,7 @@ if st.session_state.get("current_page") == "studio_mode":
         section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .block-container {
             padding-left: clamp(32px, 4vw, 56px) !important;
             padding-right: clamp(32px, 4vw, 56px) !important;
-            padding-top: 0 !important;
+            padding-top: 3.5rem !important;
             margin-top: 0 !important;
         }
         section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) > div[data-testid="stMainBlockContainer"] {
@@ -25502,6 +25526,7 @@ if st.session_state.get("current_page") == "studio_mode":
             section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .block-container {
                 padding-left: 22px !important;
                 padding-right: 22px !important;
+                padding-top: 3.5rem !important;
             }
         }
         @media (max-width: 480px) {
