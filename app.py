@@ -71,7 +71,7 @@ components.html(
                 }
                 html body [data-testid="stAppViewContainer"] section[data-testid="stMain"]
                 .block-container {
-                    padding-top: 3.5rem !important;
+                    padding-top: 1rem !important;
                 }
                 html body [data-testid="stAppViewContainer"] section[data-testid="stMain"]
                 > div[data-testid="stMainBlockContainer"] {
@@ -154,7 +154,12 @@ components.html(
                 [data-testid="stAppViewContainer"] > section[data-testid="stMain"]
                 > div[data-testid="stMainBlockContainer"] .block-container {
                     margin-block-start: 0 !important;
-                    padding-block-start: 3.5rem !important;
+                    padding-block-start: 1rem !important;
+                }
+                html body.zovix-full-width-workspace .stApp
+                [data-testid="stAppViewContainer"] > section[data-testid="stMain"]:has(.st-key-studio_hero_container)
+                > div[data-testid="stMainBlockContainer"] .block-container {
+                    padding-block-start: 0.5rem !important;
                 }
             `;
             host.document.head.appendChild(style);
@@ -16321,7 +16326,7 @@ def get_premium_theme_css():
         margin: 0px !important;
     }
     .block-container {
-        padding-top: 3.5rem !important;
+        padding-top: 1rem !important;
         padding-bottom: 2rem !important;
         padding-left: 2rem !important;
         padding-right: 2rem !important;
@@ -16794,7 +16799,7 @@ def get_premium_theme_css():
         .photo-slide-item img { height: 150px !important; }
     }
     @media (max-width: 768px) {
-        .block-container { padding-left: 0.75rem !important; padding-right: 0.75rem !important; padding-top: 3.5rem !important; }
+        .block-container { padding-left: 0.75rem !important; padding-right: 0.75rem !important; padding-top: 1rem !important; }
         [data-testid="stSidebar"] { min-width: 0 !important; max-width: 100% !important; }
         [data-testid="stSidebar"] .stButton button { font-size: 12px !important; padding: 8px 10px !important; min-height: 42px !important; }
         .main-header { flex-wrap: wrap !important; gap: 10px !important; padding: 8px 0 12px 0 !important; }
@@ -17440,7 +17445,7 @@ elif st.session_state["current_page"] == "studio_mode":
             max-width: none !important;
             box-sizing: border-box !important;
             margin-inline: 0 !important;
-            padding: 3.5rem clamp(16px, 2vw, 32px) 2rem !important;
+            padding: 1rem clamp(16px, 2vw, 32px) 2rem !important;
         }
         section[data-testid="stMain"] .block-container,
         section[data-testid="stMain"] .block-container * {
@@ -17502,7 +17507,7 @@ elif st.session_state["current_page"] == "studio_mode":
             section[data-testid="stMain"] .block-container {
                 width: 100% !important;
                 max-width: none !important;
-                padding: 3.5rem 12px 1.5rem !important;
+                padding: 1rem 12px 1.5rem !important;
             }
             section[data-testid="stMain"] .block-container [data-testid="stHorizontalBlock"] {
                 flex-wrap: wrap !important;
@@ -17649,7 +17654,7 @@ elif st.session_state["current_page"] == "payments":
         }
         section[data-testid="stMain"] .block-container {
             max-width: 1480px !important;
-            padding: 3.5rem clamp(20px, 3vw, 48px) 2.5rem !important;
+            padding: 1rem clamp(20px, 3vw, 48px) 2.5rem !important;
             margin: 0 auto !important;
         }
         .payment-page-hero {
@@ -17905,7 +17910,7 @@ elif st.session_state["current_page"] == "profile":
             width: 100% !important;
             max-width: 1320px !important;
             margin: 0 auto !important;
-            padding: 3.5rem clamp(16px, 3vw, 42px) 2.5rem !important;
+            padding: 1rem clamp(16px, 3vw, 42px) 2.5rem !important;
         }
         .profile-page-hero {
             display: flex;
@@ -18361,7 +18366,7 @@ elif st.session_state["current_page"] in {"scheduler", "subusers", "factory", "p
                 width: 100% !important;
                 max-width: 1440px !important;
                 margin: 0 auto !important;
-                padding: 3.5rem clamp(20px, 2.5vw, 36px) 2.5rem !important;
+                padding: 1rem clamp(20px, 2.5vw, 36px) 2.5rem !important;
             }
             .standalone-hero {
                 min-height: 142px;
@@ -19157,7 +19162,7 @@ elif st.session_state["current_page"] == "studio":
 
         /* GLOBAL */
         .stApp { font-family: 'Inter', sans-serif !important; color: #f8fafc !important; background: #06070a !important; }
-        .block-container { padding-top: 3.5rem !important; }
+        .block-container { padding-top: 1rem !important; }
 
         /* HEADINGS */
         h1, h2, h3, h4, h5, h6 {
@@ -24920,7 +24925,7 @@ if st.session_state.get("current_page") == "studio_mode":
             margin-top: 0 !important;
         }
         section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .block-container {
-            padding-top: 3.5rem !important;
+            padding-top: 1rem !important;
             margin-top: 0 !important;
         }
         section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn)
@@ -24937,13 +24942,13 @@ if st.session_state.get("current_page") == "studio_mode":
             section[data-testid="stMain"] .block-container {
                 width: 100% !important;
                 max-width: 100% !important;
-                padding: 3.5rem 12px 12px !important;
+                padding: 1rem 12px 12px !important;
             }
             section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) > div[data-testid="stMainBlockContainer"] {
                 padding-top: 0 !important;
             }
             section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .block-container {
-                padding-top: 3.5rem !important;
+                padding-top: 1rem !important;
             }
             section[data-testid="stMain"] .block-container [data-testid="stHorizontalBlock"] {
                 display: flex !important;
@@ -25093,7 +25098,7 @@ if st.session_state.get("current_page") == "studio_mode":
             width: 100% !important;
             max-width: 1520px !important;
             margin: 0 auto !important;
-            padding: 3.5rem clamp(32px, 4vw, 56px) 30px !important;
+            padding: 1rem clamp(32px, 4vw, 56px) 30px !important;
         }
         section[data-testid="stMain"] .studio-mode-photo-hero.studio-mode-photo-hero,
         section[data-testid="stMain"] .cinematic-header.cinematic-header,
@@ -25166,7 +25171,7 @@ if st.session_state.get("current_page") == "studio_mode":
         @media (max-width: 768px) {
             section[data-testid="stMain"] .block-container {
                 max-width: none !important;
-                padding: 3.5rem 22px 22px !important;
+                padding: 1rem 22px 22px !important;
             }
             section[data-testid="stMain"] .studio-mode-photo-hero.studio-mode-photo-hero,
             section[data-testid="stMain"] .cinematic-header.cinematic-header,
@@ -25261,7 +25266,7 @@ if st.session_state.get("current_page") == "studio_mode":
             margin-top: 0 !important;
         }
         section[data-testid="stMain"]:has(.face-header) .block-container {
-            padding-top: 3.5rem !important;
+            padding-top: 1rem !important;
             margin-top: 0 !important;
         }
         section[data-testid="stMain"] .face-header.studio-mode-photo-hero--face {
@@ -25389,14 +25394,14 @@ if st.session_state.get("current_page") == "studio_mode":
             margin-top: 0 !important;
         }
         section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .block-container {
-            padding-top: 3.5rem !important;
+            padding-top: 1rem !important;
             margin-top: 0 !important;
         }
         section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn):has(.face-header) > div[data-testid="stMainBlockContainer"] {
             padding-top: 0 !important;
         }
         section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn):has(.face-header) .block-container {
-            padding-top: 3.5rem !important;
+            padding-top: 1rem !important;
         }
         section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) [data-testid="stElementContainer"]:has(.studio-mode-photo-hero--upscaler),
         section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) [data-testid="stElementContainer"]:has(.studio-mode-photo-hero--voice) {
@@ -25505,7 +25510,7 @@ if st.session_state.get("current_page") == "studio_mode":
         section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .block-container {
             padding-left: clamp(32px, 4vw, 56px) !important;
             padding-right: clamp(32px, 4vw, 56px) !important;
-            padding-top: 3.5rem !important;
+            padding-top: 1rem !important;
             margin-top: 0 !important;
         }
         section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) > div[data-testid="stMainBlockContainer"] {
@@ -25526,7 +25531,7 @@ if st.session_state.get("current_page") == "studio_mode":
             section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .block-container {
                 padding-left: 22px !important;
                 padding-right: 22px !important;
-                padding-top: 3.5rem !important;
+                padding-top: 1rem !important;
             }
         }
         @media (max-width: 480px) {
