@@ -60,6 +60,33 @@ components.html(
                 && Math.min(screenWidth, screenHeight) <= 900);
         const viewport = host.document.querySelector('meta[name="viewport"]');
 
+        if (!host.document.getElementById("zovix-shared-top-spacing")) {
+            const style = host.document.createElement("style");
+            style.id = "zovix-shared-top-spacing";
+            style.textContent = `
+                html body [data-testid="stAppViewContainer"] section[data-testid="stMain"] {
+                    padding-top: 0 !important;
+                    margin-top: 0 !important;
+                }
+                html body [data-testid="stAppViewContainer"] section[data-testid="stMain"]
+                > div[data-testid="stMainBlockContainer"] {
+                    padding-top: 4px !important;
+                    margin-top: 0 !important;
+                }
+                section[data-testid="stMain"] > div[data-testid="stMainBlockContainer"]
+                > [data-testid="stVerticalBlock"]
+                > [data-testid="stElementContainer"]:first-child:has(> iframe[data-testid="stIFrame"]),
+                section[data-testid="stMain"] > div[data-testid="stMainBlockContainer"]
+                > [data-testid="stVerticalBlock"]
+                > [data-testid="stElementContainer"]:has(
+                    > [data-testid="stMarkdown"] [data-testid="stMarkdownContainer"] > style:only-child
+                ) {
+                    display: none !important;
+                }
+            `;
+            host.document.head.appendChild(style);
+        }
+
         if (!isMobile || !viewport) return;
 
         const desktopWidth = 1440;
