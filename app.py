@@ -63,6 +63,7 @@ components.html(
         if (!isMobile || !viewport) return;
 
         const desktopWidth = 1440;
+        const responsivePages = new Set(["landing", "studio", "studio_mode", "ghost_engine"]);
         const workspacePages = new Set([
             "studio", "studio_mode", "payments", "profile", "scheduler",
             "subusers", "factory", "portfolio", "tutorials", "ghost_engine",
@@ -89,7 +90,7 @@ components.html(
         const getPage = () => new URLSearchParams(host.location.search).get("page") || "landing";
         const updateViewport = () => {
             const page = getPage();
-            if (page === "landing") {
+            if (responsivePages.has(page)) {
                 if (host.__zovixMobileLayoutMode !== "responsive") {
                     const canvasStyles = host.document.getElementById("zovix-mobile-desktop-canvas");
                     if (canvasStyles) canvasStyles.remove();
@@ -14680,6 +14681,45 @@ def show_auth_modal(mode="login"):
             background: transparent !important;
             border: 0 !important;
         }
+        .stDialog > div:has(.zovix-auth-loading-overlay),
+        .stDialog section[role="dialog"]:has(.zovix-auth-loading-overlay) {
+            overflow: visible !important;
+        }
+        .zovix-auth-loading-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 9998;
+            display: grid;
+            place-items: center;
+            background: rgba(15, 23, 42, .28);
+            pointer-events: all;
+        }
+        .zovix-auth-loading-card {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            padding: 18px 22px;
+            border: 1px solid #e4e8ed !important;
+            border-radius: 14px !important;
+            background: #fff !important;
+            box-shadow: 0 16px 48px rgba(18, 27, 38, .2) !important;
+        }
+        .zovix-auth-loading-wheel {
+            width: 30px;
+            height: 30px;
+            flex: 0 0 30px;
+            border: 3px solid #dbe8e7;
+            border-top-color: #13aa9e;
+            border-radius: 50%;
+            animation: zovix-auth-spin .75s linear infinite;
+        }
+        .zovix-auth-loading-message {
+            color: #263638;
+            font: 650 13px/1.4 'Inter', sans-serif;
+        }
+        @keyframes zovix-auth-spin {
+            to { transform: rotate(360deg); }
+        }
         .zovix-auth-photo {
             position: relative;
             min-height: 530px;
@@ -14739,6 +14779,16 @@ def show_auth_modal(mode="login"):
         </style>
     """, unsafe_allow_html=True)
 
+    def show_auth_loading(message):
+        loading_placeholder = st.empty()
+        loading_placeholder.markdown(
+            f"<div class='zovix-auth-loading-overlay' role='status' aria-live='polite'>"
+            f"<div class='zovix-auth-loading-card'><span class='zovix-auth-loading-wheel' aria-hidden='true'></span>"
+            f"<span class='zovix-auth-loading-message'>{html_lib.escape(message)}</span></div></div>",
+            unsafe_allow_html=True,
+        )
+        return loading_placeholder
+
     form_col, photo_col = st.columns([0.94, 1.06], gap="large")
     with form_col:
         st.markdown(
@@ -14771,6 +14821,7 @@ def show_auth_modal(mode="login"):
                     if not username_val or not password_val:
                         st.error("Please enter both username and password.")
                     else:
+                        loading_placeholder = show_auth_loading("Signing in...")
                         auth_result, twofa_enabled = authenticate_user_db(username_val, password_val)
                         if auth_result:
                             username_val = resolve_account_username(username_val) or normalize_account_username(username_val)
@@ -14810,8 +14861,10 @@ def show_auth_modal(mode="login"):
                                 st.rerun()
                         elif auth_result is None:
                             st.error("Login service is unavailable. Please check the database connection and try again.")
+                            loading_placeholder.empty()
                         else:
                             st.error("❌ Invalid username or password. Please try again.")
+                            loading_placeholder.empty()
 
             with col_register:
                 if st.button("Register", key="auth_modal_register_btn", width="stretch"):
@@ -14820,33 +14873,36 @@ def show_auth_modal(mode="login"):
                     elif len(password_val) < 4:
                         st.error("Password must be at least 4 characters long.")
                     else:
-                        registration_result = register_user_db(username_val, password_val)
-                        if registration_result:
-                            username_val = normalize_account_username(username_val)
-                            st.session_state["is_logged_in"] = True
-                            st.session_state["logged_user"] = username_val
-                            st.session_state["xp_points"] = 0
-                            st.session_state["creator_level"] = 1
-                            st.session_state["history_renders"] = []
-                            st.session_state["face_video_history"] = []
-                            st.session_state["current_page"] = "studio"
-                            st.query_params["page"] = "studio"
-                            st.session_state["user_credits"] = 0
-                            st.session_state["credit_balance"] = 0
-                            preload_logged_in_user_data(username_val)
+                            loading_placeholder = show_auth_loading("Creating your account...")
+                            registration_result = register_user_db(username_val, password_val)
+                            if registration_result:
+                                username_val = normalize_account_username(username_val)
+                                st.session_state["is_logged_in"] = True
+                                st.session_state["logged_user"] = username_val
+                                st.session_state["xp_points"] = 0
+                                st.session_state["creator_level"] = 1
+                                st.session_state["history_renders"] = []
+                                st.session_state["face_video_history"] = []
+                                st.session_state["current_page"] = "studio"
+                                st.query_params["page"] = "studio"
+                                st.session_state["user_credits"] = 0
+                                st.session_state["credit_balance"] = 0
+                                preload_logged_in_user_data(username_val)
 
-                            if st.session_state.get("auth_redirect_mode"):
-                                st.session_state["studio_active_mode"] = st.session_state["auth_redirect_mode"]
-                                st.session_state["current_workspace_mode"] = st.session_state["auth_redirect_mode"]
+                                if st.session_state.get("auth_redirect_mode"):
+                                    st.session_state["studio_active_mode"] = st.session_state["auth_redirect_mode"]
+                                    st.session_state["current_workspace_mode"] = st.session_state["auth_redirect_mode"]
 
-                            check_and_refresh_subscription(username_val)
-                            gdpr_manager.set_consent(username_val)
+                                check_and_refresh_subscription(username_val)
+                                gdpr_manager.set_consent(username_val)
 
-                            st.rerun()
-                        elif registration_result is None:
-                            st.error("Registration service is unavailable. Please check the database connection and try again.")
-                        else:
-                            st.error("Registration failed. Please try a different username.")
+                                st.rerun()
+                            elif registration_result is None:
+                                st.error("Registration service is unavailable. Please check the database connection and try again.")
+                                loading_placeholder.empty()
+                            else:
+                                st.error("Registration failed. Please try a different username.")
+                                loading_placeholder.empty()
 
             st.markdown(
                 "<div style='text-align:center; font-size:10px; color:#7b8491; margin: 18px 0 12px;'>OR CONTINUE WITH</div>",
@@ -23077,9 +23133,58 @@ elif st.session_state["current_page"] == "studio":
             background:#fff;
         }
         @media (max-width:760px) {
-            section[data-testid="stMain"] .block-container { padding:8px 12px 20px !important; }
+            section[data-testid="stMain"] .block-container { padding:4px 12px 20px !important; }
             .st-key-studio_hero_container { min-height:0; padding:14px 12px 12px !important; border-radius:16px; }
             .st-key-studio_hero_container .zd-hero { min-height:124px; padding:0; }
+            section[data-testid="stMain"]:has(.st-key-studio_hero_container)
+            [data-testid="stHorizontalBlock"]:has(.st-key-studio_hero_container) {
+                display:flex !important;
+                flex-direction:column !important;
+                flex-wrap:nowrap !important;
+                align-items:stretch !important;
+            }
+            section[data-testid="stMain"]:has(.st-key-studio_hero_container)
+            [data-testid="stHorizontalBlock"]:has(.st-key-studio_hero_container)
+            > [data-testid="stColumn"] {
+                box-sizing:border-box !important;
+                flex:1 1 100% !important;
+                width:100% !important;
+                min-width:0 !important;
+                max-width:100% !important;
+            }
+            section[data-testid="stMain"]:has(.st-key-studio_hero_container)
+            [data-testid="stHorizontalBlock"]:has(.st-key-studio_hero_container)
+            > [data-testid="stColumn"]:has(.st-key-studio_hero_container) { order:1 !important; }
+            section[data-testid="stMain"]:has(.st-key-studio_hero_container)
+            [data-testid="stHorizontalBlock"]:has(.st-key-studio_hero_container)
+            > [data-testid="stColumn"]:has(.st-key-studio_credits_panel) { order:2 !important; }
+            section[data-testid="stMain"]:has(.st-key-studio_hero_container)
+            [data-testid="stHorizontalBlock"]:has(.st-key-studio_hero_container)
+            > [data-testid="stColumn"]:has(.st-key-studio_sidebar_action_0) { order:3 !important; }
+            section[data-testid="stMain"]:has(.st-key-studio_hero_container)
+            [data-testid="stHorizontalBlock"]:has(.zd-upcoming-section)
+            > [data-testid="stColumn"]:not(:has(.zd-upcoming-section)),
+            section[data-testid="stMain"]:has(.st-key-studio_hero_container)
+            [data-testid="stHorizontalBlock"]:has(#studio-future)
+            > [data-testid="stColumn"]:not(:has(#studio-future)),
+            section[data-testid="stMain"]:has(.st-key-studio_hero_container)
+            [data-testid="stHorizontalBlock"]:has(.zd-community-section)
+            > [data-testid="stColumn"]:not(:has(.zd-community-section)) {
+                display:none !important;
+            }
+            section[data-testid="stMain"]:has(.st-key-studio_hero_container)
+            [data-testid="stHorizontalBlock"]:has(.zd-upcoming-section)
+            > [data-testid="stColumn"]:has(.zd-upcoming-section),
+            section[data-testid="stMain"]:has(.st-key-studio_hero_container)
+            [data-testid="stHorizontalBlock"]:has(#studio-future)
+            > [data-testid="stColumn"]:has(#studio-future),
+            section[data-testid="stMain"]:has(.st-key-studio_hero_container)
+            [data-testid="stHorizontalBlock"]:has(.zd-community-section)
+            > [data-testid="stColumn"]:has(.zd-community-section) {
+                flex:1 1 100% !important;
+                width:100% !important;
+                max-width:100% !important;
+            }
             .zd-engine-photo-card {
                 grid-template-rows:auto 72px;
                 border-radius:13px;
@@ -23099,6 +23204,16 @@ elif st.session_state["current_page"] == "studio":
             .zd-community-creation { scroll-snap-align:start; }
             .zd-community-creation img { height:112px; }
             .zd-community-creator-name { display:block; }
+            section[data-testid="stMain"]:has(.st-key-studio_hero_container)
+            [data-testid="stMainBlockContainer"] > [data-testid="stVerticalBlock"]
+            > [data-testid="stElementContainer"]:first-child:has(> iframe[data-testid="stIFrame"]),
+            section[data-testid="stMain"]:has(.st-key-studio_hero_container)
+            [data-testid="stMainBlockContainer"] > [data-testid="stVerticalBlock"]
+            > [data-testid="stElementContainer"]:has(
+                > [data-testid="stMarkdown"] [data-testid="stMarkdownContainer"] > style:only-child
+            ) {
+                display:none !important;
+            }
         }
         </style>
         """,
