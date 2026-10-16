@@ -2781,7 +2781,7 @@ class WorldClassLandingPage:
         )
 
         hero = (
-            f"<div class='zx-a zx-badge' style='{pos(160, 190, 306)}'><i class='zx-i'>auto_awesome</i><b>Next Gen AI Creative Platform</b>9 Powerful Engines. Endless Possibilities.</div>"
+            f"<div class='zx-a zx-badge' style='{pos(160, 190, 306)}'><i class='zx-i'>auto_awesome</i><b>Next Gen AI Creative Platform</b>12 Powerful Engines. Endless Possibilities.</div>"
             f"<h1 class='zx-a zx-h1' style='{pos(160, 216, 340)}'>Zovix AI Studio.<br>Every <span class='zx-grad'>Creative</span><br>Possibility.</h1>"
             f"<div class='zx-a zx-sub' style='{pos(160, 378, 390)}'>Create cinematic videos, characters, images, voices, designs and more — powered by specialized AI engines in one workspace.</div>"
             f"<div class='zx-a zx-cta' style='{pos(160, 465, 440)}'>"

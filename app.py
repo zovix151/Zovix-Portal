@@ -183,6 +183,17 @@ components.html(
                     box-sizing: border-box !important;
                     padding: 0.25rem !important;
                 }
+                html body [data-testid="stAppViewContainer"]:has(.st-key-studio_hero_container) {
+                    margin-block-start: 0 !important;
+                    padding-block-start: 0 !important;
+                }
+                html body.zovix-full-width-workspace .stApp
+                [data-testid="stAppViewContainer"]:has(.st-key-studio_hero_container)
+                > section[data-testid="stMain"]
+                > div[data-testid="stMainBlockContainer"] .block-container {
+                    margin-block-start: 0 !important;
+                    padding-block-start: 0 !important;
+                }
                 html body.zovix-full-width-workspace .stApp
                 [data-testid="stAppViewContainer"] > section[data-testid="stMain"]
                 > div[data-testid="stMainBlockContainer"] .block-container {
@@ -23392,20 +23403,23 @@ elif st.session_state["current_page"] == "studio":
                 box-sizing:border-box !important;
                 align-self:stretch !important;
                 padding:12px 10px !important;
-                border:1px solid rgba(137,161,211,.14) !important;
+                border:1px solid #e2e8f0 !important;
+                border-right:1px solid #e2e8f0 !important;
                 border-radius:16px !important;
-                background:linear-gradient(180deg,#111b31,#0d1527) !important;
-                box-shadow:0 12px 30px rgba(13,26,52,.2) !important;
+                background:#f8fafc !important;
+                box-shadow:0 8px 22px rgba(15,23,42,.05) !important;
             }
             [data-testid="stHorizontalBlock"]:has(.st-key-studio_sidebar_action_0)
             > [data-testid="stColumn"]:has(.st-key-studio_sidebar_action_0) .zd-brand-name {
-                color:#f5f7ff !important;
+                color:#1e293b !important;
+                background:none !important;
+                -webkit-text-fill-color:#1e293b !important;
             }
             [data-testid="stHorizontalBlock"]:has(.st-key-studio_sidebar_action_0)
             > [data-testid="stColumn"]:has(.st-key-studio_sidebar_action_0) .zd-brand-sub,
             [data-testid="stHorizontalBlock"]:has(.st-key-studio_sidebar_action_0)
             > [data-testid="stColumn"]:has(.st-key-studio_sidebar_action_0) .studio-sidebar-section-label {
-                color:#95a4c1 !important;
+                color:#475569 !important;
             }
             [class*="st-key-studio_sidebar_action_"] [data-testid="stButton"] > button,
             [class*="st-key-studio_library_"] [data-testid="stButton"] > button,
@@ -23413,8 +23427,8 @@ elif st.session_state["current_page"] == "studio":
             .st-key-studio_sidebar_ghost_engine [data-testid="stButton"] > button {
                 min-height:36px !important;
                 justify-content:flex-start !important;
-                padding:0 10px !important;
-                color:#c7d2e7 !important;
+                padding:8px 12px !important;
+                color:#1e293b !important;
                 border:0 !important;
                 border-left:3px solid transparent !important;
                 border-radius:0 9px 9px 0 !important;
@@ -23423,18 +23437,24 @@ elif st.session_state["current_page"] == "studio":
                 font:600 11px/1.3 'Inter',Arial,sans-serif !important;
                 text-align:left !important;
             }
+            [class*="st-key-studio_sidebar_action_"] [data-testid="stButton"] > button p,
+            [class*="st-key-studio_library_"] [data-testid="stButton"] > button p,
+            [class*="st-key-studio_resource_"] [data-testid="stButton"] > button p,
+            .st-key-studio_sidebar_ghost_engine [data-testid="stButton"] > button p {
+                color:inherit !important;
+            }
             [class*="st-key-studio_sidebar_action_"] [data-testid="stButton"] > button:hover,
             [class*="st-key-studio_library_"] [data-testid="stButton"] > button:hover,
             [class*="st-key-studio_resource_"] [data-testid="stButton"] > button:hover,
             .st-key-studio_sidebar_ghost_engine [data-testid="stButton"] > button:hover {
-                color:#fff !important;
-                border-left-color:#4f9cff !important;
-                background:rgba(89,127,205,.15) !important;
+                color:#0284c7 !important;
+                border-left-color:#06b6d4 !important;
+                background:#e0f2fe !important;
             }
             .st-key-studio_sidebar_action_0 [data-testid="stButton"] > button {
-                color:#fff !important;
-                border-left-color:#55b8ff !important;
-                background:linear-gradient(90deg,rgba(72,135,232,.2),rgba(72,135,232,.04)) !important;
+                color:#1e293b !important;
+                border-left-color:#06b6d4 !important;
+                background:#ecfeff !important;
                 font-weight:800 !important;
             }
             [data-testid="stHorizontalBlock"]:has(.st-key-studio_sidebar_action_0)
