@@ -71,7 +71,7 @@ components.html(
                 }
                 html body [data-testid="stAppViewContainer"] section[data-testid="stMain"]
                 > div[data-testid="stMainBlockContainer"] {
-                    padding-top: 4px !important;
+                    padding-top: 0 !important;
                     margin-top: 0 !important;
                 }
                 section[data-testid="stMain"] > div[data-testid="stMainBlockContainer"]
@@ -120,6 +120,31 @@ components.html(
         if (!host.__zovixWorkspaceWidthPoll) {
             host.__zovixWorkspaceWidthPoll = host.setInterval(updateWorkspaceWidth, 250);
             host.addEventListener("popstate", updateWorkspaceWidth);
+        }
+
+        if (!host.document.getElementById("zovix-workspace-top-spacing-v2")) {
+            const style = host.document.createElement("style");
+            style.id = "zovix-workspace-top-spacing-v2";
+            style.textContent = `
+                html body.zovix-full-width-workspace .stApp
+                [data-testid="stAppViewContainer"] > section[data-testid="stMain"],
+                html body.zovix-full-width-workspace .stApp
+                [data-testid="stAppViewContainer"] > section[data-testid="stMain"]
+                > div[data-testid="stMainBlockContainer"],
+                html body.zovix-full-width-workspace .stApp
+                [data-testid="stAppViewContainer"] > section[data-testid="stMain"]
+                > div[data-testid="stMainBlockContainer"] > [data-testid="stVerticalBlock"],
+                html body.zovix-full-width-workspace .stApp
+                [data-testid="stAppViewContainer"] > section[data-testid="stMain"]
+                > div[data-testid="stMainBlockContainer"] > [data-testid="stVerticalBlock"] > [data-testid="stElementContainer"]:first-child,
+                html body.zovix-full-width-workspace .stApp
+                [data-testid="stAppViewContainer"] > section[data-testid="stMain"]
+                > div[data-testid="stMainBlockContainer"] .block-container {
+                    margin-block-start: 0 !important;
+                    padding-block-start: 0 !important;
+                }
+            `;
+            host.document.head.appendChild(style);
         }
 
         if (!isMobile || !viewport) return;
