@@ -349,11 +349,6 @@ def render_ghost_engine_studio(
                 help="GPT-4o optimizes the scene prompt; Flux creates the keyframe and Wan animates it.",
                 key="ghost_script",
             )
-            st.markdown(
-                "<p style='font:700 11px Inter,Arial,sans-serif;color:#64748b;margin:8px 0 2px'>"
-                "DIRECTOR CONTROLS</p>",
-                unsafe_allow_html=True,
-            )
             camera_column, lighting_column = st.columns(2, gap="medium")
             with camera_column:
                 camera_motion = st.selectbox(
@@ -361,9 +356,7 @@ def render_ghost_engine_studio(
                     list(_CAMERA_MOTIONS),
                     index=_CAMERA_MOTIONS.index("Orbit Left (360)"),
                     key="ghost_camera_motion",
-                    help="Choose the camera path for your scene.",
                 )
-                st.caption("Choose camera movement for your scene.")
             with lighting_column:
                 lighting_setup = st.selectbox(
                     "Lighting",
@@ -371,7 +364,6 @@ def render_ghost_engine_studio(
                     index=0,
                     key="ghost_lighting_setup",
                 )
-                st.caption("Set the mood with cinematic lighting.")
 
             atmosphere_column, action_column = st.columns(2, gap="medium")
             with atmosphere_column:
@@ -381,24 +373,15 @@ def render_ghost_engine_studio(
                     index=4,
                     key="ghost_atmosphere_fx",
                 )
-                st.caption("Add atmosphere and environmental effects.")
             with action_column:
                 character_action = st.selectbox(
                     "Character Action",
                     list(_CHARACTER_ACTION_OPTIONS),
                     index=0,
                     key="ghost_character_action",
-                    help=(
-                        "Expressive dialogue, facial expressions and shouting use LivePortrait refinement. "
-                        "Other actions use the fast image-to-video route."
-                    ),
                 )
-                st.caption("Define what the character will do.")
             if character_action != "None (Camera Motion Only)":
-                st.caption(
-                    "The selected action is sent directly to the hosted image-to-video model with the Flux keyframe. "
-                    "Hosted model usage may be billed."
-                )
+                st.caption("Hosted model usage may be billed.")
             if st.session_state.get("ghost_video_quality") not in GHOST_QUALITY_PROFILES:
                 st.session_state["ghost_video_quality"] = "Standard"
             quality_column, face_lock_column = st.columns(2, gap="medium")
@@ -408,16 +391,12 @@ def render_ghost_engine_studio(
                     list(GHOST_QUALITY_PROFILES),
                     index=0,
                     key="ghost_video_quality",
-                    help="Standard: 720p/30. HD: 1080p/30 with 2x enhancement.",
                 )
-                st.caption("Select the output quality for your video.")
             with face_lock_column:
                 face_lock = st.checkbox(
                     "Enable Face Lock",
                     key="ghost_face_lock_enabled",
-                    help="Use a reference face to guide the generated character's facial identity.",
                 )
-                st.caption("Keep the character's face consistent.")
                 face_reference = None
                 if face_lock:
                     face_reference = st.file_uploader(
@@ -426,11 +405,6 @@ def render_ghost_engine_studio(
                         key="ghost_face_reference",
                         help="Upload a clear, front-facing image. It guides the Flux keyframe and may incur model usage charges.",
                     )
-            quality_descriptions = {
-                "Standard": "720p · 30 FPS · fast render",
-                "HD": "1080p · 30 FPS · 2x enhancement · higher detail",
-            }
-            st.caption(quality_descriptions[quality])
             run_clicked = st.button(
                 "▶ Generate Story Video",
                 key="ghost_generate_master",
