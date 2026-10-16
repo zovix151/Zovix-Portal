@@ -1,4 +1,4 @@
-﻿"""Integrated Zovix Ghost Engine workspace page."""
+﻿"""Cinematic Studio page backed by the Ghost Engine pipeline."""
 
 from pathlib import Path
 
@@ -29,13 +29,23 @@ def render_ghost_engine_studio(
     refund_tokens_callback=None,
 ) -> None:
     """Render scene controls, pipeline progress, and the last master render."""
-    _, back_column = st.columns([0.82, 0.18], vertical_alignment="center")
+    brand_column, back_column = st.columns([0.74, 0.26], vertical_alignment="center")
+    with brand_column:
+        st.markdown(
+            """
+            <div class="ghost-engine-brand" aria-label="Zovix AI Studio">
+              <span class="ghost-engine-brand-mark">Z</span>
+              <span class="ghost-engine-brand-copy"><b>ZOVIX</b><small>AI STUDIO</small></span>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
     with back_column:
         if st.button(
             "← Back to Studio",
             key="ghost_engine_back_to_studio",
             type="secondary",
-            use_container_width=True,
+            width="content",
         ):
             st.session_state["current_page"] = "studio"
             st.query_params["page"] = "studio"
@@ -49,10 +59,11 @@ def render_ghost_engine_studio(
             padding-top: 0 !important;
             margin-top: 0 !important;
         }
-        section[data-testid="stMain"]:has(.st-key-ghost_engine_back_to_studio)
-        [data-testid="stMainBlockContainer"] [data-testid="stVerticalBlock"] > div:has(.st-key-ghost_engine_back_to_studio) {
-            margin-bottom: -22px !important;
-        }
+        .ghost-engine-brand { display:flex; align-items:center; gap:9px; min-height:42px; color:#163c68; font-family:'Inter',Arial,sans-serif; }
+        .ghost-engine-brand-mark { display:flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg,#16c6dc,#6959ed); color:#fff; font-size:24px; font-weight:850; box-shadow:0 4px 12px rgba(58,102,206,.2); }
+        .ghost-engine-brand-copy { display:flex; flex-direction:column; line-height:1; letter-spacing:.5px; }
+        .ghost-engine-brand-copy b { font-size:18px; font-weight:850; }
+        .ghost-engine-brand-copy small { margin-top:4px; color:#74869a; font-size:8px; font-weight:750; letter-spacing:2px; }
         .ghost-engine-hero {
             position: relative;
             isolation: isolate;
@@ -63,45 +74,46 @@ def render_ghost_engine_studio(
             width: 100%;
             max-width: 100%;
             min-width: 0;
-            min-height: 260px;
+            min-height: 234px;
             flex-direction: column;
-            align-items: center;
+            align-items: flex-start;
             justify-content: center;
             gap: 8px;
             overflow: hidden;
             margin-bottom: 18px;
-            padding: 36px clamp(20px, 5vw, 64px);
+            padding: 34px clamp(22px, 4vw, 54px);
             background:
-                linear-gradient(90deg, rgba(5,12,27,.76), rgba(5,12,27,.22) 58%, rgba(5,12,27,.08)),
-                url('/app/static/ghost_engine_cityscape.png') center 43% / cover no-repeat;
-            border: 1px solid rgba(255,255,255,.18);
-            border-radius: 30px;
-            box-shadow:
-                0 22px 54px rgba(4,12,28,.3),
-                inset 24px 0 34px -28px rgba(0,0,0,.82),
-                inset -24px 0 34px -28px rgba(0,0,0,.82);
-            text-align: center;
+                linear-gradient(90deg, rgba(12,43,83,.88) 0%, rgba(12,43,83,.7) 30%, rgba(12,43,83,.12) 72%, rgba(12,43,83,.02)),
+                url('/app/static/studio_cinematic_engine.webp') center 43% / cover no-repeat;
+            border: 1px solid rgba(255,255,255,.48);
+            border-radius: 14px;
+            box-shadow: 0 12px 30px rgba(32,77,126,.12);
+            text-align: left;
         }
         section[data-testid="stMain"] [data-testid="stHorizontalBlock"]:has(.st-key-ghost_engine_back_to_studio) {
             position: relative !important;
             z-index: 30 !important;
-            height: 0 !important;
-            margin: 0 !important;
+            height: auto !important;
+            margin: 2px 0 14px !important;
             overflow: visible !important;
-            pointer-events: none !important;
+            pointer-events: auto !important;
+        }
+        section[data-testid="stMain"]:has(.st-key-ghost_engine_back_to_studio)
+        [data-testid="stMainBlockContainer"] [data-testid="stVerticalBlock"] > div:has(.st-key-ghost_engine_back_to_studio) {
+            margin-bottom: -22px !important;
         }
         section[data-testid="stMain"] [data-testid="stColumn"]:has(.st-key-ghost_engine_back_to_studio) {
-            position: absolute !important;
-            top: 30px !important;
-            right: 18px !important;
-            flex: none !important;
-            width: 190px !important;
+            position: relative !important;
+            top: auto !important;
+            right: auto !important;
+            flex: 1 1 auto !important;
+            width: auto !important;
             min-width: 0 !important;
             pointer-events: auto !important;
         }
         section[data-testid="stMain"] [class*="st-key-ghost_engine_back_to_studio"] {
-            width: 100% !important;
-            margin: 0 !important;
+            width: fit-content !important;
+            margin: 0 0 0 auto !important;
         }
         .ghost-engine-hero::before {
             position: absolute;
@@ -140,7 +152,7 @@ def render_ghost_engine_studio(
             min-width: 0;
         }
         .ghost-engine-hero .ghost-engine-badge {
-            color: #9af7ff;
+            color: #56e4f3;
             font-family: 'Inter', Arial, sans-serif !important;
             font-size: 11px !important;
             font-weight: 800 !important;
@@ -150,30 +162,24 @@ def render_ghost_engine_studio(
             overflow-wrap: anywhere;
         }
         .ghost-engine-hero h1 {
-            width: 100%;
+            width: auto;
             max-width: 100%;
             margin: 3px 0;
             color: #ffffff;
             font-family: 'Inter', Arial, sans-serif !important;
-            font-size: clamp(26px, 4vw, 38px) !important;
+            font-size: clamp(30px, 3.5vw, 38px) !important;
             font-weight: 800 !important;
             line-height: 1.2 !important;
             letter-spacing: -0.02em !important;
             overflow-wrap: anywhere;
             text-wrap: balance;
         }
-        .ghost-engine-hero h1 span {
-            font: inherit;
-            background: linear-gradient(135deg, #8cf5ff, #ff9bd7);
-            background-clip: text;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+        .ghost-engine-hero h1 span { font: inherit; color: #31c6e7; }
         .ghost-engine-hero p {
-            width: min(100%, 760px);
+            width: min(100%, 540px);
             max-width: 100%;
             margin: 0;
-            color: rgba(255,255,255,.9);
+            color: rgba(255,255,255,.96);
             font-family: 'Inter', Arial, sans-serif !important;
             font-size: clamp(14px, 1.5vw, 16px) !important;
             font-weight: 600 !important;
@@ -185,7 +191,7 @@ def render_ghost_engine_studio(
         .ghost-engine-output-title,
         .ghost-engine-section-title {
             margin: 0 0 14px;
-            color: #173b3e;
+            color: #173b66;
             font: 750 16px/1.3 'Inter', sans-serif;
         }
         section[data-testid="stMain"] .ghost-engine-hero h1 span,
@@ -197,12 +203,7 @@ def render_ghost_engine_studio(
             color: #ffffff !important;
             -webkit-text-fill-color: #ffffff !important;
         }
-        section[data-testid="stMain"] .ghost-engine-hero h1 span {
-            background: linear-gradient(135deg, #8cf5ff, #ff9bd7);
-            background-clip: text;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent !important;
-        }
+        section[data-testid="stMain"] .ghost-engine-hero h1 span { color: #31c6e7 !important; -webkit-text-fill-color: #31c6e7 !important; }
         [data-testid="stMetric"] {
             height: 100%;
             padding: 14px 16px;
@@ -215,18 +216,24 @@ def render_ghost_engine_studio(
         [data-testid="stAppViewContainer"],
         [data-testid="stMain"] {
             color: #263638 !important;
-            background: #f3f6f6 !important;
+            background: #f3f8fd !important;
             background-image: none !important;
         }
         section[data-testid="stMain"] .block-container {
+            box-sizing: border-box !important;
+            width: 100% !important;
+            max-width: 1520px !important;
+            margin: 0 auto !important;
+            padding: 0 clamp(32px, 4vw, 56px) 30px !important;
             color: #263638 !important;
         }
         section[data-testid="stMain"] [data-testid="stVerticalBlockBorderWrapper"],
         section[data-testid="stMain"] div[data-testid="stVerticalBlockBorder"] {
             color: #263638 !important;
             background: #ffffff !important;
-            border-color: #d2dddb !important;
-            box-shadow: 0 6px 18px rgba(26,55,56,.075) !important;
+            border-color: #e1eaf3 !important;
+            border-radius: 14px !important;
+            box-shadow: 0 5px 18px rgba(43,81,118,.065) !important;
         }
         section[data-testid="stMain"] h1,
         section[data-testid="stMain"] h2,
@@ -254,6 +261,31 @@ def render_ghost_engine_studio(
             background: #ffffff !important;
             border-color: #cbd8d5 !important;
         }
+        section[data-testid="stMain"] [data-testid="stWidgetLabel"] p,
+        section[data-testid="stMain"] [data-testid="stCaptionContainer"] p {
+            color: #66809a !important;
+            font-family: 'Inter', Arial, sans-serif !important;
+        }
+        section[data-testid="stMain"] [data-testid="stTextArea"] textarea {
+            min-height: 112px !important;
+            border-radius: 9px !important;
+            border-color: #d9e5f1 !important;
+            font: 13px/1.5 'Inter', Arial, sans-serif !important;
+        }
+        section[data-testid="stMain"] [data-baseweb="select"] > div {
+            min-height: 40px !important;
+            border-radius: 9px !important;
+        }
+        section[data-testid="stMain"] input[type="checkbox"] { accent-color: #387ee8 !important; }
+        section[data-testid="stMain"] [data-testid="stDownloadButton"] button,
+        section[data-testid="stMain"] [data-testid="stLinkButton"] a {
+            color: #2875bc !important;
+            background: #f5faff !important;
+            border: 1px solid #dce8f4 !important;
+            border-radius: 9px !important;
+            font: 650 12px 'Inter',Arial,sans-serif !important;
+            text-decoration: none !important;
+        }
         section[data-testid="stMain"] [data-testid="stMetricLabel"],
         section[data-testid="stMain"] [data-testid="stMetricValue"],
         section[data-testid="stMain"] [data-testid="stMetricDelta"] {
@@ -268,14 +300,46 @@ def render_ghost_engine_studio(
         }
         section[data-testid="stMain"] .st-key-ghost_generate_master button {
             color: #ffffff !important;
-            background: linear-gradient(110deg, #138f8b, #5868d9) !important;
+            min-height: 42px !important;
+            background: linear-gradient(105deg, #08b7d4, #5960e8) !important;
             border-color: transparent !important;
+            border-radius: 9px !important;
+            font: 700 13px 'Inter', Arial, sans-serif !important;
         }
+        section[data-testid="stMain"] .st-key-ghost_engine_back_to_studio button {
+            min-height: 36px !important;
+            color: #2875bc !important;
+            background: rgba(255,255,255,.94) !important;
+            border: 1px solid #dce8f4 !important;
+            border-radius: 22px !important;
+            font: 650 12px 'Inter', Arial, sans-serif !important;
+            box-shadow: 0 2px 8px rgba(49,99,151,.08) !important;
+        }
+        section[data-testid="stMain"] [class*="st-key-ghost_engine_gallery_card_"] [data-testid="stVerticalBlockBorderWrapper"] {
+            padding: 10px !important;
+            border-radius: 12px !important;
+        }
+        section[data-testid="stMain"] [class*="st-key-ghost_engine_gallery_card_"] video {
+            width: 100% !important;
+            aspect-ratio: 16 / 9 !important;
+            object-fit: cover !important;
+            border-radius: 9px !important;
+        }
+        .ghost-engine-gallery-title { color:#173b66; font:750 16px/1.3 'Inter',Arial,sans-serif; }
+        .ghost-engine-gallery-subtitle { color:#71849a; font:400 12px/1.5 'Inter',Arial,sans-serif; }
         @media (max-width: 768px) {
+            section[data-testid="stMain"] .block-container {
+                max-width: 100% !important;
+                padding: 0 22px 22px !important;
+            }
+            section[data-testid="stMain"]:has(.st-key-ghost_engine_back_to_studio)
+            [data-testid="stMainBlockContainer"] [data-testid="stVerticalBlock"] > div:has(.st-key-ghost_engine_back_to_studio) {
+                margin-bottom: -18px !important;
+            }
             .ghost-engine-hero {
                 min-height: 220px;
-                padding: 30px 18px;
-                border-radius: 24px;
+                padding: 24px 18px;
+                border-radius: 12px;
                 transform: none;
             }
             .ghost-engine-hero .ghost-engine-badge {
@@ -288,21 +352,53 @@ def render_ghost_engine_studio(
             .ghost-engine-hero p {
                 width: 100%;
             }
-            section[data-testid="stMain"] [data-testid="stColumn"]:has(.st-key-ghost_engine_back_to_studio) {
-                top: 26px !important;
-                right: 10px !important;
-                width: 160px !important;
+            section[data-testid="stMain"] [data-testid="stColumn"]:has(.st-key-ghost_engine_back_to_studio) { width: auto !important; min-width: 0 !important; }
+            section[data-testid="stMain"] .st-key-ghost_engine_back_to_studio button { padding: 7px 10px !important; font-size: 11px !important; white-space: nowrap !important; }
+            .ghost-engine-brand-copy b { font-size: 16px; }
+        }
+        @media (min-width: 769px) and (max-width: 1100px) {
+            .ghost-engine-hero { min-height: 234px; }
+        }
+        @media (max-width: 640px) {
+            section[data-testid="stMain"] .block-container {
+                padding: 0 22px 22px !important;
             }
-            section[data-testid="stMain"]:has(.st-key-ghost_engine_back_to_studio)
-            [data-testid="stMainBlockContainer"] [data-testid="stVerticalBlock"] > div:has(.st-key-ghost_engine_back_to_studio) {
-                margin-bottom: -18px !important;
+            section[data-testid="stMain"] [data-testid="stHorizontalBlock"]:has(.st-key-ghost_script) > [data-testid="column"] {
+                flex: 1 1 100% !important;
+                width: 100% !important;
+                min-width: 0 !important;
+            }
+            section[data-testid="stMain"] [data-testid="stVerticalBlockBorderWrapper"] [data-testid="stHorizontalBlock"] {
+                flex-wrap: wrap !important;
+            }
+            section[data-testid="stMain"] [data-testid="stVerticalBlockBorderWrapper"] [data-testid="stHorizontalBlock"] > [data-testid="column"] {
+                flex: 1 1 100% !important;
+                width: 100% !important;
+                min-width: 0 !important;
+            }
+            section[data-testid="stMain"] [data-testid="stHorizontalBlock"]:has(.st-key-ghost_engine_back_to_studio) > [data-testid="column"]:first-child {
+                flex: 0 0 65% !important;
+                width: 65% !important;
+            }
+            section[data-testid="stMain"] [data-testid="stHorizontalBlock"]:has(.st-key-ghost_engine_back_to_studio) > [data-testid="column"]:last-child {
+                flex: 0 0 35% !important;
+                width: 35% !important;
+            }
+            section[data-testid="stMain"] [data-testid="stMainBlockContainer"] {
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+            }
+        }
+        @media (max-width: 480px) {
+            section[data-testid="stMain"] .block-container {
+                padding: 0 18px 22px !important;
             }
         }
         </style>
         <section class="ghost-engine-hero">
-          <span class="ghost-engine-badge">ZOVIX · AI CINEMATIC GENERATION</span>
-          <h1>Cinematic</h1>
-          <p>Direct your scene and create a finished cinematic video, ready to preview and download.</p>
+          <span class="ghost-engine-badge">ZOVIX AI CINEMATIC GENERATION</span>
+          <h1>Cinematic <span>Studio</span></h1>
+          <p>Direct your scene. Create a cinematic story.</p>
         </section>
         """,
         unsafe_allow_html=True,
@@ -317,8 +413,9 @@ def render_ghost_engine_studio(
             )
             script = st.text_area(
                 "Scene script / prompt",
-                height=180,
-                placeholder="Write your scene and character direction.",
+                height=112,
+                max_chars=2000,
+                placeholder="Write your scene and character direction...",
                 help="GPT-4o optimizes the scene prompt; Flux creates the keyframe and Wan animates it.",
                 key="ghost_script",
             )
@@ -327,47 +424,46 @@ def render_ghost_engine_studio(
                 "DIRECTOR CONTROLS</p>",
                 unsafe_allow_html=True,
             )
-            camera_motion = st.selectbox(
-                "Camera motion",
-                list(_CAMERA_MOTIONS),
-                index=_CAMERA_MOTIONS.index("Orbit Left (360)"),
-                key="ghost_camera_motion",
-            )
-            lighting_setup = st.selectbox(
-                "Lighting",
-                list(_LIGHTING_SETUPS),
-                index=0,
-                key="ghost_lighting_setup",
-            )
-            atmosphere_fx = st.selectbox(
-                "Atmosphere",
-                list(_ATMOSPHERE_EFFECTS),
-                index=4,
-                key="ghost_atmosphere_fx",
-            )
-            face_lock = st.checkbox(
-                "🔒 Face Lock",
-                key="ghost_face_lock_enabled",
-                help="Use a reference face to guide the generated character's facial identity.",
-            )
-            face_reference = None
-            if face_lock:
-                face_reference = st.file_uploader(
-                    "Face reference image",
-                    type=["png", "jpg", "jpeg", "webp"],
-                    key="ghost_face_reference",
-                    help="Upload a clear, front-facing image. It guides the Flux keyframe and may incur model usage charges.",
+            camera_column, lighting_column = st.columns(2, gap="medium")
+            with camera_column:
+                camera_motion = st.selectbox(
+                    "Camera Motion",
+                    list(_CAMERA_MOTIONS),
+                    index=_CAMERA_MOTIONS.index("Orbit Left (360)"),
+                    key="ghost_camera_motion",
+                    help="Choose the camera path for your scene.",
                 )
-            character_action = st.selectbox(
-                "Character Action",
-                list(_CHARACTER_ACTION_OPTIONS),
-                index=0,
-                key="ghost_character_action",
-                help=(
-                    "Expressive dialogue, facial expressions and shouting use LivePortrait refinement. "
-                    "Other actions use the fast image-to-video route."
-                ),
-            )
+                st.caption("Choose camera movement for your scene.")
+            with lighting_column:
+                lighting_setup = st.selectbox(
+                    "Lighting",
+                    list(_LIGHTING_SETUPS),
+                    index=0,
+                    key="ghost_lighting_setup",
+                )
+                st.caption("Set the mood with cinematic lighting.")
+
+            atmosphere_column, action_column = st.columns(2, gap="medium")
+            with atmosphere_column:
+                atmosphere_fx = st.selectbox(
+                    "Atmosphere",
+                    list(_ATMOSPHERE_EFFECTS),
+                    index=4,
+                    key="ghost_atmosphere_fx",
+                )
+                st.caption("Add atmosphere and environmental effects.")
+            with action_column:
+                character_action = st.selectbox(
+                    "Character Action",
+                    list(_CHARACTER_ACTION_OPTIONS),
+                    index=0,
+                    key="ghost_character_action",
+                    help=(
+                        "Expressive dialogue, facial expressions and shouting use LivePortrait refinement. "
+                        "Other actions use the fast image-to-video route."
+                    ),
+                )
+                st.caption("Define what the character will do.")
             if character_action != "None (Camera Motion Only)":
                 st.caption(
                     "The selected action is sent directly to the hosted image-to-video model with the Flux keyframe. "
@@ -375,23 +471,41 @@ def render_ghost_engine_studio(
                 )
             if st.session_state.get("ghost_video_quality") not in GHOST_QUALITY_PROFILES:
                 st.session_state["ghost_video_quality"] = "Standard"
-            quality = st.selectbox(
-                "Video Quality",
-                list(GHOST_QUALITY_PROFILES),
-                index=0,
-                key="ghost_video_quality",
-                help="Standard: 720p/30. HD: 1080p/30 with 2x enhancement.",
-            )
+            quality_column, face_lock_column = st.columns(2, gap="medium")
+            with quality_column:
+                quality = st.selectbox(
+                    "Video Quality",
+                    list(GHOST_QUALITY_PROFILES),
+                    index=0,
+                    key="ghost_video_quality",
+                    help="Standard: 720p/30. HD: 1080p/30 with 2x enhancement.",
+                )
+                st.caption("Select the output quality for your video.")
+            with face_lock_column:
+                face_lock = st.checkbox(
+                    "Enable Face Lock",
+                    key="ghost_face_lock_enabled",
+                    help="Use a reference face to guide the generated character's facial identity.",
+                )
+                st.caption("Keep the character's face consistent.")
+                face_reference = None
+                if face_lock:
+                    face_reference = st.file_uploader(
+                        "Face reference image",
+                        type=["png", "jpg", "jpeg", "webp"],
+                        key="ghost_face_reference",
+                        help="Upload a clear, front-facing image. It guides the Flux keyframe and may incur model usage charges.",
+                    )
             quality_descriptions = {
                 "Standard": "720p · 30 FPS · fast render",
                 "HD": "1080p · 30 FPS · 2x enhancement · higher detail",
             }
             st.caption(quality_descriptions[quality])
             run_clicked = st.button(
-                "▶ GENERATE STORY VIDEO",
+                "▶ Generate Story Video",
                 key="ghost_generate_master",
                 type="primary",
-                use_container_width=True,
+                width="stretch",
             )
 
     with output_column:
@@ -417,11 +531,11 @@ def render_ghost_engine_studio(
                     billing_message = "Token validation failed. Please try again."
                     try:
                         billing_ok, deducted_tokens, billing_message = deduct_tokens_callback(
-                            "Ghost Engine",
+                            "Cinematic Engine",
                             quality=quality,
                         )
                     except Exception as exc:
-                        logger.exception("Ghost Engine token validation failed.")
+                        logger.exception("Cinematic Engine token validation failed.")
                         billing_ok = False
 
                     if not billing_ok:
@@ -429,7 +543,7 @@ def render_ghost_engine_studio(
                     else:
                         generation_succeeded = False
                         try:
-                            with st.spinner("Generate Zovix Video"):
+                            with st.spinner("Creating your cinematic video…"):
                                 output_path = run_zovix_ghost_engine(
                                     script,
                                     config_overrides={
@@ -447,6 +561,7 @@ def render_ghost_engine_studio(
                                 )
                                 generation_succeeded = True
                                 st.session_state["ghost_engine_last_output"] = output_path
+                                st.session_state["ghost_engine_last_quality"] = quality
                             output_name = f"cinematic_{Path(output_path).name}"
                             username = st.session_state.get("logged_user", "")
                             if username and save_output_callback:
@@ -467,10 +582,10 @@ def render_ghost_engine_studio(
                                     "path": output_path,
                                     "generation_type": "Cinematic Engine",
                                 })
-                            logger.info("Ghost Engine render complete: %s", output_path)
+                            logger.info("Cinematic Engine render complete: %s", output_path)
                             st.rerun()
                         except Exception as exc:
-                            logger.exception("Ghost Engine render failed.")
+                            logger.exception("Cinematic Engine render failed.")
                             if (
                                 not generation_succeeded
                                 and deducted_tokens > 0
@@ -478,7 +593,7 @@ def render_ghost_engine_studio(
                             ):
                                 refund_tokens_callback(
                                     deducted_tokens,
-                                    f"Ghost Engine generation failed: {exc}",
+                                    f"Cinematic Engine generation failed: {exc}",
                                 )
                             st.error(f"Video generation failed: {exc}")
 
@@ -487,20 +602,39 @@ def render_ghost_engine_studio(
                 try:
                     video_bytes = Path(last_output).read_bytes()
                 except OSError as exc:
-                    logger.exception("Could not read the Ghost Engine master video.")
+                    logger.exception("Could not read the Cinematic Engine master video.")
                     st.error(f"The generated video could not be opened: {exc}")
                 else:
                     st.video(video_bytes, format="video/mp4")
+                    output_quality = st.session_state.get("ghost_engine_last_quality", quality)
+                    profile = GHOST_QUALITY_PROFILES.get(output_quality, GHOST_QUALITY_PROFILES[quality])
+                    st.markdown(
+                        "<div style='display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 16px'>"
+                        f"<span style='padding:8px 14px;border-radius:22px;background:#e7f7ff;color:#247ab4;font:650 12px Inter,Arial,sans-serif'>{profile['size'][0]}p</span>"
+                        f"<span style='padding:8px 14px;border-radius:22px;background:#eef4ff;color:#526bc1;font:650 12px Inter,Arial,sans-serif'>{profile['fps']} FPS</span>"
+                        f"<span style='padding:8px 14px;border-radius:22px;background:#e7f7ff;color:#247ab4;font:650 12px Inter,Arial,sans-serif'>{output_quality}</span>"
+                        "</div>",
+                        unsafe_allow_html=True,
+                    )
                     st.download_button(
                         "Download Zovix Cinematic Video",
                         data=video_bytes,
                         file_name="Zovix Cinematic Video.mp4",
                         mime="video/mp4",
-                        use_container_width=True,
+                        width="stretch",
                     )
+            # Keep the preview empty until the generated master video is ready.
 
     st.markdown("---")
-    st.markdown("### Cinematic Gallery")
+    gallery_title_column, gallery_link_column = st.columns([1, 0.2], vertical_alignment="center")
+    with gallery_title_column:
+        st.markdown("<div class='ghost-engine-gallery-title'>Cinematic Gallery</div>", unsafe_allow_html=True)
+        st.markdown(
+            "<div class='ghost-engine-gallery-subtitle'>Your finished cinematic videos appear here and in My Portfolio.</div>",
+            unsafe_allow_html=True,
+        )
+    with gallery_link_column:
+        st.link_button("View All →", "?page=portfolio", width="stretch")
     gallery_items = [
         item for item in st.session_state.get("history_renders", [])
         if item.get("generation_type") == "Cinematic Engine"
@@ -510,12 +644,15 @@ def render_ghost_engine_studio(
     if not gallery_items:
         st.caption("Your finished cinematic videos will appear here and in My Portfolio.")
     else:
-        for start in range(0, min(len(gallery_items), 12), 3):
-            gallery_columns = st.columns(3, gap="medium")
-            for column, item in zip(gallery_columns, gallery_items[start:start + 3]):
-                with column:
+        gallery_columns = st.columns(3, gap="medium")
+        for index, (column, item) in enumerate(zip(gallery_columns, gallery_items[:3])):
+            with column:
+                with st.container(border=True, key=f"ghost_engine_gallery_card_{index}"):
                     st.video(item["path"])
-                    st.caption(item.get("prompt", "Cinematic video"))
+                    st.markdown(f"**{item.get('file_name', 'Cinematic video')}**")
+                    prompt = str(item.get("prompt", "Cinematic video")).strip()
+                    st.caption(prompt[:100] + ("…" if len(prompt) > 100 else ""))
+                    st.caption("🎬 Cinematic · Zovix AI Studio")
 
     st.markdown(
         """

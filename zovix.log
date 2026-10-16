@@ -26780,3 +26780,127 @@ detail: Request was throttled. Your rate limit for creating predictions is reduc
 2026-10-15 20:31:44,703 - Zovix - INFO - Using Supabase PostgreSQL database
 2026-10-15 20:31:49,078 - Zovix - INFO - Using Supabase PostgreSQL database
 2026-10-15 20:31:49,586 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:31:49,305 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:31:57,781 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-16 12:31:57,809 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-16 12:31:57,812 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-16 12:32:01,400 - Zovix - INFO - Database initialized successfully
+2026-10-16 12:32:01,664 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:32:05,168 - Zovix - INFO - Database initialized successfully
+2026-10-16 12:32:23,606 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:32:26,673 - Zovix - INFO - Database initialized successfully
+2026-10-16 12:32:36,121 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:32:40,704 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:32:42,527 - asyncio - ERROR - Exception in callback _ProactorBasePipeTransport._call_connection_lost(None)
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost(None)>
+Traceback (most recent call last):
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\asyncio\events.py", line 80, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\asyncio\proactor_events.py", line 162, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-10-16 12:33:00,830 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:33:03,845 - Zovix - INFO - Database initialized successfully
+2026-10-16 12:33:04,940 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:33:08,001 - Zovix - INFO - Database initialized successfully
+2026-10-16 12:33:27,614 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:36:47,727 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:38:51,578 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:39:43,861 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:39:49,722 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:39:57,070 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:40:01,653 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:40:59,800 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:41:06,567 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:41:11,140 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:41:12,915 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:44:04,474 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:44:10,613 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:44:18,368 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:44:22,963 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:45:29,902 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:45:36,825 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:45:40,161 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:45:42,135 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:45:56,344 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:46:02,108 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:46:06,665 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:46:09,379 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:48:57,670 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:49:03,553 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:49:09,349 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:49:11,250 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:50:30,952 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:50:37,164 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:50:41,503 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:50:43,189 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:50:46,070 - asyncio - ERROR - Exception in callback _ProactorBasePipeTransport._call_connection_lost(None)
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost(None)>
+Traceback (most recent call last):
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\asyncio\events.py", line 80, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\asyncio\proactor_events.py", line 162, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-10-16 12:50:59,137 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:51:04,662 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:51:09,305 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:51:11,948 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:53:25,331 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:53:32,702 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:53:44,169 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:53:49,082 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:54:05,309 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:54:11,768 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:54:26,122 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:54:30,412 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:57:34,101 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:57:40,267 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:57:46,192 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:57:47,751 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:58:06,928 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:58:12,874 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:58:38,479 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:58:45,275 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:59:08,696 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:59:13,897 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:59:17,822 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 12:59:19,833 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 13:03:35,700 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 13:03:42,305 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 13:03:48,568 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 13:03:50,479 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 13:03:59,619 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 13:04:00,628 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 13:04:05,745 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 13:04:12,204 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 13:04:25,081 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 13:04:29,881 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 13:07:10,804 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 13:07:17,274 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 13:07:33,602 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 13:07:39,126 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 13:07:43,791 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 13:07:45,705 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 13:07:53,558 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 13:07:58,403 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 13:08:03,489 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 13:08:06,682 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 13:10:14,874 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 13:10:21,452 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 13:10:27,605 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 13:10:29,521 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 13:11:55,385 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 13:11:58,207 - Zovix - INFO - Database initialized successfully
+2026-10-16 13:12:07,492 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 13:12:10,563 - Zovix - INFO - Database initialized successfully
+2026-10-16 13:13:04,407 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 13:13:11,810 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 13:13:16,425 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 13:13:17,449 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 13:13:24,213 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 13:13:26,072 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 13:13:32,366 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 13:13:38,070 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 13:13:41,480 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-16 13:13:43,177 - Zovix - INFO - Using Supabase PostgreSQL database

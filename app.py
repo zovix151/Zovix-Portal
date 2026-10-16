@@ -38,6 +38,8 @@ import streamlit.components.v1 as components
 from pydantic import BaseModel, Field
 import textwrap
 
+STUDIO_ENGINE_PANEL_RATIO = (1, 1.2)
+
 st.set_page_config(
     page_title="Zovix AI Studio | AI SaaS Platform",
     page_icon="🎬",
@@ -8626,7 +8628,7 @@ def render_ai_agent_ui():
     </div>
     """, unsafe_allow_html=True)
     
-    agent_col1, agent_col2 = st.columns([1.1, 1.4], gap="medium")
+    agent_col1, agent_col2 = st.columns(STUDIO_ENGINE_PANEL_RATIO, gap="medium")
     
     with agent_col1:
         with st.container(border=True):
@@ -9079,7 +9081,7 @@ def render_ai_sales_ui():
     </div>
     """, unsafe_allow_html=True)
 
-    col1, col2 = st.columns([1.1, 1.4], gap="medium")
+    col1, col2 = st.columns(STUDIO_ENGINE_PANEL_RATIO, gap="medium")
     with col1:
         with st.container(border=True):
             st.markdown('<h4 style="font-family: Orbitron; font-size: 12px; color: #EC4899; margin-bottom: 12px;">⚙️ SALES PARAMETERS</h4>', unsafe_allow_html=True)
@@ -9505,7 +9507,7 @@ def generate_dynamic_ui():
     </div>
     """, unsafe_allow_html=True)
 
-    col1, col2 = st.columns([1.1, 1.4], gap="medium")
+    col1, col2 = st.columns(STUDIO_ENGINE_PANEL_RATIO, gap="medium")
     with col1:
         with st.container(border=True):
             st.markdown('<h4 style="font-family: Orbitron; font-size: 12px; color: #EC4899; margin-bottom: 12px;">🧠 BEHAVIOR PROFILE</h4>', unsafe_allow_html=True)
@@ -9738,6 +9740,60 @@ def generate_emotion_voice(text, emotion="neutral", voice_type="male", output_pa
 
 def render_live_emotion_voice():
     """Live Emotion Voice Mode - Emotion-based TTS generation"""
+    st.markdown(
+        """
+        <style>
+        .stApp:has(.live-emotion-design-root), [data-testid="stAppViewContainer"]:has(.live-emotion-design-root),
+        section[data-testid="stMain"]:has(.live-emotion-design-root) { color:#213d64 !important; background:#f4f8fd !important; background-image:none !important; }
+        section[data-testid="stMain"]:has(.live-emotion-design-root) .studio-mode-photo-hero--voice { display:none !important; }
+        section[data-testid="stMain"]:has(.live-emotion-design-root) [data-testid="stVerticalBlockBorderWrapper"],
+        section[data-testid="stMain"]:has(.live-emotion-design-root) [data-testid="stVerticalBlockBorder"] { background:#fff !important; border:1px solid #e1eaf3 !important; border-radius:14px !important; box-shadow:0 5px 18px rgba(43,81,118,.065) !important; }
+        section[data-testid="stMain"]:has(.live-emotion-design-root) h3, section[data-testid="stMain"]:has(.live-emotion-design-root) h4,
+        section[data-testid="stMain"]:has(.live-emotion-design-root) p, section[data-testid="stMain"]:has(.live-emotion-design-root) label,
+        section[data-testid="stMain"]:has(.live-emotion-design-root) [data-testid="stCaptionContainer"],
+        section[data-testid="stMain"]:has(.live-emotion-design-root) [data-testid="stWidgetLabel"] { color:#536f90 !important; -webkit-text-fill-color:#536f90 !important; }
+        section[data-testid="stMain"]:has(.live-emotion-design-root) [data-testid="stTextArea"] textarea,
+        section[data-testid="stMain"]:has(.live-emotion-design-root) [data-baseweb="select"] > div { color:#18375e !important; -webkit-text-fill-color:#18375e !important; background:#fff !important; border:1px solid #d9e5f1 !important; border-radius:10px !important; font:13px/1.5 'Inter',Arial,sans-serif !important; }
+        section[data-testid="stMain"]:has(.live-emotion-design-root) [data-testid="stTextArea"] textarea { min-height:124px !important; }
+        section[data-testid="stMain"]:has(.live-emotion-design-root) [data-testid="stButton"] button { min-height:42px !important; border-radius:9px !important; font:700 12px 'Inter',Arial,sans-serif !important; }
+        section[data-testid="stMain"]:has(.live-emotion-design-root) .st-key-emotion_generate_btn button { color:#fff !important; background:linear-gradient(105deg,#08b9d4,#6656e9) !important; border:0 !important; box-shadow:0 5px 14px rgba(73,112,221,.16) !important; }
+        section[data-testid="stMain"]:has(.live-emotion-design-root) [class*="st-key-engine_gallery_card_audio_"] { background:#fff !important; border:1px solid #e1eaf3 !important; border-radius:14px !important; box-shadow:0 5px 18px rgba(43,81,118,.065) !important; }
+        section[data-testid="stMain"]:has(.live-emotion-design-root) [class*="st-key-engine_gallery_card_audio_"] audio { width:100%; }
+        section[data-testid="stMain"]:has(.live-emotion-design-root) [class*="st-key-engine_gallery_card_audio_"] div[style*="Orbitron"] { color:#178fc9 !important; }
+        section[data-testid="stMain"]:has(.live-emotion-design-root) [class*="st-key-engine_gallery_card_audio_"] p { color:#647b99 !important; }
+        .live-emotion-hero { position:relative; display:flex; box-sizing:border-box; min-height:184px; width:100%; overflow:hidden; margin:0 0 18px; padding:26px 30px; flex-direction:column; justify-content:center; align-items:center; border:1px solid #e4eafa; border-radius:14px; text-align:center; background:linear-gradient(112deg,#e6fbff 0%,#f5f7ff 54%,#f4eaff 100%); }
+        .live-emotion-hero:before,.live-emotion-hero:after { position:absolute; top:50%; transform:translateY(-50%); color:#84a9ff; opacity:.62; font-size:46px; font-weight:800; }
+        .live-emotion-hero:before { left:8%; content:'▂▅▇▃▆'; letter-spacing:3px; }
+        .live-emotion-hero:after { right:8%; content:'🎧'; font-size:54px; }
+        .live-emotion-hero .live-badge { padding:6px 14px; border:1px solid #e6d8fb; border-radius:20px; color:#b140b6; background:#fff8ffb8; font:750 10px 'Inter',Arial,sans-serif; letter-spacing:1px; }
+        .live-emotion-hero h1 { margin:8px 0 2px; color:#178fc9 !important; font:800 clamp(27px,4vw,38px)/1.2 'Inter',Arial,sans-serif !important; }
+        .live-emotion-hero h1 span { color:#7757e7 !important; }
+        .live-emotion-hero p { margin:0; color:#536f90 !important; font:500 14px/1.5 'Inter',Arial,sans-serif !important; }
+        .live-emotion-card-title { margin:0 0 14px; color:#18375e !important; -webkit-text-fill-color:#18375e !important; font:750 15px/1.3 'Inter',Arial,sans-serif; }
+        .live-emotion-empty { min-height:420px; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:24px; border:1px solid #e1eaf3; border-radius:12px; background:#f8fbff; text-align:center; }
+        .live-emotion-empty .icon { margin-bottom:12px; font-size:56px; line-height:1; filter:drop-shadow(0 6px 12px #98c9ff55); }
+        .live-emotion-empty strong { color:#18375e; font:750 16px 'Inter',Arial,sans-serif; }
+        .live-emotion-empty span { margin-top:6px; color:#6a83a0; font:400 13px 'Inter',Arial,sans-serif; }
+        @media(max-width:900px) { .live-emotion-hero:before { left:3%; font-size:32px; } .live-emotion-hero:after { right:3%; font-size:42px; } }
+        @media(max-width:640px) {
+          .live-emotion-hero { min-height:160px; padding:22px 16px; }
+          .live-emotion-hero:before,.live-emotion-hero:after { display:none; }
+          .live-emotion-empty { min-height:280px; }
+          section[data-testid="stMain"]:has(.live-emotion-design-root) [data-testid="stMainBlockContainer"] { padding-left:12px !important; padding-right:12px !important; }
+          section[data-testid="stMain"]:has(.live-emotion-design-root) [data-testid="stHorizontalBlock"]:has(.live-emotion-card-title) { flex-direction:column !important; flex-wrap:nowrap !important; }
+          section[data-testid="stMain"]:has(.live-emotion-design-root) [data-testid="stHorizontalBlock"]:has(.live-emotion-card-title) > [data-testid="stColumn"] { flex:1 1 100% !important; width:100% !important; max-width:100% !important; }
+          section[data-testid="stMain"]:has(.live-emotion-design-root) [data-testid="stHorizontalBlock"]:has([class*="st-key-engine_gallery_card_"]) > [data-testid="stColumn"] { flex:1 1 100% !important; width:100% !important; max-width:100% !important; }
+        }
+        </style>
+        <div class="live-emotion-design-root"></div>
+        <section class="live-emotion-hero">
+          <span class="live-badge">♫ LIVE TTS</span>
+          <h1>Live Emotion <span>Voice</span></h1>
+          <p>Generate emotion-rich voiceovers with customizable emotions.</p>
+        </section>
+        """,
+        unsafe_allow_html=True,
+    )
     st.markdown("""
     <div class="studio-mode-photo-hero studio-mode-photo-hero--voice" style="
         background: linear-gradient(135deg, rgba(236,72,153,0.06), rgba(69,243,255,0.06));
@@ -9759,11 +9815,11 @@ def render_live_emotion_voice():
     </div>
     """, unsafe_allow_html=True)
 
-    col1, col2 = st.columns([1.1, 1.4], gap="medium")
+    col1, col2 = st.columns(STUDIO_ENGINE_PANEL_RATIO, gap="medium")
     with col1:
         with st.container(border=True):
             st.markdown('<h4 style="font-family: Orbitron; font-size: 12px; color: #EC4899; margin-bottom: 12px;">🎤 EMOTION PARAMETERS</h4>', unsafe_allow_html=True)
-            emotion_text = st.text_area("Text to speak", placeholder="Enter text for emotional voice generation...", height=100, key="emotion_voice_text_input")
+            emotion_text = st.text_area("Text to speak", placeholder="Enter text for emotional voice generation...", height=124, max_chars=2000, key="emotion_voice_text_input")
             st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">😊 Select Emotion</p>', unsafe_allow_html=True)
             emotion = st.selectbox("Emotion", ["neutral", "happy", "sad", "angry", "excited", "fearful", "mysterious", "serious"], key="emotion_voice_select", label_visibility="collapsed")
             st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">🎤 Voice Filter</p>', unsafe_allow_html=True)
@@ -9799,6 +9855,20 @@ def render_live_emotion_voice():
                                 st.session_state["emotion_voice_output"] = actual_path
                                 st.session_state["emotion_voice_text"] = emotion_text
                                 st.session_state["emotion_voice_emotion"] = emotion
+                                st.session_state["emotion_voice_selected_voice"] = emotion_voice
+                                st.session_state["emotion_voice_gender_used"] = selected_voice_gender
+                                emotion_timestamp = time.strftime("%Y%m%d_%H%M%S")
+                                emotion_file_name = f"zovix_emotion_voice_{emotion}_{emotion_timestamp}.mp3"
+                                emotion_username = st.session_state.get("logged_user", "")
+                                if emotion_username:
+                                    save_render_to_db(
+                                        emotion_username,
+                                        emotion_file_name,
+                                        emotion_text,
+                                        actual_path,
+                                        "Live Emotion Mode",
+                                    )
+                                    st.session_state["history_renders"] = load_renders_history_db(emotion_username)
                                 _show_generation_success()
                                 st.rerun()
                             else:
@@ -9825,7 +9895,10 @@ def render_live_emotion_voice():
                     st.session_state["emotion_voice_output"] = None
                     st.rerun()
             else:
-                st.info("No voice generated yet. Enter text and select emotion.")
+                st.markdown(
+                    '<div class="live-emotion-empty"><div class="icon">🎧</div><strong>No voice generated yet.</strong><span>Enter text and select emotion.</span></div>',
+                    unsafe_allow_html=True,
+                )
 
 def analyze_blueprint(blueprint_path):
     """Analyze blueprint image and extract basic information"""
@@ -9934,7 +10007,7 @@ def run_blueprints_mode():
     </div>
     """, unsafe_allow_html=True)
 
-    bp_col1, bp_col2 = st.columns([1.1, 1.4], gap="medium")
+    bp_col1, bp_col2 = st.columns(STUDIO_ENGINE_PANEL_RATIO, gap="medium")
     with bp_col1:
         with st.container(border=True):
             st.markdown("""
@@ -11821,7 +11894,7 @@ def run_creative_workshop():
     </div>
     """, unsafe_allow_html=True)
 
-    w_col1, w_col2 = st.columns([1.1, 1.4], gap="medium")
+    w_col1, w_col2 = st.columns(STUDIO_ENGINE_PANEL_RATIO, gap="medium")
 
     with w_col1:
         with st.container(border=True):
@@ -12021,6 +12094,56 @@ def run_creative_workshop():
 
 def run_upscaler_mode():
     """Upscaler - AI-Powered Image Enhancement"""
+
+    st.markdown(
+        """
+        <style>
+        section[data-testid="stMain"]:has(.upscaler-design-root) { color:#213d64 !important; background:#f4f8fd !important; background-image:none !important; }
+        section[data-testid="stMain"]:has(.upscaler-design-root) .studio-mode-photo-hero--upscaler { display:none !important; }
+        section[data-testid="stMain"]:has(.upscaler-design-root) [data-testid="stVerticalBlockBorderWrapper"],
+        section[data-testid="stMain"]:has(.upscaler-design-root) [data-testid="stVerticalBlockBorder"] { background:#fff !important; border:1px solid #e1eaf3 !important; border-radius:14px !important; box-shadow:0 5px 18px rgba(43,81,118,.065) !important; }
+        section[data-testid="stMain"]:has(.upscaler-design-root) h3, section[data-testid="stMain"]:has(.upscaler-design-root) h4,
+        section[data-testid="stMain"]:has(.upscaler-design-root) p, section[data-testid="stMain"]:has(.upscaler-design-root) label,
+        section[data-testid="stMain"]:has(.upscaler-design-root) [data-testid="stCaptionContainer"],
+        section[data-testid="stMain"]:has(.upscaler-design-root) [data-testid="stWidgetLabel"] { color:#536f90 !important; -webkit-text-fill-color:#536f90 !important; }
+        section[data-testid="stMain"]:has(.upscaler-design-root) [data-testid="stFileUploader"] section { border:1px dashed #9ddce9 !important; border-radius:10px !important; background:#f7fcff !important; }
+        section[data-testid="stMain"]:has(.upscaler-design-root) div[style*="rgba(10,10,12,0.4)"] { height:520px !important; min-height:520px !important; background:linear-gradient(145deg,#f5f9fe,#eef4fb) !important; border:1px dashed #cbd9e8 !important; }
+        section[data-testid="stMain"]:has(.upscaler-design-root) div[style*="rgba(10,10,12,0.4)"] p:first-of-type { color:#18375e !important; }
+        section[data-testid="stMain"]:has(.upscaler-design-root) div[style*="rgba(10,10,12,0.4)"] p:last-of-type { color:#8195ad !important; }
+        section[data-testid="stMain"]:has(.upscaler-design-root) [data-baseweb="select"] > div,
+        section[data-testid="stMain"]:has(.upscaler-design-root) [data-testid="stSlider"] { color:#18375e !important; }
+        section[data-testid="stMain"]:has(.upscaler-design-root) [data-testid="stButton"] button,
+        section[data-testid="stMain"]:has(.upscaler-design-root) [data-testid="stDownloadButton"] button { min-height:42px !important; border-radius:9px !important; font:700 12px 'Inter',Arial,sans-serif !important; }
+        section[data-testid="stMain"]:has(.upscaler-design-root) .st-key-us_upscale_btn button { color:#fff !important; background:linear-gradient(105deg,#08b9d4,#6656e9) !important; border:0 !important; box-shadow:0 5px 14px rgba(73,112,221,.16) !important; }
+        .upscaler-hero { box-sizing:border-box; min-height:162px; display:flex; flex-direction:column; align-items:center; justify-content:center; margin:0 0 18px; padding:20px; text-align:center; border:1px solid #e4eafa; border-radius:14px; background:linear-gradient(112deg,#e6fbff 0%,#f5f7ff 54%,#f4eaff 100%); }
+        .upscaler-hero .badge { padding:6px 14px; border:1px solid #d8dff8; border-radius:20px; color:#6255dc; background:#ffffffb8; font:750 10px 'Inter',Arial,sans-serif; letter-spacing:1px; }
+        .upscaler-hero h1 { margin:8px 0 2px; color:#18375e !important; font:800 clamp(27px,4vw,38px)/1.2 'Inter',Arial,sans-serif !important; }
+        .upscaler-hero h1 span { color:#347dea !important; }
+        .upscaler-hero p { margin:0; color:#536f90 !important; font:500 14px/1.5 'Inter',Arial,sans-serif !important; }
+        .upscaler-info { margin:12px 0; padding:12px 14px; border-radius:10px; background:#eff8ff; color:#647b99; font:12px/1.55 'Inter',Arial,sans-serif; }
+        .upscaler-empty { min-height:520px; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:24px; border:1px dashed #cbd9e8; border-radius:12px; background:linear-gradient(145deg,#f5f9fe,#eef4fb); text-align:center; }
+        .upscaler-empty .icon { color:#318be8; font-size:50px; line-height:1; margin-bottom:14px; }
+        .upscaler-empty strong { color:#18375e; font:700 14px 'Inter',Arial,sans-serif; }
+        .upscaler-empty span { max-width:280px; margin-top:7px; color:#8195ad; font:400 12px/1.55 'Inter',Arial,sans-serif; }
+        @media(max-width:640px) {
+          .upscaler-hero { min-height:140px; padding:18px 14px; }
+          .upscaler-empty { min-height:280px; }
+          section[data-testid="stMain"]:has(.upscaler-design-root) [data-testid="stMainBlockContainer"] { padding-left:12px !important; padding-right:12px !important; }
+          section[data-testid="stMain"]:has(.upscaler-design-root) [data-testid="stHorizontalBlock"]:has([data-testid="stFileUploader"]),
+          section[data-testid="stMain"]:has(.upscaler-design-root) [data-testid="stHorizontalBlock"]:has(.upscaler-empty) { flex-direction:column !important; flex-wrap:nowrap !important; }
+          section[data-testid="stMain"]:has(.upscaler-design-root) [data-testid="stHorizontalBlock"]:has([data-testid="stFileUploader"]) > [data-testid="stColumn"],
+          section[data-testid="stMain"]:has(.upscaler-design-root) [data-testid="stHorizontalBlock"]:has(.upscaler-empty) > [data-testid="stColumn"] { flex:1 1 100% !important; width:100% !important; max-width:100% !important; }
+        }
+        </style>
+        <div class="upscaler-design-root"></div>
+        <section class="upscaler-hero">
+          <span class="badge">&#10024; AI ENHANCE</span>
+          <h1>AI <span>Upscaler</span></h1>
+          <p>AI image upscaling &bull; Detail restoration &bull; Detail-preserving HD</p>
+        </section>
+        """,
+        unsafe_allow_html=True,
+    )
     
     # ========================================================
     # HEADER
@@ -12070,7 +12193,7 @@ def run_upscaler_mode():
     </div>
     """, unsafe_allow_html=True)
     
-    us_col1, us_col2 = st.columns([1.1, 1.4], gap="medium")
+    us_col1, us_col2 = st.columns(STUDIO_ENGINE_PANEL_RATIO, gap="medium")
     
     with us_col1:
         with st.container(border=True):
@@ -12140,7 +12263,7 @@ def run_upscaler_mode():
                 key="us_quality",
                 label_visibility="collapsed"
             )
-            st.caption("Photo restoration pipeline: CodeFormer face and background cleanup first, then Real-ESRGAN super-resolution. Default scale is 4x.")
+            st.markdown('<div class="upscaler-info">&#8505; &nbsp;AI restoration enhances details, reduces noise and preserves natural textures, faces and edges.</div>', unsafe_allow_html=True)
             restore_faces = st.checkbox(
                 "Restore and clean face details",
                 value=True,
@@ -12404,7 +12527,7 @@ def run_draw_mode():
     </div>
     """, unsafe_allow_html=True)
     
-    dr_col1, dr_col2 = st.columns([1.1, 1.4], gap="medium")
+    dr_col1, dr_col2 = st.columns(STUDIO_ENGINE_PANEL_RATIO, gap="medium")
     
     with dr_col1:
         with st.container(border=True):
@@ -13167,7 +13290,7 @@ def run_video_editor_mode():
     # ============================================
     # MAIN CONTENT
     # ============================================
-    ve_col1, ve_col2 = st.columns([1.1, 1.4], gap="medium")
+    ve_col1, ve_col2 = st.columns(STUDIO_ENGINE_PANEL_RATIO, gap="medium")
     
     with ve_col1:
         with st.container(border=True):
@@ -13468,7 +13591,7 @@ def run_face_video_mode():
             <p style="color: #94a3b8; font-size: 12px; margin: 0;"> Professional lip-sync only mode: no head/body motion, just natural speaking lips </p>
         </div>
     """, unsafe_allow_html=True)
-    fv_col1, fv_col2 = st.columns([1.1, 1.4], gap="medium")
+    fv_col1, fv_col2 = st.columns(STUDIO_ENGINE_PANEL_RATIO, gap="medium")
     with fv_col1:
         with st.container(border=True):
             st.markdown("<h4 style='font-family: Orbitron; font-size: 13px; color: #FFC0CB; margin-bottom: 15px;'>⚙️ FACE VIDEO PARAMETERS</h4>", unsafe_allow_html=True)
@@ -13681,7 +13804,7 @@ def run_expressive_face_video_mode():
         </div>
     """, unsafe_allow_html=True)
 
-    efv_col1, efv_col2 = st.columns([1.1, 1.4], gap="medium")
+    efv_col1, efv_col2 = st.columns(STUDIO_ENGINE_PANEL_RATIO, gap="medium")
     with efv_col1:
         with st.container(border=True):
             st.markdown("<h4 style='font-family: Orbitron; font-size: 13px; color: #EC4899; margin-bottom: 15px;'>⚙️ EXPRESSIVE PARAMETERS</h4>", unsafe_allow_html=True)
@@ -14158,7 +14281,7 @@ def run_unified_face_video_mode():
     # ============================================
     # MAIN CONTENT
     # ============================================
-    fv_col1, fv_col2 = st.columns([1.1, 1.4], gap="medium")
+    fv_col1, fv_col2 = st.columns(STUDIO_ENGINE_PANEL_RATIO, gap="medium")
     
     with fv_col1:
         with st.container(border=True):
@@ -15728,7 +15851,7 @@ def run_cinematic_engine():
     # ============================================
     # ENGINE CONFIGURATORS & VIDEO OUTPUT
     # ============================================
-    parameters_col, video_canvas_col = st.columns([1.1, 1.4], gap="medium")
+    parameters_col, video_canvas_col = st.columns(STUDIO_ENGINE_PANEL_RATIO, gap="medium")
     
     with parameters_col:
         with st.container(border=True):
@@ -24394,9 +24517,32 @@ def render_engine_portfolio_section(include_discovery=True):
             no_items_msg = "No UI profiles configured yet. Customize your interface!"
             display_type = "text"
         elif current_mode == "Live Emotion Mode":
+            for item in portfolio_renders_list:
+                file_path = item.get("path", "")
+                if item.get("generation_type") == "Live Emotion Mode" and os.path.exists(file_path):
+                    file_name = item.get("file_name", "Emotion Voice")
+                    file_name_lower = str(file_name).lower()
+                    item_emotion = next(
+                        (name for name in ("neutral", "happy", "sad", "angry", "excited", "fearful", "mysterious", "serious") if f"_{name}_" in f"_{file_name_lower}_"),
+                        "neutral",
+                    )
+                    valid_items.append({
+                        "path": file_path,
+                        "file_name": file_name,
+                        "prompt": item.get("prompt", "Emotion voice"),
+                        "timestamp": item.get("timestamp", ""),
+                        "emotion": item_emotion,
+                        "type": "audio",
+                    })
             audio_output = st.session_state.get("emotion_voice_output")
-            if audio_output and os.path.exists(audio_output):
-                valid_items.append({"path": audio_output, "file_name": f"Voice_{datetime.now().strftime('%Y%m%d_%H%M%S')}", "prompt": st.session_state.get("emotion_voice_text", "Emotion voice"), "emotion": st.session_state.get("emotion_voice_emotion", "neutral"), "type": "audio"})
+            if audio_output and os.path.exists(audio_output) and not any(item.get("path") == audio_output for item in valid_items):
+                valid_items.insert(0, {
+                    "path": audio_output,
+                    "file_name": f"Voice_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                    "prompt": st.session_state.get("emotion_voice_text", "Emotion voice"),
+                    "emotion": st.session_state.get("emotion_voice_emotion", "neutral"),
+                    "type": "audio",
+                })
             gallery_title = "🎤 LIVE EMOTION VOICE OUTPUTS"
             no_items_msg = "No voice outputs generated yet. Generate your first emotion voice!"
             display_type = "audio"
@@ -24408,15 +24554,8 @@ def render_engine_portfolio_section(include_discovery=True):
 
         return valid_items, gallery_title, no_items_msg, display_type
 
-    if st.session_state.get("engine_gallery_loaded_mode") != current_mode:
-        st.caption("Engine controls load first. Open this engine’s gallery when you need its saved previews.")
-        gallery_button_key = re.sub(r"[^a-zA-Z0-9_]", "_", current_mode)
-        if st.button("📂 Load Engine Gallery", key=f"load_engine_gallery_{gallery_button_key}", width="stretch"):
-            st.session_state["engine_gallery_loaded_mode"] = current_mode
-            st.rerun()
-        return
-
     valid_items, gallery_title, no_items_msg, display_type = get_mode_portfolio(current_mode)
+    valid_items = valid_items[:3]
     st.markdown(f"<h3 style='font-family: Orbitron; font-size: 16px; color:  #EC4899; margin-bottom: 15px; letter-spacing: 0.5px;'>{gallery_title}</h3>", unsafe_allow_html=True)
 
     if not valid_items:
@@ -24657,13 +24796,23 @@ def render_engine_portfolio_section(include_discovery=True):
     """, unsafe_allow_html=True)
 if st.session_state.get("current_page") == "studio_mode":
     active_studio_mode = st.session_state.get("studio_active_mode", "Cinematic Engine")
-    _, back_column = st.columns([0.82, 0.18], vertical_alignment="center")
+    brand_column, back_column = st.columns([0.74, 0.26], vertical_alignment="center")
+    with brand_column:
+        st.markdown(
+            """
+            <div class="studio-engine-brand" aria-label="Zovix AI Creative Studio" style="display:flex;align-items:center;gap:9px;min-height:42px;font-family:Inter,Arial,sans-serif;color:#163c68">
+              <span style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#16c6dc,#6959ed);color:white;font-size:24px;font-weight:850;box-shadow:0 4px 12px #3a66ce33">Z</span>
+              <span style="display:flex;flex-direction:column;line-height:1;letter-spacing:.5px"><b style="font-size:18px;font-weight:850">ZOVIX</b><small style="margin-top:4px;color:#74869a;font-size:8px;font-weight:750;letter-spacing:2px">AI CREATIVE STUDIO</small></span>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
     with back_column:
         if st.button(
             "← Back to Studio",
             key="studio_change_mode_btn",
             type="secondary",
-            use_container_width=True,
+            width="content",
         ):
             st.session_state["current_page"] = "studio"
             st.query_params["page"] = "studio"
@@ -24690,6 +24839,15 @@ if st.session_state.get("current_page") == "studio_mode":
         section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .block-container {
             padding-top: 0 !important;
             margin-top: 0 !important;
+        }
+        section[data-testid="stMain"]:has(.studio-engine-brand) [data-testid="stHorizontalBlock"]:has(.st-key-studio_change_mode_btn) {
+            height:auto !important; margin:2px 0 14px !important; overflow:visible !important; pointer-events:auto !important;
+        }
+        section[data-testid="stMain"]:has(.studio-engine-brand) [data-testid="stColumn"]:has(.st-key-studio_change_mode_btn) {
+            position:relative !important; top:auto !important; right:auto !important; flex:1 1 auto !important; width:auto !important;
+        }
+        section[data-testid="stMain"]:has(.studio-engine-brand) [class*="st-key-studio_change_mode_btn"] {
+            width:fit-content !important; margin:0 0 0 auto !important;
         }
         section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn)
         [data-testid="stMainBlockContainer"] [data-testid="stVerticalBlock"] > div:has(.st-key-studio_change_mode_btn) {
@@ -25168,6 +25326,150 @@ if st.session_state.get("current_page") == "studio_mode":
             color: var(--engine-copy) !important;
             background: #f5f9fd !important;
             border-color: var(--engine-line) !important;
+        }
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) > div[data-testid="stMainBlockContainer"],
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .block-container {
+            padding-top: 0 !important;
+            margin-top: 0 !important;
+        }
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn):has(.face-header) > div[data-testid="stMainBlockContainer"],
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn):has(.face-header) .block-container {
+            padding-top: 0 !important;
+        }
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) [data-testid="stElementContainer"]:has(.studio-mode-photo-hero--upscaler),
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) [data-testid="stElementContainer"]:has(.studio-mode-photo-hero--voice) {
+            display: none !important;
+        }
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .studio-mode-photo-hero,
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .cinematic-header,
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .editor-header,
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .face-header,
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .live-emotion-hero,
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .upscaler-hero {
+            box-sizing: border-box !important;
+            min-height: 234px !important;
+            margin: 0 0 18px !important;
+            border-radius: 14px !important;
+            transform: none !important;
+            font-family: 'Inter', Arial, sans-serif !important;
+        }
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .studio-mode-photo-hero--sales {
+            min-height: 234px !important;
+        }
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .face-header.studio-mode-photo-hero--face {
+            min-height: 234px !important;
+            align-items: center !important;
+            padding: 28px clamp(20px, 4vw, 48px) !important;
+            border-radius: 14px !important;
+            text-align: center !important;
+        }
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .face-header.studio-mode-photo-hero--face::before {
+            border-radius: inherit !important;
+            background: linear-gradient(105deg, rgba(244,250,255,.86), rgba(238,247,255,.62) 48%, rgba(18,42,75,.08)) !important;
+        }
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .face-header.studio-mode-photo-hero--face h2,
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .face-header.studio-mode-photo-hero--face p,
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .face-header.studio-mode-photo-hero--face .badge {
+            width: auto !important;
+            margin-left: 0 !important;
+            text-align: center !important;
+        }
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .face-header.studio-mode-photo-hero--face h2 {
+            color: var(--engine-ink) !important;
+            -webkit-text-fill-color: var(--engine-ink) !important;
+            font: 800 clamp(30px, 3.5vw, 42px)/1.2 'Inter',Arial,sans-serif !important;
+            text-shadow: 0 2px 16px rgba(255,255,255,.96) !important;
+        }
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .face-header.studio-mode-photo-hero--face p {
+            color: var(--engine-copy) !important;
+            -webkit-text-fill-color: var(--engine-copy) !important;
+            text-shadow: 0 1px 12px rgba(255,255,255,.96) !important;
+        }
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .face-header.studio-mode-photo-hero--face .badge {
+            color: var(--engine-blue) !important;
+            -webkit-text-fill-color: var(--engine-blue) !important;
+            background: rgba(255,255,255,.9) !important;
+            border: 1px solid rgba(54,125,232,.16) !important;
+            box-shadow: none !important;
+            text-shadow: none !important;
+        }
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .studio-mode-photo-hero h2,
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .cinematic-header h2,
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .editor-header h2,
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .face-header h2,
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .live-emotion-hero h1,
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .upscaler-hero h1 {
+            font-family: 'Inter',Arial,sans-serif !important;
+            font-size: clamp(30px, 3.5vw, 38px) !important;
+            line-height: 1.2 !important;
+            letter-spacing: -.02em !important;
+        }
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .studio-mode-photo-hero p,
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .cinematic-header p,
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .editor-header p,
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .face-header p,
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .live-emotion-hero p,
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .upscaler-hero p {
+            font-family: 'Inter',Arial,sans-serif !important;
+            font-size: 14px !important;
+            line-height: 1.5 !important;
+        }
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) [data-testid="stVerticalBlockBorderWrapper"] h3,
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) [data-testid="stVerticalBlockBorderWrapper"] h4,
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) [data-testid="stVerticalBlockBorder"] h3,
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) [data-testid="stVerticalBlockBorder"] h4 {
+            color: var(--engine-ink) !important;
+            -webkit-text-fill-color: var(--engine-ink) !important;
+            font: 700 15px/1.3 'Inter',Arial,sans-serif !important;
+            letter-spacing: 0 !important;
+        }
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) [data-testid="stWidgetLabel"] label,
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) [data-testid="stCaptionContainer"] {
+            font-family: 'Inter',Arial,sans-serif !important;
+            font-size: 12px !important;
+            line-height: 1.45 !important;
+        }
+        @media (max-width: 768px) {
+            section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .studio-mode-photo-hero,
+            section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .cinematic-header,
+            section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .editor-header,
+            section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .face-header,
+            section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .live-emotion-hero,
+            section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .upscaler-hero {
+                min-height: 220px !important;
+            }
+        }
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .block-container {
+            padding-left: clamp(32px, 4vw, 56px) !important;
+            padding-right: clamp(32px, 4vw, 56px) !important;
+            padding-top: 0 !important;
+            margin-top: 0 !important;
+        }
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) > div[data-testid="stMainBlockContainer"] {
+            padding-top: 0 !important;
+            margin-top: 0 !important;
+        }
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn)
+        [data-testid="stMainBlockContainer"] > [data-testid="stVerticalBlock"]
+        > [data-testid="stElementContainer"]:first-child:has(> iframe[data-testid="stIFrame"]),
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn)
+        [data-testid="stMainBlockContainer"] > [data-testid="stVerticalBlock"]
+        > [data-testid="stElementContainer"]:has(
+            > [data-testid="stMarkdown"] [data-testid="stMarkdownContainer"] > style:only-child
+        ) {
+            display: none !important;
+        }
+        @media (max-width: 768px) {
+            section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .block-container {
+                padding-left: 22px !important;
+                padding-right: 22px !important;
+            }
+        }
+        @media (max-width: 480px) {
+            section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .block-container {
+                padding-left: 18px !important;
+                padding-right: 18px !important;
+            }
         }
     </style>
     """, unsafe_allow_html=True)
