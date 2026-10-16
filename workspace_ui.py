@@ -10,7 +10,7 @@ def render_workspace_header(
     pinned_button_styles = ""
     if pin_back_button:
         pinned_button_styles = f"""
-        section[data-testid="stMain"] .st-key-{button_key} {{
+        [data-testid="stMain"] .st-key-{button_key} {{
             position: fixed !important;
             top: 12px !important;
             right: 24px !important;
@@ -18,7 +18,7 @@ def render_workspace_header(
             width: auto !important;
         }}
         @media (max-width: 768px) {{
-            section[data-testid="stMain"] .st-key-{button_key} {{
+            [data-testid="stMain"] .st-key-{button_key} {{
                 top: 8px !important;
                 right: 12px !important;
             }}
@@ -28,15 +28,15 @@ def render_workspace_header(
     st.markdown(
         f"""
         <style>
-        section[data-testid="stMain"] > div[data-testid="stMainBlockContainer"] {{
+        [data-testid="stMain"] > div[data-testid="stMainBlockContainer"] {{
             padding-top: 0 !important;
             margin-top: 0 !important;
         }}
-        section[data-testid="stMain"] .block-container {{
+        [data-testid="stMain"] .block-container {{
             padding-top: 0 !important;
             margin-top: 0 !important;
         }}
-        section[data-testid="stMain"] [data-testid="stHorizontalBlock"]:has(.st-key-{button_key}) {{
+        [data-testid="stMain"] [data-testid="stHorizontalBlock"]:has(.st-key-{button_key}) {{
             align-items: center !important;
             margin: 0 0 12px !important;
         }}
@@ -75,13 +75,13 @@ def render_workspace_header(
             font-weight: 750;
             letter-spacing: 2px;
         }}
-        section[data-testid="stMain"] .st-key-{button_key} {{
+        [data-testid="stMain"] .st-key-{button_key} {{
             display: flex !important;
             justify-content: flex-end !important;
             width: 100% !important;
             margin: 0 !important;
         }}
-        section[data-testid="stMain"] .st-key-{button_key} button {{
+        [data-testid="stMain"] .st-key-{button_key} button {{
             min-height: 38px !important;
             padding: 0 16px !important;
             color: #2875bc !important;
@@ -92,7 +92,7 @@ def render_workspace_header(
             font: 650 12px 'Inter', Arial, sans-serif !important;
             white-space: nowrap !important;
         }}
-        section[data-testid="stMain"] .st-key-{button_key} button:hover {{
+        [data-testid="stMain"] .st-key-{button_key} button:hover {{
             background: #fff !important;
             box-shadow: 0 6px 16px rgba(49,99,151,.14) !important;
             transform: translateY(-1px);
@@ -100,7 +100,7 @@ def render_workspace_header(
         {pinned_button_styles}
         @media (max-width: 480px) {{
             .workspace-page-brand-copy b {{ font-size: 16px; }}
-            section[data-testid="stMain"] .st-key-{button_key} button {{
+            [data-testid="stMain"] .st-key-{button_key} button {{
                 min-height: 36px !important;
                 padding: 0 11px !important;
                 font-size: 11px !important;
