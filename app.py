@@ -71,7 +71,7 @@ components.html(
                 }
                 html body [data-testid="stAppViewContainer"] section[data-testid="stMain"]
                 .block-container {
-                    padding-top: 1rem !important;
+                    padding: 0.25rem !important;
                 }
                 html body [data-testid="stAppViewContainer"] section[data-testid="stMain"]
                 > div[data-testid="stMainBlockContainer"] {
@@ -154,12 +154,90 @@ components.html(
                 [data-testid="stAppViewContainer"] > section[data-testid="stMain"]
                 > div[data-testid="stMainBlockContainer"] .block-container {
                     margin-block-start: 0 !important;
-                    padding-block-start: 1rem !important;
+                    padding-block-start: 0.25rem !important;
                 }
                 html body.zovix-full-width-workspace .stApp
                 [data-testid="stAppViewContainer"] > section[data-testid="stMain"]:has(.st-key-studio_hero_container)
                 > div[data-testid="stMainBlockContainer"] .block-container {
-                    padding-block-start: 0.5rem !important;
+                    padding-block-start: 0.25rem !important;
+                }
+            `;
+            host.document.head.appendChild(style);
+        }
+
+        if (!host.document.getElementById("zovix-global-tight-layout")) {
+            const style = host.document.createElement("style");
+            style.id = "zovix-global-tight-layout";
+            style.textContent = `
+                [data-testid="stHeader"],
+                [data-testid="stToolbar"],
+                #MainMenu {
+                    display: none !important;
+                    visibility: hidden !important;
+                    height: 0 !important;
+                    margin: 0 !important;
+                    padding: 0 !important;
+                }
+                html body [data-testid="stAppViewContainer"]
+                section[data-testid="stMain"] .block-container {
+                    box-sizing: border-box !important;
+                    padding: 0.25rem !important;
+                }
+                html body.zovix-full-width-workspace .stApp
+                [data-testid="stAppViewContainer"] > section[data-testid="stMain"]
+                > div[data-testid="stMainBlockContainer"] .block-container {
+                    margin-block-start: 0 !important;
+                    padding-block-start: 0.25rem !important;
+                }
+                html body [data-testid="stAppViewContainer"]
+                section[data-testid="stMain"] [data-testid="stVerticalBlock"] {
+                    gap: 0.5rem !important;
+                }
+                html body [data-testid="stAppViewContainer"]
+                section[data-testid="stMain"] [data-testid="stHorizontalBlock"] {
+                    gap: 0.5rem !important;
+                    column-gap: 0.5rem !important;
+                }
+                html body [data-testid="stAppViewContainer"]
+                section[data-testid="stMain"] :is(
+                    .studio-header,
+                    .zd-hero,
+                    .cinematic-header,
+                    .editor-header,
+                    .face-header,
+                    .studio-mode-photo-hero
+                ) {
+                    margin-block: 0.5rem !important;
+                    padding: 0.75rem !important;
+                }
+                html body [data-testid="stAppViewContainer"]
+                section[data-testid="stMain"] :is(.stats-grid, .zd-mini-stats) {
+                    gap: 0.5rem !important;
+                    margin-block: 0.5rem !important;
+                }
+                html body [data-testid="stAppViewContainer"]
+                section[data-testid="stMain"] :is(.stats-grid .stat, .zd-mini-stats > div) {
+                    padding: 0.5rem !important;
+                }
+                html body [data-testid="stAppViewContainer"]
+                section[data-testid="stMain"] :is(
+                    .quick-access,
+                    .quick-access-panel,
+                    .zd-action-list,
+                    .st-key-studio_quick_actions_panel
+                ) {
+                    gap: 0.5rem !important;
+                    margin-block: 0.5rem !important;
+                    padding: 0.5rem !important;
+                }
+                html body [data-testid="stAppViewContainer"]
+                section[data-testid="stMain"] :is(
+                    .quick-access .qa-grid,
+                    .mode-grid,
+                    .zd-engine-grid
+                ) {
+                    gap: 0.5rem !important;
+                    margin-block: 0.5rem !important;
                 }
             `;
             host.document.head.appendChild(style);
@@ -22268,6 +22346,13 @@ elif st.session_state["current_page"] == "studio":
             color:#172b4d !important;
             font-family:'Inter',Arial,sans-serif !important;
         }
+        .zovix-dashboard {
+            background:
+                radial-gradient(ellipse at 12% 4%,rgba(92,126,245,.14),transparent 32%),
+                radial-gradient(ellipse at 87% 18%,rgba(151,111,235,.12),transparent 30%),
+                radial-gradient(ellipse at 72% 94%,rgba(48,188,205,.10),transparent 34%),
+                linear-gradient(135deg,#eef3ff 0%,#f7f5ff 52%,#eef9fc 100%) !important;
+        }
         section[data-testid="stMain"] .block-container { padding:10px 16px 26px !important; }
         section[data-testid="stMain"] [data-testid="stHorizontalBlock"] { gap:12px !important; }
         .zd-section-head { margin:20px 0 11px; }
@@ -22328,6 +22413,58 @@ elif st.session_state["current_page"] == "studio":
             background:#eaf1ff;
         }
         .zd-nav a.active { font-weight:700; }
+        .zd-sidebar {
+            position:relative;
+            isolation:isolate;
+            overflow:hidden;
+            padding:16px 12px 14px !important;
+            border:1px solid rgba(255,255,255,.16) !important;
+            border-right:1px solid rgba(255,255,255,.16) !important;
+            border-radius:22px;
+            background:
+                radial-gradient(circle at 10% 0%,rgba(54,196,224,.24),transparent 31%),
+                radial-gradient(circle at 100% 48%,rgba(133,91,231,.24),transparent 36%),
+                linear-gradient(155deg,#101a35 0%,#18244a 56%,#2a2052 100%) !important;
+            box-shadow:0 18px 42px rgba(30,42,91,.19),inset 0 1px 0 rgba(255,255,255,.12);
+        }
+        .zd-sidebar .zd-brand { color:#f8faff !important; }
+        .zd-sidebar .zd-brand-sub { color:#b1bfdf !important; }
+        .zd-sidebar .zd-brand-name {
+            background:linear-gradient(100deg,#54e0ed 0%,#a5b5ff 53%,#d8a8ff 100%);
+            -webkit-background-clip:text;
+            background-clip:text;
+            -webkit-text-fill-color:transparent;
+        }
+        .zd-sidebar .zd-nav-label { color:#aebcda !important; }
+        .zd-sidebar .zd-nav a {
+            color:#34476a !important;
+            border:1px solid rgba(255,255,255,.55);
+            border-radius:11px;
+            background:linear-gradient(135deg,rgba(255,255,255,.98),rgba(237,243,255,.94)) !important;
+            box-shadow:0 4px 12px rgba(5,12,33,.12);
+            transition:transform .16s ease,box-shadow .16s ease,background .16s ease;
+        }
+        .zd-sidebar .zd-nav a:hover:not(.active) {
+            color:#274d9d !important;
+            border-color:rgba(128,174,255,.8);
+            background:#fff !important;
+            box-shadow:0 7px 16px rgba(5,12,33,.18);
+            transform:translateY(-1px);
+        }
+        .zd-sidebar .zd-nav a.active {
+            color:#fff !important;
+            border-color:rgba(255,255,255,.36);
+            background:linear-gradient(105deg,#20b9cb 0%,#4e78ee 52%,#7354df 100%) !important;
+            box-shadow:0 7px 18px rgba(62,100,222,.36),inset 0 1px 0 rgba(255,255,255,.28);
+        }
+        .zd-sidebar .zd-nav-rule {
+            background:linear-gradient(90deg,transparent,rgba(174,194,240,.34),transparent);
+        }
+        .zd-sidebar .zd-sidebar-promo {
+            border:1px solid rgba(255,255,255,.16);
+            background:linear-gradient(145deg,rgba(34,47,88,.92),rgba(74,45,116,.9) 65%,rgba(20,94,120,.82));
+            box-shadow:0 10px 24px rgba(4,10,30,.2),inset 0 1px 0 rgba(255,255,255,.1);
+        }
         .studio-sidebar-section-label { color:#64748b; font-size:9px; letter-spacing:.1em; }
         .zd-brand-mark { border-radius:12px; box-shadow:0 5px 14px rgba(76,91,210,.18); }
         .zd-brand-name { font-size:18px; }
@@ -23202,6 +23339,225 @@ elif st.session_state["current_page"] == "studio":
                 display:none !important;
             }
         }
+            .st-key-studio_hero_container {
+                background:
+                    linear-gradient(115deg, rgba(243,248,255,.96) 0%, rgba(232,240,255,.84) 42%, rgba(88,105,190,.34) 100%),
+                    url('/app/static/studio_hero.webp') center 45%/cover no-repeat !important;
+                box-shadow:0 16px 38px rgba(45,75,135,.18), 0 0 0 1px rgba(255,255,255,.8) inset !important;
+            }
+            .st-key-studio_hero_container .zd-hero h1 {
+                color:#122543 !important;
+                font-size:clamp(32px,3vw,44px) !important;
+                font-weight:850 !important;
+                letter-spacing:-.05em !important;
+                line-height:1.08 !important;
+            }
+            .st-key-studio_hero_container .zd-hero h1 span {
+                color:#3979e8 !important;
+                background:linear-gradient(100deg,#3278ed,#8155eb);
+                -webkit-background-clip:text;
+                background-clip:text;
+                -webkit-text-fill-color:transparent;
+            }
+            .st-key-studio_hero_container .zd-hero-kicker {
+                color:#3c5272 !important;
+                font-size:13px !important;
+                font-weight:750 !important;
+            }
+            .st-key-studio_hero_container .zd-hero p {
+                max-width:520px !important;
+                color:#344b6d !important;
+                font-size:13px !important;
+                line-height:1.55 !important;
+            }
+            .st-key-studio_hero_controls {
+                border-color:rgba(255,255,255,.95) !important;
+                background:rgba(255,255,255,.9) !important;
+                box-shadow:0 0 0 1px rgba(90,133,232,.18), 0 0 24px rgba(74,117,237,.28), 0 10px 26px rgba(35,62,115,.16) !important;
+            }
+            .st-key-studio_hero_prompt_form [data-testid="stTextInput"] input {
+                border-color:#cbd9f4 !important;
+                box-shadow:0 0 0 3px rgba(82,126,232,.1), 0 4px 14px rgba(58,89,151,.08) !important;
+            }
+            .st-key-studio_hero_prompt_form [data-testid="stFormSubmitButton"] > button,
+            section[data-testid="stMain"] [data-testid="stButton"] > button[kind="primary"] {
+                color:#fff !important;
+                background:linear-gradient(105deg,#3478f6 0%,#655eea 55%,#8550df 100%) !important;
+                border:0 !important;
+                box-shadow:0 6px 16px rgba(89,84,218,.3) !important;
+                font-weight:800 !important;
+            }
+            [data-testid="stHorizontalBlock"]:has(.st-key-studio_sidebar_action_0)
+            > [data-testid="stColumn"]:has(.st-key-studio_sidebar_action_0) {
+                box-sizing:border-box !important;
+                align-self:stretch !important;
+                padding:12px 10px !important;
+                border:1px solid rgba(137,161,211,.14) !important;
+                border-radius:16px !important;
+                background:linear-gradient(180deg,#111b31,#0d1527) !important;
+                box-shadow:0 12px 30px rgba(13,26,52,.2) !important;
+            }
+            [data-testid="stHorizontalBlock"]:has(.st-key-studio_sidebar_action_0)
+            > [data-testid="stColumn"]:has(.st-key-studio_sidebar_action_0) .zd-brand-name {
+                color:#f5f7ff !important;
+            }
+            [data-testid="stHorizontalBlock"]:has(.st-key-studio_sidebar_action_0)
+            > [data-testid="stColumn"]:has(.st-key-studio_sidebar_action_0) .zd-brand-sub,
+            [data-testid="stHorizontalBlock"]:has(.st-key-studio_sidebar_action_0)
+            > [data-testid="stColumn"]:has(.st-key-studio_sidebar_action_0) .studio-sidebar-section-label {
+                color:#95a4c1 !important;
+            }
+            [class*="st-key-studio_sidebar_action_"] [data-testid="stButton"] > button,
+            [class*="st-key-studio_library_"] [data-testid="stButton"] > button,
+            [class*="st-key-studio_resource_"] [data-testid="stButton"] > button,
+            .st-key-studio_sidebar_ghost_engine [data-testid="stButton"] > button {
+                min-height:36px !important;
+                justify-content:flex-start !important;
+                padding:0 10px !important;
+                color:#c7d2e7 !important;
+                border:0 !important;
+                border-left:3px solid transparent !important;
+                border-radius:0 9px 9px 0 !important;
+                background:transparent !important;
+                box-shadow:none !important;
+                font:600 11px/1.3 'Inter',Arial,sans-serif !important;
+                text-align:left !important;
+            }
+            [class*="st-key-studio_sidebar_action_"] [data-testid="stButton"] > button:hover,
+            [class*="st-key-studio_library_"] [data-testid="stButton"] > button:hover,
+            [class*="st-key-studio_resource_"] [data-testid="stButton"] > button:hover,
+            .st-key-studio_sidebar_ghost_engine [data-testid="stButton"] > button:hover {
+                color:#fff !important;
+                border-left-color:#4f9cff !important;
+                background:rgba(89,127,205,.15) !important;
+            }
+            .st-key-studio_sidebar_action_0 [data-testid="stButton"] > button {
+                color:#fff !important;
+                border-left-color:#55b8ff !important;
+                background:linear-gradient(90deg,rgba(72,135,232,.2),rgba(72,135,232,.04)) !important;
+                font-weight:800 !important;
+            }
+            [data-testid="stHorizontalBlock"]:has(.st-key-studio_sidebar_action_0)
+            > [data-testid="stColumn"] .studio-sidebar-section-label {
+                margin:14px 8px 6px !important;
+                font-weight:750 !important;
+                letter-spacing:.12em !important;
+                text-transform:uppercase !important;
+            }
+            .zd-engine-photo-card {
+                z-index:0;
+                overflow:hidden !important;
+                border:1px solid transparent !important;
+                background:
+                    linear-gradient(#fff,#fff) padding-box,
+                    linear-gradient(135deg,#63d8ef,#5989f4 52%,#a05bea) border-box !important;
+                box-shadow:0 6px 17px rgba(52,87,151,.1), 0 0 14px rgba(92,122,229,.08) !important;
+                transition:transform .2s ease,box-shadow .2s ease !important;
+            }
+            .zd-engine-photo-card::after {
+                position:absolute;
+                z-index:3;
+                inset:0;
+                border:1px solid transparent;
+                border-radius:inherit;
+                background:linear-gradient(135deg,rgba(69,216,239,.8),rgba(83,124,245,.7) 52%,rgba(160,91,234,.8)) border-box;
+                content:"";
+                pointer-events:none;
+                -webkit-mask:linear-gradient(#fff 0 0) padding-box,linear-gradient(#fff 0 0);
+                -webkit-mask-composite:xor;
+                mask-composite:exclude;
+            }
+            .zd-engine-photo-card:hover,
+            .zd-engine-photo-card:focus-visible {
+                z-index:4;
+                transform:scale(1.02) !important;
+                box-shadow:0 14px 30px rgba(45,79,151,.2),0 0 20px rgba(92,122,229,.22) !important;
+            }
+            .zd-engine-photo-icon {
+                width:38px !important;
+                height:38px !important;
+                border-radius:11px !important;
+                font-size:20px !important;
+            }
+            .zd-engine-photo-arrow {
+                right:10px !important;
+                bottom:10px !important;
+                display:inline-flex !important;
+                width:auto !important;
+                height:27px !important;
+                padding:0 10px !important;
+                color:#fff !important;
+                border:1px solid rgba(255,255,255,.55) !important;
+                border-radius:999px !important;
+                background:rgba(27,46,83,.72) !important;
+                font:750 10px/1 'Inter',Arial,sans-serif !important;
+                white-space:nowrap !important;
+                backdrop-filter:blur(8px);
+            }
+            .zd-engine-photo-arrow::after { content:none !important; }
+            .st-key-studio_quick_actions_panel [class*="st-key-studio_quick_action_"] [data-testid="stButton"] > button {
+                min-height:42px !important;
+                color:#fff !important;
+                border:0 !important;
+                border-radius:10px !important;
+                background:linear-gradient(105deg,#3478f6 0%,#655eea 55%,#8550df 100%) !important;
+                box-shadow:0 5px 13px rgba(83,94,221,.2) !important;
+                font:750 11px/1.25 'Inter',Arial,sans-serif !important;
+            }
+            .st-key-studio_quick_actions_panel [class*="st-key-studio_quick_action_"] [data-testid="stButton"] > button:hover {
+                color:#fff !important;
+                border:0 !important;
+                background:linear-gradient(105deg,#2469e8,#574edc 55%,#7541cf) !important;
+                box-shadow:0 8px 18px rgba(83,94,221,.3) !important;
+                transform:translateY(-1px);
+            }
+            .st-key-studio_quick_actions_panel [class*="st-key-studio_quick_action_"] [data-testid="stButton"] > button::before {
+                font-size:10px !important;
+            }
+            .st-key-studio_creations_section {
+                width:100% !important;
+                margin:20px 0 0 !important;
+                padding:20px !important;
+                border-color:#e0e8f4 !important;
+                border-radius:18px !important;
+                background:linear-gradient(145deg,#fff,#f8faff) !important;
+                box-shadow:0 10px 26px rgba(37,65,105,.08) !important;
+            }
+            .st-key-studio_creations_section [data-testid="stHorizontalBlock"]:has([data-testid="stImage"]):has([class*="st-key-studio_recent_"]) > [data-testid="stColumn"] {
+                padding:12px !important;
+                border-color:#dfe7f3 !important;
+                border-radius:16px !important;
+                box-shadow:0 8px 20px rgba(37,65,105,.09) !important;
+            }
+            .st-key-studio_creations_section [data-testid="stHorizontalBlock"]:has([data-testid="stImage"]):has([class*="st-key-studio_recent_"]) > [data-testid="stColumn"] [data-testid="stImage"] img {
+                width:100% !important;
+                height:180px !important;
+                object-fit:cover !important;
+                border-radius:12px !important;
+            }
+            .st-key-studio_creations_section [class*="st-key-studio_recent_"] [data-testid="stButton"] > button,
+            .st-key-studio_creations_section [class*="st-key-studio_favorite_"] [data-testid="stButton"] > button {
+                width:100% !important;
+                min-width:0 !important;
+                min-height:34px !important;
+                color:#3e5c88 !important;
+                border:1px solid #dce6f5 !important;
+                border-radius:9px !important;
+                background:#f4f7fc !important;
+                font:700 11px/1 'Inter',Arial,sans-serif !important;
+            }
+            .st-key-studio_creations_section [class*="st-key-studio_favorite_"] [data-testid="stButton"] > button {
+                color:#7659d6 !important;
+                background:#f5f1ff !important;
+            }
+            @media (max-width:760px) {
+                .st-key-studio_creations_section [data-testid="stHorizontalBlock"]:has([data-testid="stImage"]):has([class*="st-key-studio_recent_"]) > [data-testid="stColumn"] {
+                    flex:0 0 220px !important;
+                }
+                .st-key-studio_creations_section [data-testid="stHorizontalBlock"]:has([data-testid="stImage"]):has([class*="st-key-studio_recent_"]) > [data-testid="stColumn"] [data-testid="stImage"] img {
+                    height:160px !important;
+                }
+            }
         </style>
         """,
         unsafe_allow_html=True,
@@ -23503,7 +23859,7 @@ elif st.session_state["current_page"] == "studio":
                         recent_actions = st.columns([0.68, 0.32], gap="small")
                         with recent_actions[0]:
                             if st.button(
-                                "⋮",
+                                "Open",
                                 key=f"studio_recent_{index}",
                                 width="stretch",
                                 help="Open in My Creations",
@@ -23513,7 +23869,7 @@ elif st.session_state["current_page"] == "studio":
                                 _dashboard_go("portfolio")
                         with recent_actions[1]:
                             if st.button(
-                                "♥" if favorite_key in favorite_keys else "♡",
+                                "★" if favorite_key in favorite_keys else "☆",
                                 key=f"studio_favorite_{index}",
                                 help="Remove from favorites" if favorite_key in favorite_keys else "Add to favorites",
                                 width="stretch",
@@ -23815,7 +24171,7 @@ elif st.session_state["current_page"] == "studio":
                 "<span class='zd-engine-photo-copy'>"
                 f"<strong>{html_lib.escape(title)}</strong>"
                 f"<small>{html_lib.escape(description)}</small></span>"
-                "<span class='zd-engine-photo-arrow' aria-hidden='true'>›</span></a>"
+                "</a>"
             )
         st.markdown(
             f"<section class='zd-engine-grid' id='engines'>{''.join(engine_card_html)}</section>",
@@ -23903,7 +24259,9 @@ elif st.session_state["current_page"] == "studio":
             ]):
                 if st.button(label, key=f"studio_quick_action_{index}", width="stretch"):
                     _dashboard_go(action)
-        render_dashboard_creations_sidebar()
+    creations_columns = st.columns([0.20, 0.80], gap="small")
+    with creations_columns[1]:
+        render_dashboard_creations()
 
     future_columns = st.columns([0.20, 0.80], gap="small")
     with future_columns[1]:
