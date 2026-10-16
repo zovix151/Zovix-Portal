@@ -6,7 +6,6 @@ load_dotenv(dotenv_path=Path(__file__).resolve().parent / ".env")
 HAS_DOTENV = True
 
 import os
-import cv2
 import time
 import uuid
 import asyncio
@@ -38,6 +37,7 @@ import streamlit.components.v1 as components
 from workspace_ui import render_workspace_header
 from pydantic import BaseModel, Field
 import textwrap
+from static_assets import inline_static_asset_urls, static_asset_data_uri
 
 STUDIO_ENGINE_PANEL_RATIO = (1, 1.2)
 
@@ -68,6 +68,27 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
+
+
+@st.cache_resource(show_spinner=False)
+def _get_opencv():
+    try:
+        import cv2
+    except ImportError as exc:
+        raise RuntimeError("OpenCV is required for video processing features.") from exc
+    return cv2
+
+
+@st.cache_resource(show_spinner=False)
+def _get_google_genai():
+    try:
+        from google import genai
+        from google.genai import types
+    except ImportError:
+        logger.warning("google-genai not installed. Using fallback script generation.")
+        return None, None
+    return genai, types
+
 
 components.html(
     """
@@ -582,21 +603,8 @@ CLOUDFLARE_API_KEY = get_system_secret("CLOUDFLARE_API_KEY")
 CDN_DOMAIN = get_system_secret("CDN_DOMAIN", "")
 
 # ========================================================
-# GOOGLE GENAI IMPORT WITH FALLBACK
+# OPTIONAL INTEGRATIONS
 # ========================================================
-
-try:
-    from google import genai
-    from google.genai import types
-    has_genai = True
-except ImportError:
-    has_genai = False
-    logger.warning("google-genai not installed. Using fallback script generation.")
-
-try:
-    from huggingface_hub import InferenceClient
-except ImportError:
-    InferenceClient = None
 
 try:
     import razorpay
@@ -612,11 +620,6 @@ try:
     from mutagen.mp3 import MP3
 except ImportError:
     MP3 = None
-
-try:
-    import numpy as np
-except ImportError:
-    np = None
 
 try:
     import redis
@@ -5484,7 +5487,8 @@ class ScriptingEngine:
     @staticmethod
     def generate_script(topic, duration_choice, selected_model, language_choice, user_api_key=None):
         effective_api_key = (user_api_key or "").strip() or GEMINI_API_KEY
-        if has_genai and effective_api_key:
+        genai, genai_types = _get_google_genai() if effective_api_key else (None, None)
+        if genai is not None and genai_types is not None:
             try:
                 client_gen = genai.Client(api_key=effective_api_key)
                 target_duration, num_scenes, scene_duration = get_cinematic_duration_config(duration_choice)
@@ -5510,7 +5514,7 @@ class ScriptingEngine:
                 response = client_gen.models.generate_content(
                     model=selected_model,
                     contents=prompt,
-                    config=types.GenerateContentConfig(
+                    config=genai_types.GenerateContentConfig(
                         response_mime_type="application/json",
                         response_schema=VideoScriptBreakdown,
                         temperature=0.7
@@ -6804,6 +6808,7 @@ def convert_mp4_to_webm(mp4_path, webm_path):
 def generate_face_video_real(image_path, audio_path=None, output_width=512, output_height=512, duration=10, quality="Standard", emotion="neutral", camera_angle="front"):
     if not image_path or not os.path.exists(image_path):
         return None
+    cv2 = _get_opencv()
     quality_settings = {"Standard": {"crf": 23, "preset": "medium", "bitrate": "1M"}, "HD": {"crf": 18, "preset": "slow", "bitrate": "4M"}, "4K": {"crf": 15, "preset": "veryslow", "bitrate": "10M", "scale": 2.0}}
     q_settings = quality_settings.get(quality, quality_settings["Standard"])
     scale_factor = q_settings.get("scale", 1.0)
@@ -7638,6 +7643,7 @@ def generate_expressive_face_video(prompt, face_image_path, duration=30, emotion
 
 def generate_audio_driven_lip_only_video(face_image_path, audio_path, output_video_path, width, height, fps=24):
     """Fallback lip-sync engine: keeps head static and animates only mouth region from audio energy."""
+    cv2 = _get_opencv()
     temp_wav = f"face_videos/temp_audio_{uuid.uuid4().hex[:8]}.wav"
     temp_video = f"face_videos/temp_lips_{uuid.uuid4().hex[:8]}.mp4"
     temp_muxed = f"face_videos/temp_lips_mux_{uuid.uuid4().hex[:8]}.mp4"
@@ -17098,6 +17104,7 @@ def handle_engine_access_request(mode_value: str):
     st.session_state["studio_active_mode"] = mode_value
     st.session_state["current_workspace_mode"] = mode_value
     st.session_state["current_page"] = "studio_mode"
+    st.session_state["studio_scroll_to_top"] = True
     st.query_params["page"] = "studio_mode"
     st.session_state["auth_redirect_mode"] = None
     st.rerun()
@@ -21070,6 +21077,14 @@ elif st.session_state["current_page"] == "studio":
             color: #152238 !important;
             font-family: 'Inter', sans-serif !important;
         }
+        [data-testid="stMainBlockContainer"] > [data-testid="stVerticalBlock"]
+        > [data-testid="stElementContainer"]:has(
+            > [data-testid="stMarkdown"] [data-testid="stMarkdownContainer"] > style:only-child
+        ),
+        [data-testid="stMainBlockContainer"] > [data-testid="stVerticalBlock"]
+        > [data-testid="stElementContainer"]:has(> iframe[data-testid="stIFrame"]) {
+            display: none !important;
+        }
         section[data-testid="stSidebar"], [data-testid="stSidebarCollapsedControl"] { display: none !important; }
         .zovix-dashboard {
             --zd-ink: #152238;
@@ -23858,6 +23873,7 @@ elif st.session_state["current_page"] == "studio":
                         if preview_path:
                             st.image(preview_path, width="stretch")
                         elif video_path:
+                            cv2 = _get_opencv()
                             capture = cv2.VideoCapture(video_path)
                             try:
                                 has_frame, frame = capture.read()
@@ -23888,6 +23904,20 @@ elif st.session_state["current_page"] == "studio":
                                     favorite_keys.add(favorite_key)
                                 st.session_state["studio_favorite_keys"] = sorted(favorite_keys)
                                 st.rerun()
+
+    dashboard_hero_image = static_asset_data_uri("studio_hero.webp")
+    st.markdown(
+        f"""
+        <style>
+        .st-key-studio_hero_container {{
+            background-image:
+                linear-gradient(90deg,rgba(239,246,255,.9) 0%,rgba(239,246,255,.78) 42%,rgba(239,246,255,.35) 72%,rgba(239,246,255,.12) 100%),
+                url("{dashboard_hero_image}") !important;
+        }}
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
 
     dashboard_columns = st.columns([0.20, 0.56, 0.24], gap="small")
     with dashboard_columns[0]:
@@ -24050,18 +24080,11 @@ elif st.session_state["current_page"] == "studio":
         }
         engine_card_html = []
         for card in visible_engines:
-            icon, title, mode, description, image = card
+            icon, title, mode, description, _image = card
             supplied_image = supplied_engine_images.get(engine_cards.index(card))
-            supplied_image_path = (
-                Path(__file__).resolve().parent / "static" / supplied_image
-                if supplied_image
-                else None
-            )
-            image_source = (
-                f"/app/static/{supplied_image}"
-                if supplied_image_path and supplied_image_path.is_file()
-                else f"https://images.unsplash.com/{image}?auto=format&fit=crop&w=900&q=82"
-            )
+            if supplied_image is None:
+                raise ValueError(f"No dashboard image configured for {title!r}")
+            image_source = static_asset_data_uri(supplied_image)
             engine_url = (
                 "?page=ghost_engine"
                 if mode == "ghost_engine"
@@ -24169,7 +24192,7 @@ elif st.session_state["current_page"] == "studio":
     future_columns = st.columns([0.20, 0.80], gap="small")
     with future_columns[1]:
         st.markdown(
-            """
+            inline_static_asset_urls("""
             <section class="zd-lower-section zd-upcoming-section" id="studio-upcoming">
               <div class="zd-lower-head">
                 <div><h2>Future Features</h2><p>New ways to create, customize and share are on the horizon.</p></div>
@@ -24190,11 +24213,11 @@ elif st.session_state["current_page"] == "studio":
                 </article>
               </div>
             </section>
-            """,
+            """),
             unsafe_allow_html=True,
         )
         st.markdown(
-            """
+            inline_static_asset_urls("""
             <section class="zd-lower-section" id="studio-future">
               <div class="zd-lower-head">
                 <div><h2>What’s Ahead</h2><p>Your creative journey with ZOVIX continues. Explore what’s next!</p></div>
@@ -24215,14 +24238,14 @@ elif st.session_state["current_page"] == "studio":
                 </article>
               </div>
             </section>
-            """,
+            """),
             unsafe_allow_html=True,
         )
 
     community_columns = st.columns([0.20, 0.80], gap="small")
     with community_columns[1]:
         st.markdown(
-            f"""
+            inline_static_asset_urls(f"""
             <section class="zd-lower-section zd-community-section" id="studio-community">
               <div class="zd-lower-head">
                 <div><h2>Community Creations</h2><p>Amazing creations from our talented community. Get inspired and create your own!</p></div>
@@ -24250,7 +24273,7 @@ elif st.session_state["current_page"] == "studio":
               </div>
               <p class="zd-community-note">Community showcase includes supplied creative examples; creator handles and engagement figures are illustrative. Start your own project with one of the <a href="?page=studio#engines">AI engines above</a>.</p>
             </section>
-            """,
+            """),
             unsafe_allow_html=True,
         )
 
@@ -25159,7 +25182,16 @@ def render_engine_portfolio_section(include_discovery=True):
     """, unsafe_allow_html=True)
 if st.session_state.get("current_page") == "studio_mode":
     active_studio_mode = st.session_state.get("studio_active_mode", "Cinematic Engine")
-    if render_workspace_header("studio_change_mode_btn", "AI CREATIVE STUDIO"):
+    if st.session_state.pop("studio_scroll_to_top", False):
+        components.html(
+            "<script>window.parent.scrollTo({top:0,behavior:'instant'});</script>",
+            height=0,
+        )
+    if render_workspace_header(
+        "studio_change_mode_btn",
+        "AI CREATIVE STUDIO",
+        pin_back_button=True,
+    ):
         st.session_state["current_page"] = "studio"
         st.query_params["page"] = "studio"
         st.rerun()
@@ -25771,7 +25803,15 @@ if st.session_state.get("current_page") == "studio_mode":
         section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .block-container {
             padding-left: clamp(32px, 4vw, 56px) !important;
             padding-right: clamp(32px, 4vw, 56px) !important;
-            padding-top: 1rem !important;
+            padding-top: 0.25rem !important;
+            margin-top: 0 !important;
+        }
+        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) :is(
+            .studio-mode-photo-hero,
+            .cinematic-header,
+            .editor-header,
+            .face-header
+        ) {
             margin-top: 0 !important;
         }
         section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) > div[data-testid="stMainBlockContainer"] {
@@ -25792,7 +25832,7 @@ if st.session_state.get("current_page") == "studio_mode":
             section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .block-container {
                 padding-left: 22px !important;
                 padding-right: 22px !important;
-                padding-top: 1rem !important;
+                padding-top: 0.25rem !important;
             }
         }
         @media (max-width: 480px) {

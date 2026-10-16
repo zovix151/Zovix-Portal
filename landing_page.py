@@ -1,6 +1,7 @@
 import streamlit as st
 from html import escape
 from plan_catalog import GLOBAL_PLANS
+from static_assets import inline_static_asset_urls, static_asset_data_uri
 
 st.set_page_config(
     page_title="Zovix AI Studio | AI SaaS Platform",
@@ -50,7 +51,7 @@ class WorldClassLandingPage:
         self._inject_animations()
 
     def _inject_css(self):
-        st.markdown("""
+        landing_css = """
         <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Roboto+Condensed:wght@700;800;900&family=Orbitron:wght@400;500;600;700;800;900&family=Playfair+Display:wght@700;900&family=Caveat:wght@600;700&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,500,1,0&display=swap');
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -1644,7 +1645,7 @@ class WorldClassLandingPage:
             border-radius: 28px 120px 28px 120px;
             background:
                 linear-gradient(180deg, rgba(9, 20, 31, .08) 10%, rgba(9, 20, 31, .22) 42%, rgba(9, 20, 31, .88) 100%),
-                url('/app/static/studio_cinematic_engine..png') center 48%/cover;
+                url('/app/static/studio_cinematic_engine.webp') center 48%/cover;
             box-shadow: 0 34px 70px rgba(20, 42, 57, .24), 0 0 0 10px rgba(255, 255, 255, .28);
             transform: perspective(1200px) rotateY(-7deg) rotateX(2deg);
             transition: transform .4s ease, box-shadow .4s ease;
@@ -2640,7 +2641,8 @@ class WorldClassLandingPage:
         }
 
         </style>
-        """, unsafe_allow_html=True)
+        """
+        st.markdown(inline_static_asset_urls(landing_css), unsafe_allow_html=True)
 
     def _navbar_html(self):
         return (
@@ -2668,10 +2670,11 @@ class WorldClassLandingPage:
             "1472214103451-9374bd1c798e": "studio_dynamic_ui_engine.webp",
             "1480714378408-67cf0d13bc1b": "studio_ai_agent_engine.webp",
             "1470071459604-3b5ec3a7fe05": "studio_cinematic_story_background.webp",
+            "1493246507139-91e8fad9978e": "studio_cinematic_story_background.webp",
         }
 
         def photo(photo_id):
-            return f"/app/static/{photo_assets.get(photo_id, 'studio_hero.webp')}"
+            return static_asset_data_uri(photo_assets[photo_id])
 
         def pos(x, y, w, h=None):
             height = f";--hh:calc(var(--p)*{h})" if h else ""
@@ -3272,7 +3275,7 @@ class WorldClassLandingPage:
         ]
         cards = "".join(
             "<article class='engine-gallery-card'>"
-            f"<img src='/app/static/{photo_file}' "
+            f"<img src='{static_asset_data_uri(photo_file)}' "
             f"alt='{escape(alt)}' loading='lazy'>"
             "<div class='engine-gallery-card-copy'>"
             f"<span class='engine-gallery-engine'>{escape(engine)}</span>"
@@ -3359,7 +3362,7 @@ class WorldClassLandingPage:
         ]
         cards = "".join(
             "<article class='blog-post'>"
-            f"<img src='/app/static/{photo_file}' "
+            f"<img src='{static_asset_data_uri(photo_file)}' "
             f"alt='{escape(alt)}' loading='lazy'>"
             f"<div class='blog-post-copy'><span class='blog-post-topic'>{escape(topic)}</span>"
             f"<h3>{escape(title)}</h3><p>{escape(description)}</p></div></article>"
@@ -3404,7 +3407,7 @@ class WorldClassLandingPage:
         ]
         cards = "".join(
             "<article class='changelog-card'>"
-            f"<img src='/app/static/{photo_file}' "
+            f"<img src='{static_asset_data_uri(photo_file)}' "
             f"alt='{escape(alt)}' loading='lazy'>"
             f"<div class='changelog-card-copy'><span class='changelog-card-label'>{escape(label)}</span>"
             f"<h3>{escape(title)}</h3><p>{escape(description)}</p></div></article>"
@@ -3449,7 +3452,7 @@ class WorldClassLandingPage:
         ]
         cards = "".join(
             "<article class='roadmap-card'>"
-            f"<img src='/app/static/{photo_file}' "
+            f"<img src='{static_asset_data_uri(photo_file)}' "
             f"alt='{escape(alt)}' loading='lazy'>"
             f"<div class='roadmap-card-copy'><span class='roadmap-card-label'>{escape(stage)}</span>"
             f"<h3>{escape(title)}</h3><p>{escape(description)}</p></div></article>"

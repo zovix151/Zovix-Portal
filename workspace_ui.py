@@ -1,8 +1,30 @@
 import streamlit as st
 
 
-def render_workspace_header(button_key: str, subtitle: str = "AI STUDIO") -> bool:
+def render_workspace_header(
+    button_key: str,
+    subtitle: str = "AI STUDIO",
+    pin_back_button: bool = False,
+) -> bool:
     """Render the shared brand and return-to-studio header for workspace pages."""
+    pinned_button_styles = ""
+    if pin_back_button:
+        pinned_button_styles = f"""
+        section[data-testid="stMain"] .st-key-{button_key} {{
+            position: fixed !important;
+            top: 12px !important;
+            right: 24px !important;
+            z-index: 1000 !important;
+            width: auto !important;
+        }}
+        @media (max-width: 768px) {{
+            section[data-testid="stMain"] .st-key-{button_key} {{
+                top: 8px !important;
+                right: 12px !important;
+            }}
+        }}
+        """
+
     st.markdown(
         f"""
         <style>
@@ -75,6 +97,7 @@ def render_workspace_header(button_key: str, subtitle: str = "AI STUDIO") -> boo
             box-shadow: 0 6px 16px rgba(49,99,151,.14) !important;
             transform: translateY(-1px);
         }}
+        {pinned_button_styles}
         @media (max-width: 480px) {{
             .workspace-page-brand-copy b {{ font-size: 16px; }}
             section[data-testid="stMain"] .st-key-{button_key} button {{
