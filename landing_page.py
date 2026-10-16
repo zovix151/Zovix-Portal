@@ -2617,9 +2617,17 @@ class WorldClassLandingPage:
             .faq-item { padding: 15px 16px; }
         }
         @media (min-width: 901px) {
-            .engine-gallery-section, .ready-create-section {
+            .features-section, .how-it-works, .stats-section,
+            .testimonials-section, .pricing-section, .faq-section,
+            .cta-section, .engine-gallery-section, .about-section,
+            .blog-section, .changelog-section, .roadmap-section,
+            .careers-section, .cinematic-guide, .landing-footer,
+            .ready-create-section {
+                box-sizing: border-box;
                 width: 100%;
                 max-width: 1800px;
+                margin-right: auto;
+                margin-left: auto;
                 padding-right: clamp(20px, 2.5vw, 48px);
                 padding-left: clamp(20px, 2.5vw, 48px);
             }

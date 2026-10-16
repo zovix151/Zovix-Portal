@@ -88,6 +88,40 @@ components.html(
             host.document.head.appendChild(style);
         }
 
+        if (!host.document.getElementById("zovix-workspace-full-width")) {
+            const style = host.document.createElement("style");
+            style.id = "zovix-workspace-full-width";
+            style.textContent = `
+                body.zovix-full-width-workspace #root,
+                body.zovix-full-width-workspace .stApp,
+                body.zovix-full-width-workspace [data-testid="stAppViewContainer"],
+                body.zovix-full-width-workspace section[data-testid="stMain"],
+                body.zovix-full-width-workspace section[data-testid="stMain"] > div[data-testid="stMainBlockContainer"] {
+                    box-sizing: border-box !important;
+                    width: 100% !important;
+                    max-width: none !important;
+                }
+                body.zovix-full-width-workspace section[data-testid="stMain"] .block-container {
+                    box-sizing: border-box !important;
+                    width: 100% !important;
+                    max-width: none !important;
+                    margin-left: 0 !important;
+                    margin-right: 0 !important;
+                }
+            `;
+            host.document.head.appendChild(style);
+        }
+
+        const getPage = () => new URLSearchParams(host.location.search).get("page") || "landing";
+        const updateWorkspaceWidth = () => {
+            host.document.body.classList.toggle("zovix-full-width-workspace", getPage() !== "landing");
+        };
+        updateWorkspaceWidth();
+        if (!host.__zovixWorkspaceWidthPoll) {
+            host.__zovixWorkspaceWidthPoll = host.setInterval(updateWorkspaceWidth, 250);
+            host.addEventListener("popstate", updateWorkspaceWidth);
+        }
+
         if (!isMobile || !viewport) return;
 
         const desktopWidth = 1440;
@@ -115,7 +149,6 @@ components.html(
             `;
             host.document.head.appendChild(style);
         }
-        const getPage = () => new URLSearchParams(host.location.search).get("page") || "landing";
         const updateViewport = () => {
             const page = getPage();
             if (responsivePages.has(page)) {
