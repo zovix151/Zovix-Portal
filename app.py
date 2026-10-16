@@ -35,6 +35,7 @@ import tempfile
 from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageFont, ImageOps
 import streamlit as st
 import streamlit.components.v1 as components
+from workspace_ui import render_workspace_header
 from pydantic import BaseModel, Field
 import textwrap
 
@@ -16249,7 +16250,7 @@ def get_premium_theme_css():
         margin: 0px !important;
     }
     .block-container {
-        padding-top: 0.5rem !important;
+        padding-top: 0 !important;
         padding-bottom: 2rem !important;
         padding-left: 2rem !important;
         padding-right: 2rem !important;
@@ -16722,7 +16723,7 @@ def get_premium_theme_css():
         .photo-slide-item img { height: 150px !important; }
     }
     @media (max-width: 768px) {
-        .block-container { padding-left: 0.75rem !important; padding-right: 0.75rem !important; padding-top: 0.5rem !important; }
+        .block-container { padding-left: 0.75rem !important; padding-right: 0.75rem !important; padding-top: 0 !important; }
         [data-testid="stSidebar"] { min-width: 0 !important; max-width: 100% !important; }
         [data-testid="stSidebar"] .stButton button { font-size: 12px !important; padding: 8px 10px !important; min-height: 42px !important; }
         .main-header { flex-wrap: wrap !important; gap: 10px !important; padding: 8px 0 12px 0 !important; }
@@ -17316,44 +17317,6 @@ elif st.session_state["current_page"] == "studio_mode":
             padding-block: 84px !important;
             background-image: url("/app/static/studio_sales_engine.webp") !important;
         }
-        section[data-testid="stMain"] [data-testid="stHorizontalBlock"]:has(.st-key-studio_change_mode_btn) {
-            position: relative !important;
-            z-index: 30 !important;
-            height: 0 !important;
-            margin: 0 !important;
-            overflow: visible !important;
-            pointer-events: none !important;
-        }
-        section[data-testid="stMain"] [data-testid="stColumn"]:has(.st-key-studio_change_mode_btn) {
-            position: absolute !important;
-            top: 30px !important;
-            right: 18px !important;
-            flex: none !important;
-            width: 190px !important;
-            min-width: 0 !important;
-            pointer-events: auto !important;
-        }
-        section[data-testid="stMain"] [class*="st-key-studio_change_mode_btn"] {
-            width: 100% !important;
-            margin: 0 !important;
-        }
-        section[data-testid="stMain"] [class*="st-key-studio_change_mode_btn"] button {
-            min-height: 42px !important;
-            padding: 0 17px !important;
-            color: #173b3e !important;
-            background: rgba(255, 255, 255, .96) !important;
-            border: 1px solid rgba(23, 59, 62, .14) !important;
-            border-radius: 12px !important;
-            box-shadow: 0 8px 24px rgba(24, 54, 56, .14) !important;
-            font-size: 13px !important;
-            white-space: nowrap !important;
-            transition: transform .18s ease, box-shadow .18s ease, background .18s ease !important;
-        }
-        section[data-testid="stMain"] [class*="st-key-studio_change_mode_btn"] button:hover {
-            transform: translateY(-1px) !important;
-            background: #ffffff !important;
-            box-shadow: 0 10px 26px rgba(24, 54, 56, .18) !important;
-        }
         section[data-testid="stMain"] .studio-mode-photo-hero--agent {
             background-image: url("/app/static/studio_ai_agent_engine.webp") !important;
         }
@@ -17502,16 +17465,6 @@ elif st.session_state["current_page"] == "studio_mode":
             section[data-testid="stMain"] .live-video-empty-state {
                 height: clamp(220px, 62svh, 340px) !important;
                 min-height: 220px !important;
-            }
-            section[data-testid="stMain"] [data-testid="stColumn"]:has(.st-key-studio_change_mode_btn) {
-                top: 26px !important;
-                right: 10px !important;
-                width: 160px !important;
-            }
-            section[data-testid="stMain"] [class*="st-key-studio_change_mode_btn"] button {
-                min-height: 40px !important;
-                padding: 0 12px !important;
-                font-size: 12px !important;
             }
         }
         section[data-testid="stMain"] [data-testid="stMarkdownContainer"] {
@@ -17750,29 +17703,6 @@ elif st.session_state["current_page"] == "payments":
             font-family: 'Inter', sans-serif !important;
             font-weight: 700 !important;
         }
-        section[data-testid="stMain"] [class*="st-key-payments_back_to_studio"] button {
-            color: #153438 !important;
-            background: #ffffff !important;
-            border-color: var(--payment-page-line) !important;
-            border-radius: 12px !important;
-            min-height: 42px !important;
-            padding: 0 17px !important;
-            box-shadow: 0 8px 24px rgba(24, 54, 56, .14) !important;
-            font-size: 13px !important;
-            white-space: nowrap !important;
-            transition: transform .18s ease, box-shadow .18s ease, background .18s ease !important;
-        }
-        section[data-testid="stMain"] [class*="st-key-payments_back_to_studio"] {
-            display: flex !important;
-            justify-content: flex-end !important;
-            width: 100% !important;
-            margin: 0 0 14px !important;
-        }
-        section[data-testid="stMain"] [class*="st-key-payments_back_to_studio"] button:hover {
-            transform: translateY(-1px) !important;
-            background: #ffffff !important;
-            box-shadow: 0 10px 26px rgba(24, 54, 56, .18) !important;
-        }
         @media (max-width: 768px) {
             section[data-testid="stMain"] .block-container {
                 padding: .75rem 14px 1.75rem !important;
@@ -17792,7 +17722,7 @@ elif st.session_state["current_page"] == "payments":
         }
     </style>
     """, unsafe_allow_html=True)
-    if st.button("← Back to Studio", key="payments_back_to_studio", type="secondary"):
+    if render_workspace_header("payments_back_to_studio", "AI STUDIO · CREDITS"):
         previous_sidebar_tab = st.session_state.pop("payment_return_sidebar_tab", None)
         if previous_sidebar_tab:
             st.session_state["sidebar_tab"] = previous_sidebar_tab
@@ -18015,29 +17945,6 @@ elif st.session_state["current_page"] == "profile":
             font-family: 'Inter', sans-serif !important;
             font-weight: 700 !important;
         }
-        section[data-testid="stMain"] [class*="st-key-profile_back_to_studio"] button {
-            color: #153438 !important;
-            background: #ffffff !important;
-            border-color: var(--profile-line) !important;
-            border-radius: 12px !important;
-            min-height: 42px !important;
-            padding: 0 17px !important;
-            box-shadow: 0 8px 24px rgba(24, 54, 56, .14) !important;
-            font-size: 13px !important;
-            white-space: nowrap !important;
-            transition: transform .18s ease, box-shadow .18s ease, background .18s ease !important;
-        }
-        section[data-testid="stMain"] [class*="st-key-profile_back_to_studio"] {
-            display: flex !important;
-            justify-content: flex-end !important;
-            width: 100% !important;
-            margin: 0 0 14px !important;
-        }
-        section[data-testid="stMain"] [class*="st-key-profile_back_to_studio"] button:hover {
-            transform: translateY(-1px) !important;
-            background: #ffffff !important;
-            box-shadow: 0 10px 26px rgba(24, 54, 56, .18) !important;
-        }
         @media (max-width: 768px) {
             section[data-testid="stMain"] .block-container {
                 padding: .75rem 14px 1.75rem !important;
@@ -18098,7 +18005,7 @@ elif st.session_state["current_page"] == "profile":
     </style>
     """, unsafe_allow_html=True)
 
-    if st.button("← Back to Studio", key="profile_back_to_studio", type="secondary"):
+    if render_workspace_header("profile_back_to_studio", "AI STUDIO · ACCOUNT"):
         previous_sidebar_tab = st.session_state.pop("profile_return_sidebar_tab", None)
         if previous_sidebar_tab:
             st.session_state["sidebar_tab"] = previous_sidebar_tab
@@ -18447,29 +18354,6 @@ elif st.session_state["current_page"] in {"scheduler", "subusers", "factory", "p
                 font-family: 'Inter', sans-serif !important;
                 font-weight: 700 !important;
             }
-            section[data-testid="stMain"] [class*="st-key-standalone_back_to_studio"] button {
-                color: #153438 !important;
-                background: #fff !important;
-                border-color: var(--standalone-line) !important;
-                border-radius: 12px !important;
-                min-height: 42px !important;
-                padding: 0 17px !important;
-                box-shadow: 0 8px 24px rgba(24, 54, 56, .14) !important;
-                font-size: 13px !important;
-                white-space: nowrap !important;
-                transition: transform .18s ease, box-shadow .18s ease, background .18s ease !important;
-            }
-            section[data-testid="stMain"] [class*="st-key-standalone_back_to_studio"] {
-                display: flex !important;
-                justify-content: flex-end !important;
-                width: 100% !important;
-                margin: 0 0 14px !important;
-            }
-            section[data-testid="stMain"] [class*="st-key-standalone_back_to_studio"] button:hover {
-                transform: translateY(-1px) !important;
-                background: #ffffff !important;
-                box-shadow: 0 10px 26px rgba(24, 54, 56, .18) !important;
-            }
             .factory-engine-card {
                 min-height: 122px;
                 padding: 16px;
@@ -18553,7 +18437,7 @@ elif st.session_state["current_page"] in {"scheduler", "subusers", "factory", "p
         """,
         unsafe_allow_html=True,
     )
-    if st.button("← Back to Studio", key="standalone_back_to_studio", type="secondary"):
+    if render_workspace_header("standalone_back_to_studio", "AI STUDIO · WORKSPACE"):
         st.session_state["sidebar_tab"] = "🚀 Zovix Mass Factory"
         st.session_state.pop("standalone_return_sidebar_tab", None)
         st.session_state["current_page"] = "studio"
@@ -19202,7 +19086,7 @@ elif st.session_state["current_page"] == "studio":
 
         /* GLOBAL */
         .stApp { font-family: 'Inter', sans-serif !important; color: #f8fafc !important; background: #06070a !important; }
-        .block-container { padding-top: 0.5rem !important; }
+        .block-container { padding-top: 0 !important; }
 
         /* HEADINGS */
         h1, h2, h3, h4, h5, h6 {
@@ -24938,27 +24822,10 @@ def render_engine_portfolio_section(include_discovery=True):
     """, unsafe_allow_html=True)
 if st.session_state.get("current_page") == "studio_mode":
     active_studio_mode = st.session_state.get("studio_active_mode", "Cinematic Engine")
-    brand_column, back_column = st.columns([0.74, 0.26], vertical_alignment="center")
-    with brand_column:
-        st.markdown(
-            """
-            <div class="studio-engine-brand" aria-label="Zovix AI Creative Studio" style="display:flex;align-items:center;gap:9px;min-height:42px;font-family:Inter,Arial,sans-serif;color:#163c68">
-              <span style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#16c6dc,#6959ed);color:white;font-size:24px;font-weight:850;box-shadow:0 4px 12px #3a66ce33">Z</span>
-              <span style="display:flex;flex-direction:column;line-height:1;letter-spacing:.5px"><b style="font-size:18px;font-weight:850">ZOVIX</b><small style="margin-top:4px;color:#74869a;font-size:8px;font-weight:750;letter-spacing:2px">AI CREATIVE STUDIO</small></span>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-    with back_column:
-        if st.button(
-            "← Back to Studio",
-            key="studio_change_mode_btn",
-            type="secondary",
-            width="content",
-        ):
-            st.session_state["current_page"] = "studio"
-            st.query_params["page"] = "studio"
-            st.rerun()
+    if render_workspace_header("studio_change_mode_btn", "AI CREATIVE STUDIO"):
+        st.session_state["current_page"] = "studio"
+        st.query_params["page"] = "studio"
+        st.rerun()
     render_active_studio_mode()
     render_engine_portfolio_section(include_discovery=active_studio_mode == "Cinematic Engine")
     if active_studio_mode == "Cinematic Engine":
@@ -24982,19 +24849,6 @@ if st.session_state.get("current_page") == "studio_mode":
             padding-top: 0 !important;
             margin-top: 0 !important;
         }
-        section[data-testid="stMain"]:has(.studio-engine-brand) [data-testid="stHorizontalBlock"]:has(.st-key-studio_change_mode_btn) {
-            height:auto !important; margin:2px 0 14px !important; overflow:visible !important; pointer-events:auto !important;
-        }
-        section[data-testid="stMain"]:has(.studio-engine-brand) [data-testid="stColumn"]:has(.st-key-studio_change_mode_btn) {
-            position:relative !important; top:auto !important; right:auto !important; flex:1 1 auto !important; width:auto !important;
-        }
-        section[data-testid="stMain"]:has(.studio-engine-brand) [class*="st-key-studio_change_mode_btn"] {
-            width:fit-content !important; margin:0 0 0 auto !important;
-        }
-        section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn)
-        [data-testid="stMainBlockContainer"] [data-testid="stVerticalBlock"] > div:has(.st-key-studio_change_mode_btn) {
-            margin-bottom: -22px !important;
-        }
         section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn)
         .studio-mode-photo-hero,
         section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn)
@@ -25014,10 +24868,6 @@ if st.session_state.get("current_page") == "studio_mode":
             section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) > div[data-testid="stMainBlockContainer"],
             section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .block-container {
                 padding-top: 0 !important;
-            }
-            section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn)
-            [data-testid="stMainBlockContainer"] [data-testid="stVerticalBlock"] > div:has(.st-key-studio_change_mode_btn) {
-                margin-bottom: -18px !important;
             }
             section[data-testid="stMain"] .block-container [data-testid="stHorizontalBlock"] {
                 display: flex !important;
@@ -25338,10 +25188,6 @@ if st.session_state.get("current_page") == "studio_mode":
             padding-top: 4px !important;
             margin-top: 0 !important;
         }
-        section[data-testid="stMain"]:has(.face-header) [class*="st-key-studio_change_mode_btn"] {
-            margin-top: 0 !important;
-            margin-bottom: 4px !important;
-        }
         section[data-testid="stMain"] .face-header.studio-mode-photo-hero--face {
             min-height: clamp(300px, 31vw, 420px) !important;
             align-items: flex-end !important;
@@ -25444,13 +25290,6 @@ if st.session_state.get("current_page") == "studio_mode":
         section[data-testid="stMain"] [data-testid="stButton"] > button:hover {
             background: linear-gradient(105deg, #12aab8, #286bd2) !important;
             box-shadow: 0 7px 18px rgba(54,125,232,.23) !important;
-        }
-        section[data-testid="stMain"] [class*="st-key-studio_change_mode_btn"] > div > button {
-            color: var(--engine-ink) !important;
-            -webkit-text-fill-color: var(--engine-ink) !important;
-            background: #fff !important;
-            border-color: var(--engine-line) !important;
-            box-shadow: 0 4px 12px rgba(31,65,102,.07) !important;
         }
         section[data-testid="stMain"] [data-testid="stRadio"] [role="radiogroup"] {
             color: var(--engine-copy) !important;

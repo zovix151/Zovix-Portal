@@ -2616,6 +2616,20 @@ class WorldClassLandingPage:
             .feature-card, .testimonial-card, .pricing-card { border-radius: 16px; }
             .faq-item { padding: 15px 16px; }
         }
+        @media (min-width: 901px) {
+            .engine-gallery-section, .ready-create-section {
+                width: 100%;
+                max-width: 1800px;
+                padding-right: clamp(20px, 2.5vw, 48px);
+                padding-left: clamp(20px, 2.5vw, 48px);
+            }
+            .ready-create-section .cta-container {
+                max-width: 1440px;
+            }
+            .ready-create-section .cta-container > p {
+                max-width: 960px;
+            }
+        }
 
         </style>
         """, unsafe_allow_html=True)

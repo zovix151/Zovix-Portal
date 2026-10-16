@@ -11,6 +11,7 @@ import logging
 import streamlit as st
 
 from layer6_master_engine import GHOST_QUALITY_PROFILES, run_zovix_ghost_engine
+from workspace_ui import render_workspace_header
 from spatial_director_engine import (
     _ATMOSPHERE_EFFECTS,
     _CAMERA_MOTIONS,
@@ -29,27 +30,10 @@ def render_ghost_engine_studio(
     refund_tokens_callback=None,
 ) -> None:
     """Render scene controls, pipeline progress, and the last master render."""
-    brand_column, back_column = st.columns([0.74, 0.26], vertical_alignment="center")
-    with brand_column:
-        st.markdown(
-            """
-            <div class="ghost-engine-brand" aria-label="Zovix AI Studio">
-              <span class="ghost-engine-brand-mark">Z</span>
-              <span class="ghost-engine-brand-copy"><b>ZOVIX</b><small>AI STUDIO</small></span>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-    with back_column:
-        if st.button(
-            "← Back to Studio",
-            key="ghost_engine_back_to_studio",
-            type="secondary",
-            width="content",
-        ):
-            st.session_state["current_page"] = "studio"
-            st.query_params["page"] = "studio"
-            st.rerun()
+    if render_workspace_header("ghost_engine_back_to_studio"):
+        st.session_state["current_page"] = "studio"
+        st.query_params["page"] = "studio"
+        st.rerun()
 
     st.markdown(
         """
@@ -59,11 +43,6 @@ def render_ghost_engine_studio(
             padding-top: 0 !important;
             margin-top: 0 !important;
         }
-        .ghost-engine-brand { display:flex; align-items:center; gap:9px; min-height:42px; color:#163c68; font-family:'Inter',Arial,sans-serif; }
-        .ghost-engine-brand-mark { display:flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg,#16c6dc,#6959ed); color:#fff; font-size:24px; font-weight:850; box-shadow:0 4px 12px rgba(58,102,206,.2); }
-        .ghost-engine-brand-copy { display:flex; flex-direction:column; line-height:1; letter-spacing:.5px; }
-        .ghost-engine-brand-copy b { font-size:18px; font-weight:850; }
-        .ghost-engine-brand-copy small { margin-top:4px; color:#74869a; font-size:8px; font-weight:750; letter-spacing:2px; }
         .ghost-engine-hero {
             position: relative;
             isolation: isolate;
@@ -89,31 +68,6 @@ def render_ghost_engine_studio(
             border-radius: 14px;
             box-shadow: 0 12px 30px rgba(32,77,126,.12);
             text-align: left;
-        }
-        section[data-testid="stMain"] [data-testid="stHorizontalBlock"]:has(.st-key-ghost_engine_back_to_studio) {
-            position: relative !important;
-            z-index: 30 !important;
-            height: auto !important;
-            margin: 2px 0 14px !important;
-            overflow: visible !important;
-            pointer-events: auto !important;
-        }
-        section[data-testid="stMain"]:has(.st-key-ghost_engine_back_to_studio)
-        [data-testid="stMainBlockContainer"] [data-testid="stVerticalBlock"] > div:has(.st-key-ghost_engine_back_to_studio) {
-            margin-bottom: -22px !important;
-        }
-        section[data-testid="stMain"] [data-testid="stColumn"]:has(.st-key-ghost_engine_back_to_studio) {
-            position: relative !important;
-            top: auto !important;
-            right: auto !important;
-            flex: 1 1 auto !important;
-            width: auto !important;
-            min-width: 0 !important;
-            pointer-events: auto !important;
-        }
-        section[data-testid="stMain"] [class*="st-key-ghost_engine_back_to_studio"] {
-            width: fit-content !important;
-            margin: 0 0 0 auto !important;
         }
         .ghost-engine-hero::before {
             position: absolute;
@@ -306,15 +260,6 @@ def render_ghost_engine_studio(
             border-radius: 9px !important;
             font: 700 13px 'Inter', Arial, sans-serif !important;
         }
-        section[data-testid="stMain"] .st-key-ghost_engine_back_to_studio button {
-            min-height: 36px !important;
-            color: #2875bc !important;
-            background: rgba(255,255,255,.94) !important;
-            border: 1px solid #dce8f4 !important;
-            border-radius: 22px !important;
-            font: 650 12px 'Inter', Arial, sans-serif !important;
-            box-shadow: 0 2px 8px rgba(49,99,151,.08) !important;
-        }
         section[data-testid="stMain"] [class*="st-key-ghost_engine_gallery_card_"] [data-testid="stVerticalBlockBorderWrapper"] {
             padding: 10px !important;
             border-radius: 12px !important;
@@ -332,10 +277,6 @@ def render_ghost_engine_studio(
                 max-width: 100% !important;
                 padding: 0 22px 22px !important;
             }
-            section[data-testid="stMain"]:has(.st-key-ghost_engine_back_to_studio)
-            [data-testid="stMainBlockContainer"] [data-testid="stVerticalBlock"] > div:has(.st-key-ghost_engine_back_to_studio) {
-                margin-bottom: -18px !important;
-            }
             .ghost-engine-hero {
                 min-height: 220px;
                 padding: 24px 18px;
@@ -352,9 +293,6 @@ def render_ghost_engine_studio(
             .ghost-engine-hero p {
                 width: 100%;
             }
-            section[data-testid="stMain"] [data-testid="stColumn"]:has(.st-key-ghost_engine_back_to_studio) { width: auto !important; min-width: 0 !important; }
-            section[data-testid="stMain"] .st-key-ghost_engine_back_to_studio button { padding: 7px 10px !important; font-size: 11px !important; white-space: nowrap !important; }
-            .ghost-engine-brand-copy b { font-size: 16px; }
         }
         @media (min-width: 769px) and (max-width: 1100px) {
             .ghost-engine-hero { min-height: 234px; }
@@ -375,14 +313,6 @@ def render_ghost_engine_studio(
                 flex: 1 1 100% !important;
                 width: 100% !important;
                 min-width: 0 !important;
-            }
-            section[data-testid="stMain"] [data-testid="stHorizontalBlock"]:has(.st-key-ghost_engine_back_to_studio) > [data-testid="column"]:first-child {
-                flex: 0 0 65% !important;
-                width: 65% !important;
-            }
-            section[data-testid="stMain"] [data-testid="stHorizontalBlock"]:has(.st-key-ghost_engine_back_to_studio) > [data-testid="column"]:last-child {
-                flex: 0 0 35% !important;
-                width: 35% !important;
             }
             section[data-testid="stMain"] [data-testid="stMainBlockContainer"] {
                 padding-left: 0 !important;
