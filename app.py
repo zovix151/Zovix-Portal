@@ -182,9 +182,9 @@ components.html(
                     backdrop-filter:blur(2px);
                 }
                 .zovix-navigation-loading-wheel {
-                    width:42px;
-                    height:42px;
-                    border:4px solid #dbe6f2;
+                    width:clamp(42px,calc(42px / var(--zovix-mobile-spinner-scale,1)),160px);
+                    height:clamp(42px,calc(42px / var(--zovix-mobile-spinner-scale,1)),160px);
+                    border:clamp(4px,calc(4px / var(--zovix-mobile-spinner-scale,1)),16px) solid #dbe6f2;
                     border-top-color:#3979e8;
                     border-right-color:#7654e8;
                     border-radius:50%;
@@ -280,17 +280,39 @@ components.html(
                 return page === target.page && (!target.mode || params.get("mode") === target.mode);
             };
 
+            const isStreamlitRendering = () => Boolean(
+                host.document.querySelector(
+                    "[data-testid='stStatusWidgetRunningIcon'], [data-testid='stElementContainer'][data-stale='true']"
+                )
+            );
+
             const checkNavigationComplete = () => {
                 if (!state.pending) return;
                 if (host.document.querySelector("[data-testid='stException']")) {
                     removeOverlay();
                     return;
                 }
-                if (!currentRouteMatches(state.pending.target) || state.lastMutationAt < state.pending.startedAt) return;
+                if (isStreamlitRendering()) {
+                    state.pending.sawRendering = true;
+                    if (state.hideTimer) {
+                        host.clearTimeout(state.hideTimer);
+                        state.hideTimer = null;
+                    }
+                    return;
+                }
+                if (state.lastMutationAt < state.pending.startedAt) return;
+                const routeMatches = currentRouteMatches(state.pending.target);
+                if (!routeMatches && !state.pending.sawRendering) return;
                 if (state.hideTimer) return;
                 state.hideTimer = host.setTimeout(() => {
-                    if (state.pending && currentRouteMatches(state.pending.target)) removeOverlay();
-                }, 650);
+                    if (
+                        state.pending
+                        && !isStreamlitRendering()
+                        && Date.now() - state.lastMutationAt >= 900
+                    ) {
+                        removeOverlay();
+                    }
+                }, routeMatches ? 900 : 1500);
             };
 
             const showOverlay = (target) => {
@@ -309,11 +331,11 @@ components.html(
                 wheel.setAttribute("aria-hidden", "true");
                 overlay.appendChild(wheel);
                 host.document.body.appendChild(overlay);
-                state.pending = {target, startedAt: Date.now()};
+                state.pending = {target, startedAt: Date.now(), sawRendering: false};
                 state.lastMutationAt = 0;
                 host.setTimeout(() => {
-                    if (state.pending && Date.now() - state.pending.startedAt > 15000) removeOverlay();
-                }, 15000);
+                    if (state.pending && Date.now() - state.pending.startedAt > 600000) removeOverlay();
+                }, 600000);
             };
 
             host.document.addEventListener("click", (event) => {
@@ -335,7 +357,12 @@ components.html(
                     checkNavigationComplete();
                 }
             });
-            navigationObserver.observe(host.document.body, {childList: true, subtree: true});
+            navigationObserver.observe(host.document.body, {
+                childList: true,
+                subtree: true,
+                attributes: true,
+                attributeFilter: ["data-stale"],
+            });
             host.__zovixNavigationSpinnerPoll = host.setInterval(checkNavigationComplete, 200);
             host.__zovixNavigationSpinnerInstalled = true;
         }
@@ -470,13 +497,105 @@ components.html(
 
         if (!isMobile || !viewport) return;
 
+        if (!host.document.getElementById("zovix-desktop-mobile-dashboard-layout")) {
+            const style = host.document.createElement("style");
+            style.id = "zovix-desktop-mobile-dashboard-layout";
+            style.textContent = `
+                @media (max-width: 900px) {
+                    html body.zovix-desktop-mobile [data-testid="stMain"]
+                    [data-testid="stHorizontalBlock"]:has(.st-key-studio_hero_container) {
+                        display:flex !important;
+                        flex-direction:row !important;
+                        flex-wrap:nowrap !important;
+                        align-items:flex-start !important;
+                    }
+                    html body.zovix-desktop-mobile [data-testid="stMain"]
+                    [data-testid="stHorizontalBlock"]:has(.st-key-studio_hero_container)
+                    > [data-testid="stColumn"] {
+                        display:block !important;
+                        box-sizing:border-box !important;
+                        min-width:0 !important;
+                        max-width:none !important;
+                    }
+                    html body.zovix-desktop-mobile [data-testid="stMain"]
+                    [data-testid="stHorizontalBlock"]:has(.st-key-studio_hero_container)
+                    > [data-testid="stColumn"]:has(.st-key-studio_sidebar_action_0) {
+                        flex:20 1 0% !important;
+                    }
+                    html body.zovix-desktop-mobile [data-testid="stMain"]
+                    [data-testid="stHorizontalBlock"]:has(.st-key-studio_hero_container)
+                    > [data-testid="stColumn"]:has(.st-key-studio_hero_container) {
+                        flex:56 1 0% !important;
+                    }
+                    html body.zovix-desktop-mobile [data-testid="stMain"]
+                    [data-testid="stHorizontalBlock"]:has(.st-key-studio_hero_container)
+                    > [data-testid="stColumn"]:has(.st-key-studio_credits_panel) {
+                        flex:24 1 0% !important;
+                    }
+                    html body.zovix-desktop-mobile [data-testid="stMain"]
+                    [data-testid="stHorizontalBlock"]:has(.zd-upcoming-section),
+                    html body.zovix-desktop-mobile [data-testid="stMain"]
+                    [data-testid="stHorizontalBlock"]:has(.zd-community-section) {
+                        display:flex !important;
+                        flex-direction:row !important;
+                        flex-wrap:nowrap !important;
+                    }
+                    html body.zovix-desktop-mobile [data-testid="stMain"]
+                    [data-testid="stHorizontalBlock"]:has(.zd-upcoming-section)
+                    > [data-testid="stColumn"],
+                    html body.zovix-desktop-mobile [data-testid="stMain"]
+                    [data-testid="stHorizontalBlock"]:has(.zd-community-section)
+                    > [data-testid="stColumn"] {
+                        display:block !important;
+                        min-width:0 !important;
+                        max-width:none !important;
+                    }
+                    html body.zovix-desktop-mobile [data-testid="stMain"]
+                    [data-testid="stHorizontalBlock"]:has(.zd-upcoming-section)
+                    > [data-testid="stColumn"]:not(:has(.zd-upcoming-section)),
+                    html body.zovix-desktop-mobile [data-testid="stMain"]
+                    [data-testid="stHorizontalBlock"]:has(.zd-community-section)
+                    > [data-testid="stColumn"]:not(:has(.zd-community-section)) {
+                        flex:20 1 0% !important;
+                    }
+                    html body.zovix-desktop-mobile [data-testid="stMain"]
+                    [data-testid="stHorizontalBlock"]:has(.zd-upcoming-section)
+                    > [data-testid="stColumn"]:has(.zd-upcoming-section),
+                    html body.zovix-desktop-mobile [data-testid="stMain"]
+                    [data-testid="stHorizontalBlock"]:has(.zd-community-section)
+                    > [data-testid="stColumn"]:has(.zd-community-section) {
+                        flex:80 1 0% !important;
+                    }
+                    html body.zovix-desktop-mobile [data-testid="stMain"] .zd-engine-grid {
+                        grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+                    }
+                    html body.zovix-desktop-mobile [data-testid="stMain"]
+                    .st-key-studio_creations_section
+                    [data-testid="stHorizontalBlock"]:has([class*="st-key-studio_creation_output_"]) {
+                        display:flex !important;
+                        flex-direction:row !important;
+                        flex-wrap:nowrap !important;
+                    }
+                    html body.zovix-desktop-mobile [data-testid="stMain"]
+                    .st-key-studio_creations_section
+                    [data-testid="stHorizontalBlock"]:has([class*="st-key-studio_creation_output_"])
+                    > [data-testid="stColumn"] {
+                        display:block !important;
+                        flex:1 1 0% !important;
+                        min-width:0 !important;
+                        max-width:none !important;
+                    }
+                }
+            `;
+            host.document.head.appendChild(style);
+        }
+
         const updateViewport = () => {
             const canvasStyles = host.document.getElementById("zovix-mobile-desktop-canvas");
             if (canvasStyles) canvasStyles.remove();
             const desktopSpacing = host.document.getElementById("zovix-mobile-desktop-spacing");
             if (desktopSpacing) desktopSpacing.remove();
 
-            host.document.body.classList.remove("zovix-desktop-mobile");
             host.document.documentElement.style.overflowX = "hidden";
             host.document.documentElement.style.overflowY = "";
             host.document.body.style.width = "";
@@ -488,12 +607,28 @@ components.html(
             host.document.body.style.overflowY = "";
             host.document.body.style.transformOrigin = "";
             host.document.body.style.transform = "";
+            if (getPage() === "landing") {
+                host.document.body.classList.remove("zovix-desktop-mobile");
+                host.document.documentElement.style.setProperty("--zovix-mobile-spinner-scale", "1");
+                const mobileViewportContent =
+                    "width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=5, user-scalable=yes";
+                if (viewport.getAttribute("content") !== mobileViewportContent) {
+                    viewport.setAttribute("content", mobileViewportContent);
+                }
+                host.__zovixMobileLayoutMode = "responsive";
+                return;
+            }
             const desktopScale = Math.min(1, screenWidth / 1440);
             const desktopViewportContent =
                 `width=1440, initial-scale=${desktopScale.toFixed(3)}, minimum-scale=0.1, maximum-scale=5, user-scalable=yes`;
             if (viewport.getAttribute("content") !== desktopViewportContent) {
                 viewport.setAttribute("content", desktopViewportContent);
             }
+            host.document.documentElement.style.setProperty(
+                "--zovix-mobile-spinner-scale",
+                desktopScale.toFixed(3)
+            );
+            host.document.body.classList.add("zovix-desktop-mobile");
             host.__zovixMobileLayoutMode = "desktop";
         };
 
@@ -2406,7 +2541,9 @@ def _page_loading_spinner_markup(label):
         ".zovix-page-loading-overlay{position:fixed;z-index:999999;inset:0;display:grid;"
         "place-items:center;background:rgba(247,249,252,.68);backdrop-filter:blur(2px);"
         "pointer-events:all}"
-        ".zovix-page-loading-wheel{width:42px;height:42px;border:4px solid #dbe6f2;"
+        ".zovix-page-loading-wheel{width:clamp(42px,calc(42px / var(--zovix-mobile-spinner-scale,1)),160px);"
+        "height:clamp(42px,calc(42px / var(--zovix-mobile-spinner-scale,1)),160px);"
+        "border:clamp(4px,calc(4px / var(--zovix-mobile-spinner-scale,1)),16px) solid #dbe6f2;"
         "border-top-color:#3979e8;border-right-color:#7654e8;border-radius:50%;"
         "animation:zovix-page-loading-spin .75s linear infinite}"
         "@keyframes zovix-page-loading-spin{to{transform:rotate(360deg)}}"
