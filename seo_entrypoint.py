@@ -44,6 +44,14 @@ async def serve_engines(_request):
     )
 
 
+async def serve_face_generation_policy(_request):
+    return FileResponse(
+        STATIC_DIR / "face-generation-policy.html",
+        media_type="text/html",
+        headers={"X-Robots-Tag": "index, follow", "Cache-Control": "public, max-age=300"},
+    )
+
+
 app = App(
     "replit_face_app.py",
     routes=[
@@ -53,5 +61,6 @@ app = App(
         Route("/sitemap.xml", serve_sitemap),
         Route("/about", serve_about),
         Route("/engines", serve_engines),
+        Route("/face-generation-policy", serve_face_generation_policy),
     ],
 )

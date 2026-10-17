@@ -1,4 +1,4 @@
-﻿"""Cinematic Studio page backed by the Ghost Engine pipeline."""
+"""Cinematic Studio page backed by the Ghost Engine pipeline."""
 
 from pathlib import Path
 
@@ -326,7 +326,7 @@ def render_ghost_engine_studio(
         }
         </style>
         <section class="ghost-engine-hero">
-          <span class="ghost-engine-badge">ZOVIX AI CINEMATIC GENERATION</span>
+          <span class="ghost-engine-badge">ZOVIX AI CINEMATIC ENGINE</span>
           <h1>Cinematic <span>Studio</span></h1>
           <p>Direct your scene. Create a cinematic story.</p>
         </section>

@@ -3693,6 +3693,7 @@ class WorldClassLandingPage:
                     <a href="#">Help Center</a>
                     <a href="#">Documentation</a>
                     <a href="#">Privacy Policy</a>
+                    <a href="?page=face_generation_policy">Face Generation Policy</a>
                     <a href="#">Terms</a>
                 </div>
             </div>
