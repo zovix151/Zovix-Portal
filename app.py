@@ -161,10 +161,21 @@ components.html(
         const getPage = () => new URLSearchParams(host.location.search).get("page") || "landing";
         const updateWorkspaceWidth = () => {
             host.document.body.classList.toggle("zovix-full-width-workspace", getPage() !== "landing");
+            if (
+                isMobile
+                && typeof host.__zovixUpdateMobileDesktopViewport === "function"
+            ) {
+                host.__zovixUpdateMobileDesktopViewport();
+            }
         };
+        host.__zovixUpdateWorkspaceWidth = updateWorkspaceWidth;
         updateWorkspaceWidth();
         if (!host.__zovixWorkspaceWidthPoll) {
-            host.__zovixWorkspaceWidthPoll = host.setInterval(updateWorkspaceWidth, 250);
+            host.__zovixWorkspaceWidthPoll = host.setInterval(() => {
+                if (typeof host.__zovixUpdateWorkspaceWidth === "function") {
+                    host.__zovixUpdateWorkspaceWidth();
+                }
+            }, 250);
             host.addEventListener("popstate", updateWorkspaceWidth);
         }
 
@@ -618,7 +629,8 @@ components.html(
                 host.__zovixMobileLayoutMode = "responsive";
                 return;
             }
-            const desktopScale = Math.min(1, screenWidth / 1440);
+            const currentScreenWidth = host.screen.width || host.innerWidth;
+            const desktopScale = Math.min(1, currentScreenWidth / 1440);
             const desktopViewportContent =
                 `width=1440, initial-scale=${desktopScale.toFixed(3)}, minimum-scale=0.1, maximum-scale=5, user-scalable=yes`;
             if (viewport.getAttribute("content") !== desktopViewportContent) {
@@ -637,6 +649,7 @@ components.html(
             host.__zovixDesktopViewportPoll = null;
         }
         host.__zovixUpdateMobileDesktopViewport = updateViewport;
+        host.addEventListener("resize", updateViewport, {passive: true});
         updateViewport();
     })();
     </script>
