@@ -168,6 +168,178 @@ components.html(
             host.addEventListener("popstate", updateWorkspaceWidth);
         }
 
+        if (!host.__zovixNavigationSpinnerInstalled) {
+            const navigationStyle = host.document.createElement("style");
+            navigationStyle.id = "zovix-navigation-loading-style";
+            navigationStyle.textContent = `
+                .zovix-navigation-loading-overlay {
+                    position:fixed;
+                    z-index:2147483000;
+                    inset:0;
+                    display:grid;
+                    place-items:center;
+                    background:rgba(247,249,252,.68);
+                    backdrop-filter:blur(2px);
+                }
+                .zovix-navigation-loading-wheel {
+                    width:42px;
+                    height:42px;
+                    border:4px solid #dbe6f2;
+                    border-top-color:#3979e8;
+                    border-right-color:#7654e8;
+                    border-radius:50%;
+                    animation:zovix-navigation-spin .75s linear infinite;
+                }
+                @keyframes zovix-navigation-spin { to { transform:rotate(360deg); } }
+            `;
+            host.document.head.appendChild(navigationStyle);
+
+            const state = {pending: null, lastMutationAt: 0, hideTimer: null};
+            host.__zovixNavigationSpinner = state;
+
+            const pageFromHref = (href) => {
+                try {
+                    const url = new URL(href, host.location.href);
+                    if (url.origin !== host.location.origin) return null;
+                    const page = url.searchParams.get("page");
+                    if (!page || page === "login") return null;
+                    return {page, mode: url.searchParams.get("mode") || ""};
+                } catch {
+                    return null;
+                }
+            };
+
+            const pageFromButton = (button) => {
+                const widget = button.closest('[class*="st-key-"]');
+                const key = widget && [...widget.classList].find((name) => name.startsWith("st-key-"));
+                if (!key) return null;
+                if (key === "st-key-studio_sidebar_action_0") return {page: "studio"};
+                if (/^st-key-studio_sidebar_action_/.test(key)) {
+                    const index = Number(key.slice("st-key-studio_sidebar_action_".length));
+                    const modes = {
+                        2: "Face Video Mode",
+                        3: "Creative Workshop Mode",
+                        4: "Blueprints Mode",
+                        5: "Draw Mode",
+                        6: "Video Editor Mode",
+                        7: "AI Agent Mode",
+                        8: "AI Sales Mode",
+                        9: "Dynamic UI Mode",
+                        10: "Live Emotion Mode",
+                        11: "Upscaler Mode",
+                    };
+                    if (index === 1) return {page: "ghost_engine"};
+                    return {page: "studio_mode", mode: modes[index] || "", force: true};
+                }
+                if (key === "st-key-studio_sidebar_ghost_engine") {
+                    return {page: "studio_mode", mode: "Cinematic Engine", force: true};
+                }
+                if (key.startsWith("st-key-studio_library_")) {
+                    return button.innerText.toLowerCase().includes("history") ? {page: "portfolio"} : null;
+                }
+                if (key.startsWith("st-key-studio_resource_")) {
+                    const label = button.innerText.toLowerCase();
+                    if (label.includes("tutorial")) return {page: "tutorials"};
+                    if (label.includes("documentation")) return {page: "documentation"};
+                    if (label.includes("community")) return {page: "community"};
+                    if (label.includes("support")) return {page: "support"};
+                }
+                if (key.startsWith("st-key-studio_quick_action_")) {
+                    const index = Number(key.slice("st-key-studio_quick_action_".length));
+                    return [
+                        {page: "subusers"},
+                        {page: "scheduler"},
+                        {page: "portfolio"},
+                        {page: "tutorials"},
+                        {page: "portfolio"},
+                    ][index] || null;
+                }
+                if (key === "st-key-studio_account_profile") return {page: "profile"};
+                if (key === "st-key-studio_topbar_logout") return {page: "landing"};
+                if (key.startsWith("st-key-factory_open_")) return {page: "studio_mode", force: true};
+                if (key === "st-key-studio_hero_prompt_form") return {page: "studio_mode", force: true};
+                if (key === "st-key-standalone_back_to_studio" || key === "st-key-studio_change_mode_btn") {
+                    return {page: "studio"};
+                }
+                return null;
+            };
+
+            const removeOverlay = () => {
+                const overlay = host.document.getElementById("zovix-navigation-loading-overlay");
+                if (overlay) overlay.remove();
+                state.pending = null;
+                if (state.hideTimer) {
+                    host.clearTimeout(state.hideTimer);
+                    state.hideTimer = null;
+                }
+            };
+
+            const currentRouteMatches = (target) => {
+                const params = new URLSearchParams(host.location.search);
+                const page = params.get("page") || "landing";
+                return page === target.page && (!target.mode || params.get("mode") === target.mode);
+            };
+
+            const checkNavigationComplete = () => {
+                if (!state.pending) return;
+                if (host.document.querySelector("[data-testid='stException']")) {
+                    removeOverlay();
+                    return;
+                }
+                if (!currentRouteMatches(state.pending.target) || state.lastMutationAt < state.pending.startedAt) return;
+                if (state.hideTimer) return;
+                state.hideTimer = host.setTimeout(() => {
+                    if (state.pending && currentRouteMatches(state.pending.target)) removeOverlay();
+                }, 650);
+            };
+
+            const showOverlay = (target) => {
+                const params = new URLSearchParams(host.location.search);
+                const currentPage = params.get("page") || "landing";
+                const currentMode = params.get("mode") || "";
+                if (!target.force && currentPage === target.page && (!target.mode || currentMode === target.mode)) return;
+                if (state.pending) removeOverlay();
+                const overlay = host.document.createElement("div");
+                overlay.id = "zovix-navigation-loading-overlay";
+                overlay.className = "zovix-navigation-loading-overlay";
+                overlay.setAttribute("role", "status");
+                overlay.setAttribute("aria-label", "Loading page");
+                const wheel = host.document.createElement("span");
+                wheel.className = "zovix-navigation-loading-wheel";
+                wheel.setAttribute("aria-hidden", "true");
+                overlay.appendChild(wheel);
+                host.document.body.appendChild(overlay);
+                state.pending = {target, startedAt: Date.now()};
+                state.lastMutationAt = 0;
+                host.setTimeout(() => {
+                    if (state.pending && Date.now() - state.pending.startedAt > 15000) removeOverlay();
+                }, 15000);
+            };
+
+            host.document.addEventListener("click", (event) => {
+                if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+                const anchor = event.target.closest("a[href]");
+                const target = anchor
+                    ? pageFromHref(anchor.href)
+                    : (event.target.closest("button") && pageFromButton(event.target.closest("button")));
+                if (target) showOverlay(target);
+            }, true);
+
+            const navigationObserver = new MutationObserver(() => {
+                if (state.pending) {
+                    state.lastMutationAt = Date.now();
+                    if (state.hideTimer) {
+                        host.clearTimeout(state.hideTimer);
+                        state.hideTimer = null;
+                    }
+                    checkNavigationComplete();
+                }
+            });
+            navigationObserver.observe(host.document.body, {childList: true, subtree: true});
+            host.__zovixNavigationSpinnerPoll = host.setInterval(checkNavigationComplete, 200);
+            host.__zovixNavigationSpinnerInstalled = true;
+        }
+
         if (!host.document.getElementById("zovix-workspace-top-spacing-v2")) {
             const style = host.document.createElement("style");
             style.id = "zovix-workspace-top-spacing-v2";
@@ -316,11 +488,13 @@ components.html(
             host.document.body.style.overflowY = "";
             host.document.body.style.transformOrigin = "";
             host.document.body.style.transform = "";
-            viewport.setAttribute(
-                "content",
-                "width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=5, user-scalable=yes"
-            );
-            host.__zovixMobileLayoutMode = "responsive";
+            const desktopScale = Math.min(1, screenWidth / 1440);
+            const desktopViewportContent =
+                `width=1440, initial-scale=${desktopScale.toFixed(3)}, minimum-scale=0.1, maximum-scale=5, user-scalable=yes`;
+            if (viewport.getAttribute("content") !== desktopViewportContent) {
+                viewport.setAttribute("content", desktopViewportContent);
+            }
+            host.__zovixMobileLayoutMode = "desktop";
         };
 
         if (host.__zovixDesktopViewportPoll) {
@@ -2225,6 +2399,23 @@ def _apply_logged_in_user_data(username, data):
     st.session_state["user_profile_cache_ts"] = time.time()
 
 
+def _page_loading_spinner_markup(label):
+    accessible_label = html_lib.escape(label, quote=True)
+    return (
+        "<style>"
+        ".zovix-page-loading-overlay{position:fixed;z-index:999999;inset:0;display:grid;"
+        "place-items:center;background:rgba(247,249,252,.68);backdrop-filter:blur(2px);"
+        "pointer-events:all}"
+        ".zovix-page-loading-wheel{width:42px;height:42px;border:4px solid #dbe6f2;"
+        "border-top-color:#3979e8;border-right-color:#7654e8;border-radius:50%;"
+        "animation:zovix-page-loading-spin .75s linear infinite}"
+        "@keyframes zovix-page-loading-spin{to{transform:rotate(360deg)}}"
+        "</style>"
+        f"<div class='zovix-page-loading-overlay' role='status' aria-label='{accessible_label}'>"
+        "<span class='zovix-page-loading-wheel' aria-hidden='true'></span></div>"
+    )
+
+
 @st.fragment(run_every="500ms")
 def _render_logged_in_user_data_loading():
     task_id = st.session_state.get("user_data_load_task_id")
@@ -2238,7 +2429,10 @@ def _render_logged_in_user_data_loading():
         st.rerun(scope="app")
         return
     if not future.done():
-        st.caption("Preparing your studio workspace…")
+        st.markdown(
+            _page_loading_spinner_markup("Loading your studio"),
+            unsafe_allow_html=True,
+        )
         return
 
     try:
@@ -15268,12 +15462,10 @@ def show_auth_modal(mode="login"):
         </style>
     """, unsafe_allow_html=True)
 
-    def show_auth_loading(message):
+    def show_auth_loading():
         loading_placeholder = st.empty()
         loading_placeholder.markdown(
-            f"<div class='zovix-auth-loading-overlay' role='status' aria-live='polite'>"
-            f"<div class='zovix-auth-loading-card'><span class='zovix-auth-loading-wheel' aria-hidden='true'></span>"
-            f"<span class='zovix-auth-loading-message'>{html_lib.escape(message)}</span></div></div>",
+            _page_loading_spinner_markup("Signing in"),
             unsafe_allow_html=True,
         )
         return loading_placeholder
@@ -15310,7 +15502,7 @@ def show_auth_modal(mode="login"):
                     if not username_val or not password_val:
                         st.error("Please enter both username and password.")
                     else:
-                        loading_placeholder = show_auth_loading("Signing in...")
+                        loading_placeholder = show_auth_loading()
                         auth_result, twofa_enabled = authenticate_user_db(username_val, password_val)
                         if auth_result:
                             username_val = resolve_account_username(username_val) or normalize_account_username(username_val)
@@ -15359,7 +15551,7 @@ def show_auth_modal(mode="login"):
                     elif len(password_val) < 4:
                         st.error("Password must be at least 4 characters long.")
                     else:
-                            loading_placeholder = show_auth_loading("Creating your account...")
+                            loading_placeholder = show_auth_loading()
                             registration_result = register_user_db(username_val, password_val)
                             if registration_result:
                                 username_val = normalize_account_username(username_val)
@@ -17388,6 +17580,7 @@ def handle_engine_access_request(mode_value: str):
     st.session_state["current_page"] = "studio_mode"
     st.session_state["studio_scroll_to_top"] = True
     st.query_params["page"] = "studio_mode"
+    st.query_params["mode"] = mode_value
     st.session_state["auth_redirect_mode"] = None
     st.rerun()
     return True

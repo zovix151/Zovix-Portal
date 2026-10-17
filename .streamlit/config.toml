@@ -10,3 +10,4 @@ font = "sans serif"
 [server]
 enableStaticServing = true
 headless = true
+disconnectedSessionTTL = 600
