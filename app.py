@@ -12755,17 +12755,26 @@ def run_creative_workshop():
                                 st.session_state['credit_balance'] = st.session_state['user_credits']
 
                                 with st.spinner("Generating by ZOVIX..."):
-                                    enhanced_workshop_prompt = _enhance_workshop_prompt_gpt4o(
-                                        workshop_prompt_str,
-                                        workshop_neg_prompt_str,
-                                    )
+                                    try:
+                                        enhanced_workshop_prompt = _enhance_workshop_prompt_gpt4o(
+                                            workshop_prompt_str,
+                                            workshop_neg_prompt_str,
+                                        )
+                                    except Exception as exc:
+                                        logger.warning(
+                                            "GPT-4o prompt enhancement failed; using the original prompt: %s",
+                                            exc,
+                                        )
+                                        st.warning(
+                                            "GPT-4o prompt enhancement failed; generating with your original prompt."
+                                        )
+                                        enhanced_workshop_prompt = workshop_prompt_str
                                     img_path = generate_pro_image(
                                         enhanced_workshop_prompt,
                                         workshop_ar,
                                         workshop_neg_prompt_str,
                                         workshop_quality,
-                                        None,
-                                        True,
+                                        strict_provider=False,
                                     )
 
                                 if img_path and os.path.exists(img_path):

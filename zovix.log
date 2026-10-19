@@ -27700,3 +27700,162 @@ ConnectionResetError: [WinError 10054] An existing connection was forcibly close
 2026-10-17 18:31:18,426 - Zovix - INFO - Using Supabase PostgreSQL database
 2026-10-17 18:31:22,007 - Zovix - INFO - Using Supabase PostgreSQL database
 2026-10-17 18:31:22,481 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 14:51:33,088 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 14:51:34,952 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-19 14:51:34,965 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-19 14:51:34,966 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-19 14:51:37,543 - Zovix - INFO - Database initialized successfully
+2026-10-19 14:53:10,210 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 14:53:12,336 - Zovix - INFO - Database initialized successfully
+2026-10-19 14:54:05,973 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 14:54:07,453 - Zovix - INFO - Database initialized successfully
+2026-10-19 14:54:11,677 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 14:54:16,610 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 14:54:17,324 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 14:54:31,772 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 14:54:32,742 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 14:54:37,902 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 14:54:38,776 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 14:54:42,396 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 14:54:42,834 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 14:54:45,146 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 14:54:45,549 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 14:54:51,287 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 14:54:52,153 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 14:54:54,448 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 14:54:54,866 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 14:54:57,228 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 14:54:57,636 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 14:55:00,934 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 14:55:11,658 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 14:57:03,185 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 14:57:03,679 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 14:57:06,687 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 14:57:07,126 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 15:00:50,695 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 15:00:53,695 - Zovix - INFO - Database initialized successfully
+2026-10-19 15:01:16,483 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 15:01:20,451 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 15:01:23,660 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 15:01:24,194 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 15:01:51,049 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 15:02:06,010 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 15:02:06,794 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 15:02:09,605 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 15:02:10,861 - Zovix - INFO - [TOKEN TXN] deduct_credits_db OK: -3 from 'zovixenterprises@gmail.com' -> new_total_balance=103
+2026-10-19 15:02:18,577 - Zovix - ERROR - SDXL Workshop generation failed: Replicate returned HTTP 404: {"detail":"The requested resource could not be found.","status":404}
+
+2026-10-19 15:02:19,557 - Zovix - INFO - [TOKEN TXN] add_credits OK: +3 (standard) to 'zovixenterprises@gmail.com' -> new_total_balance=106
+2026-10-19 15:02:19,560 - Zovix - INFO - Refunded 3 credits to zovixenterprises@gmail.com: Creative Workshop image generation returned no output
+2026-10-19 15:32:54,856 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 15:32:55,734 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 15:33:02,747 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 15:33:03,636 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 15:33:34,331 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 15:34:21,800 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 15:34:22,829 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 15:34:26,388 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 15:34:28,965 - Zovix - INFO - [TOKEN TXN] deduct_credits_db OK: -3 from 'zovixenterprises@gmail.com' -> new_total_balance=103
+2026-10-19 15:34:31,323 - Zovix - WARNING - GPT-4o prompt enhancement failed; using the original prompt: GPT-4o prompt enhancement returned HTTP 401: {
+  "error": {
+    "message": "Your API key has been invalidated.",
+    "type": null,
+    "code": "token_invalidated",
+    "param": null
+  },
+  "status": 401
+}
+2026-10-19 15:34:33,883 - Zovix - WARNING - Replicate Workshop generation failed; trying Stability AI: Replicate returned HTTP 404: {"detail":"The requested resource could not be found.","status":404}
+
+2026-10-19 15:34:36,646 - zovix.comfyui - ERROR - ComfyUI RunPod workshop image generation failed: 409 Client Error: Conflict for url: https://api.runpod.ai/v2/0eswlxs03223vf/runsync
+2026-10-19 15:34:36,649 - Zovix - WARNING - ComfyUI RunPod returned no image. Check RUNPOD_API_KEY and COMFYUI_RUNPOD_ENDPOINT_ID.
+2026-10-19 15:34:36,649 - Zovix - ERROR - Creative Workshop image generation failed: Replicate: Replicate returned HTTP 404: {"detail":"The requested resource could not be found.","status":404}
+ | Stability: Stability AI returned HTTP 401: {"errors":["authorization: invalid or missing header value"],"id":"81319eab1da4cee2c723f98fff7acb72","name":"unauthorized"} | RunPod: ComfyUI RunPod returned no image. Check RUNPOD_API_KEY and COMFYUI_RUNPOD_ENDPOINT_ID.
+2026-10-19 15:34:37,772 - Zovix - INFO - [TOKEN TXN] add_credits OK: +3 (standard) to 'zovixenterprises@gmail.com' -> new_total_balance=106
+2026-10-19 15:34:37,776 - Zovix - INFO - Refunded 3 credits to zovixenterprises@gmail.com: Creative Workshop image generation returned no output
+2026-10-19 15:37:23,354 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 15:37:23,711 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-19 15:37:23,719 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-19 15:37:23,720 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-19 15:37:26,427 - Zovix - INFO - Database initialized successfully
+2026-10-19 15:37:28,887 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 15:37:30,335 - Zovix - INFO - Database initialized successfully
+2026-10-19 15:37:48,155 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 15:37:49,603 - Zovix - INFO - Database initialized successfully
+2026-10-19 15:37:53,829 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 15:38:20,021 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 15:38:20,979 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 15:38:36,310 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 15:38:42,130 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 15:38:44,764 - Zovix - INFO - [TOKEN TXN] deduct_credits_db OK: -2 from 'zovixenterprises@gmail.com' -> new_total_balance=104
+2026-10-19 15:38:53,675 - Zovix - WARNING - Replicate Workshop generation failed; trying Stability AI: Replicate returned HTTP 401: {"title":"Unauthenticated","detail":"You did not pass a valid authentication token","status":401}
+
+2026-10-19 15:38:55,006 - zovix.comfyui - ERROR - ComfyUI RunPod workshop image generation failed: 409 Client Error: Conflict for url: https://api.runpod.ai/v2/0eswlxs03223vf/runsync
+2026-10-19 15:38:55,008 - Zovix - WARNING - ComfyUI RunPod returned no image. Check RUNPOD_API_KEY and COMFYUI_RUNPOD_ENDPOINT_ID.
+2026-10-19 15:38:55,009 - Zovix - ERROR - Creative Workshop image generation failed: Replicate: Replicate returned HTTP 401: {"title":"Unauthenticated","detail":"You did not pass a valid authentication token","status":401}
+ | Stability: Stability AI returned HTTP 401: {"errors":["authorization: invalid or missing header value"],"id":"194649a71e16dd71ede3efea405ea323","name":"unauthorized"} | RunPod: ComfyUI RunPod returned no image. Check RUNPOD_API_KEY and COMFYUI_RUNPOD_ENDPOINT_ID.
+2026-10-19 15:38:55,610 - Zovix - INFO - [TOKEN TXN] add_credits OK: +2 (standard) to 'zovixenterprises@gmail.com' -> new_total_balance=106
+2026-10-19 15:38:55,612 - Zovix - INFO - Refunded 2 credits to zovixenterprises@gmail.com: Creative Workshop image generation returned no output
+2026-10-19 15:53:27,804 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 15:53:28,324 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 15:53:31,346 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 15:53:31,816 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 15:55:29,147 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 15:55:29,544 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-19 15:55:29,552 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-19 15:55:29,553 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-19 15:55:32,905 - Zovix - INFO - Database initialized successfully
+2026-10-19 15:55:41,387 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 15:55:44,215 - Zovix - INFO - Database initialized successfully
+2026-10-19 15:55:57,491 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 15:56:00,655 - Zovix - INFO - Database initialized successfully
+2026-10-19 15:56:08,295 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 15:56:11,902 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 15:56:12,387 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 15:56:38,430 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 15:56:38,521 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 15:56:41,001 - Zovix - INFO - [TOKEN TXN] deduct_credits_db OK: -2 from 'zovixenterprises@gmail.com' -> new_total_balance=104
+2026-10-19 15:56:48,787 - Zovix - WARNING - Replicate Workshop generation failed; trying Stability AI: Replicate returned HTTP 401: {"title":"Unauthenticated","detail":"You did not pass a valid authentication token","status":401}
+
+2026-10-19 15:56:50,834 - zovix.comfyui - ERROR - ComfyUI RunPod workshop image generation failed: 409 Client Error: Conflict for url: https://api.runpod.ai/v2/0eswlxs03223vf/runsync
+2026-10-19 15:56:50,836 - Zovix - WARNING - ComfyUI RunPod returned no image. Check RUNPOD_API_KEY and COMFYUI_RUNPOD_ENDPOINT_ID.
+2026-10-19 15:56:50,837 - Zovix - ERROR - Creative Workshop image generation failed: Replicate: Replicate returned HTTP 401: {"title":"Unauthenticated","detail":"You did not pass a valid authentication token","status":401}
+ | Stability: Stability AI returned HTTP 401: {"errors":["authorization: invalid or missing header value"],"id":"71fb91710dca9357f3a11bf85f3c0b2e","name":"unauthorized"} | RunPod: ComfyUI RunPod returned no image. Check RUNPOD_API_KEY and COMFYUI_RUNPOD_ENDPOINT_ID.
+2026-10-19 15:56:52,061 - Zovix - INFO - [TOKEN TXN] add_credits OK: +2 (standard) to 'zovixenterprises@gmail.com' -> new_total_balance=106
+2026-10-19 15:56:52,063 - Zovix - INFO - Refunded 2 credits to zovixenterprises@gmail.com: Creative Workshop image generation returned no output
+2026-10-19 16:01:12,877 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 16:01:14,064 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 16:01:18,133 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 16:01:18,594 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 16:02:33,350 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 16:02:33,439 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 16:02:36,129 - Zovix - INFO - [TOKEN TXN] deduct_credits_db OK: -2 from 'zovixenterprises@gmail.com' -> new_total_balance=104
+2026-10-19 16:02:42,458 - Zovix - WARNING - Replicate Workshop generation failed; trying Stability AI: Replicate returned HTTP 401: {"title":"Unauthenticated","detail":"You did not pass a valid authentication token","status":401}
+
+2026-10-19 16:02:43,479 - zovix.comfyui - ERROR - ComfyUI RunPod workshop image generation failed: 409 Client Error: Conflict for url: https://api.runpod.ai/v2/0eswlxs03223vf/runsync
+2026-10-19 16:02:43,481 - Zovix - WARNING - ComfyUI RunPod returned no image. Check RUNPOD_API_KEY and COMFYUI_RUNPOD_ENDPOINT_ID.
+2026-10-19 16:02:43,482 - Zovix - ERROR - Creative Workshop image generation failed: Replicate: Replicate returned HTTP 401: {"title":"Unauthenticated","detail":"You did not pass a valid authentication token","status":401}
+ | Stability: Stability AI returned HTTP 401: {"errors":["authorization: invalid or missing header value"],"id":"12d442b232b66acad37d2361b8457400","name":"unauthorized"} | RunPod: ComfyUI RunPod returned no image. Check RUNPOD_API_KEY and COMFYUI_RUNPOD_ENDPOINT_ID.
+2026-10-19 16:02:43,970 - Zovix - INFO - [TOKEN TXN] add_credits OK: +2 (standard) to 'zovixenterprises@gmail.com' -> new_total_balance=106
+2026-10-19 16:02:43,972 - Zovix - INFO - Refunded 2 credits to zovixenterprises@gmail.com: Creative Workshop image generation returned no output
+2026-10-19 16:13:05,207 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 16:13:05,572 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-10-19 16:13:05,580 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-10-19 16:13:05,581 - Zovix - INFO - Redis cache client initialized lazily
+2026-10-19 16:13:08,092 - Zovix - INFO - Database initialized successfully
+2026-10-19 16:16:31,795 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 16:16:34,789 - Zovix - INFO - Database initialized successfully
+2026-10-19 16:16:51,026 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 16:16:54,150 - Zovix - INFO - Database initialized successfully
+2026-10-19 16:16:59,923 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 16:17:07,257 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 16:17:07,763 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 16:17:55,236 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 16:17:55,302 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 16:17:57,945 - Zovix - INFO - [TOKEN TXN] deduct_credits_db OK: -2 from 'zovixenterprises@gmail.com' -> new_total_balance=104
+2026-10-19 16:18:18,393 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 16:19:33,155 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 16:34:43,985 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 16:34:46,750 - Zovix - INFO - Database initialized successfully
+2026-10-19 16:34:50,509 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-10-19 16:34:53,046 - Zovix - INFO - Database initialized successfully
