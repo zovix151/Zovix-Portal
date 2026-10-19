@@ -37,7 +37,7 @@ import streamlit.components.v1 as components
 from workspace_ui import render_workspace_header
 from pydantic import BaseModel, Field
 import textwrap
-from static_assets import static_asset_data_uri
+from static_assets import inline_static_asset_urls, static_asset_data_uri
 
 STUDIO_ENGINE_PANEL_RATIO = (1, 1.2)
 
@@ -102,6 +102,10 @@ components.html(
             || ((host.navigator.maxTouchPoints || 0) > 1
                 && Math.min(screenWidth, screenHeight) <= 900);
         const viewport = host.document.querySelector('meta[name="viewport"]');
+        const defaultViewportContent = host.__zovixStudioResponsiveViewportContent
+            || (viewport && viewport.getAttribute("content"))
+            || "width=device-width, initial-scale=1";
+        host.__zovixStudioResponsiveViewportContent = defaultViewportContent;
 
         if (!host.document.getElementById("zovix-shared-top-spacing")) {
             const style = host.document.createElement("style");
@@ -161,10 +165,7 @@ components.html(
         const getPage = () => new URLSearchParams(host.location.search).get("page") || "landing";
         const updateWorkspaceWidth = () => {
             host.document.body.classList.toggle("zovix-full-width-workspace", getPage() !== "landing");
-            if (
-                isMobile
-                && typeof host.__zovixUpdateMobileDesktopViewport === "function"
-            ) {
+            if (typeof host.__zovixUpdateMobileDesktopViewport === "function") {
                 host.__zovixUpdateMobileDesktopViewport();
             }
         };
@@ -506,7 +507,7 @@ components.html(
             host.document.head.appendChild(style);
         }
 
-        if (!isMobile || !viewport) return;
+        if (!viewport) return;
 
         if (!host.document.getElementById("zovix-desktop-mobile-dashboard-layout")) {
             const style = host.document.createElement("style");
@@ -602,6 +603,28 @@ components.html(
         }
 
         const updateViewport = () => {
+            const page = getPage();
+            const currentViewport = host.document.querySelector('meta[name="viewport"]');
+            if (!currentViewport) return;
+            const currentScreenWidth = host.screen.width || host.innerWidth;
+            const currentScreenHeight = host.screen.height || host.innerHeight;
+            const narrowViewport = host.innerWidth <= 900
+                || Math.min(currentScreenWidth, currentScreenHeight) <= 900;
+            const forceDesktopStudio = page === "studio" && (isMobile || narrowViewport);
+
+            if (!isMobile && !forceDesktopStudio) {
+                if (page === "studio") {
+                    host.document.body.classList.remove("zovix-desktop-mobile");
+                    const currentViewportContent = currentViewport.getAttribute("content") || "";
+                    if (currentViewportContent.startsWith("width=1440")) {
+                        currentViewport.setAttribute("content", defaultViewportContent);
+                    }
+                    host.document.documentElement.style.setProperty("--zovix-mobile-spinner-scale", "1");
+                    host.__zovixMobileLayoutMode = "responsive";
+                }
+                return;
+            }
+
             const canvasStyles = host.document.getElementById("zovix-mobile-desktop-canvas");
             if (canvasStyles) canvasStyles.remove();
             const desktopSpacing = host.document.getElementById("zovix-mobile-desktop-spacing");
@@ -618,23 +641,22 @@ components.html(
             host.document.body.style.overflowY = "";
             host.document.body.style.transformOrigin = "";
             host.document.body.style.transform = "";
-            if (getPage() === "landing") {
+            if (page === "landing") {
                 host.document.body.classList.remove("zovix-desktop-mobile");
                 host.document.documentElement.style.setProperty("--zovix-mobile-spinner-scale", "1");
                 const mobileViewportContent =
                     "width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=5, user-scalable=yes";
-                if (viewport.getAttribute("content") !== mobileViewportContent) {
-                    viewport.setAttribute("content", mobileViewportContent);
+                if (currentViewport.getAttribute("content") !== mobileViewportContent) {
+                    currentViewport.setAttribute("content", mobileViewportContent);
                 }
                 host.__zovixMobileLayoutMode = "responsive";
                 return;
             }
-            const currentScreenWidth = host.screen.width || host.innerWidth;
             const desktopScale = Math.min(1, currentScreenWidth / 1440);
             const desktopViewportContent =
                 `width=1440, initial-scale=${desktopScale.toFixed(3)}, minimum-scale=0.1, maximum-scale=5, user-scalable=yes`;
-            if (viewport.getAttribute("content") !== desktopViewportContent) {
-                viewport.setAttribute("content", desktopViewportContent);
+            if (currentViewport.getAttribute("content") !== desktopViewportContent) {
+                currentViewport.setAttribute("content", desktopViewportContent);
             }
             host.document.documentElement.style.setProperty(
                 "--zovix-mobile-spinner-scale",
@@ -650,6 +672,16 @@ components.html(
         }
         host.__zovixUpdateMobileDesktopViewport = updateViewport;
         host.addEventListener("resize", updateViewport, {passive: true});
+        if (host.__zovixDesktopViewportObserver) {
+            host.__zovixDesktopViewportObserver.disconnect();
+        }
+        host.__zovixDesktopViewportObserver = new host.MutationObserver(updateViewport);
+        host.__zovixDesktopViewportObserver.observe(host.document.head, {
+            attributes: true,
+            attributeFilter: ["content"],
+            childList: true,
+            subtree: true,
+        });
         updateViewport();
     })();
     </script>
@@ -6414,21 +6446,20 @@ WORKSHOP_QUALITY_SETTINGS = {
 
 WORKSHOP_MODEL_BY_QUALITY = {
     "Standard": ("black-forest-labs/flux-dev", "Flux Dev"),
-    "HD": ("stability-ai/sdxl", "SDXL"),
+    "HD": ("black-forest-labs/flux-dev", "Flux Dev HD"),
     "Pro": ("black-forest-labs/flux-1.1-pro", "Flux Pro"),
 }
+WORKSHOP_REPLICATE_FALLBACK_MODEL = ("black-forest-labs/flux-dev", "Flux Dev fallback")
 
-WORKSHOP_SDXL_DIMENSIONS = {
-    "16:9": (1344, 768),
-    "9:16": (768, 1344),
-    "1:1": (1024, 1024),
-    "21:9": (1472, 640),
-    "4:5": (896, 1152),
-    "3:2": (1216, 832),
-}
+class _ReplicateWorkshopHTTPError(RuntimeError):
+    def __init__(self, status_code, message):
+        super().__init__(message)
+        self.status_code = status_code
 
 
-def _generate_replicate_workshop_image(prompt, aspect_ratio, negative_prompt, quality, output_dir):
+def _generate_replicate_workshop_image(
+    prompt, aspect_ratio, negative_prompt, quality, output_dir, model_override=None
+):
     token = _get_replicate_image_token()
     if not token:
         raise RuntimeError("REPLICATE_API_TOKEN is not configured.")
@@ -6437,12 +6468,12 @@ def _generate_replicate_workshop_image(prompt, aspect_ratio, negative_prompt, qu
     quality_settings = WORKSHOP_QUALITY_SETTINGS.get(
         quality_name, WORKSHOP_QUALITY_SETTINGS["Standard"]
     )
-    model_ref, model_label = WORKSHOP_MODEL_BY_QUALITY.get(
+    model_ref, model_label = model_override or WORKSHOP_MODEL_BY_QUALITY.get(
         quality_name, WORKSHOP_MODEL_BY_QUALITY["Standard"]
     )
     ratio = aspect_ratio if aspect_ratio in {"16:9", "9:16", "1:1", "21:9", "4:5", "3:2"} else "16:9"
     effective_prompt, effective_negative_prompt = _enhance_workshop_face_prompt(prompt, negative_prompt)
-    if effective_negative_prompt and model_ref != "stability-ai/sdxl":
+    if effective_negative_prompt:
         effective_prompt += f" Avoid these unwanted elements: {effective_negative_prompt}"
     input_payload = {
         "prompt": effective_prompt,
@@ -6457,18 +6488,6 @@ def _generate_replicate_workshop_image(prompt, aspect_ratio, negative_prompt, qu
             "guidance": 3.5,
             "go_fast": False,
         })
-    elif model_ref == "stability-ai/sdxl":
-        width, height = WORKSHOP_SDXL_DIMENSIONS[ratio]
-        input_payload.update({
-            "negative_prompt": effective_negative_prompt,
-            "width": width,
-            "height": height,
-            "num_outputs": 1,
-            "num_inference_steps": 50,
-            "guidance_scale": 7.5,
-            "scheduler": "K_EULER",
-            "refine": "no_refiner",
-        })
     else:
         input_payload.update({
             "aspect_ratio": ratio,
@@ -6479,7 +6498,10 @@ def _generate_replicate_workshop_image(prompt, aspect_ratio, negative_prompt, qu
     prediction_url = f"https://api.replicate.com/v1/models/{model_ref}/predictions"
     response = requests.post(prediction_url, headers=headers, json=payload, timeout=60)
     if response.status_code not in {200, 201, 202}:
-        raise RuntimeError(f"Replicate returned HTTP {response.status_code}: {response.text[:400]}")
+        raise _ReplicateWorkshopHTTPError(
+            response.status_code,
+            f"Replicate returned HTTP {response.status_code}: {response.text[:400]}",
+        )
     prediction = response.json()
     prediction_id = prediction.get("id")
     if not prediction_id:
@@ -6490,7 +6512,11 @@ def _generate_replicate_workshop_image(prompt, aspect_ratio, negative_prompt, qu
     while time.time() < deadline:
         status_response = requests.get(status_url, headers={"Authorization": f"Bearer {token}"}, timeout=30)
         if status_response.status_code != 200:
-            raise RuntimeError(f"Replicate status returned HTTP {status_response.status_code}: {status_response.text[:300]}")
+            raise _ReplicateWorkshopHTTPError(
+                status_response.status_code,
+                f"Replicate status returned HTTP {status_response.status_code}: "
+                f"{status_response.text[:300]}",
+            )
         prediction = status_response.json()
         status = str(prediction.get("status", "")).lower()
         if status == "succeeded":
@@ -6541,6 +6567,30 @@ def generate_pro_image(prompt, aspect_ratio="16:9", negative_prompt="", quality=
             return output_path
     except Exception as exc:
         replicate_error = str(exc)
+        if (
+            str(quality or "Standard") == "Pro"
+            and isinstance(exc, _ReplicateWorkshopHTTPError)
+            and exc.status_code == 404
+        ):
+            try:
+                output_path = _generate_replicate_workshop_image(
+                    prompt,
+                    aspect_ratio,
+                    negative_prompt,
+                    quality,
+                    output_dir,
+                    model_override=WORKSHOP_REPLICATE_FALLBACK_MODEL,
+                )
+                if output_path and os.path.exists(output_path):
+                    st.session_state["workshop_image_engine_used"] = (
+                        f"Replicate ({WORKSHOP_REPLICATE_FALLBACK_MODEL[1]} for Pro)"
+                    )
+                    return output_path
+            except Exception as fallback_exc:
+                replicate_error = (
+                    f"{replicate_error}; {WORKSHOP_REPLICATE_FALLBACK_MODEL[1]} failed: "
+                    f"{fallback_exc}"
+                )
         if strict_provider:
             model_label = WORKSHOP_MODEL_BY_QUALITY.get(
                 str(quality), WORKSHOP_MODEL_BY_QUALITY["Standard"]
@@ -17063,7 +17113,7 @@ def show_privacy_policy():
 @st.cache_data(ttl=3600)
 @st.cache_data(show_spinner=False, ttl=86400)
 def get_premium_theme_css():
-    return """
+    theme_css = """
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@500;600;800;900&display=swap');
     [data-testid="stHeader"], header, [data-testid="stToolbar"], #MainMenu, footer {
@@ -17627,6 +17677,7 @@ def get_premium_theme_css():
     }
     </style>
     """
+    return inline_static_asset_urls(theme_css)
 
 # ========================================================
 # 42. SYSTEM HEALTH CHECK
@@ -18063,7 +18114,7 @@ elif st.session_state["current_page"] == "studio_mode":
         st.stop()
 
     st.markdown(get_premium_theme_css(), unsafe_allow_html=True)
-    st.markdown("""
+    st.markdown(inline_static_asset_urls("""
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
         [data-testid="stMain"] .studio-mode-photo-hero,
@@ -18379,11 +18430,11 @@ elif st.session_state["current_page"] == "studio_mode":
             border-radius: 10px !important;
         }
     </style>
-    """, unsafe_allow_html=True)
+    """), unsafe_allow_html=True)
     st.markdown(
-        '<style>[data-testid="stMain"] .studio-mode-photo-hero--face {'
+        inline_static_asset_urls('<style>[data-testid="stMain"] .studio-mode-photo-hero--face {'
         'background-image: url("/app/static/studio_face_video_guide.webp") !important;'
-        'background-position: center 44% !important;}</style>',
+        'background-position: center 44% !important;}</style>'),
         unsafe_allow_html=True,
     )
 elif st.session_state["current_page"] == "payments":
@@ -19106,7 +19157,7 @@ elif st.session_state["current_page"] in {"scheduler", "subusers", "factory", "p
     standalone_icon, standalone_title, standalone_description = standalone_details[standalone_page]
     st.markdown(get_premium_theme_css(), unsafe_allow_html=True)
     st.markdown(
-        """
+        inline_static_asset_urls("""
         <style>
             :root {
                 --standalone-bg: #f3f6f6;
@@ -19275,7 +19326,7 @@ elif st.session_state["current_page"] in {"scheduler", "subusers", "factory", "p
                 }
             }
         </style>
-        """,
+        """),
         unsafe_allow_html=True,
     )
     if render_workspace_header("standalone_back_to_studio", "AI STUDIO · WORKSPACE"):
@@ -19710,7 +19761,7 @@ elif st.session_state["current_page"] in {"scheduler", "subusers", "factory", "p
                 visible_community_ideas[row_start:row_start + 3],
             )):
                 title, category, mode_name, image_id, prompt = idea
-                image_url = f"/app/static/{image_id}"
+                image_url = static_asset_data_uri(image_id)
                 with community_col:
                     st.markdown(
                         f"<article class='community-card'><img src='{html_lib.escape(image_url, quote=True)}' "
@@ -19921,7 +19972,7 @@ elif st.session_state["current_page"] == "studio":
     # ========================================================
     # STUDIO PAGE CSS - CLEAN PREMIUM STYLE
     # ========================================================
-    st.markdown("""
+    st.markdown(inline_static_asset_urls("""
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap');
 
@@ -21625,7 +21676,7 @@ elif st.session_state["current_page"] == "studio":
             }
         }
     </style>
-    """, unsafe_allow_html=True)
+    """), unsafe_allow_html=True)
 
     engine_cards = [
         ("🎬", "Story Engine", "Cinematic Engine", "Turn your story idea into a cinematic video with AI.", "photo-1500530855697-b586d89ba3ee"),
@@ -21706,7 +21757,7 @@ elif st.session_state["current_page"] == "studio":
     plan_name = html_lib.escape(subscription_name if subscription_active and subscription_name else "Free Plan")
     plan_action = "Manage plan" if subscription_active else "Upgrade for more power"
     st.markdown(
-        """
+        inline_static_asset_urls("""
         <style>
         :root {
             --studio-bg: #ffffff;
@@ -24039,6 +24090,8 @@ elif st.session_state["current_page"] == "studio":
             border-radius:14px;
             background:#fff;
         }
+        .zd-mobile-credits { display:none; }
+        .zd-mobile-header { display:none; }
         @media (max-width:900px) {
             [data-testid="stMain"] .block-container { padding:4px 12px 20px !important; }
             .st-key-studio_hero_container { min-height:0; padding:14px 12px 12px !important; border-radius:16px; }
@@ -24442,8 +24495,568 @@ elif st.session_state["current_page"] == "studio":
                     height:160px !important;
                 }
             }
+                @media (max-width:760px) {
+                    html, body, .stApp, [data-testid="stAppViewContainer"],
+                    [data-testid="stMain"], [data-testid="stMain"] .block-container {
+                        background:#070809 !important;
+                        color:#f6f7f9 !important;
+                    }
+                    [data-testid="stMain"] .block-container {
+                        padding:0 14px 28px !important;
+                    }
+                    [data-testid="stMain"]:has(.st-key-studio_hero_container)
+                    [data-testid="stHorizontalBlock"]:has(.st-key-studio_hero_container) {
+                        gap:8px !important;
+                    }
+                    [data-testid="stMain"]:has(.st-key-studio_hero_container)
+                    [data-testid="stHorizontalBlock"]:has(.st-key-studio_hero_container)
+                    > [data-testid="stColumn"]:has(.st-key-studio_sidebar_action_0) {
+                        display:none !important;
+                    }
+                    [data-testid="stMain"]:has(.st-key-studio_hero_container)
+                    [data-testid="stHorizontalBlock"]:has(.st-key-studio_hero_container)
+                    > [data-testid="stColumn"]:has(.st-key-studio_hero_container) {
+                        order:0 !important;
+                        width:100% !important;
+                    }
+                    [data-testid="stMain"]:has(.st-key-studio_hero_container)
+                    [data-testid="stHorizontalBlock"]:has(.st-key-studio_hero_container)
+                    > [data-testid="stColumn"]:has(.st-key-studio_quick_actions_panel) {
+                        order:1 !important;
+                        width:100% !important;
+                    }
+                    .zd-mobile-header {
+                        position:relative;
+                        z-index:20;
+                        display:flex !important;
+                        align-items:center;
+                        justify-content:space-between;
+                        min-height:58px;
+                        margin:0 -14px 12px;
+                        padding:0 16px;
+                        color:#f7f8fa;
+                        background:#08090b;
+                        border-bottom:1px solid rgba(255,255,255,.08);
+                    }
+                    .zd-mobile-brand,
+                    .zd-mobile-header-actions {
+                        display:flex;
+                        align-items:center;
+                    }
+                    .zd-mobile-brand {
+                        gap:9px;
+                        color:#f7f8fa !important;
+                        text-decoration:none !important;
+                    }
+                    .zd-mobile-brand-mark {
+                        display:grid;
+                        width:32px;
+                        height:32px;
+                        place-items:center;
+                        color:#fff;
+                        border-radius:9px;
+                        background:linear-gradient(135deg,#16b8c6,#6754e8);
+                        font:850 18px/1 'Inter',Arial,sans-serif;
+                    }
+                    .zd-mobile-brand strong {
+                        display:block;
+                        color:#fff;
+                        font:850 15px/1 'Inter',Arial,sans-serif;
+                        letter-spacing:.08em;
+                    }
+                    .zd-mobile-brand small {
+                        display:block;
+                        margin-top:4px;
+                        color:#98a3b6;
+                        font:650 7px/1 'Inter',Arial,sans-serif;
+                        letter-spacing:.13em;
+                    }
+                    .zd-mobile-header-actions { gap:10px; }
+                    .zd-mobile-profile {
+                        display:grid;
+                        width:34px;
+                        height:34px;
+                        place-items:center;
+                        color:#fff !important;
+                        border:1px solid rgba(255,255,255,.18);
+                        border-radius:50%;
+                        background:linear-gradient(135deg,#16b8b1,#5868e9);
+                        font:750 13px/1 'Inter',Arial,sans-serif;
+                        text-decoration:none !important;
+                    }
+                    .zd-mobile-menu { position:relative; }
+                    .zd-mobile-menu summary {
+                        display:flex;
+                        width:40px;
+                        height:40px;
+                        flex-direction:column;
+                        align-items:center;
+                        justify-content:center;
+                        gap:5px;
+                        border:1px solid rgba(255,255,255,.12);
+                        border-radius:11px;
+                        background:#17181b;
+                        cursor:pointer;
+                        list-style:none;
+                    }
+                    .zd-mobile-menu summary::-webkit-details-marker { display:none; }
+                    .zd-mobile-menu summary span {
+                        display:block;
+                        width:17px;
+                        height:2px;
+                        border-radius:2px;
+                        background:#f5f6f8;
+                    }
+                    .zd-mobile-menu nav {
+                        position:absolute;
+                        top:48px;
+                        right:0;
+                        z-index:30;
+                        display:grid;
+                        width:min(270px,calc(100vw - 28px));
+                        max-height:70vh;
+                        gap:5px;
+                        overflow:auto;
+                        padding:12px;
+                        border:1px solid #29303b;
+                        border-radius:14px;
+                        background:#11141a;
+                        box-shadow:0 18px 38px rgba(0,0,0,.48);
+                    }
+                    .zd-mobile-menu .zd-nav-label,
+                    .zd-mobile-menu .zd-nav-rule { display:none; }
+                    .zd-mobile-menu .zd-nav { display:grid; gap:5px; }
+                    .zd-mobile-menu nav a {
+                        display:flex;
+                        min-height:39px;
+                        align-items:center;
+                        gap:9px;
+                        padding:0 10px;
+                        color:#e7ebf3 !important;
+                        border:1px solid #252b36;
+                        border-radius:9px;
+                        background:#171b23;
+                        font:600 12px/1.3 'Inter',Arial,sans-serif;
+                        text-decoration:none !important;
+                    }
+                    .zd-mobile-menu nav a.active {
+                        color:#fff !important;
+                        border-color:#5b65e7;
+                        background:linear-gradient(105deg,#4d65df,#704de1);
+                    }
+                    .zd-mobile-menu nav .zd-ghost-engine-link {
+                        color:#fff !important;
+                        border:0;
+                        background:linear-gradient(105deg,#4d65df,#704de1);
+                    }
+                    .st-key-studio_dashboard_notifications,
+                    .st-key-studio_account_profile,
+                    .st-key-studio_topbar_logout,
+                    [data-testid="stHorizontalBlock"]:has(.st-key-studio_dashboard_notifications) {
+                        display:none !important;
+                    }
+                    .st-key-studio_hero_container {
+                        min-height:0 !important;
+                        margin:0 -2px !important;
+                        padding:14px 13px 12px !important;
+                        border:0 !important;
+                        border-radius:0 !important;
+                        background-color:#101215 !important;
+                        background-position:center 38% !important;
+                        box-shadow:none !important;
+                    }
+                    .st-key-studio_hero_container .zd-hero {
+                        min-height:170px !important;
+                        align-items:center !important;
+                        justify-content:center !important;
+                        padding:12px 2px 22px !important;
+                        border:0 !important;
+                        border-radius:0 !important;
+                        background:transparent !important;
+                        box-shadow:none !important;
+                        text-align:center !important;
+                    }
+                    .st-key-studio_hero_container .zd-hero::before { display:none !important; }
+                    .st-key-studio_hero_container .zd-hero-copy {
+                        width:100% !important;
+                        max-width:100% !important;
+                        text-align:center !important;
+                    }
+                    .st-key-studio_hero_container .zd-hero-kicker { display:none !important; }
+                    .st-key-studio_hero_container .zd-hero h1 {
+                        max-width:100% !important;
+                        color:#fff !important;
+                        font-size:clamp(27px,8vw,34px) !important;
+                        font-weight:850 !important;
+                        letter-spacing:-.035em !important;
+                        line-height:1.1 !important;
+                        text-transform:uppercase;
+                        text-shadow:0 2px 18px rgba(0,0,0,.36) !important;
+                    }
+                    .st-key-studio_hero_container .zd-hero h1 span {
+                        color:#fff !important;
+                        -webkit-text-fill-color:#fff !important;
+                    }
+                    .st-key-studio_hero_container .zd-hero p { display:none !important; }
+                    .st-key-studio_hero_controls {
+                        position:relative !important;
+                        z-index:3 !important;
+                        margin:-18px 0 0 !important;
+                        padding:9px !important;
+                        border:1px solid rgba(255,255,255,.2) !important;
+                        border-radius:17px !important;
+                        background:rgba(17,19,22,.94) !important;
+                        box-shadow:0 12px 26px rgba(0,0,0,.28) !important;
+                        backdrop-filter:blur(12px);
+                    }
+                    .st-key-studio_hero_prompt_form [data-testid="stTextInput"] input {
+                        min-height:44px !important;
+                        color:#f4f5f7 !important;
+                        border:0 !important;
+                        background:transparent !important;
+                        box-shadow:none !important;
+                        font-size:13px !important;
+                    }
+                    .st-key-studio_hero_prompt_form [data-testid="stTextInput"] input::placeholder {
+                        color:#a2a8b1 !important;
+                    }
+                    .st-key-studio_hero_prompt_form [data-testid="stFormSubmitButton"] > button {
+                        min-height:38px !important;
+                        border-radius:10px !important;
+                        font-size:11px !important;
+                    }
+                    .st-key-studio_creation_type_choices {
+                        margin-top:8px !important;
+                        padding-top:8px !important;
+                        border-top:1px solid rgba(255,255,255,.1) !important;
+                    }
+                    .st-key-studio_creation_type_choices [data-testid="stHorizontalBlock"] {
+                        gap:8px !important;
+                    }
+                    .st-key-studio_creation_type_choices [data-testid="stButton"] > button {
+                        min-height:39px !important;
+                        padding:0 10px !important;
+                        color:#e8eaf0 !important;
+                        border:1px solid rgba(255,255,255,.08) !important;
+                        border-radius:999px !important;
+                        background:#25272b !important;
+                        font-size:10px !important;
+                    }
+                    .st-key-studio_creation_type_choices [data-testid="stButton"] > button[kind="primary"] {
+                        color:#fff !important;
+                        border-color:#7d68ff !important;
+                        background:#6c55ef !important;
+                    }
+                    .zd-mobile-credits {
+                        margin:12px 0 8px !important;
+                        color:#f2f4f8 !important;
+                        border-color:#282d36 !important;
+                        background:linear-gradient(135deg,#171a20,#101216) !important;
+                        box-shadow:none !important;
+                    }
+                    .zd-mobile-credits > div small,
+                    .zd-mobile-credits > div span { color:#a5adba !important; }
+                    .zd-mobile-credits > div strong { color:#fff !important; }
+                    .zd-mobile-credits .zd-mobile-credits-plan {
+                        color:#b6aaff !important;
+                        border-color:#2a2e37 !important;
+                    }
+                    .st-key-studio_engine_header { margin-top:19px !important; }
+                    .st-key-studio_engine_header .zd-section-head {
+                        margin:0 0 9px !important;
+                    }
+                    .st-key-studio_engine_header .zd-section-head h2 {
+                        color:transparent !important;
+                        font-size:0 !important;
+                    }
+                    .st-key-studio_engine_header .zd-section-head h2::before {
+                        color:#f6f7f9;
+                        content:"Featured";
+                        font-size:21px !important;
+                        font-weight:750 !important;
+                    }
+                    .st-key-studio_engine_header .zd-section-head p { display:none !important; }
+                    .zd-engine-grid {
+                        grid-auto-flow:column !important;
+                        grid-template-columns:none !important;
+                        grid-template-rows:1fr !important;
+                        grid-auto-columns:minmax(230px,76vw) !important;
+                        gap:12px !important;
+                        overflow-x:auto !important;
+                        padding:2px 2px 12px !important;
+                        scroll-snap-type:x mandatory;
+                        scrollbar-width:none;
+                    }
+                    .zd-engine-photo-card {
+                        position:relative !important;
+                        display:block !important;
+                        height:250px !important;
+                        min-height:250px !important;
+                        padding:0 !important;
+                        border:1px solid rgba(255,255,255,.13) !important;
+                        border-radius:18px !important;
+                        background:#16191e !important;
+                        box-shadow:none !important;
+                        scroll-snap-align:start;
+                    }
+                    .zd-engine-photo-card::before {
+                        position:absolute !important;
+                        z-index:1 !important;
+                        inset:0 !important;
+                        display:block !important;
+                        border-radius:inherit;
+                        background:linear-gradient(0deg,rgba(0,0,0,.82),rgba(0,0,0,.02) 72%) !important;
+                        content:"" !important;
+                    }
+                    .zd-engine-photo-card::after { border-radius:inherit !important; }
+                    .zd-engine-photo-card img {
+                        position:absolute !important;
+                        inset:0 !important;
+                        width:100% !important;
+                        height:100% !important;
+                        aspect-ratio:auto !important;
+                        border-radius:inherit;
+                        object-fit:cover !important;
+                    }
+                    .zd-engine-photo-icon {
+                        position:absolute !important;
+                        top:12px !important;
+                        left:12px !important;
+                        width:36px !important;
+                        height:36px !important;
+                        font-size:18px !important;
+                    }
+                    .zd-engine-photo-copy {
+                        position:absolute !important;
+                        z-index:2 !important;
+                        right:10px !important;
+                        bottom:12px !important;
+                        left:12px !important;
+                        min-height:0 !important;
+                        gap:4px !important;
+                        margin:0 !important;
+                        padding:0 !important;
+                    }
+                    .zd-engine-photo-copy strong {
+                        color:#fff !important;
+                        font-size:17px !important;
+                        line-height:1.2 !important;
+                        white-space:normal !important;
+                    }
+                    .zd-engine-photo-copy small {
+                        color:#e0e2e7 !important;
+                        font-size:11px !important;
+                        line-height:1.4 !important;
+                    }
+                    .st-key-studio_quick_actions_panel {
+                        color:#f2f4f8 !important;
+                        border-color:#272b33 !important;
+                        background:#111317 !important;
+                        box-shadow:none !important;
+                    }
+                    .st-key-studio_quick_actions_panel .zd-panel-head { color:#f5f6f8 !important; }
+                    .st-key-studio_quick_actions_panel [class*="st-key-studio_quick_action_"] [data-testid="stButton"] > button {
+                        color:#ebedf2 !important;
+                        border-color:#2c3038 !important;
+                        background:#191c22 !important;
+                        box-shadow:none !important;
+                    }
+                    .zd-lower-section, .zd-community-section {
+                        color:#f1f3f7 !important;
+                        border-color:#292d35 !important;
+                        background:#111317 !important;
+                        box-shadow:none !important;
+                    }
+                    .zd-lower-head h2, .zd-section-head h2 { color:#f5f6f8 !important; }
+                    .zd-lower-head p, .zd-section-head p { color:#a0a8b5 !important; }
+                    [data-testid="stMain"]:has(.st-key-studio_hero_container)
+                    [data-testid="stHorizontalBlock"]:has(.st-key-studio_sidebar_action_0)
+                    > [data-testid="stColumn"]:has(.st-key-studio_sidebar_action_0)
+                    > [data-testid="stVerticalBlock"] {
+                        display:flex !important;
+                        flex-direction:row !important;
+                        flex-wrap:nowrap !important;
+                        gap:7px !important;
+                        overflow-x:auto !important;
+                        padding:7px !important;
+                        border:1px solid #e3eaf4 !important;
+                        border-radius:13px !important;
+                        background:#fff !important;
+                        box-shadow:0 4px 12px rgba(37,65,105,.06) !important;
+                        scrollbar-width:none;
+                    }
+                    [data-testid="stMain"]:has(.st-key-studio_sidebar_action_0)
+                    .st-key-studio_sidebar_action_0 {
+                        margin-left:0 !important;
+                    }
+                    [data-testid="stMain"]:has(.st-key-studio_sidebar_action_0)
+                    .st-key-studio_sidebar_action_0,
+                    [data-testid="stMain"]:has(.st-key-studio_sidebar_action_0)
+                    [class*="st-key-studio_sidebar_action_"],
+                    [data-testid="stMain"]:has(.st-key-studio_sidebar_action_0)
+                    [class*="st-key-studio_library_"],
+                    [data-testid="stMain"]:has(.st-key-studio_sidebar_action_0)
+                    [class*="st-key-studio_resource_"],
+                    [data-testid="stMain"]:has(.st-key-studio_sidebar_action_0)
+                    .st-key-studio_sidebar_ghost_engine {
+                        flex:0 0 auto !important;
+                        width:auto !important;
+                        min-width:0 !important;
+                        margin:0 !important;
+                    }
+                    [data-testid="stMain"]:has(.st-key-studio_sidebar_action_0)
+                    [class*="st-key-studio_sidebar_action_"] [data-testid="stButton"] > button,
+                    [data-testid="stMain"]:has(.st-key-studio_sidebar_action_0)
+                    [class*="st-key-studio_library_"] [data-testid="stButton"] > button,
+                    [data-testid="stMain"]:has(.st-key-studio_sidebar_action_0)
+                    [class*="st-key-studio_resource_"] [data-testid="stButton"] > button,
+                    [data-testid="stMain"]:has(.st-key-studio_sidebar_action_0)
+                    .st-key-studio_sidebar_ghost_engine [data-testid="stButton"] > button {
+                        width:auto !important;
+                        min-width:max-content !important;
+                        min-height:36px !important;
+                        margin:0 !important;
+                        padding:0 11px !important;
+                        border:1px solid #e3eaf4 !important;
+                        border-radius:999px !important;
+                        background:#f7f9fd !important;
+                        box-shadow:none !important;
+                        font-size:11px !important;
+                    }
+                    [data-testid="stMain"]:has(.st-key-studio_sidebar_action_0)
+                    .st-key-studio_sidebar_action_0 [data-testid="stButton"] > button {
+                        color:#fff !important;
+                        border-color:transparent !important;
+                        background:linear-gradient(105deg,#3478f6,#655eea) !important;
+                    }
+                    [data-testid="stMain"]:has(.st-key-studio_sidebar_action_0)
+                    .st-key-studio_sidebar_ghost_engine,
+                    [data-testid="stMain"]:has(.st-key-studio_sidebar_action_0)
+                    [data-testid="stElementContainer"]:has(.zd-studio-brand),
+                    [data-testid="stMain"]:has(.st-key-studio_sidebar_action_0)
+                    [data-testid="stElementContainer"]:has(.studio-sidebar-section-label) {
+                        display:none !important;
+                    }
+                    .st-key-studio_hero_container {
+                        padding:12px !important;
+                        border-radius:16px !important;
+                    }
+                    .st-key-studio_hero_container .zd-hero {
+                        min-height:180px !important;
+                        padding:0 !important;
+                    }
+                    .st-key-studio_dashboard_notifications,
+                    .st-key-studio_account_profile {
+                        margin:0 !important;
+                    }
+                    .st-key-studio_credits_panel { display:none !important; }
+                    .zd-mobile-credits {
+                        display:grid !important;
+                        grid-template-columns:minmax(0,1fr) auto !important;
+                        align-items:center !important;
+                        gap:4px 10px !important;
+                        margin:10px 0 2px !important;
+                        padding:12px 14px !important;
+                        border:1px solid #e1e9f4 !important;
+                        border-radius:14px !important;
+                        background:linear-gradient(135deg,#fff,#f6f9ff) !important;
+                        box-shadow:0 5px 14px rgba(37,65,105,.06) !important;
+                    }
+                    .zd-mobile-credits > div {
+                        display:grid;
+                        grid-template-columns:auto auto;
+                        align-items:baseline;
+                        justify-content:start;
+                        gap:2px 7px;
+                    }
+                    .zd-mobile-credits > div small {
+                        grid-column:1/-1;
+                        color:#7787a0;
+                        font:750 9px/1.2 'Inter',Arial,sans-serif;
+                        letter-spacing:.08em;
+                    }
+                    .zd-mobile-credits > div strong {
+                        color:#2e63d3;
+                        font:800 22px/1.1 'Inter',Arial,sans-serif;
+                    }
+                    .zd-mobile-credits > div span {
+                        color:#71819a;
+                        font:500 10px/1.2 'Inter',Arial,sans-serif;
+                    }
+                    .zd-mobile-credits a {
+                        color:#4d5dcc !important;
+                        font:700 10px/1.25 'Inter',Arial,sans-serif;
+                        text-decoration:none !important;
+                    }
+                    .zd-mobile-credits .zd-mobile-credits-buy {
+                        padding:9px 11px;
+                        color:#fff !important;
+                        border-radius:9px;
+                        background:linear-gradient(105deg,#3478f6,#655eea);
+                        white-space:nowrap;
+                    }
+                    .zd-mobile-credits .zd-mobile-credits-plan {
+                        grid-column:1/-1;
+                        padding-top:7px;
+                        border-top:1px solid #e8edf5;
+                    }
+                    .st-key-studio_engine_header { margin-top:14px !important; }
+                    .zd-engine-grid {
+                        grid-auto-flow:column !important;
+                        grid-template-columns:none !important;
+                        grid-template-rows:repeat(2,184px) !important;
+                        grid-auto-columns:minmax(138px,42vw) !important;
+                        gap:9px !important;
+                        overflow-x:auto !important;
+                        padding:2px 2px 10px !important;
+                        scroll-snap-type:x mandatory;
+                        scrollbar-width:thin;
+                    }
+                    .zd-engine-photo-card {
+                        height:184px !important;
+                        grid-template-rows:minmax(0,1fr) 70px !important;
+                        scroll-snap-align:start;
+                    }
+                    .zd-engine-photo-card img {
+                        width:100% !important;
+                        height:100% !important;
+                        aspect-ratio:auto !important;
+                        object-fit:cover !important;
+                    }
+                    .zd-engine-photo-copy {
+                        min-height:70px !important;
+                        padding:8px 26px 8px 9px !important;
+                    }
+                    .zd-engine-photo-copy strong { font-size:11px !important; }
+                    .zd-engine-photo-copy small { font-size:9px !important; }
+                    .zd-section-head p::after {
+                        content:" · Swipe to explore";
+                        color:#7c8da7;
+                    }
+                    .st-key-studio_quick_actions_panel {
+                        display:grid !important;
+                        grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+                        gap:8px !important;
+                    }
+                    .st-key-studio_quick_actions_panel
+                    > [data-testid="stElementContainer"]:has(.zd-panel-head) {
+                        grid-column:1/-1 !important;
+                    }
+                    .st-key-studio_quick_actions_panel [class*="st-key-studio_quick_action_"] {
+                        margin:0 !important;
+                    }
+                    .st-key-studio_quick_actions_panel [class*="st-key-studio_quick_action_"] [data-testid="stButton"] > button {
+                        min-height:42px !important;
+                        padding:0 10px !important;
+                        border:1px solid #e0e8f3 !important;
+                        border-radius:10px !important;
+                        background:#fff !important;
+                        box-shadow:0 2px 7px rgba(34,55,88,.045) !important;
+                        font-size:11px !important;
+                    }
+                }
         </style>
-        """,
+        """),
         unsafe_allow_html=True,
     )
 
@@ -24726,7 +25339,7 @@ elif st.session_state["current_page"] == "studio":
                                 st.session_state["studio_favorite_keys"] = sorted(favorite_keys)
                                 st.rerun()
 
-    dashboard_hero_image = "/app/static/studio_hero.webp"
+    dashboard_hero_image = static_asset_data_uri("studio_hero.webp")
     st.markdown(
         f"""
         <style>
@@ -24803,6 +25416,64 @@ elif st.session_state["current_page"] == "studio":
         if notice := st.session_state.pop("studio_dashboard_notice", None):
             st.info(notice)
 
+        st.markdown(
+            f"""
+            <header class="zd-mobile-header">
+              <a class="zd-mobile-brand" href="?page=studio">
+                <span class="zd-mobile-brand-mark">Z</span>
+                <span><strong>ZOVIX</strong><small>AI CREATIVE STUDIO</small></span>
+              </a>
+              <div class="zd-mobile-header-actions">
+                <a class="zd-mobile-profile" href="?page=profile" aria-label="Open profile">{avatar_initial}</a>
+                <details class="zd-mobile-menu">
+                  <summary aria-label="Open navigation menu"><span></span><span></span><span></span></summary>
+                  <nav>{''.join(sidebar_nav_html)}
+                    <a class="zd-ghost-engine-link" href="?page=studio_mode&amp;mode={urllib.parse.quote('Cinematic Engine', safe='')}">🎬&nbsp; Story Engine</a>
+                    <a href="?page=portfolio">▣&nbsp; My Creations</a>
+                    <a href="?page=payments">♛&nbsp; Credits &amp; Plans</a>
+                  </nav>
+                </details>
+              </div>
+            </header>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        topbar_columns = st.columns([0.58, 0.14, 0.14, 0.14], gap="small", vertical_alignment="center")
+        with topbar_columns[1]:
+            if st.button(
+                "🔔",
+                key="studio_dashboard_notifications",
+                width="stretch",
+                help="Notifications",
+            ):
+                st.toast("You're all caught up.")
+        with topbar_columns[2]:
+            if st.button(
+                avatar_initial or "Z",
+                key="studio_account_profile",
+                width="stretch",
+                help=f"Open {display_name}'s profile",
+            ):
+                _dashboard_go("profile")
+        with topbar_columns[3]:
+            if st.button(
+                "Log out",
+                key="studio_topbar_logout",
+                icon=":material/logout:",
+            ):
+                _dashboard_go("logout")
+        if safe_profile_avatar:
+            st.markdown(
+                f"<style>.st-key-studio_account_profile [data-testid='stButton'] > button "
+                f"{{background-image:url('data:image/jpeg;base64,{safe_profile_avatar}') !important;"
+                "background-size:cover !important;background-position:center !important;"
+                "color:transparent !important;font-size:0 !important;}"
+                ".st-key-studio_account_profile [data-testid='stButton'] > button p "
+                "{color:transparent !important;font-size:0 !important;}</style>",
+                unsafe_allow_html=True,
+            )
+
         with st.container(key="studio_hero_container"):
             st.markdown(
                 f"""
@@ -24871,6 +25542,14 @@ elif st.session_state["current_page"] == "studio":
                 st.session_state["studio_mode_radio"] = "💡 Autonomous AI Topic"
                 _dashboard_go(f"mode:{selected_mode}")
 
+        st.markdown(
+            f"<section class='zd-mobile-credits'><div><small>YOUR CREDITS</small>"
+            f"<strong>{credit_balance:,}</strong><span>Available credits</span></div>"
+            f"<a class='zd-mobile-credits-buy' href='?page=payments'>＋ Add credits</a>"
+            f"<a class='zd-mobile-credits-plan' href='?page=payments'>{plan_name} · {plan_action}</a></section>",
+            unsafe_allow_html=True,
+        )
+
         with st.container(key="studio_engine_header"):
             st.markdown(
                 "<div class='zd-section-head'><div><h2>AI Engines</h2>"
@@ -24905,7 +25584,7 @@ elif st.session_state["current_page"] == "studio":
             supplied_image = supplied_engine_images.get(engine_cards.index(card))
             if supplied_image is None:
                 raise ValueError(f"No dashboard image configured for {title!r}")
-            image_source = f"/app/static/{supplied_image}"
+            image_source = static_asset_data_uri(supplied_image)
             engine_card_html.append(
                 "<div class='zd-engine-photo-card' style='cursor:default'>"
                 f"<img src='{html_lib.escape(image_source, quote=True)}' alt='' loading='eager' decoding='async'>"
@@ -24923,40 +25602,6 @@ elif st.session_state["current_page"] == "studio":
             st.info("No AI engines match your search.")
 
     with dashboard_columns[2]:
-        topbar_columns = st.columns([0.34, 0.18, 0.18, 0.45], gap="small", vertical_alignment="center")
-        with topbar_columns[1]:
-            if st.button(
-                "🔔",
-                key="studio_dashboard_notifications",
-                width="stretch",
-                help="Notifications",
-            ):
-                st.toast("You're all caught up.")
-            if safe_profile_avatar:
-                st.markdown(
-                    f"<style>.st-key-studio_account_profile [data-testid='stButton'] > button "
-                    f"{{background-image:url('data:image/jpeg;base64,{safe_profile_avatar}') !important;"
-                    "background-size:cover !important;background-position:center !important;"
-                    "color:transparent !important;font-size:0 !important;}"
-                    ".st-key-studio_account_profile [data-testid='stButton'] > button p "
-                    "{color:transparent !important;font-size:0 !important;}</style>",
-                    unsafe_allow_html=True,
-                )
-        with topbar_columns[2]:
-            if st.button(
-                avatar_initial or "Z",
-                key="studio_account_profile",
-                width="stretch",
-                help=f"Open {display_name}'s profile",
-            ):
-                _dashboard_go("profile")
-        with topbar_columns[3]:
-            if st.button(
-                "Log out",
-                key="studio_topbar_logout",
-                icon=":material/logout:",
-            ):
-                _dashboard_go("logout")
         with st.container(key="studio_credits_panel"):
             st.markdown(
                 "<div class='zd-credit-heading'><span class='zd-credit-heading-icon' aria-hidden='true'>👑</span>"
@@ -24997,7 +25642,7 @@ elif st.session_state["current_page"] == "studio":
                         _dashboard_go("payments")
             st.markdown(
                 f"<div class='zd-mini-stats'><div><strong>{len(engine_cards)}</strong><span>AI Engines</span></div>"
-                "<div><strong>HD</strong><span>Quality</span></div><div><strong>Fast</strong><span>Processing</span></div></div>",
+                "<div><strong>HD</strong><span>Quality</span></div><div><strong>Fast</strong><span>Processing</span></div>",
                 unsafe_allow_html=True,
             )
         with st.container(key="studio_quick_actions_panel", border=True):
@@ -25016,7 +25661,7 @@ elif st.session_state["current_page"] == "studio":
     future_columns = st.columns([0.20, 0.80], gap="small")
     with future_columns[1]:
         st.markdown(
-            """
+            inline_static_asset_urls("""
             <section class="zd-lower-section zd-upcoming-section" id="studio-upcoming">
               <div class="zd-lower-head">
                 <div><h2>Future Features</h2><p>New ways to create, customize and share are on the horizon.</p></div>
@@ -25037,11 +25682,11 @@ elif st.session_state["current_page"] == "studio":
                 </article>
               </div>
             </section>
-            """,
+            """),
             unsafe_allow_html=True,
         )
         st.markdown(
-            """
+            inline_static_asset_urls("""
             <section class="zd-lower-section" id="studio-future">
               <div class="zd-lower-head">
                 <div><h2>What’s Ahead</h2><p>Your creative journey with ZOVIX continues. Explore what’s next!</p></div>
@@ -25062,14 +25707,14 @@ elif st.session_state["current_page"] == "studio":
                 </article>
               </div>
             </section>
-            """,
+            """),
             unsafe_allow_html=True,
         )
 
     community_columns = st.columns([0.20, 0.80], gap="small")
     with community_columns[1]:
         st.markdown(
-            f"""
+            inline_static_asset_urls(f"""
             <section class="zd-lower-section zd-community-section" id="studio-community">
               <div class="zd-lower-head">
                 <div><h2>Community Creations</h2><p>Amazing creations from our talented community. Get inspired and create your own!</p></div>
@@ -25097,7 +25742,7 @@ elif st.session_state["current_page"] == "studio":
               </div>
               <p class="zd-community-note">Community showcase includes supplied creative examples; creator handles and engagement figures are illustrative. Start your own project with one of the <a href="?page=studio#engines">AI engines above</a>.</p>
             </section>
-            """,
+            """),
             unsafe_allow_html=True,
         )
 

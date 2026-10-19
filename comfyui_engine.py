@@ -161,7 +161,7 @@ def _extract_base64_images(output):
     if isinstance(output, dict):
         for key in ("images", "image", "data", "base64", "image_base64", "imageBase64"):
             if output.get(key):
-                return _extract_base64_images(output[key]) if key == "images" else [output[key]]
+                return _extract_base64_images(output[key])
         for value in output.values():
             found = _extract_base64_images(value)
             if found:
@@ -193,17 +193,17 @@ def generate_workshop_image(prompt, aspect_ratio="16:9", negative_prompt="", qua
     to the local workshop output folder. Drop-in replacement for the legacy
     Stability AI / Pollinations generate_pro_image() pipeline.
 
-    Returns the local file path on success, or None on failure.
+    Returns the local file path on success and raises RuntimeError on failure.
     """
     api_key = (api_key or RUNPOD_API_KEY or "").strip()
     endpoint_id = (endpoint_id or RUNPOD_ENDPOINT_ID or "").strip()
 
     if not api_key:
         logger.error("RUNPOD_API_KEY not configured; cannot call ComfyUI RunPod endpoint.")
-        return None
+        raise RuntimeError("RUNPOD_API_KEY is not configured.")
     if not endpoint_id:
         logger.error("ComfyUI RunPod endpoint id not configured.")
-        return None
+        raise RuntimeError("COMFYUI_RUNPOD_ENDPOINT_ID is not configured.")
 
     try:
         workflow = inject_prompt_settings(load_workflow(), prompt, negative_prompt, aspect_ratio, quality, seed)
@@ -212,8 +212,11 @@ def generate_workshop_image(prompt, aspect_ratio="16:9", negative_prompt="", qua
 
         images_b64 = _extract_base64_images(result.get("output"))
         if not images_b64:
-            logger.error(f"RunPod ComfyUI job returned no images: {result}")
-            return None
+            status = result.get("status", "unknown")
+            error = result.get("error") or "The endpoint response contained no image output."
+            raise RuntimeError(
+                f"RunPod ComfyUI job returned no images (status={status}): {error}"
+            )
 
         image_bytes = _decode_image_payload(images_b64[0])
 
@@ -225,7 +228,7 @@ def generate_workshop_image(prompt, aspect_ratio="16:9", negative_prompt="", qua
 
     except Exception as e:
         logger.error(f"ComfyUI RunPod workshop image generation failed: {e}")
-        return None
+        raise RuntimeError(f"ComfyUI RunPod workshop image generation failed: {e}") from e
 
 
 # ---------------------------------------------------------------------------
