@@ -19,7 +19,7 @@ from typing import List, Dict, Any, Tuple, Optional
 from pydantic import BaseModel, Field
 import edge_tts
 from mutagen.mp3 import MP3
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageOps
 import streamlit as st
 
 # --- SAFELY RESOLVE STREAMLIT THREADING CONTEXT ---
@@ -928,9 +928,10 @@ except ImportError:
 
 _draw_cache = {}
 _draw_cache_ttl = 300
+_draw_engine_state = threading.local()
 
-def _get_cache_key(prompt, style, engine):
-    raw = f"{prompt}|{style}|{engine}"
+def _get_cache_key(prompt, style, engine, canvas_size=(1024, 768), quality="Standard"):
+    raw = f"{prompt}|{style}|{engine}|{canvas_size[0]}x{canvas_size[1]}|{quality}"
     return hashlib.md5(raw.encode()).hexdigest()
 
 def _check_draw_cache(key):
@@ -940,8 +941,15 @@ def _check_draw_cache(key):
             return entry["path"]
     return None
 
-def _set_draw_cache(key, path):
-    _draw_cache[key] = {"path": path, "time": time.time()}
+def _set_draw_cache(key, path, engine="Unknown"):
+    _draw_cache[key] = {"path": path, "time": time.time(), "engine": engine}
+
+def _draw_output_size(canvas_size, quality):
+    width, height = (max(256, int(value)) for value in canvas_size)
+    long_edge = max(width, height)
+    target_long_edge = {"Standard": long_edge, "HD": max(long_edge, 1920), "4K": max(long_edge, 3840)}.get(quality, long_edge)
+    scale = target_long_edge / long_edge
+    return (int(round(width * scale)), int(round(height * scale)))
 
 STYLE_MAP = {
     "realistic": "photorealistic, 8K resolution, hyper-detailed, cinematic lighting",
@@ -1196,10 +1204,15 @@ class DrawEngine:
     @staticmethod
     def generate(prompt, style="realistic", canvas_size=(1024,768), engine_filter="Auto", quality="Standard"):
         os.makedirs("draw_outputs", exist_ok=True)
-        cache_key = _get_cache_key(prompt, style, engine_filter)
+        quality = quality if quality in {"Standard", "HD"} else "Standard"
+        canvas_size = tuple(max(256, int(value)) for value in canvas_size)
+        render_size = _draw_output_size(canvas_size, quality)
+        cache_key = _get_cache_key(prompt, style, engine_filter, canvas_size, quality)
         cached = _check_draw_cache(cache_key)
-        if cached and os.path.exists(cached): return cached
-        tmult = 2.0 if quality == "Premium" else 1.0
+        if cached and os.path.exists(cached):
+            _draw_engine_state.used = _draw_cache.get(cache_key, {}).get("engine", "Cached result")
+            return cached
+        tmult = {"Standard": 1.0, "HD": 1.35}[quality]
         engines = [("Pollinations",_draw_pollinations,int(25*tmult)), ("Gemini",_draw_gemini,int(30*tmult)),
                    ("Stability",_draw_stability,int(45*tmult)), ("Replicate",_draw_replicate,int(60*tmult)),
                    ("HuggingFace",_draw_huggingface,int(30*tmult))]
@@ -1207,7 +1220,7 @@ class DrawEngine:
             engines = [(n,f,t) for n,f,t in engines if n.lower() in engine_filter.lower()]
         for ename, efunc, etime in engines:
             try:
-                result = efunc(prompt, style, canvas_size, etime)
+                result = efunc(prompt, style, render_size, etime)
                 if result:
                     if isinstance(result, bytes):
                         op = f"draw_outputs/drawing_{uuid.uuid4().hex[:8]}.png"
@@ -1215,12 +1228,40 @@ class DrawEngine:
                     elif isinstance(result, str) and os.path.exists(result): op = result
                     else: continue
                     if os.path.exists(op) and os.path.getsize(op) > 1000:
-                        _set_draw_cache(cache_key, op); return op
+                        op = DrawEngine._prepare_output(op, render_size)
+                        _draw_engine_state.used = ename
+                        _set_draw_cache(cache_key, op, ename)
+                        return op
             except: continue
-        result = _draw_generative_fallback(prompt, style, canvas_size)
-        if result and os.path.exists(result): _set_draw_cache(cache_key, result)
+        result = _draw_generative_fallback(prompt, style, render_size)
+        if result and os.path.exists(result):
+            result = DrawEngine._prepare_output(result, render_size)
+            _draw_engine_state.used = "Local generative fallback"
+            _set_draw_cache(cache_key, result, "Local generative fallback")
+        else:
+            _draw_engine_state.used = "Unavailable"
         return result
 
     @staticmethod
-    def generate_fallback_only(prompt, style="realistic", canvas_size=(1024,768)):
-        return _draw_generative_fallback(prompt, style, canvas_size)
+    def _prepare_output(path, target):
+        """Normalize provider images to the requested aspect and quality dimensions."""
+        with Image.open(path) as source:
+            image = ImageOps.fit(source.convert("RGB"), target, method=Image.Resampling.LANCZOS)
+            image.save(path, format="PNG", optimize=True)
+        return path
+
+    @staticmethod
+    def get_last_engine_used():
+        return getattr(_draw_engine_state, "used", "Unknown")
+
+    @staticmethod
+    def generate_fallback_only(prompt, style="realistic", canvas_size=(1024,768), quality="Standard"):
+        quality = quality if quality in {"Standard", "HD"} else "Standard"
+        render_size = _draw_output_size(canvas_size, quality)
+        path = _draw_generative_fallback(prompt, style, render_size)
+        if path and os.path.exists(path):
+            path = DrawEngine._prepare_output(path, render_size)
+            _draw_engine_state.used = "Local generative fallback"
+        else:
+            _draw_engine_state.used = "Unavailable"
+        return path

@@ -190,13 +190,13 @@ components.html(
                     inset:0;
                     display:grid;
                     place-items:center;
-                    background:rgba(247,249,252,.68);
-                    backdrop-filter:blur(2px);
+                    background:#fff;
+                    backdrop-filter:none;
                 }
                 .zovix-navigation-loading-wheel {
-                    width:clamp(42px,calc(42px / var(--zovix-mobile-spinner-scale,1)),160px);
-                    height:clamp(42px,calc(42px / var(--zovix-mobile-spinner-scale,1)),160px);
-                    border:clamp(4px,calc(4px / var(--zovix-mobile-spinner-scale,1)),16px) solid #dbe6f2;
+                    width:42px;
+                    height:42px;
+                    border:4px solid #dbe6f2;
                     border-top-color:#3979e8;
                     border-right-color:#7654e8;
                     border-radius:50%;
@@ -266,7 +266,6 @@ components.html(
                         {page: "portfolio"},
                     ][index] || null;
                 }
-                if (key === "st-key-studio_account_profile") return {page: "profile"};
                 if (key === "st-key-studio_topbar_logout") return {page: "landing"};
                 if (key.startsWith("st-key-factory_open_")) return {page: "studio_mode", force: true};
                 if (key === "st-key-studio_hero_prompt_form") return {page: "studio_mode", force: true};
@@ -353,9 +352,16 @@ components.html(
             host.document.addEventListener("click", (event) => {
                 if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
                 const anchor = event.target.closest("a[href]");
+                const clickedButton = event.target.closest("button");
+                const currentParams = new URLSearchParams(host.location.search);
+                const currentTarget = {
+                    page: currentParams.get("page") || "landing",
+                    mode: currentParams.get("mode") || "",
+                    force: true,
+                };
                 const target = anchor
                     ? pageFromHref(anchor.href)
-                    : (event.target.closest("button") && pageFromButton(event.target.closest("button")));
+                    : (clickedButton && (pageFromButton(clickedButton) || currentTarget));
                 if (target) showOverlay(target);
             }, true);
 
@@ -509,10 +515,32 @@ components.html(
 
         if (!viewport) return;
 
-        if (!host.document.getElementById("zovix-desktop-mobile-dashboard-layout")) {
-            const style = host.document.createElement("style");
-            style.id = "zovix-desktop-mobile-dashboard-layout";
-            style.textContent = `
+        let desktopMobileLayoutStyle =
+            host.document.getElementById("zovix-desktop-mobile-dashboard-layout");
+        if (!desktopMobileLayoutStyle) {
+            desktopMobileLayoutStyle = host.document.createElement("style");
+            desktopMobileLayoutStyle.id = "zovix-desktop-mobile-dashboard-layout";
+        }
+        desktopMobileLayoutStyle.textContent = `
+                body.zovix-mobile-dashboard-canvas #root {
+                    box-sizing:border-box !important;
+                    width:1440px !important;
+                    max-width:none !important;
+                    zoom:var(--zovix-mobile-desktop-scale,1) !important;
+                }
+                body.zovix-mobile-dashboard-canvas .stApp,
+                body.zovix-mobile-dashboard-canvas [data-testid="stAppViewContainer"],
+                body.zovix-mobile-dashboard-canvas [data-testid="stMain"],
+                body.zovix-mobile-dashboard-canvas [data-testid="stMainBlockContainer"],
+                body.zovix-mobile-dashboard-canvas [data-testid="stMain"] .block-container {
+                    box-sizing:border-box !important;
+                    width:100% !important;
+                    max-width:none !important;
+                }
+                body.zovix-mobile-dashboard-canvas [data-testid="stMain"] {
+                    height:calc(100vh / var(--zovix-mobile-desktop-scale,1)) !important;
+                    min-height:calc(100vh / var(--zovix-mobile-desktop-scale,1)) !important;
+                }
                 @media (max-width: 900px) {
                     html body.zovix-desktop-mobile [data-testid="stMain"]
                     [data-testid="stHorizontalBlock"]:has(.st-key-studio_hero_container) {
@@ -533,16 +561,15 @@ components.html(
                     [data-testid="stHorizontalBlock"]:has(.st-key-studio_hero_container)
                     > [data-testid="stColumn"]:has(.st-key-studio_sidebar_action_0) {
                         flex:20 1 0% !important;
+                        width:20% !important;
+                        max-width:20% !important;
                     }
                     html body.zovix-desktop-mobile [data-testid="stMain"]
                     [data-testid="stHorizontalBlock"]:has(.st-key-studio_hero_container)
                     > [data-testid="stColumn"]:has(.st-key-studio_hero_container) {
-                        flex:56 1 0% !important;
-                    }
-                    html body.zovix-desktop-mobile [data-testid="stMain"]
-                    [data-testid="stHorizontalBlock"]:has(.st-key-studio_hero_container)
-                    > [data-testid="stColumn"]:has(.st-key-studio_credits_panel) {
-                        flex:24 1 0% !important;
+                        flex:80 1 0% !important;
+                        width:80% !important;
+                        max-width:80% !important;
                     }
                     html body.zovix-desktop-mobile [data-testid="stMain"]
                     [data-testid="stHorizontalBlock"]:has(.zd-upcoming-section),
@@ -578,8 +605,77 @@ components.html(
                     > [data-testid="stColumn"]:has(.zd-community-section) {
                         flex:80 1 0% !important;
                     }
+                    html body.zovix-desktop-mobile [data-testid="stMain"] .st-key-studio_bottom_footer
+                    [data-testid="stHorizontalBlock"]:has(.st-key-studio_footer_actions) {
+                        display:flex !important;
+                        flex-direction:row !important;
+                        flex-wrap:nowrap !important;
+                    }
+                    html body.zovix-desktop-mobile [data-testid="stMain"] .st-key-studio_bottom_footer
+                    [data-testid="stHorizontalBlock"]:has(.st-key-studio_footer_actions)
+                    > [data-testid="stColumn"] {
+                        display:block !important;
+                        min-width:0 !important;
+                        max-width:none !important;
+                    }
+                    html body.zovix-desktop-mobile [data-testid="stMain"] .st-key-studio_bottom_footer
+                    [data-testid="stHorizontalBlock"]:has(.st-key-studio_footer_actions)
+                    > [data-testid="stColumn"]:not(:has(.st-key-studio_footer_actions)) {
+                        flex:20 1 0% !important;
+                        width:20% !important;
+                        max-width:20% !important;
+                    }
+                    html body.zovix-desktop-mobile [data-testid="stMain"] .st-key-studio_bottom_footer
+                    [data-testid="stHorizontalBlock"]:has(.st-key-studio_footer_actions)
+                    > [data-testid="stColumn"]:has(.st-key-studio_footer_actions) {
+                        flex:80 1 0% !important;
+                        width:80% !important;
+                        max-width:80% !important;
+                    }
+                    html body.zovix-desktop-mobile [data-testid="stMain"] .st-key-studio_footer_actions
+                    [data-testid="stHorizontalBlock"] {
+                        display:flex !important;
+                        flex-direction:row !important;
+                        flex-wrap:nowrap !important;
+                    }
+                    html body.zovix-desktop-mobile [data-testid="stMain"] .st-key-studio_footer_actions
+                    [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] {
+                        display:block !important;
+                        flex:1 1 0% !important;
+                        width:25% !important;
+                        min-width:0 !important;
+                        max-width:25% !important;
+                    }
+                    html body.zovix-desktop-mobile [data-testid="stMain"] .st-key-studio_footer_policy
+                    [data-testid="stHorizontalBlock"] {
+                        display:flex !important;
+                        flex-direction:row !important;
+                        flex-wrap:nowrap !important;
+                    }
+                    html body.zovix-desktop-mobile [data-testid="stMain"] .st-key-studio_footer_policy
+                    [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] {
+                        display:block !important;
+                        min-width:0 !important;
+                        max-width:none !important;
+                    }
+                    html body.zovix-desktop-mobile [data-testid="stMain"] .st-key-studio_footer_policy
+                    [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:first-child {
+                        flex:20 1 0% !important;
+                        width:20% !important;
+                        max-width:20% !important;
+                    }
+                    html body.zovix-desktop-mobile [data-testid="stMain"] .st-key-studio_footer_policy
+                    [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:last-child {
+                        flex:80 1 0% !important;
+                        width:80% !important;
+                        max-width:80% !important;
+                    }
                     html body.zovix-desktop-mobile [data-testid="stMain"] .zd-engine-grid {
                         grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+                        grid-auto-flow:row !important;
+                        grid-auto-columns:auto !important;
+                        grid-template-rows:none !important;
+                        overflow:visible !important;
                     }
                     html body.zovix-desktop-mobile [data-testid="stMain"]
                     .st-key-studio_creations_section
@@ -599,8 +695,334 @@ components.html(
                     }
                 }
             `;
-            host.document.head.appendChild(style);
+        if (!desktopMobileLayoutStyle.isConnected) {
+            host.document.head.appendChild(desktopMobileLayoutStyle);
         }
+        let desktopMobileParityStyle =
+            host.document.getElementById("zovix-desktop-mobile-dashboard-parity");
+        if (!desktopMobileParityStyle) {
+            desktopMobileParityStyle = host.document.createElement("style");
+            desktopMobileParityStyle.id = "zovix-desktop-mobile-dashboard-parity";
+            host.document.head.appendChild(desktopMobileParityStyle);
+        }
+        desktopMobileParityStyle.textContent = `
+            body.zovix-desktop-mobile .stApp,
+            body.zovix-desktop-mobile [data-testid="stAppViewContainer"],
+            body.zovix-desktop-mobile [data-testid="stMain"],
+            body.zovix-desktop-mobile [data-testid="stMain"] .block-container {
+                color:#172b4d !important;
+                background:#f1f5fb !important;
+            }
+            body.zovix-desktop-mobile .zd-mobile-header { display:none !important; }
+            body.zovix-desktop-mobile .st-key-studio_hero_container,
+            body.zovix-desktop-mobile .st-key-studio_hero_controls,
+            body.zovix-desktop-mobile .zd-engine-grid,
+            body.zovix-desktop-mobile .zd-engine-photo-card,
+            body.zovix-desktop-mobile .zd-engine-photo-copy,
+            body.zovix-desktop-mobile .zd-lower-section,
+            body.zovix-desktop-mobile .zd-community-section,
+            body.zovix-desktop-mobile .zd-future-card,
+            body.zovix-desktop-mobile .zd-community-creation {
+                color:#172b4d !important;
+            }
+            body.zovix-desktop-mobile .st-key-studio_hero_container {
+                padding:16px 18px 14px !important;
+                border:1px solid rgba(207,222,244,.9) !important;
+                border-radius:20px !important;
+                background-color:transparent !important;
+                background-position:center 45% !important;
+                box-shadow:0 16px 38px rgba(45,75,135,.18),0 0 0 1px rgba(255,255,255,.8) inset !important;
+            }
+            body.zovix-desktop-mobile .zd-hero {
+                min-height:180px !important;
+                padding:12px !important;
+                text-align:left !important;
+            }
+            body.zovix-desktop-mobile .zd-hero-copy { text-align:left !important; }
+            body.zovix-desktop-mobile .zd-hero-kicker {
+                display:block !important;
+                color:#3c5272 !important;
+                font:750 13px 'Source Sans',sans-serif !important;
+            }
+            body.zovix-desktop-mobile .zd-hero h1 {
+                color:#122543 !important;
+                font:850 clamp(32px,calc(3vw / var(--zovix-mobile-desktop-scale,1)),44px)/1.08 'Inter',Arial,sans-serif !important;
+                letter-spacing:-.05em !important;
+                text-transform:none !important;
+                text-shadow:none !important;
+            }
+            body.zovix-desktop-mobile .zd-hero h1 span {
+                color:#3979e8 !important;
+                -webkit-text-fill-color:#3979e8 !important;
+            }
+            body.zovix-desktop-mobile .zd-hero p {
+                display:block !important;
+                color:#344b6d !important;
+                font:600 13px/1.55 'Inter',Arial,sans-serif !important;
+            }
+            body.zovix-desktop-mobile .st-key-studio_hero_controls {
+                margin:0 !important;
+                padding:7px 9px 9px !important;
+                border:1px solid rgba(255,255,255,.95) !important;
+                border-radius:14px !important;
+                background:rgba(255,255,255,.9) !important;
+                box-shadow:0 0 0 1px rgba(90,133,232,.18),0 0 24px rgba(74,117,237,.28),0 10px 26px rgba(35,62,115,.16) !important;
+            }
+            body.zovix-desktop-mobile .st-key-studio_hero_prompt_form [data-testid="stHorizontalBlock"] {
+                display:flex !important;
+                flex-direction:row !important;
+                flex-wrap:nowrap !important;
+                align-items:center !important;
+            }
+            body.zovix-desktop-mobile .st-key-studio_hero_prompt_form [data-testid="stColumn"]:first-child {
+                flex:0 0 76% !important;
+                width:76% !important;
+                max-width:76% !important;
+            }
+            body.zovix-desktop-mobile .st-key-studio_hero_prompt_form [data-testid="stColumn"]:last-child {
+                flex:0 0 24% !important;
+                width:24% !important;
+                max-width:24% !important;
+            }
+            body.zovix-desktop-mobile .st-key-studio_dashboard_prompt input {
+                color:#273b58 !important;
+                border:1px solid #cbd9f4 !important;
+                border-radius:10px !important;
+                background:#fff !important;
+                box-shadow:0 0 0 3px rgba(82,126,232,.1),0 4px 14px rgba(58,89,151,.08) !important;
+                font:500 12px 'Inter',Arial,sans-serif !important;
+            }
+            body.zovix-desktop-mobile .st-key-studio_dashboard_prompt input::placeholder {
+                color:#8795aa !important;
+            }
+            body.zovix-desktop-mobile .st-key-studio_creation_type_choices [data-testid="stButton"] > button {
+                color:#405572 !important;
+                border:1px solid #e0e8f2 !important;
+                border-radius:10px !important;
+                background:#fff !important;
+                box-shadow:0 2px 7px rgba(34,55,88,.045) !important;
+                font:600 11px/1.35 'Inter',Arial,sans-serif !important;
+            }
+            body.zovix-desktop-mobile .st-key-studio_creation_type_choices [data-testid="stButton"] > button[kind="primary"] {
+                color:#fff !important;
+                border:0 !important;
+                background:linear-gradient(105deg,#3478f6 0%,#655eea 55%,#8550df 100%) !important;
+                box-shadow:0 6px 16px rgba(89,84,218,.3) !important;
+            }
+            body.zovix-desktop-mobile [class*="st-key-studio_sidebar_action_"] [data-testid="stButton"] > button,
+            body.zovix-desktop-mobile [class*="st-key-studio_library_"] [data-testid="stButton"] > button,
+            body.zovix-desktop-mobile [class*="st-key-studio_resource_"] [data-testid="stButton"] > button,
+            body.zovix-desktop-mobile .st-key-studio_sidebar_ghost_engine [data-testid="stButton"] > button {
+                min-height:36px !important;
+                padding:8px 12px !important;
+                color:#1e293b !important;
+                border:0 !important;
+                border-left:3px solid transparent !important;
+                border-radius:0 9px 9px 0 !important;
+                background:transparent !important;
+                box-shadow:none !important;
+                font:600 11px/1.3 'Inter',Arial,sans-serif !important;
+            }
+            body.zovix-desktop-mobile .st-key-studio_sidebar_action_0 [data-testid="stButton"] > button {
+                color:#1e293b !important;
+                border-left-color:#06b6d4 !important;
+                background:#ecfeff !important;
+                font-weight:800 !important;
+            }
+            body.zovix-desktop-mobile .st-key-studio_engine_header .zd-section-head h2 {
+                color:#172b4d !important;
+                font:750 17px/1.35 'Inter',Arial,sans-serif !important;
+            }
+            body.zovix-desktop-mobile .st-key-studio_engine_header .zd-section-head h2::before {
+                content:none !important;
+            }
+            body.zovix-desktop-mobile .st-key-studio_engine_header .zd-section-head p {
+                display:block !important;
+                color:#6b7b91 !important;
+                font:400 14px/1.5 'Inter',Arial,sans-serif !important;
+            }
+            body.zovix-desktop-mobile .zd-engine-grid {
+                grid-auto-flow:row !important;
+                grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+                grid-template-rows:none !important;
+                grid-auto-columns:auto !important;
+                overflow:visible !important;
+                padding:0 !important;
+                scroll-snap-type:none !important;
+            }
+            body.zovix-desktop-mobile .zd-engine-photo-card {
+                display:grid !important;
+                height:auto !important;
+                min-height:0 !important;
+                grid-template-rows:minmax(0,1fr) 72px !important;
+                padding:0 !important;
+                border:1px solid transparent !important;
+                border-radius:15px !important;
+                background:linear-gradient(#fff,#fff) padding-box,linear-gradient(135deg,#63d8ef,#5989f4 52%,#a05bea) border-box !important;
+                box-shadow:0 6px 17px rgba(52,87,151,.1),0 0 14px rgba(92,122,229,.08) !important;
+            }
+            body.zovix-desktop-mobile .zd-engine-photo-card::before {
+                display:none !important;
+            }
+            body.zovix-desktop-mobile .zd-engine-photo-card img {
+                position:relative !important;
+                inset:auto !important;
+                width:100% !important;
+                height:auto !important;
+                aspect-ratio:1 / 1 !important;
+                object-fit:cover !important;
+            }
+            body.zovix-desktop-mobile .zd-engine-photo-icon {
+                top:9px !important;
+                left:9px !important;
+                width:38px !important;
+                height:38px !important;
+                font-size:20px !important;
+            }
+            body.zovix-desktop-mobile .zd-engine-photo-copy {
+                position:relative !important;
+                min-height:72px !important;
+                padding:10px 30px 11px 11px !important;
+            }
+            body.zovix-desktop-mobile .zd-engine-photo-copy strong {
+                color:#1c3152 !important;
+                font:700 11px/1.25 'Inter',Arial,sans-serif !important;
+            }
+            body.zovix-desktop-mobile .zd-engine-photo-copy small {
+                color:#6b7b92 !important;
+                font:500 9px/1.35 'Inter',Arial,sans-serif !important;
+            }
+            body.zovix-desktop-mobile .zd-lower-section,
+            body.zovix-desktop-mobile .zd-community-section {
+                color:#172b4d !important;
+                border-color:#e4ebf5 !important;
+                background:#fff !important;
+                box-shadow:0 8px 24px rgba(37,65,105,.06) !important;
+            }
+            body.zovix-desktop-mobile .zd-future-grid {
+                display:grid !important;
+                grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+                gap:8px !important;
+            }
+            body.zovix-desktop-mobile .zd-future-card,
+            body.zovix-desktop-mobile .zd-community-creation {
+                color:#172b4d !important;
+                border-color:#e2eaf5 !important;
+                background:#fff !important;
+            }
+            body.zovix-desktop-mobile .zd-future-card img {
+                height:clamp(86px,calc(10vw / var(--zovix-mobile-desktop-scale,1)),144px) !important;
+            }
+            body.zovix-desktop-mobile .zd-future-copy {
+                padding:7px 2px 3px !important;
+            }
+            body.zovix-desktop-mobile .zd-future-copy small {
+                color:#3769d7 !important;
+                font:700 7px/1.2 'Inter',Arial,sans-serif !important;
+            }
+            body.zovix-desktop-mobile .zd-future-copy strong {
+                color:#203653 !important;
+                font:700 9px/1.35 'Inter',Arial,sans-serif !important;
+            }
+            body.zovix-desktop-mobile .zd-future-copy p {
+                color:#354345 !important;
+                font:600 14px/1.5 'Inter',Arial,sans-serif !important;
+            }
+            body.zovix-desktop-mobile .zd-lower-head h2,
+            body.zovix-desktop-mobile .zd-section-head h2,
+            body.zovix-desktop-mobile .zd-community-section h2 {
+                color:#172b4d !important;
+                font:750 17px/1.25 'Inter',Arial,sans-serif !important;
+            }
+            body.zovix-desktop-mobile .zd-lower-head p,
+            body.zovix-desktop-mobile .zd-section-head p,
+            body.zovix-desktop-mobile .zd-community-section p {
+                color:#354345 !important;
+                font:600 14px/1.5 'Inter',Arial,sans-serif !important;
+            }
+            body.zovix-desktop-mobile .zd-community-grid {
+                grid-auto-flow:row !important;
+                grid-auto-columns:auto !important;
+                grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+                grid-template-rows:none !important;
+                overflow:visible !important;
+                scroll-snap-type:none !important;
+            }
+            body.zovix-desktop-mobile .zd-community-creation img {
+                height:clamp(112px,calc(12vw / var(--zovix-mobile-desktop-scale,1)),180px) !important;
+            }
+            body.zovix-desktop-mobile .zd-community-creation {
+                min-width:0 !important;
+                scroll-snap-align:none !important;
+            }
+            body.zovix-desktop-mobile .zd-community-creation img {
+                height:clamp(112px,calc(12vw / var(--zovix-mobile-desktop-scale,1)),180px) !important;
+            }
+            body.zovix-desktop-mobile .zd-community-creation-copy > strong {
+                color:#203653 !important;
+                font:700 9px/1.3 'Inter',Arial,sans-serif !important;
+            }
+            body.zovix-desktop-mobile .zd-community-creator {
+                color:#526680 !important;
+                font:600 8px/1.2 'Inter',Arial,sans-serif !important;
+            }
+            body.zovix-desktop-mobile .zd-community-engagement {
+                color:#c45c78 !important;
+                font:650 7px/1.2 'Inter',Arial,sans-serif !important;
+            }
+            body.zovix-desktop-mobile .zd-community-tag {
+                color:#3769d7 !important;
+                background:#f0f5ff !important;
+                font:650 7px/1 'Inter',Arial,sans-serif !important;
+            }
+            body.zovix-desktop-mobile .zd-community-age {
+                color:#78869a !important;
+                font:500 7px/1.2 'Inter',Arial,sans-serif !important;
+            }
+            body.zovix-desktop-mobile .zd-community-note {
+                color:#354345 !important;
+                font:600 14px/1.5 'Inter',Arial,sans-serif !important;
+            }
+        `.replace(/body\.zovix-desktop-mobile/g, "html body.zovix-desktop-mobile.zovix-mobile-dashboard-canvas");
+
+        const setStudioDesktopMedia = (active) => {
+            for (const style of host.document.querySelectorAll("style")) {
+                const cssText = style.textContent || "";
+                if (cssText.length < 10000
+                    || !cssText.includes(".zd-mobile-header")
+                    || !cssText.includes(".zd-engine-photo-card")
+                    || !style.sheet) {
+                    continue;
+                }
+                const rules = Array.from(style.sheet.cssRules);
+                let mediaState = style.__zovixDesktopMediaState;
+                if (!mediaState
+                    || mediaState.cssText !== cssText
+                    || mediaState.ruleCount !== rules.length) {
+                    mediaState = {
+                        cssText,
+                        ruleCount: rules.length,
+                        mediaTexts: rules.map(rule =>
+                            rule.type === host.CSSRule.MEDIA_RULE
+                                ? rule.media.mediaText
+                                : null
+                        )
+                    };
+                    style.__zovixDesktopMediaState = mediaState;
+                }
+                rules.forEach((rule, index) => {
+                    const originalMediaText = mediaState.mediaTexts[index];
+                    if (originalMediaText === null
+                        || !originalMediaText.includes("max-width")) {
+                        return;
+                    }
+                    rule.media.mediaText = active ? "not all" : originalMediaText;
+                });
+                if (!active) {
+                    delete style.__zovixDesktopMediaState;
+                }
+            }
+        };
 
         const updateViewport = () => {
             const page = getPage();
@@ -615,11 +1037,13 @@ components.html(
             if (!isMobile && !forceDesktopStudio) {
                 if (page === "studio") {
                     host.document.body.classList.remove("zovix-desktop-mobile");
+                    host.document.body.classList.remove("zovix-mobile-dashboard-canvas");
+                    host.document.documentElement.style.removeProperty("--zovix-mobile-desktop-scale");
+                    setStudioDesktopMedia(false);
                     const currentViewportContent = currentViewport.getAttribute("content") || "";
                     if (currentViewportContent.startsWith("width=1440")) {
                         currentViewport.setAttribute("content", defaultViewportContent);
                     }
-                    host.document.documentElement.style.setProperty("--zovix-mobile-spinner-scale", "1");
                     host.__zovixMobileLayoutMode = "responsive";
                 }
                 return;
@@ -643,7 +1067,9 @@ components.html(
             host.document.body.style.transform = "";
             if (page === "landing") {
                 host.document.body.classList.remove("zovix-desktop-mobile");
-                host.document.documentElement.style.setProperty("--zovix-mobile-spinner-scale", "1");
+                host.document.body.classList.remove("zovix-mobile-dashboard-canvas");
+                host.document.documentElement.style.removeProperty("--zovix-mobile-desktop-scale");
+                setStudioDesktopMedia(false);
                 const mobileViewportContent =
                     "width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=5, user-scalable=yes";
                 if (currentViewport.getAttribute("content") !== mobileViewportContent) {
@@ -658,11 +1084,22 @@ components.html(
             if (currentViewport.getAttribute("content") !== desktopViewportContent) {
                 currentViewport.setAttribute("content", desktopViewportContent);
             }
-            host.document.documentElement.style.setProperty(
-                "--zovix-mobile-spinner-scale",
-                desktopScale.toFixed(3)
-            );
             host.document.body.classList.add("zovix-desktop-mobile");
+            if (page === "studio" && forceDesktopStudio) {
+                const canvasScale = host.innerWidth <= 900
+                    ? Math.min(1, host.innerWidth / 1440)
+                    : 1;
+                host.document.documentElement.style.setProperty(
+                    "--zovix-mobile-desktop-scale",
+                    canvasScale.toFixed(4)
+                );
+                host.document.body.classList.add("zovix-mobile-dashboard-canvas");
+                setStudioDesktopMedia(true);
+            } else {
+                host.document.body.classList.remove("zovix-mobile-dashboard-canvas");
+                host.document.documentElement.style.removeProperty("--zovix-mobile-desktop-scale");
+                setStudioDesktopMedia(false);
+            }
             host.__zovixMobileLayoutMode = "desktop";
         };
 
@@ -2584,11 +3021,9 @@ def _page_loading_spinner_markup(label):
     return (
         "<style>"
         ".zovix-page-loading-overlay{position:fixed;z-index:999999;inset:0;display:grid;"
-        "place-items:center;background:rgba(247,249,252,.68);backdrop-filter:blur(2px);"
+        "place-items:center;background:#fff;backdrop-filter:none;"
         "pointer-events:all}"
-        ".zovix-page-loading-wheel{width:clamp(42px,calc(42px / var(--zovix-mobile-spinner-scale,1)),160px);"
-        "height:clamp(42px,calc(42px / var(--zovix-mobile-spinner-scale,1)),160px);"
-        "border:clamp(4px,calc(4px / var(--zovix-mobile-spinner-scale,1)),16px) solid #dbe6f2;"
+        ".zovix-page-loading-wheel{width:42px;height:42px;border:4px solid #dbe6f2;"
         "border-top-color:#3979e8;border-right-color:#7654e8;border-radius:50%;"
         "animation:zovix-page-loading-spin .75s linear infinite}"
         "@keyframes zovix-page-loading-spin{to{transform:rotate(360deg)}}"
@@ -9969,7 +10404,7 @@ def render_ai_sales_ui():
             st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">📊 Quality</p>', unsafe_allow_html=True)
             sales_quality = st.selectbox(
                 "Quality",
-                ["Standard", "HD", "4K"],
+                ["Standard", "HD"],
                 key="sales_quality",
                 label_visibility="collapsed"
             )
@@ -13251,7 +13686,7 @@ def run_upscaler_mode():
                         margin-bottom: 10px;
                     ">
                         <p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 2px 0;">
-                            📐 Resolution: <span style="color: #45f3ff;">{width} x {height}</span>
+                            {width} x {height} | {engine_used}
                         </p>
                         <p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 2px 0;">
                             📊 Quality: <span style="color: #45f3ff;">{st.session_state.get('us_quality', 'Standard')}</span>
@@ -13407,9 +13842,37 @@ def run_draw_mode():
         [data-testid="stMain"]:has(.st-key-dr_style) [data-testid="stSelectbox"] [data-baseweb="select"] svg {
             color:#52677d !important;
         }
+        [data-testid="stMain"]:has(.st-key-dr_style) [data-testid="stNumberInput"] input {
+            box-sizing:border-box !important;
+            height:44px !important;
+            color:#203246 !important;
+            background:#fff !important;
+            border:1px solid #cbd8e5 !important;
+            border-radius:10px !important;
+            font:500 14px/1.45 'Inter',Arial,sans-serif !important;
+            box-shadow:0 1px 2px rgba(25,45,70,.04) !important;
+        }
+        [data-testid="stMain"]:has(.st-key-dr_style) [data-testid="stWidgetLabel"] label {
+            color:#52677d !important;
+            font:600 11px/1.35 'Inter',Arial,sans-serif !important;
+        }
         body:has([data-testid="stMain"] .st-key-dr_style) [data-baseweb="popover"] [role="option"] {
             color:#203246 !important;
             font:500 14px/1.45 'Inter',Arial,sans-serif !important;
+        }
+        [data-testid="stMain"]:has(.st-key-dr_style) .draw-field-label {
+            margin:16px 0 8px !important;
+            color:#334b62 !important;
+            font:650 12px/1.35 'Inter',Arial,sans-serif !important;
+            letter-spacing:.01em;
+        }
+        [data-testid="stMain"]:has(.st-key-dr_style) .draw-field-label--canvas {
+            margin-top:20px !important;
+            margin-bottom:14px !important;
+        }
+        [data-testid="stMain"]:has(.st-key-dr_style) .draw-field-label--quality {
+            margin-top:18px !important;
+            margin-bottom:8px !important;
         }
         </style>
         """,
@@ -13445,39 +13908,44 @@ def run_draw_mode():
             engine_choice = "Auto (Pollinations → Gemini → Fallback)"
             
             # Artistic Style
-            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">🎭 Artistic Style</p>', unsafe_allow_html=True)
+            st.markdown('<div class="draw-field-label">Artistic Style</div>', unsafe_allow_html=True)
             draw_style = st.selectbox(
                 "Style",
                 ["realistic", "digital", "sketch", "watercolor", "anime", "cinematic", "neon"],
                 key="dr_style",
+                format_func=lambda option: option.title(),
                 label_visibility="collapsed"
             )
             
             # Canvas Size
-            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">📐 Canvas Size</p>', unsafe_allow_html=True)
-            col_w, col_h = st.columns(2)
+            st.markdown('<div class="draw-field-label draw-field-label--canvas">Canvas Size</div>', unsafe_allow_html=True)
+            col_w, col_h = st.columns(2, gap="medium")
             with col_w:
-                canvas_width = st.select_slider(
-                    "Width",
-                    options=[512, 768, 1024, 1280, 1920],
+                canvas_width = st.number_input(
+                    "Width (px)",
+                    min_value=256,
+                    max_value=1920,
                     value=1024,
+                    step=64,
                     key="dr_width",
-                    label_visibility="collapsed"
                 )
             with col_h:
-                canvas_height = st.select_slider(
-                    "Height",
-                    options=[512, 768, 1024, 1280, 1920],
+                canvas_height = st.number_input(
+                    "Height (px)",
+                    min_value=256,
+                    max_value=1920,
                     value=768,
+                    step=64,
                     key="dr_height",
-                    label_visibility="collapsed"
                 )
             
             # Quality
-            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">📊 Drawing Quality</p>', unsafe_allow_html=True)
+            st.markdown('<div class="draw-field-label draw-field-label--quality">Drawing Quality</div>', unsafe_allow_html=True)
+            if st.session_state.get("dr_quality") not in {None, "Standard", "HD"}:
+                st.session_state["dr_quality"] = "Standard"
             dr_quality = st.selectbox(
                 "Quality",
-                ["Standard", "HD", "4K"],
+                ["Standard", "HD"],
                 key="dr_quality",
                 label_visibility="collapsed"
             )
@@ -13491,7 +13959,7 @@ def run_draw_mode():
                 if not draw_prompt.strip():
                     st.error("❌ Please enter a drawing description.")
                 else:
-                    quality_map = {"Standard": 2, "HD": 3, "4K": 4}
+                    quality_map = {"Standard": 2, "HD": 3}
                     required_tokens = quality_map.get(dr_quality, 2)
                     
                     if st.session_state.get('user_credits', 0) < required_tokens:
@@ -13512,6 +13980,9 @@ def run_draw_mode():
                                 
                                 if drawing_path and os.path.exists(drawing_path):
                                     st.session_state["active_drawing"] = drawing_path
+                                    from engine import DrawEngine
+                                    st.session_state["draw_engine_used"] = DrawEngine.get_last_engine_used()
+                                    st.session_state["draw_quality_used"] = dr_quality
                                     
                                     timestamp = time.strftime("%Y%m%d_%H%M%S")
                                     file_name = f"drawing_{timestamp}.png"
@@ -13566,7 +14037,7 @@ def run_draw_mode():
                         margin-bottom: 10px;
                     ">
                         <p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 0;">
-                            📐 {width} x {height} • 🎨 {st.session_state.get('dr_style', 'Unknown')} • ⚡ {engine_used}
+                            📐 {width} x {height} | {st.session_state.get('draw_quality_used', 'Standard')} • 🎨 {st.session_state.get('dr_style', 'Unknown')} • ⚡ {engine_used}
                         </p>
                     </div>
                     """, unsafe_allow_html=True)
@@ -13593,6 +14064,7 @@ def run_draw_mode():
                         safe_remove_file(active_drawing)
                         st.session_state["active_drawing"] = None
                         st.session_state["draw_engine_used"] = None
+                        st.session_state["draw_quality_used"] = None
                         st.rerun()
             else:
                 st.markdown("""
@@ -13655,7 +14127,7 @@ def generate_drawing_hybrid(prompt, style="realistic", canvas_size=(1024, 768), 
     engine_filter = engine_map.get(engine, "Auto")
     
     if engine_filter == "Fallback":
-        return DrawEngine.generate_fallback_only(prompt, style, canvas_size)
+        return DrawEngine.generate_fallback_only(prompt, style, canvas_size, quality)
     else:
         return DrawEngine.generate(prompt, style, canvas_size, engine_filter, quality)# ========================================================
 # ENHANCED FALLBACK - PROMPT AWARE (FIXED FOR TRANSPARENCY & PATH)
@@ -18071,6 +18543,22 @@ def render_user_portfolio_section():
 # 44. MAIN APPLICATION FLOW
 # ========================================================
 
+def render_zovix_site_footer():
+    """Render the shared ZOVIX legal/support footer at the end of a page."""
+    st.markdown(
+        """
+        <footer role="contentinfo" style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 18px;width:100%;max-width:1480px;margin:24px auto 0;padding:14px 4px 18px;border-top:1px solid rgba(120,140,160,.24);color:#718096;font:500 12px/1.5 Inter,Arial,sans-serif">
+          <span>&copy; 2026 ZOVIX. All rights reserved.</span>
+          <nav aria-label="Legal and support links" style="display:flex;flex-wrap:wrap;gap:16px">
+            <a href="?page=face_generation_policy" style="color:#52647d;text-decoration:none">Privacy Policy</a>
+            <a href="#terms" style="color:#52647d;text-decoration:none">Terms</a>
+            <a href="?page=support" style="color:#52647d;text-decoration:none">Support</a>
+          </nav>
+        </footer>
+        """,
+        unsafe_allow_html=True,
+    )
+
 # Handle payment response FIRST
 handle_payment_response()
 
@@ -18102,6 +18590,7 @@ if st.session_state["current_page"] == "landing":
     landing.render()
     if st.session_state.get("auth_redirect_mode") and not st.session_state.get("is_logged_in", False):
         show_auth_modal("login")
+    # Landing has its own full brand footer with the same legal/support links.
     st.stop()  
 
 elif st.session_state["current_page"] == "studio_mode":
@@ -18626,6 +19115,7 @@ elif st.session_state["current_page"] == "payments":
         unsafe_allow_html=True,
     )
     render_enhanced_payment_ui(show_title=False)
+    render_zovix_site_footer()
     st.stop()
 
 elif st.session_state["current_page"] == "profile":
@@ -19111,6 +19601,7 @@ elif st.session_state["current_page"] == "profile":
 
     if st.session_state.get("2fa_setup_mode", False):
         show_2fa_modal()
+    render_zovix_site_footer()
     st.stop()
 
 elif st.session_state["current_page"] == "ghost_engine":
@@ -19132,6 +19623,7 @@ elif st.session_state["current_page"] == "ghost_engine":
         deduct_tokens_callback=validate_and_deduct_tokens,
         refund_tokens_callback=refund_face_video_credits,
     )
+    render_zovix_site_footer()
     st.stop()
 
 elif st.session_state["current_page"] in {"scheduler", "subusers", "factory", "portfolio", "tutorials", "documentation", "community", "support"}:
@@ -19959,6 +20451,7 @@ elif st.session_state["current_page"] in {"scheduler", "subusers", "factory", "p
                     if st.button(f"Open {title}", key=f"factory_open_{mode_name}", width="stretch"):
                         handle_engine_access_request(mode_name)
         st.caption("Your generated outputs are retained in your account and remain available in the relevant engine gallery.")
+    render_zovix_site_footer()
     st.stop()
 
 elif st.session_state["current_page"] == "studio":
@@ -22412,6 +22905,42 @@ elif st.session_state["current_page"] == "studio":
             border-color:transparent !important;
             background:linear-gradient(110deg,#2584f4,#7150ed) !important;
             box-shadow:0 4px 11px rgba(76,91,210,.24) !important;
+        }
+        .st-key-studio_prompt_quick_actions [data-testid="stPopover"] > button {
+            box-sizing:border-box !important;
+            height:35px !important;
+            min-height:35px !important;
+            max-height:35px !important;
+            padding:0 10px !important;
+            color:#34445d !important;
+            border:1px solid #d5dfed !important;
+            border-radius:999px !important;
+            background:rgba(255,255,255,.96) !important;
+            box-shadow:0 1px 0 rgba(255,255,255,.95) inset, 0 2px 0 rgba(42,66,105,.08), 0 4px 9px rgba(32,53,84,.1) !important;
+            font:600 10px/1.25 'Inter',Arial,sans-serif !important;
+            white-space:nowrap !important;
+        }
+        .st-key-studio_prompt_quick_actions [data-testid="stPopover"] > div > button,
+        .st-key-studio_prompt_quick_actions [data-testid="stPopoverButton"] {
+            box-sizing:border-box !important;
+            width:auto !important;
+            min-width:0 !important;
+            height:35px !important;
+            min-height:35px !important;
+            max-height:35px !important;
+            padding:0 10px !important;
+            border-radius:999px !important;
+            font:600 10px/1.25 'Inter',Arial,sans-serif !important;
+            white-space:nowrap !important;
+        }
+        .st-key-studio_prompt_quick_actions [data-testid="stPopover"] > button p {
+            margin:0 !important;
+            font:inherit !important;
+        }
+        .st-key-studio_prompt_quick_actions [data-testid="stPopover"] > button:hover {
+            color:#3156bd !important;
+            border-color:#aebfff !important;
+            background:#f0f3ff !important;
         }
         .zd-recent-placeholder {
             min-height:72px;
@@ -25055,6 +25584,188 @@ elif st.session_state["current_page"] == "studio":
                         font-size:11px !important;
                     }
                 }
+                @media (max-width:760px) {
+                    html body.zovix-desktop-mobile,
+                    html body.zovix-desktop-mobile .stApp,
+                    html body.zovix-desktop-mobile [data-testid="stAppViewContainer"],
+                    html body.zovix-desktop-mobile [data-testid="stMain"],
+                    html body.zovix-desktop-mobile [data-testid="stMain"] .block-container {
+                        color:#273b58 !important;
+                        background:#f3f6fb !important;
+                    }
+                    html body.zovix-desktop-mobile .zd-mobile-header {
+                        display:none !important;
+                    }
+                    html body.zovix-desktop-mobile [data-testid="stMain"]
+                    [data-testid="stHorizontalBlock"]:has(.st-key-studio_hero_container) {
+                        display:flex !important;
+                        flex-direction:row !important;
+                        flex-wrap:nowrap !important;
+                        align-items:flex-start !important;
+                    }
+                    html body.zovix-desktop-mobile [data-testid="stMain"]
+                    [data-testid="stHorizontalBlock"]:has(.st-key-studio_hero_container)
+                    > [data-testid="stColumn"]:has(.st-key-studio_sidebar_action_0) {
+                        display:block !important;
+                        visibility:visible !important;
+                        order:0 !important;
+                        flex:0 0 20% !important;
+                        width:20% !important;
+                        max-width:20% !important;
+                    }
+                    html body.zovix-desktop-mobile [data-testid="stMain"]
+                    [data-testid="stHorizontalBlock"]:has(.st-key-studio_hero_container)
+                    > [data-testid="stColumn"]:has(.st-key-studio_hero_container) {
+                        order:1 !important;
+                        flex:0 0 80% !important;
+                        width:80% !important;
+                        max-width:80% !important;
+                    }
+                    html body.zovix-desktop-mobile [data-testid="stMain"]
+                    [data-testid="stHorizontalBlock"]:has(.zd-upcoming-section),
+                    html body.zovix-desktop-mobile [data-testid="stMain"]
+                    [data-testid="stHorizontalBlock"]:has(.zd-community-section) {
+                        display:flex !important;
+                        flex-direction:row !important;
+                        flex-wrap:nowrap !important;
+                    }
+                    html body.zovix-desktop-mobile [data-testid="stMain"]
+                    [data-testid="stHorizontalBlock"]:has(.zd-upcoming-section)
+                    > [data-testid="stColumn"]:not(:has(.zd-upcoming-section)),
+                    html body.zovix-desktop-mobile [data-testid="stMain"]
+                    [data-testid="stHorizontalBlock"]:has(.zd-community-section)
+                    > [data-testid="stColumn"]:not(:has(.zd-community-section)) {
+                        display:block !important;
+                        visibility:visible !important;
+                        order:0 !important;
+                        flex:0 0 20% !important;
+                        width:20% !important;
+                        max-width:20% !important;
+                    }
+                    html body.zovix-desktop-mobile [data-testid="stMain"]
+                    [data-testid="stHorizontalBlock"]:has(.zd-upcoming-section)
+                    > [data-testid="stColumn"]:has(.zd-upcoming-section),
+                    html body.zovix-desktop-mobile [data-testid="stMain"]
+                    [data-testid="stHorizontalBlock"]:has(.zd-community-section)
+                    > [data-testid="stColumn"]:has(.zd-community-section) {
+                        order:1 !important;
+                    }
+                    html body.zovix-desktop-mobile [data-testid="stMain"]
+                    [data-testid="stHorizontalBlock"]:has(.zd-upcoming-section)
+                    > [data-testid="stColumn"]:has(.zd-upcoming-section),
+                    html body.zovix-desktop-mobile [data-testid="stMain"]
+                    [data-testid="stHorizontalBlock"]:has(.zd-community-section)
+                    > [data-testid="stColumn"]:has(.zd-community-section) {
+                        order:1 !important;
+                        flex:0 0 80% !important;
+                        width:80% !important;
+                        max-width:80% !important;
+                    }
+                    html body.zovix-desktop-mobile [data-testid="stMain"]
+                    [data-testid="stHorizontalBlock"]:has(.st-key-studio_sidebar_action_0)
+                    > [data-testid="stColumn"]:has(.st-key-studio_sidebar_action_0)
+                    > [data-testid="stVerticalBlock"] {
+                        display:flex !important;
+                        flex-direction:column !important;
+                        flex-wrap:nowrap !important;
+                        overflow:visible !important;
+                        padding:12px 10px !important;
+                        border:1px solid #e2e8f0 !important;
+                        border-radius:16px !important;
+                        background:#f8fafc !important;
+                        box-shadow:0 8px 22px rgba(15,23,42,.05) !important;
+                    }
+                    html body.zovix-desktop-mobile .st-key-studio_hero_container {
+                        margin:0 !important;
+                        padding:16px 18px 14px !important;
+                        border:1px solid #e3eaf4 !important;
+                        border-radius:16px !important;
+                        background-color:#fff !important;
+                        box-shadow:0 8px 22px rgba(45,75,135,.12) !important;
+                    }
+                    html body.zovix-desktop-mobile .st-key-studio_hero_container .zd-hero {
+                        min-height:180px !important;
+                        align-items:flex-start !important;
+                        justify-content:center !important;
+                        padding:12px !important;
+                        background:transparent !important;
+                        text-align:left !important;
+                    }
+                    html body.zovix-desktop-mobile .st-key-studio_hero_container .zd-hero-copy {
+                        text-align:left !important;
+                    }
+                    html body.zovix-desktop-mobile .st-key-studio_hero_container .zd-hero-kicker,
+                    html body.zovix-desktop-mobile .st-key-studio_hero_container .zd-hero p {
+                        display:block !important;
+                        color:#344b6d !important;
+                    }
+                    html body.zovix-desktop-mobile .st-key-studio_hero_container .zd-hero h1 {
+                        color:#122543 !important;
+                        font-size:clamp(32px,3vw,44px) !important;
+                        text-transform:none !important;
+                        text-shadow:none !important;
+                    }
+                    html body.zovix-desktop-mobile .st-key-studio_hero_container .zd-hero h1 span {
+                        color:#3979e8 !important;
+                        -webkit-text-fill-color:#3979e8 !important;
+                    }
+                    html body.zovix-desktop-mobile .st-key-studio_hero_controls {
+                        margin:0 !important;
+                        border-color:rgba(255,255,255,.95) !important;
+                        border-radius:16px !important;
+                        background:rgba(255,255,255,.9) !important;
+                        box-shadow:0 0 0 1px rgba(90,133,232,.18),0 0 24px rgba(74,117,237,.2),0 10px 26px rgba(35,62,115,.12) !important;
+                    }
+                    html body.zovix-desktop-mobile .st-key-studio_hero_prompt_form [data-testid="stTextInput"] input {
+                        color:#273b58 !important;
+                        border-color:#cbd9f4 !important;
+                        background:#fff !important;
+                    }
+                    html body.zovix-desktop-mobile .zd-engine-grid {
+                        grid-auto-flow:row !important;
+                        grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+                        grid-template-rows:none !important;
+                        grid-auto-columns:auto !important;
+                        overflow:visible !important;
+                        scroll-snap-type:none !important;
+                    }
+                    html body.zovix-desktop-mobile .zd-engine-photo-card {
+                        height:auto !important;
+                        grid-template-rows:minmax(0,1fr) 70px !important;
+                    }
+                    html body.zovix-desktop-mobile .zd-engine-photo-card img {
+                        position:static !important;
+                        width:100% !important;
+                        height:auto !important;
+                        aspect-ratio:1 / 1 !important;
+                        object-fit:cover !important;
+                    }
+                    html body.zovix-desktop-mobile .zd-engine-photo-copy {
+                        position:static !important;
+                        min-height:70px !important;
+                    }
+                    html body.zovix-desktop-mobile .zd-engine-photo-copy strong {
+                        color:#243652 !important;
+                    }
+                    html body.zovix-desktop-mobile .zd-engine-photo-copy small {
+                        color:#6b7b91 !important;
+                    }
+                    html body.zovix-desktop-mobile .zd-lower-section,
+                    html body.zovix-desktop-mobile .zd-community-section {
+                        color:#273b58 !important;
+                        border-color:#e0e8f4 !important;
+                        background:#fff !important;
+                        box-shadow:0 6px 16px rgba(37,65,105,.07) !important;
+                    }
+                    html body.zovix-desktop-mobile .zd-lower-head h2,
+                    html body.zovix-desktop-mobile .zd-section-head h2 {
+                        color:#243652 !important;
+                    }
+                    html body.zovix-desktop-mobile .zd-lower-head p,
+                    html body.zovix-desktop-mobile .zd-section-head p {
+                        color:#6b7b91 !important;
+                    }
+                }
         </style>
         """),
         unsafe_allow_html=True,
@@ -25353,7 +26064,7 @@ elif st.session_state["current_page"] == "studio":
         unsafe_allow_html=True,
     )
 
-    dashboard_columns = st.columns([0.20, 0.56, 0.24], gap="small")
+    dashboard_columns = st.columns([0.20, 0.80], gap="small")
     with dashboard_columns[0]:
         st.markdown(
             "<div class='zd-studio-brand'><div class='zd-brand'><span class='zd-brand-mark'>Z</span><span>"
@@ -25439,41 +26150,6 @@ elif st.session_state["current_page"] == "studio":
             unsafe_allow_html=True,
         )
 
-        topbar_columns = st.columns([0.58, 0.14, 0.14, 0.14], gap="small", vertical_alignment="center")
-        with topbar_columns[1]:
-            if st.button(
-                "🔔",
-                key="studio_dashboard_notifications",
-                width="stretch",
-                help="Notifications",
-            ):
-                st.toast("You're all caught up.")
-        with topbar_columns[2]:
-            if st.button(
-                avatar_initial or "Z",
-                key="studio_account_profile",
-                width="stretch",
-                help=f"Open {display_name}'s profile",
-            ):
-                _dashboard_go("profile")
-        with topbar_columns[3]:
-            if st.button(
-                "Log out",
-                key="studio_topbar_logout",
-                icon=":material/logout:",
-            ):
-                _dashboard_go("logout")
-        if safe_profile_avatar:
-            st.markdown(
-                f"<style>.st-key-studio_account_profile [data-testid='stButton'] > button "
-                f"{{background-image:url('data:image/jpeg;base64,{safe_profile_avatar}') !important;"
-                "background-size:cover !important;background-position:center !important;"
-                "color:transparent !important;font-size:0 !important;}"
-                ".st-key-studio_account_profile [data-testid='stButton'] > button p "
-                "{color:transparent !important;font-size:0 !important;}</style>",
-                unsafe_allow_html=True,
-            )
-
         with st.container(key="studio_hero_container"):
             st.markdown(
                 f"""
@@ -25503,11 +26179,12 @@ elif st.session_state["current_page"] == "studio":
                             width="stretch",
                         )
                 creation_options = [
-                    ("Cinematic", "🎬  Story Engine"),
-                    ("Face Studio", "👤  Face Studio"),
-                    ("Creative Workshop", "🎨  Creative"),
-                    ("Blueprint", "⬡  Blueprint"),
-                    ("Draw", "✏️  Draw"),
+                    ("Sales Video", "\U0001f4e3  Sales Video"),
+                    ("Face Studio", "\U0001f464  Face Studio"),
+                    ("Image", "\U0001f3a8  Image"),
+                    ("Blueprint", "\u2b21  Blueprint"),
+                    ("Draw", "\u270f\ufe0f  Draw"),
+                    ("Cinematic", "\U0001f3ac  Cinematic"),
                 ]
                 if st.session_state.get("studio_quick_creation_type") not in {
                     option for option, _ in creation_options
@@ -25515,7 +26192,7 @@ elif st.session_state["current_page"] == "studio":
                     st.session_state["studio_quick_creation_type"] = "Cinematic"
                 creation_type = st.session_state["studio_quick_creation_type"]
                 with st.container(key="studio_creation_type_choices"):
-                    creation_columns = st.columns(5, gap="small")
+                    creation_columns = st.columns(7, gap="small")
                     for index, (column, (option, label)) in enumerate(zip(creation_columns, creation_options)):
                         with column:
                             if st.button(
@@ -25526,6 +26203,28 @@ elif st.session_state["current_page"] == "studio":
                             ):
                                 st.session_state["studio_quick_creation_type"] = option
                                 st.rerun()
+                    with creation_columns[6]:
+                        with st.popover("\u26a1  Quick Actions", key="studio_prompt_quick_actions"):
+                            for quick_index, (quick_label, quick_action) in enumerate([
+                                ("Sub User", "subusers"),
+                                ("Scheduler", "scheduler"),
+                                ("My Creation", "portfolio"),
+                                ("Watch Tutorial", "tutorials"),
+                                ("Go to Library", "portfolio"),
+                                ("Notifications", "notifications"),
+                                ("Profile", "profile"),
+                                ("Log out", "logout"),
+                            ]):
+                                if st.button(
+                                    quick_label,
+                                    key=f"studio_quick_action_{quick_index}",
+                                    width="stretch",
+                                ):
+                                    if quick_action == "notifications":
+                                        st.toast("You're all caught up.")
+                                    else:
+                                        _dashboard_go(quick_action)
+
         if prompt_submitted:
             if not dashboard_prompt.strip():
                 st.error("Enter a prompt before starting a project.")
@@ -25533,22 +26232,15 @@ elif st.session_state["current_page"] == "studio":
                 selected_mode = {
                     "Cinematic": "Cinematic Engine",
                     "Face Studio": "Face Video Mode",
-                    "Creative Workshop": "Creative Workshop Mode",
+                    "Image": "Creative Workshop Mode",
                     "Blueprint": "Blueprints Mode",
                     "Draw": "Draw Mode",
+                    "Sales Video": "AI Sales Mode",
                 }[creation_type]
                 st.session_state["studio_prompt_value"] = dashboard_prompt.strip()
                 st.session_state["user_prompt"] = dashboard_prompt.strip()
                 st.session_state["studio_mode_radio"] = "💡 Autonomous AI Topic"
                 _dashboard_go(f"mode:{selected_mode}")
-
-        st.markdown(
-            f"<section class='zd-mobile-credits'><div><small>YOUR CREDITS</small>"
-            f"<strong>{credit_balance:,}</strong><span>Available credits</span></div>"
-            f"<a class='zd-mobile-credits-buy' href='?page=payments'>＋ Add credits</a>"
-            f"<a class='zd-mobile-credits-plan' href='?page=payments'>{plan_name} · {plan_action}</a></section>",
-            unsafe_allow_html=True,
-        )
 
         with st.container(key="studio_engine_header"):
             st.markdown(
@@ -25601,62 +26293,6 @@ elif st.session_state["current_page"] == "studio":
         if search_query and not visible_engines:
             st.info("No AI engines match your search.")
 
-    with dashboard_columns[2]:
-        with st.container(key="studio_credits_panel"):
-            st.markdown(
-                "<div class='zd-credit-heading'><span class='zd-credit-heading-icon' aria-hidden='true'>👑</span>"
-                "<strong>Your Credits Balance</strong></div>",
-                unsafe_allow_html=True,
-            )
-            st.markdown(
-                f"<div class='zd-balance'><span class='zd-balance-icon'>▶</span>"
-                f"<span><strong>{credit_balance:,}</strong><small>Available credits</small></span></div>",
-                unsafe_allow_html=True,
-            )
-            st.markdown(
-                "<a class='zd-credit-details' href='?page=payments'>View Details&nbsp; →</a>",
-                unsafe_allow_html=True,
-            )
-            if st.button(
-                "🎁 Buy Credits",
-                key="studio_add_credits_inline",
-                width="stretch",
-            ):
-                _dashboard_go("payments")
-
-            with st.container(key="studio_plan_row"):
-                plan_columns = st.columns([0.64, 0.36], gap="small")
-                with plan_columns[0]:
-                    st.markdown(
-                        f"<div class='zd-plan'><span class='zd-plan-copy'><strong>{plan_name}</strong>"
-                        f"<small>{'Active subscription' if subscription_active else 'Upgrade for more power'}</small>"
-                        f"</span></div>",
-                        unsafe_allow_html=True,
-                    )
-                with plan_columns[1]:
-                    if st.button(
-                        "Manage" if subscription_active else "Upgrade",
-                        key="studio_upgrade_inline",
-                        width="stretch",
-                    ):
-                        _dashboard_go("payments")
-            st.markdown(
-                f"<div class='zd-mini-stats'><div><strong>{len(engine_cards)}</strong><span>AI Engines</span></div>"
-                "<div><strong>HD</strong><span>Quality</span></div><div><strong>Fast</strong><span>Processing</span></div>",
-                unsafe_allow_html=True,
-            )
-        with st.container(key="studio_quick_actions_panel", border=True):
-            st.markdown("<div class='zd-panel-head'>Quick Actions</div>", unsafe_allow_html=True)
-            for index, (label, action) in enumerate([
-                ("Sub User", "subusers"),
-                ("Scheduler", "scheduler"),
-                ("My Creation", "portfolio"),
-                ("Watch Tutorial", "tutorials"),
-                ("Go to Library", "portfolio"),
-            ]):
-                if st.button(label, key=f"studio_quick_action_{index}", width="stretch"):
-                    _dashboard_go(action)
-        render_dashboard_creations()
 
     future_columns = st.columns([0.20, 0.80], gap="small")
     with future_columns[1]:
@@ -25734,9 +26370,13 @@ elif st.session_state["current_page"] == "studio":
                     f"<span class='zd-community-age'>{html_lib.escape(age)}</span></div></div></article>"
                     for title, creator, initials, likes, tag, image, age in [
                         ("Into the wild", "@ArtSoul", "A", "124", "Cinematic", "community_bottle_ocean.png", "2 days ago"),
-                        ("Portraits with a point of view", "@ZenCreator", "Z", "98", "Face Studio", "community_sunset_portrait.png", "3 days ago"),
+                        ("Portraits with a point of view", "@ZenCreator", "Z", "98", "Face Studio", "community_sunset_bridal.jpeg", "3 days ago"),
                         ("Colorful creative concepts", "@PixelDreams", "P", "156", "Creative", "community_floating_islands.jpg", "4 days ago"),
                         ("Stories made to stand out", "@VFXRider", "V", "67", "Cinematic", "community_floating_tree.png", "5 days ago"),
+                        ("The Tree of Light", "@Nikhil", "N", "203", "Fantasy", "community_floating_waterfall.webp", "1 day ago"),
+                        ("Amber Bloom", "@ZovixStudio", "Z", "176", "Product Art", "community_amber_perfume.jpeg", "1 day ago"),
+                        ("Skybound Citadel", "@ZovixStudio", "Z", "203", "Fantasy", "zovix_creative_ddd9d7e8.png", "1 day ago"),
+                        ("Sunset Portrait", "@RiyaCreates", "R", "176", "Portrait", "zovix_creative_ffef60d5.png", "1 day ago"),
                     ]
                 )}
               </div>
@@ -25751,25 +26391,30 @@ elif st.session_state["current_page"] == "studio":
         if footer_notice:
             st.info(footer_notice)
         if st.session_state.get("show_studio_privacy_policy", False):
-            show_privacy_policy()
+            with st.container(key="studio_footer_policy"):
+                policy_columns = st.columns([0.20, 0.80], gap="small")
+                with policy_columns[1]:
+                    show_privacy_policy()
 
         footer_columns = st.columns([0.20, 0.80], gap="small")
         with footer_columns[1]:
-            footer_actions = st.columns(4, gap="small")
-            with footer_actions[0]:
-                if st.button("AI Engines", key="studio_footer_engines", width="stretch"):
-                    st.rerun()
-            with footer_actions[1]:
-                if st.button("Community", key="studio_footer_community", width="stretch"):
-                    _dashboard_go("community")
-            with footer_actions[2]:
-                if st.button("What's Ahead", key="studio_footer_future", width="stretch"):
-                    st.session_state["studio_footer_notice"] = "What's Ahead highlights ways to explore engines, community and plans."
-                    st.rerun()
-            with footer_actions[3]:
-                if st.button("Privacy Policy", key="studio_footer_privacy", width="stretch"):
-                    st.session_state["show_studio_privacy_policy"] = not st.session_state.get("show_studio_privacy_policy", False)
-                    st.rerun()
+            with st.container(key="studio_footer_actions"):
+                footer_actions = st.columns(4, gap="small")
+                with footer_actions[0]:
+                    if st.button("AI Engines", key="studio_footer_engines", width="stretch"):
+                        st.rerun()
+                with footer_actions[1]:
+                    if st.button("Community", key="studio_footer_community", width="stretch"):
+                        _dashboard_go("community")
+                with footer_actions[2]:
+                    if st.button("What's Ahead", key="studio_footer_future", width="stretch"):
+                        st.session_state["studio_footer_notice"] = "What's Ahead highlights ways to explore engines, community and plans."
+                        st.rerun()
+                with footer_actions[3]:
+                    if st.button("Privacy Policy", key="studio_footer_privacy", width="stretch"):
+                        st.session_state["show_studio_privacy_policy"] = not st.session_state.get("show_studio_privacy_policy", False)
+                        st.rerun()
+    render_zovix_site_footer()
     st.stop()
 
     with st.sidebar.expander("🟢 System Health", expanded=False):
@@ -26663,6 +27308,7 @@ def render_engine_portfolio_section(include_discovery=True):
 
 if st.session_state.get("current_page") == "face_generation_policy":
     st.html((Path(__file__).resolve().parent / "static" / "face-generation-policy.html").read_text(encoding="utf-8"))
+    render_zovix_site_footer()
     st.stop()
 elif st.session_state.get("current_page") == "studio_mode":
     active_studio_mode = st.session_state.get("studio_active_mode", "Cinematic Engine")
@@ -26674,28 +27320,12 @@ elif st.session_state.get("current_page") == "studio_mode":
     if render_workspace_header(
         "studio_change_mode_btn",
         "AI CREATIVE STUDIO",
-        pin_back_button=True,
     ):
         st.session_state["current_page"] = "studio"
         st.query_params["page"] = "studio"
         st.rerun()
     render_active_studio_mode()
     render_engine_portfolio_section(include_discovery=active_studio_mode == "Cinematic Engine")
-    if active_studio_mode == "Cinematic Engine":
-        st.markdown(
-            """
-            <div role="contentinfo" style="text-align:center;padding:18px 12px 24px;color:#64748b;font-family:Inter,Arial,sans-serif;font-size:12px">
-              <p style="margin:0 0 8px">© 2026 ZOVIX. All rights reserved.</p>
-              <nav style="display:flex;justify-content:center;flex-wrap:wrap;gap:16px">
-                <a href="#" style="color:#64748b;text-decoration:none">Privacy Policy</a>
-                <a href="?page=face_generation_policy" style="color:#64748b;text-decoration:none">Face Generation Policy</a>
-                <a href="#" style="color:#64748b;text-decoration:none">Terms</a>
-                <a href="#" style="color:#64748b;text-decoration:none">Support</a>
-              </nav>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
     st.markdown("""
     <style>
         [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) > div[data-testid="stMainBlockContainer"] {
@@ -27328,6 +27958,7 @@ elif st.session_state.get("current_page") == "studio_mode":
         }
     </style>
     """, unsafe_allow_html=True)
+    render_zovix_site_footer()
     st.stop()
 elif st.session_state.get("current_page") != "studio":
     render_engine_portfolio_section()
@@ -27632,7 +28263,7 @@ def run_production_engine_mode():
             for item in portfolio_renders_list:
                 file_path = item.get("path", "")
                 gen_type = item.get("generation_type", "")
-                if gen_type and gen_type != "General":
+                if gen_type and gen_type not in {"General", "Draw"}:
                     continue
                 if os.path.exists(file_path):
                     valid_items.append(item)

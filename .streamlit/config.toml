@@ -11,3 +11,5 @@ font = "sans serif"
 enableStaticServing = true
 headless = true
 disconnectedSessionTTL = 600
+[client]
+toolbarMode = 'minimal'

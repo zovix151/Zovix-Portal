@@ -10,8 +10,11 @@ def render_workspace_header(
     pinned_button_styles = ""
     if pin_back_button:
         pinned_button_styles = f"""
+        [data-testid="stMain"] > div[data-testid="stMainBlockContainer"] {{
+            position: relative !important;
+        }}
         [data-testid="stMain"] .st-key-{button_key} {{
-            position: fixed !important;
+            position: absolute !important;
             top: 12px !important;
             right: 24px !important;
             z-index: 1000 !important;
