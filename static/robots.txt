@@ -1,3 +1,10 @@
 User-agent: *
 Allow: /
+
+User-agent: Googlebot
+Allow: /
+
+User-agent: Google-InspectionTool
+Allow: /
+
 Sitemap: https://zovix.pro/sitemap.xml

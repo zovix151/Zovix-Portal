@@ -1,4 +1,4 @@
-from pathlib import Path
+﻿from pathlib import Path
 
 from dotenv import load_dotenv
 
@@ -14938,11 +14938,11 @@ def get_gender_based_voice_recommendation(detected_gender, language='English'):
     return []
 
 
+
 def render_face_generation_policy_notice():
     st.markdown(
         "Only use faces, voices, and other identifying media when you have the rights and permissions required. "
-        "You are responsible for your use of uploaded media and generated outputs. "
-        "[Read the Face Generation & Likeness Policy](?page=face_generation_policy)."
+        "You are responsible for your use of uploaded media and generated outputs."
     )
 
 
@@ -15236,7 +15236,6 @@ pip install gfpgan realesrgan""",
                 height=100,
                 key="efv_prompt",
             )
-
             render_face_generation_policy_notice()
             if st.button("🧬 Generate Expressive Face Video", key="efv_generate_btn", width="stretch"):
                 if not require_login_for_generation("Expressive Face Video Mode"):
@@ -18550,7 +18549,7 @@ def render_zovix_site_footer():
         <footer role="contentinfo" style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 18px;width:100%;max-width:1480px;margin:24px auto 0;padding:14px 4px 18px;border-top:1px solid rgba(120,140,160,.24);color:#718096;font:500 12px/1.5 Inter,Arial,sans-serif">
           <span>&copy; 2026 ZOVIX. All rights reserved.</span>
           <nav aria-label="Legal and support links" style="display:flex;flex-wrap:wrap;gap:16px">
-            <a href="?page=face_generation_policy" style="color:#52647d;text-decoration:none">Privacy Policy</a>
+            <a href="?page=face_generation_policy" style="color:#52647d;text-decoration:none">Face Generation Policy</a>
             <a href="#terms" style="color:#52647d;text-decoration:none">Terms</a>
             <a href="?page=support" style="color:#52647d;text-decoration:none">Support</a>
           </nav>
@@ -23428,6 +23427,7 @@ elif st.session_state["current_page"] == "studio":
             justify-content:center;
             text-align:center;
         }
+        .zd-studio-brand { transform:translateX(-10px); }
         .zd-studio-brand .zd-brand { gap:9px; }
         .zd-brand-name {
             color:#4259c9;
@@ -28035,7 +28035,6 @@ def run_production_engine_mode():
         
         cloud_img_url = st.text_input("Or use Image URL", placeholder="https://...")
         cloud_aud_url = st.text_input("Or use Audio URL", placeholder="https://...")
-        
         render_face_generation_policy_notice()
         if st.button("Generate Face Video", width="stretch", type="primary"):
             if not require_login_for_generation("Face Video Mode"):

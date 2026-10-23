@@ -3689,7 +3689,7 @@ class WorldClassLandingPage:
                     <a href="#">Contact</a>
                 </div>
                 <div class="footer-col">
-                    <h5>Support</h5>
+                    <h5>Policy</h5>
                     <a href="#">Help Center</a>
                     <a href="#">Documentation</a>
                     <a href="#">Privacy Policy</a>
