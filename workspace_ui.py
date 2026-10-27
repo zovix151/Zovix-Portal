@@ -109,6 +109,18 @@ def render_workspace_header(
                 font-size: 11px !important;
             }}
         }}
+        @media (max-width: 768px) {{
+            [data-testid="stHorizontalBlock"]:has(.st-key-{button_key})
+            > [data-testid="stColumn"]:has(.st-key-{button_key}) {{
+                display: none !important;
+            }}
+            [data-testid="stHorizontalBlock"]:has(.st-key-{button_key})
+            > [data-testid="stColumn"]:not(:has(.st-key-{button_key})) {{
+                flex: 1 1 100% !important;
+                width: 100% !important;
+                max-width: 100% !important;
+            }}
+        }}
         </style>
         """,
         unsafe_allow_html=True,

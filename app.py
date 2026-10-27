@@ -43,7 +43,7 @@ STUDIO_ENGINE_PANEL_RATIO = (1, 1.2)
 
 st.set_page_config(
     page_title="Zovix AI Studio | AI SaaS Platform",
-    page_icon="🎬",
+    page_icon=str(Path(__file__).resolve().parent / "static" / "zovix-logo.svg"),
     layout="wide",
     initial_sidebar_state="collapsed",
 )
@@ -163,6 +163,12 @@ components.html(
         }
 
         const getPage = () => new URLSearchParams(host.location.search).get("page") || "landing";
+        const syncBrowserPage = () => {
+            const routeSyncButton = host.document.querySelector(
+                ".st-key-zovix_browser_back_sync [data-testid='stButton'] > button"
+            );
+            if (routeSyncButton) routeSyncButton.click();
+        };
         const updateWorkspaceWidth = () => {
             host.document.body.classList.toggle("zovix-full-width-workspace", getPage() !== "landing");
             if (typeof host.__zovixUpdateMobileDesktopViewport === "function") {
@@ -171,6 +177,13 @@ components.html(
         };
         host.__zovixUpdateWorkspaceWidth = updateWorkspaceWidth;
         updateWorkspaceWidth();
+        if (!host.__zovixAppBackNavigationInstalled) {
+            host.addEventListener("popstate", () => {
+                updateWorkspaceWidth();
+                host.requestAnimationFrame(() => host.setTimeout(syncBrowserPage, 80));
+            });
+            host.__zovixAppBackNavigationInstalled = true;
+        }
         if (!host.__zovixWorkspaceWidthPoll) {
             host.__zovixWorkspaceWidthPoll = host.setInterval(() => {
                 if (typeof host.__zovixUpdateWorkspaceWidth === "function") {
@@ -180,18 +193,22 @@ components.html(
             host.addEventListener("popstate", updateWorkspaceWidth);
         }
 
-        if (!host.__zovixNavigationSpinnerInstalled) {
-            const navigationStyle = host.document.createElement("style");
+        let navigationStyle = host.document.getElementById("zovix-navigation-loading-style");
+        if (!navigationStyle) {
+            navigationStyle = host.document.createElement("style");
             navigationStyle.id = "zovix-navigation-loading-style";
-            navigationStyle.textContent = `
+            host.document.head.appendChild(navigationStyle);
+        }
+        navigationStyle.textContent = `
                 .zovix-navigation-loading-overlay {
                     position:fixed;
                     z-index:2147483000;
                     inset:0;
                     display:grid;
                     place-items:center;
-                    background:#fff;
-                    backdrop-filter:none;
+                    background:rgba(243,246,251,.58);
+                    backdrop-filter:blur(2px);
+                    pointer-events:none;
                 }
                 .zovix-navigation-loading-wheel {
                     width:42px;
@@ -200,12 +217,14 @@ components.html(
                     border-top-color:#3979e8;
                     border-right-color:#7654e8;
                     border-radius:50%;
+                    background:#fff;
+                    box-shadow:0 8px 26px rgba(37,65,105,.18);
                     animation:zovix-navigation-spin .75s linear infinite;
                 }
                 @keyframes zovix-navigation-spin { to { transform:rotate(360deg); } }
             `;
-            host.document.head.appendChild(navigationStyle);
 
+        if (!host.__zovixNavigationSpinnerInstalled) {
             const state = {pending: null, lastMutationAt: 0, hideTimer: null};
             host.__zovixNavigationSpinner = state;
 
@@ -266,9 +285,40 @@ components.html(
                         {page: "portfolio"},
                     ][index] || null;
                 }
-                if (key === "st-key-studio_topbar_logout") return {page: "landing"};
-                if (key.startsWith("st-key-factory_open_")) return {page: "studio_mode", force: true};
-                if (key === "st-key-studio_hero_prompt_form") return {page: "studio_mode", force: true};
+                if (key.startsWith("st-key-studio_engine_card_open_")) {
+                    const index = Number(key.slice("st-key-studio_engine_card_open_".length));
+                    const modes = [
+                        "Cinematic Engine",
+                        "Face Video Mode",
+                        "Creative Workshop Mode",
+                        "Blueprints Mode",
+                        "Draw Mode",
+                        "Video Editor Mode",
+                        "AI Agent Mode",
+                        "AI Sales Mode",
+                        "Dynamic UI Mode",
+                        "Live Emotion Mode",
+                        "Upscaler Mode",
+                        "ghost_engine",
+                    ];
+                    const mode = modes[index];
+                    return mode === "ghost_engine"
+                        ? {page: "ghost_engine"}
+                        : (mode ? {page: "studio_mode", mode, force: true} : null);
+                }
+                if (key === "st-key-studio_mobile_profile_open") return {page: "profile"};
+                if (key === "st-key-studio_account_profile") return {page: "profile"};
+                if (key === "st-key-studio_topbar_logout" || key === "st-key-studio_sidebar_logout") return {page: "logout"};
+                if (key.startsWith("st-key-qa_")) {
+                    const label = button.innerText.toLowerCase();
+                    if (label.includes("log out")) return {page: "logout"};
+                    if (label.includes("premium profile")) return {page: "profile"};
+                    if (label.includes("buy credits")) return {page: "payments"};
+                    if (label.includes("portfolio")) return {page: "portfolio"};
+                    if (label.includes("scheduler")) return {page: "scheduler"};
+                    if (label.includes("sub-user")) return {page: "subusers"};
+                    if (label.includes("mass factory")) return {page: "factory"};
+                }
                 if (key === "st-key-standalone_back_to_studio" || key === "st-key-studio_change_mode_btn") {
                     return {page: "studio"};
                 }
@@ -319,11 +369,11 @@ components.html(
                     if (
                         state.pending
                         && !isStreamlitRendering()
-                        && Date.now() - state.lastMutationAt >= 900
+                        && Date.now() - state.lastMutationAt >= 150
                     ) {
                         removeOverlay();
                     }
-                }, routeMatches ? 900 : 1500);
+                }, routeMatches ? 150 : 350);
             };
 
             const showOverlay = (target) => {
@@ -353,17 +403,51 @@ components.html(
                 if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
                 const anchor = event.target.closest("a[href]");
                 const clickedButton = event.target.closest("button");
-                const currentParams = new URLSearchParams(host.location.search);
-                const currentTarget = {
-                    page: currentParams.get("page") || "landing",
-                    mode: currentParams.get("mode") || "",
-                    force: true,
-                };
-                const target = anchor
-                    ? pageFromHref(anchor.href)
-                    : (clickedButton && (pageFromButton(clickedButton) || currentTarget));
-                if (target) showOverlay(target);
+                if (anchor) {
+                    const target = pageFromHref(anchor.href);
+                    if (!target) return;
+                    const nextUrl = new URL(anchor.href, host.location.href);
+                    if (target.mode) nextUrl.searchParams.set("mode", target.mode);
+                    else if (target.page !== "studio_mode") nextUrl.searchParams.delete("mode");
+                    if (nextUrl.href === host.location.href) return;
+                    event.preventDefault();
+                    showOverlay(target);
+                    host.history.pushState(host.history.state, "", nextUrl.href);
+                    host.setTimeout(syncBrowserPage, 0);
+                    return;
+                }
+                const target = clickedButton && pageFromButton(clickedButton);
+                if (!target) return;
+                const openMenu = host.document.querySelector(".zd-mobile-menu[open]");
+                const sidebarColumn = host.document.querySelector(
+                    '[data-testid="stColumn"]:has(.st-key-studio_sidebar_action_0)'
+                );
+                if (openMenu && sidebarColumn && sidebarColumn.contains(clickedButton)) {
+                    openMenu.open = false;
+                }
+                const nextUrl = new URL(host.location.href);
+                nextUrl.searchParams.set("page", target.page);
+                if (target.mode) nextUrl.searchParams.set("mode", target.mode);
+                else if (target.page !== "studio_mode") nextUrl.searchParams.delete("mode");
+                if (nextUrl.href !== host.location.href) {
+                    host.history.pushState(host.history.state, "", nextUrl.href);
+                }
+                showOverlay(target);
             }, true);
+
+            if (!host.__zovixMobileDrawerOutsideClickInstalled) {
+                host.document.addEventListener("click", (event) => {
+                    const openMenu = host.document.querySelector(".zd-mobile-menu[open]");
+                    if (!openMenu) return;
+                    if (event.target.closest(".zd-mobile-menu summary")) return;
+                    const sidebarColumn = host.document.querySelector(
+                        '[data-testid="stColumn"]:has(.st-key-studio_sidebar_action_0)'
+                    );
+                    if (sidebarColumn && sidebarColumn.contains(event.target)) return;
+                    openMenu.open = false;
+                }, true);
+                host.__zovixMobileDrawerOutsideClickInstalled = true;
+            }
 
             const navigationObserver = new MutationObserver(() => {
                 if (state.pending) {
@@ -812,6 +896,7 @@ components.html(
             body.zovix-desktop-mobile [class*="st-key-studio_sidebar_action_"] [data-testid="stButton"] > button,
             body.zovix-desktop-mobile [class*="st-key-studio_library_"] [data-testid="stButton"] > button,
             body.zovix-desktop-mobile [class*="st-key-studio_resource_"] [data-testid="stButton"] > button,
+            body.zovix-desktop-mobile .st-key-studio_sidebar_logout [data-testid="stButton"] > button,
             body.zovix-desktop-mobile .st-key-studio_sidebar_ghost_engine [data-testid="stButton"] > button {
                 min-height:36px !important;
                 padding:8px 12px !important;
@@ -899,6 +984,9 @@ components.html(
                 background:#fff !important;
                 box-shadow:0 8px 24px rgba(37,65,105,.06) !important;
             }
+            body.zovix-desktop-mobile .zd-community-section {
+                padding:12px !important;
+            }
             body.zovix-desktop-mobile .zd-future-grid {
                 display:grid !important;
                 grid-template-columns:repeat(3,minmax(0,1fr)) !important;
@@ -926,7 +1014,14 @@ components.html(
             }
             body.zovix-desktop-mobile .zd-future-copy p {
                 color:#354345 !important;
-                font:600 14px/1.5 'Inter',Arial,sans-serif !important;
+                display:-webkit-box !important;
+                overflow:hidden !important;
+                font:500 9px/1.35 'Inter',Arial,sans-serif !important;
+                -webkit-box-orient:vertical !important;
+                -webkit-line-clamp:3 !important;
+            }
+            body.zovix-desktop-mobile .zd-upcoming-section .zd-lower-head p {
+                font:500 11px/1.35 'Inter',Arial,sans-serif !important;
             }
             body.zovix-desktop-mobile .zd-lower-head h2,
             body.zovix-desktop-mobile .zd-section-head h2,
@@ -943,28 +1038,43 @@ components.html(
             body.zovix-desktop-mobile .zd-community-grid {
                 grid-auto-flow:row !important;
                 grid-auto-columns:auto !important;
-                grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+                grid-template-columns:repeat(3,minmax(0,1fr)) !important;
                 grid-template-rows:none !important;
+                gap:7px !important;
                 overflow:visible !important;
                 scroll-snap-type:none !important;
             }
             body.zovix-desktop-mobile .zd-community-creation img {
-                height:clamp(112px,calc(12vw / var(--zovix-mobile-desktop-scale,1)),180px) !important;
+                height:clamp(58px,calc(7vw / var(--zovix-mobile-desktop-scale,1)),78px) !important;
             }
             body.zovix-desktop-mobile .zd-community-creation {
                 min-width:0 !important;
+                padding:4px !important;
                 scroll-snap-align:none !important;
             }
-            body.zovix-desktop-mobile .zd-community-creation img {
-                height:clamp(112px,calc(12vw / var(--zovix-mobile-desktop-scale,1)),180px) !important;
+            body.zovix-desktop-mobile .zd-community-section .zd-lower-head p {
+                display:-webkit-box !important;
+                overflow:hidden !important;
+                font:500 10px/1.35 'Inter',Arial,sans-serif !important;
+                -webkit-box-orient:vertical !important;
+                -webkit-line-clamp:2 !important;
+            }
+            body.zovix-desktop-mobile .zd-community-section .zd-community-note {
+                color:#526680 !important;
+                font:500 9px/1.35 'Inter',Arial,sans-serif !important;
             }
             body.zovix-desktop-mobile .zd-community-creation-copy > strong {
                 color:#203653 !important;
-                font:700 9px/1.3 'Inter',Arial,sans-serif !important;
+                display:-webkit-box !important;
+                overflow:hidden !important;
+                font:700 8px/1.25 'Inter',Arial,sans-serif !important;
+                white-space:normal !important;
+                -webkit-box-orient:vertical !important;
+                -webkit-line-clamp:2 !important;
             }
             body.zovix-desktop-mobile .zd-community-creator {
                 color:#526680 !important;
-                font:600 8px/1.2 'Inter',Arial,sans-serif !important;
+                font:600 7px/1.2 'Inter',Arial,sans-serif !important;
             }
             body.zovix-desktop-mobile .zd-community-engagement {
                 color:#c45c78 !important;
@@ -983,7 +1093,407 @@ components.html(
                 color:#354345 !important;
                 font:600 14px/1.5 'Inter',Arial,sans-serif !important;
             }
-        `.replace(/body\.zovix-desktop-mobile/g, "html body.zovix-desktop-mobile.zovix-mobile-dashboard-canvas");
+        `.replace(/body\.zovix-desktop-mobile/g, "html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive");
+
+        desktopMobileParityStyle.textContent += `
+            @media (max-width: 900px) {
+                html body.zovix-mobile-dashboard-responsive .stApp,
+                html body.zovix-mobile-dashboard-responsive [data-testid="stAppViewContainer"],
+                html body.zovix-mobile-dashboard-responsive [data-testid="stMain"],
+                html body.zovix-mobile-dashboard-responsive [data-testid="stMain"] .block-container {
+                    color:#172b4d !important;
+                    background:#f3f7fc !important;
+                }
+                html body.zovix-mobile-dashboard-responsive [data-testid="stMain"] .block-container {
+                    padding:10px 14px 28px !important;
+                    position:relative !important;
+                }
+                html body.zovix-mobile-dashboard-responsive .zd-mobile-header {
+                    display:flex !important;
+                    min-height:56px !important;
+                    margin:0 -14px 12px !important;
+                    padding:0 16px !important;
+                    color:#17345d !important;
+                    background:rgba(255,255,255,.96) !important;
+                    border-bottom:1px solid #e4ebf5 !important;
+                    box-shadow:0 3px 14px rgba(38,66,110,.06) !important;
+                }
+                html body.zovix-mobile-dashboard-responsive .zd-mobile-brand { color:#17345d !important; }
+                html body.zovix-mobile-dashboard-responsive .zd-mobile-brand strong { color:#17345d !important; }
+                html body.zovix-mobile-dashboard-responsive .zd-mobile-brand small { color:#73839b !important; }
+                html body.zovix-mobile-dashboard-responsive .zd-mobile-menu summary {
+                    width:34px !important;
+                    height:34px !important;
+                    border-color:transparent !important;
+                    background:transparent !important;
+                }
+                html body.zovix-mobile-dashboard-responsive .zd-mobile-menu summary span { background:#31547e !important; }
+                html body.zovix-mobile-dashboard-responsive .zd-mobile-header {
+                    justify-content:flex-start !important;
+                    gap:12px !important;
+                }
+                html body.zovix-mobile-dashboard-responsive .zd-mobile-menu { order:0 !important; flex:0 0 auto !important; }
+                html body.zovix-mobile-dashboard-responsive .zd-mobile-brand { order:1 !important; gap:8px !important; }
+                html body.zovix-mobile-dashboard-responsive .zd-mobile-brand-mark {
+                    width:32px !important;
+                    height:32px !important;
+                    border-radius:8px !important;
+                }
+                html body.zovix-mobile-dashboard-responsive .zd-mobile-header-actions {
+                    order:2 !important;
+                    gap:10px !important;
+                    margin-left:auto !important;
+                    padding-right:0 !important;
+                }
+                html body.zovix-mobile-dashboard-responsive .zd-mobile-profile-avatar {
+                    display:grid !important;
+                    order:3 !important;
+                    flex:0 0 38px !important;
+                    width:38px !important;
+                    min-width:38px !important;
+                    height:38px !important;
+                    box-sizing:border-box !important;
+                    aspect-ratio:1 / 1 !important;
+                    place-items:center !important;
+                    overflow:hidden !important;
+                    color:#fff !important;
+                    border:0 !important;
+                    border-radius:50% !important;
+                    background:linear-gradient(135deg,#16b8b1,#5868e9) !important;
+                    box-shadow:0 2px 8px rgba(46,81,156,.2) !important;
+                    text-decoration:none !important;
+                }
+                html body.zovix-mobile-dashboard-responsive .zd-mobile-profile-avatar img {
+                    display:block !important;
+                    width:100% !important;
+                    height:100% !important;
+                    overflow:hidden !important;
+                    border-radius:50% !important;
+                    object-fit:cover !important;
+                }
+                html body.zovix-mobile-dashboard-responsive .zd-mobile-profile-avatar span {
+                    color:#fff !important;
+                    font:750 13px/1 'Inter',Arial,sans-serif !important;
+                }
+                html body.zovix-mobile-dashboard-responsive .zd-mobile-icon-button {
+                    position:relative !important;
+                    display:grid !important;
+                    width:30px !important;
+                    height:34px !important;
+                    place-items:center !important;
+                    color:#24466e !important;
+                    text-decoration:none !important;
+                }
+                html body.zovix-mobile-dashboard-responsive .zd-mobile-icon-button svg {
+                    display:block !important;
+                    width:21px !important;
+                    height:21px !important;
+                    fill:none !important;
+                    stroke:currentColor !important;
+                    stroke-linecap:round !important;
+                    stroke-linejoin:round !important;
+                    stroke-width:2.2 !important;
+                }
+                html body.zovix-mobile-dashboard-responsive .zd-mobile-notifications::after {
+                    position:absolute !important;
+                    top:5px !important;
+                    right:4px !important;
+                    width:7px !important;
+                    height:7px !important;
+                    border:1px solid #fff !important;
+                    border-radius:50% !important;
+                    background:#ed5265 !important;
+                    content:"" !important;
+                }
+                html body.zovix-mobile-dashboard-responsive .zd-mobile-profile {
+                    width:34px !important;
+                    height:34px !important;
+                }
+                html body.zovix-mobile-dashboard-responsive .st-key-studio_mobile_profile_open {
+                    position:fixed !important;
+                    z-index:31 !important;
+                    top:19px !important;
+                    right:26px !important;
+                    display:block !important;
+                    width:38px !important;
+                    height:38px !important;
+                    margin:0 !important;
+                    padding:0 !important;
+                }
+                html body.zovix-mobile-dashboard-responsive .st-key-studio_mobile_profile_open [data-testid="stButton"],
+                html body.zovix-mobile-dashboard-responsive .st-key-studio_mobile_profile_open [data-testid="stButton"] > button {
+                    box-sizing:border-box !important;
+                    width:38px !important;
+                    min-width:38px !important;
+                    max-width:38px !important;
+                    height:38px !important;
+                    min-height:38px !important;
+                    margin:0 !important;
+                    padding:0 !important;
+                }
+                html body.zovix-mobile-dashboard-responsive .st-key-studio_mobile_profile_open [data-testid="stButton"] > button {
+                    opacity:0 !important;
+                    border:0 !important;
+                    border-radius:50% !important;
+                    background:transparent !important;
+                }
+                html body.zovix-mobile-dashboard-responsive .st-key-studio_mobile_profile_open [data-testid="stButton"] > button:focus-visible {
+                    opacity:.25 !important;
+                    outline:2px solid #3974e8 !important;
+                    outline-offset:2px !important;
+                }
+                html body.zovix-mobile-dashboard-responsive .st-key-studio_mobile_notifications_open {
+                    position:fixed !important;
+                    z-index:31 !important;
+                    top:19px !important;
+                    right:74px !important;
+                    display:block !important;
+                    width:30px !important;
+                    height:38px !important;
+                    margin:0 !important;
+                    padding:0 !important;
+                }
+                html body.zovix-mobile-dashboard-responsive .st-key-studio_mobile_notifications_open [data-testid="stButton"],
+                html body.zovix-mobile-dashboard-responsive .st-key-studio_mobile_notifications_open [data-testid="stButton"] > button {
+                    box-sizing:border-box !important;
+                    width:30px !important;
+                    min-width:30px !important;
+                    max-width:30px !important;
+                    height:38px !important;
+                    min-height:38px !important;
+                    margin:0 !important;
+                    padding:0 !important;
+                }
+                html body.zovix-mobile-dashboard-responsive .st-key-studio_mobile_notifications_open [data-testid="stButton"] > button {
+                    opacity:0 !important;
+                    border:0 !important;
+                    border-radius:8px !important;
+                    background:transparent !important;
+                }
+                html body.zovix-mobile-dashboard-responsive .st-key-studio_mobile_notifications_open [data-testid="stButton"] > button:focus-visible {
+                    opacity:.25 !important;
+                    outline:2px solid #3974e8 !important;
+                    outline-offset:2px !important;
+                }
+                html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive [data-testid="stMain"]
+                [data-testid="stHorizontalBlock"]:has(.st-key-studio_hero_container)
+                > [data-testid="stColumn"]:has(.st-key-studio_hero_container) {
+                    flex:1 1 100% !important;
+                    width:100% !important;
+                    min-width:0 !important;
+                    max-width:100% !important;
+                }
+                html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive [data-testid="stMain"]
+                [data-testid="stHorizontalBlock"]:has(.st-key-studio_hero_container)
+                > [data-testid="stColumn"]:has(.st-key-studio_sidebar_action_0) {
+                    display:none !important;
+                    flex:0 0 0% !important;
+                    width:0 !important;
+                    max-width:0 !important;
+                }
+                html body.zovix-mobile-dashboard-responsive .st-key-studio_hero_container {
+                    margin:0 !important;
+                    padding:13px !important;
+                    overflow:hidden !important;
+                    border:1px solid #e0e9f5 !important;
+                    border-radius:19px !important;
+                    background-color:#eaf2ff !important;
+                    background-position:72% center !important;
+                    box-shadow:0 8px 22px rgba(48,83,145,.12) !important;
+                }
+                html body.zovix-mobile-dashboard-responsive .st-key-studio_hero_container .zd-hero {
+                    min-height:205px !important;
+                    padding:12px 10px !important;
+                    align-items:flex-start !important;
+                    justify-content:flex-start !important;
+                    text-align:left !important;
+                }
+                html body.zovix-mobile-dashboard-responsive .st-key-studio_hero_container .zd-hero-copy { width:74% !important; max-width:74% !important; align-self:flex-start !important; text-align:left !important; }
+                html body.zovix-mobile-dashboard-responsive .st-key-studio_hero_container .zd-hero-kicker { display:block !important; margin-bottom:9px !important; color:#29486d !important; font-size:14px !important; font-weight:650 !important; }
+                html body.zovix-mobile-dashboard-responsive .st-key-studio_hero_container .zd-hero-kicker strong { color:#514ed5 !important; font-weight:800 !important; }
+                html body.zovix-mobile-dashboard-responsive .st-key-studio_hero_container .zd-hero h1 { max-width:100% !important; color:#122747 !important; font-size:clamp(29px,7.6vw,40px) !important; font-weight:850 !important; line-height:1.03 !important; letter-spacing:-.035em !important; text-transform:none !important; text-shadow:0 1px 1px rgba(255,255,255,.9) !important; }
+                html body.zovix-mobile-dashboard-responsive .st-key-studio_hero_container .zd-hero h1 span { color:#315fdf !important; background:none !important; -webkit-text-fill-color:#315fdf !important; text-shadow:0 1px 1px rgba(255,255,255,.95) !important; }
+                html body.zovix-mobile-dashboard-responsive .st-key-studio_hero_container .zd-hero p { display:block !important; max-width:100% !important; margin:9px 0 0 !important; color:#29486d !important; font-size:13px !important; font-weight:500 !important; line-height:1.45 !important; text-shadow:0 1px 1px rgba(255,255,255,.65) !important; }
+                html body.zovix-mobile-dashboard-responsive .st-key-studio_hero_controls {
+                    margin:-2px 0 0 !important;
+                    padding:8px !important;
+                    border:1px solid #fff !important;
+                    border-radius:15px !important;
+                    background:#fff !important;
+                    box-shadow:0 5px 16px rgba(41,75,139,.12) !important;
+                }
+                html body.zovix-mobile-dashboard-responsive .st-key-studio_dashboard_prompt {
+                    position:relative !important;
+                }
+                html body.zovix-mobile-dashboard-responsive .st-key-studio_dashboard_prompt::before {
+                    position:absolute !important;
+                    z-index:2 !important;
+                    top:50% !important;
+                    left:12px !important;
+                    color:#7651df !important;
+                    content:"✦" !important;
+                    font:700 19px/1 'Inter',Arial,sans-serif !important;
+                    transform:translateY(-50%) !important;
+                    pointer-events:none !important;
+                }
+                html body.zovix-mobile-dashboard-responsive .st-key-studio_hero_prompt_form [data-testid="stHorizontalBlock"] { gap:7px !important; }
+                html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive .st-key-studio_hero_prompt_form [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:first-child {
+                    flex:1 1 0% !important;
+                    width:auto !important;
+                    min-width:0 !important;
+                }
+                html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive .st-key-studio_hero_prompt_form [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:last-child {
+                    flex:0 0 108px !important;
+                    width:108px !important;
+                    min-width:108px !important;
+                    max-width:108px !important;
+                }
+                html body.zovix-mobile-dashboard-responsive .st-key-studio_dashboard_prompt input { min-height:42px !important; padding-left:36px !important; font-size:12px !important; }
+                html body.zovix-mobile-dashboard-responsive .st-key-studio_hero_prompt_form [data-testid="stFormSubmitButton"] > button { width:100% !important; min-height:40px !important; padding:0 8px !important; border-radius:999px !important; white-space:nowrap !important; }
+                html body.zovix-mobile-dashboard-responsive .st-key-studio_creation_type_choices [data-testid="stHorizontalBlock"] { flex-wrap:wrap !important; gap:6px !important; }
+                html body.zovix-mobile-dashboard-responsive .st-key-studio_creation_type_choices [data-testid="stColumn"] { flex:0 0 auto !important; width:auto !important; max-width:none !important; }
+                html body.zovix-mobile-dashboard-responsive .st-key-studio_creation_type_choices [data-testid="stButton"] > button { min-height:34px !important; padding:0 10px !important; color:#315174 !important; border:1px solid #e1e9f4 !important; border-radius:999px !important; background:#fff !important; font-size:10px !important; white-space:nowrap !important; }
+                html body.zovix-mobile-dashboard-responsive .st-key-studio_creation_type_choices [data-testid="stButton"] > button[kind="primary"] { color:#fff !important; border:0 !important; background:linear-gradient(105deg,#3478f6,#7755e8) !important; }
+                html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive .st-key-studio_engine_filters [data-testid="stHorizontalBlock"] { display:flex !important; flex-wrap:nowrap !important; gap:7px !important; overflow-x:auto !important; padding:4px 1px 9px !important; scrollbar-width:none !important; }
+                html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive .st-key-studio_engine_filters [data-testid="stColumn"] { flex:0 0 max-content !important; width:max-content !important; min-width:max-content !important; max-width:max-content !important; }
+                html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive .st-key-studio_engine_filters [data-testid="stButton"],
+                html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive .st-key-studio_engine_filters [data-testid="stButton"] > button { width:max-content !important; min-width:78px !important; max-width:max-content !important; }
+                html body.zovix-mobile-dashboard-responsive .st-key-studio_engine_filters [data-testid="stButton"] > button { min-height:36px !important; padding:0 13px !important; color:#365474 !important; border:1px solid #e1e9f4 !important; border-radius:999px !important; background:#fff !important; font-size:11px !important; white-space:nowrap !important; }
+                html body.zovix-mobile-dashboard-responsive .st-key-studio_engine_filters [data-testid="stButton"] > button[kind="primary"] { color:#fff !important; border-color:transparent !important; background:linear-gradient(105deg,#3478f6,#655eea) !important; }
+                html body.zovix-mobile-dashboard-responsive .st-key-studio_engine_filters [data-testid="stButton"] > button[kind="primary"] p::before { color:#fff !important; }
+                html body.zovix-mobile-dashboard-responsive .st-key-studio_engine_filters [data-testid="stButton"] p::before {
+                    margin-right:5px !important;
+                    color:#3567bd !important;
+                    font-size:12px !important;
+                }
+                html body.zovix-mobile-dashboard-responsive .st-key-studio_engine_filter_all [data-testid="stButton"] p::before { content:"▦"; }
+                html body.zovix-mobile-dashboard-responsive .st-key-studio_engine_filter_image [data-testid="stButton"] p::before { content:"▣"; }
+                html body.zovix-mobile-dashboard-responsive .st-key-studio_engine_filter_video [data-testid="stButton"] p::before { content:"▶"; }
+                html body.zovix-mobile-dashboard-responsive .st-key-studio_engine_filter_character [data-testid="stButton"] p::before { content:"♟"; }
+                html body.zovix-mobile-dashboard-responsive .st-key-studio_engine_filter_voice [data-testid="stButton"] p::before { content:"♩"; }
+                html body.zovix-mobile-dashboard-responsive .st-key-studio_engine_filter_utility [data-testid="stButton"] p::before { content:"⚒"; }
+                html body.zovix-mobile-dashboard-responsive .st-key-studio_engine_header .zd-section-head {
+                    display:flex !important;
+                    align-items:center !important;
+                    justify-content:space-between !important;
+                    gap:10px !important;
+                }
+                html body.zovix-mobile-dashboard-responsive .st-key-studio_engine_mode_header .zd-section-head {
+                    display:block !important;
+                    margin:18px 0 8px !important;
+                }
+                html body.zovix-mobile-dashboard-responsive .zd-engine-mode-title-row {
+                    display:flex !important;
+                    align-items:center !important;
+                    justify-content:space-between !important;
+                    gap:10px !important;
+                }
+                html body.zovix-mobile-dashboard-responsive .zd-engine-mode-title-row .zd-section-heading { flex:1 1 auto !important; }
+                html body.zovix-mobile-dashboard-responsive .zd-section-heading {
+                    display:flex !important;
+                    align-items:center !important;
+                    gap:9px !important;
+                    min-width:0 !important;
+                }
+                html body.zovix-mobile-dashboard-responsive .zd-section-icon {
+                    display:grid !important;
+                    width:27px !important;
+                    height:27px !important;
+                    flex:0 0 27px !important;
+                    place-items:center !important;
+                    color:#3478e5 !important;
+                    border:1px solid #dce8ff !important;
+                    border-radius:8px !important;
+                    background:#f1f6ff !important;
+                    font-size:15px !important;
+                }
+                html body.zovix-mobile-dashboard-responsive .zd-section-head a {
+                    color:#3769d7 !important;
+                    font-size:10px !important;
+                    font-weight:700 !important;
+                    text-decoration:none !important;
+                    white-space:nowrap !important;
+                }
+                html body.zovix-mobile-dashboard-responsive .st-key-studio_engine_header { margin-top:18px !important; }
+                html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive .st-key-studio_engine_grid [data-testid="stHorizontalBlock"] { flex-wrap:wrap !important; gap:10px !important; }
+                html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive .st-key-studio_engine_grid [data-testid="stColumn"] { flex:0 0 calc(50% - 5px) !important; width:calc(50% - 5px) !important; max-width:calc(50% - 5px) !important; }
+                html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive [class*="st-key-studio_engine_card_"] { min-height:145px !important; }
+                html body.zovix-mobile-dashboard-responsive .zd-engine-photo-card {
+                    position:relative !important;
+                    display:grid !important;
+                    height:auto !important;
+                    min-height:0 !important;
+                    grid-template-columns:minmax(0,1fr) !important;
+                    grid-template-rows:auto 70px !important;
+                    overflow:hidden !important;
+                    padding:0 !important;
+                    border-radius:14px !important;
+                    background:#fff !important;
+                }
+                html body.zovix-mobile-dashboard-responsive .zd-engine-photo-card::before { display:none !important; }
+                html body.zovix-mobile-dashboard-responsive .zd-engine-photo-card img {
+                    position:relative !important;
+                    inset:auto !important;
+                    grid-row:1 !important;
+                    display:block !important;
+                    width:100% !important;
+                    height:auto !important;
+                    aspect-ratio:1.9 / 1 !important;
+                    object-fit:cover !important;
+                }
+                html body.zovix-mobile-dashboard-responsive .zd-engine-photo-copy {
+                    position:relative !important;
+                    inset:auto !important;
+                    grid-row:2 !important;
+                    min-height:70px !important;
+                    align-content:center !important;
+                    gap:4px !important;
+                    margin:0 !important;
+                    padding:7px 10px !important;
+                    background:#fff !important;
+                }
+                html body.zovix-mobile-dashboard-responsive .zd-engine-photo-copy strong { color:#1c3152 !important; font-size:11px !important; line-height:1.2 !important; white-space:normal !important; }
+                html body.zovix-mobile-dashboard-responsive .zd-engine-photo-copy small { color:#6b7b92 !important; font-size:9px !important; line-height:1.35 !important; }
+                html body.zovix-mobile-dashboard-responsive [data-testid="stMain"] [data-testid="stHorizontalBlock"]:has(.st-key-studio_hero_container) { display:flex !important; flex-direction:row !important; flex-wrap:nowrap !important; gap:0 !important; }
+                html body.zovix-mobile-dashboard-responsive [data-testid="stMain"] [data-testid="stHorizontalBlock"]:has(.st-key-studio_hero_container) > [data-testid="stColumn"]:has(.st-key-studio_hero_container) { display:block !important; flex:1 1 100% !important; width:100% !important; max-width:100% !important; }
+                html body.zovix-mobile-dashboard-responsive [data-testid="stMain"] [data-testid="stHorizontalBlock"]:has(.st-key-studio_hero_container) > [data-testid="stColumn"]:has(.st-key-studio_sidebar_action_0) { display:none !important; flex:0 0 0% !important; width:0 !important; max-width:0 !important; }
+                html body.zovix-mobile-dashboard-responsive [data-testid="stSidebar"],
+                html body.zovix-mobile-dashboard-responsive [data-testid="stSidebarContent"],
+                html body.zovix-mobile-dashboard-responsive [data-testid="stSidebar"] > div { color:#243652 !important; background:#fff !important; }
+                html body.zovix-mobile-dashboard-responsive .zd-mobile-menu nav { border-color:#e2e9f3 !important; background:#fff !important; box-shadow:0 16px 36px rgba(37,65,105,.16) !important; }
+                html body.zovix-mobile-dashboard-responsive .zd-mobile-menu nav a { color:#000 !important; border-color:#e5ebf4 !important; background:#fff !important; }
+                html body.zovix-mobile-dashboard-responsive .zd-mobile-menu nav a.active,
+                html body.zovix-mobile-dashboard-responsive .zd-mobile-menu nav .zd-ghost-engine-link { color:#000 !important; border-color:#e5ebf4 !important; background:#fff !important; }
+                html body.zovix-mobile-dashboard-responsive .zd-mobile-menu nav a.active { color:#000 !important; border-color:#e5ebf4 !important; background:#fff !important; }
+                html body.zovix-mobile-dashboard-responsive [data-testid="stHorizontalBlock"]:has(.zd-mobile-menu[open]) > [data-testid="stColumn"]:has(.st-key-studio_sidebar_action_0) > [data-testid="stVerticalBlock"] { color:#000 !important; border-color:#e2e9f3 !important; background:#fff !important; box-shadow:0 12px 30px rgba(37,65,105,.12) !important; }
+                html body.zovix-mobile-dashboard-responsive [data-testid="stHorizontalBlock"]:has(.zd-mobile-menu[open]) > [data-testid="stColumn"]:has(.st-key-studio_sidebar_action_0) * { color:#000 !important; }
+                html body.zovix-mobile-dashboard-responsive [class*="st-key-studio_sidebar_action_"] [data-testid="stButton"] > button,
+                html body.zovix-mobile-dashboard-responsive [class*="st-key-studio_library_"] [data-testid="stButton"] > button,
+                html body.zovix-mobile-dashboard-responsive [class*="st-key-studio_resource_"] [data-testid="stButton"] > button,
+                html body.zovix-mobile-dashboard-responsive .st-key-studio_sidebar_ghost_engine [data-testid="stButton"] > button,
+                html body.zovix-mobile-dashboard-responsive .st-key-studio_sidebar_logout [data-testid="stButton"] > button { color:#000 !important; border-color:#e4eaf3 !important; background:#fff !important; }
+                html body.zovix-mobile-dashboard-responsive .st-key-studio_sidebar_action_0 [data-testid="stButton"] > button { color:#000 !important; border-color:#e4eaf3 !important; background:#fff !important; }
+                html body.zovix-mobile-dashboard-responsive [data-testid="stHorizontalBlock"]:has(.zd-mobile-menu[open]) > [data-testid="stColumn"]:has(.st-key-studio_sidebar_action_0) [data-testid="stButton"] > button,
+                html body.zovix-mobile-dashboard-responsive [data-testid="stHorizontalBlock"]:has(.zd-mobile-menu[open]) > [data-testid="stColumn"]:has(.st-key-studio_sidebar_action_0) [data-testid="stButton"] > button:hover { color:#000 !important; border-color:#e4eaf3 !important; background:#fff !important; }
+                html body.zovix-mobile-dashboard-responsive .zd-mobile-menu nav .zd-nav-label,
+                html body.zovix-mobile-dashboard-responsive .zd-mobile-menu nav .zd-nav-rule { color:#000 !important; border-color:#e5ebf4 !important; }
+                html body.zovix-mobile-dashboard-responsive .zd-profile-menu { position:relative !important; }
+                html body.zovix-mobile-dashboard-responsive .zd-profile-menu summary { cursor:pointer !important; list-style:none !important; }
+                html body.zovix-mobile-dashboard-responsive .zd-profile-menu summary::-webkit-details-marker { display:none !important; }
+                html body.zovix-mobile-dashboard-responsive .zd-profile-menu nav { position:absolute !important; top:44px !important; right:0 !important; z-index:40 !important; display:grid !important; width:170px !important; gap:5px !important; padding:9px !important; border:1px solid #e2e9f3 !important; border-radius:13px !important; background:#fff !important; box-shadow:0 14px 32px rgba(37,65,105,.18) !important; }
+                html body.zovix-mobile-dashboard-responsive .zd-profile-menu nav a { display:flex !important; min-height:38px !important; align-items:center !important; padding:0 10px !important; color:#29405e !important; border:1px solid #e5ebf4 !important; border-radius:8px !important; background:#f7f9fd !important; font:600 12px/1.2 'Inter',Arial,sans-serif !important; text-decoration:none !important; }
+                html body.zovix-mobile-dashboard-responsive .zd-profile-menu nav a:last-child { color:#b42335 !important; background:#fff5f5 !important; }
+                html body.zovix-mobile-dashboard-responsive [data-testid="stHorizontalBlock"]:has(.zd-mobile-menu[open]) .studio-sidebar-section-label,
+                html body.zovix-mobile-dashboard-responsive [data-testid="stHorizontalBlock"]:has(.zd-mobile-menu[open]) .zd-brand-name,
+                html body.zovix-mobile-dashboard-responsive [data-testid="stHorizontalBlock"]:has(.zd-mobile-menu[open]) .zd-brand-sub { color:#000 !important; -webkit-text-fill-color:#000 !important; }
+            }
+            @media (min-width: 600px) and (max-width: 900px) {
+                html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive .st-key-studio_engine_grid [data-testid="stColumn"] { flex-basis:calc(33.333% - 7px) !important; width:calc(33.333% - 7px) !important; max-width:calc(33.333% - 7px) !important; }
+                html body.zovix-mobile-dashboard-responsive .zd-engine-photo-card img { aspect-ratio:3 / 1 !important; }
+                html body.zovix-mobile-dashboard-responsive .zd-engine-photo-copy strong { font-size:11px !important; }
+                html body.zovix-mobile-dashboard-responsive .zd-engine-photo-copy small { font-size:9px !important; }
+            }
+        `.replace(/html body\.zovix-mobile-dashboard-responsive/g, "html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive");
 
         const setStudioDesktopMedia = (active) => {
             for (const style of host.document.querySelectorAll("style")) {
@@ -1032,20 +1542,18 @@ components.html(
             const currentScreenHeight = host.screen.height || host.innerHeight;
             const narrowViewport = host.innerWidth <= 900
                 || Math.min(currentScreenWidth, currentScreenHeight) <= 900;
-            const forceDesktopStudio = page === "studio" && (isMobile || narrowViewport);
+            const forceMobileResponsive = isMobile || narrowViewport;
 
-            if (!isMobile && !forceDesktopStudio) {
-                if (page === "studio") {
-                    host.document.body.classList.remove("zovix-desktop-mobile");
-                    host.document.body.classList.remove("zovix-mobile-dashboard-canvas");
-                    host.document.documentElement.style.removeProperty("--zovix-mobile-desktop-scale");
-                    setStudioDesktopMedia(false);
-                    const currentViewportContent = currentViewport.getAttribute("content") || "";
-                    if (currentViewportContent.startsWith("width=1440")) {
-                        currentViewport.setAttribute("content", defaultViewportContent);
-                    }
-                    host.__zovixMobileLayoutMode = "responsive";
+            if (!forceMobileResponsive) {
+                host.document.body.classList.remove("zovix-desktop-mobile");
+                host.document.body.classList.remove("zovix-mobile-dashboard-canvas");
+                host.document.body.classList.remove("zovix-mobile-dashboard-responsive");
+                host.document.documentElement.style.removeProperty("--zovix-mobile-desktop-scale");
+                setStudioDesktopMedia(false);
+                if ((currentViewport.getAttribute("content") || "").startsWith("width=1440")) {
+                    currentViewport.setAttribute("content", defaultViewportContent);
                 }
+                host.__zovixMobileLayoutMode = "responsive";
                 return;
             }
 
@@ -1065,42 +1573,23 @@ components.html(
             host.document.body.style.overflowY = "";
             host.document.body.style.transformOrigin = "";
             host.document.body.style.transform = "";
+            const mobileViewportContent =
+                "width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=5, user-scalable=yes";
+            if (currentViewport.getAttribute("content") !== mobileViewportContent) {
+                currentViewport.setAttribute("content", mobileViewportContent);
+            }
+            host.document.body.classList.remove("zovix-mobile-dashboard-canvas");
+            host.document.documentElement.style.removeProperty("--zovix-mobile-desktop-scale");
+            setStudioDesktopMedia(false);
             if (page === "landing") {
                 host.document.body.classList.remove("zovix-desktop-mobile");
-                host.document.body.classList.remove("zovix-mobile-dashboard-canvas");
-                host.document.documentElement.style.removeProperty("--zovix-mobile-desktop-scale");
-                setStudioDesktopMedia(false);
-                const mobileViewportContent =
-                    "width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=5, user-scalable=yes";
-                if (currentViewport.getAttribute("content") !== mobileViewportContent) {
-                    currentViewport.setAttribute("content", mobileViewportContent);
-                }
+                host.document.body.classList.remove("zovix-mobile-dashboard-responsive");
                 host.__zovixMobileLayoutMode = "responsive";
                 return;
             }
-            const desktopScale = Math.min(1, currentScreenWidth / 1440);
-            const desktopViewportContent =
-                `width=1440, initial-scale=${desktopScale.toFixed(3)}, minimum-scale=0.1, maximum-scale=5, user-scalable=yes`;
-            if (currentViewport.getAttribute("content") !== desktopViewportContent) {
-                currentViewport.setAttribute("content", desktopViewportContent);
-            }
             host.document.body.classList.add("zovix-desktop-mobile");
-            if (page === "studio" && forceDesktopStudio) {
-                const canvasScale = host.innerWidth <= 900
-                    ? Math.min(1, host.innerWidth / 1440)
-                    : 1;
-                host.document.documentElement.style.setProperty(
-                    "--zovix-mobile-desktop-scale",
-                    canvasScale.toFixed(4)
-                );
-                host.document.body.classList.add("zovix-mobile-dashboard-canvas");
-                setStudioDesktopMedia(true);
-            } else {
-                host.document.body.classList.remove("zovix-mobile-dashboard-canvas");
-                host.document.documentElement.style.removeProperty("--zovix-mobile-desktop-scale");
-                setStudioDesktopMedia(false);
-            }
-            host.__zovixMobileLayoutMode = "desktop";
+            host.document.body.classList.add("zovix-mobile-dashboard-responsive");
+            host.__zovixMobileLayoutMode = "responsive";
         };
 
         if (host.__zovixDesktopViewportPoll) {
@@ -1126,6 +1615,12 @@ components.html(
     height=0,
     scrolling=False,
 )
+
+st.markdown(
+    "<style>.st-key-zovix_browser_back_sync{display:none!important}</style>",
+    unsafe_allow_html=True,
+)
+st.button("Sync browser page", key="zovix_browser_back_sync")
 
 _GENERATION_SUCCESS_MESSAGE = "Generated successfully by Zovix"
 
@@ -2003,6 +2498,8 @@ elif requested_page in {"payments", "profile", "scheduler", "subusers", "factory
     st.session_state["current_page"] = requested_page
 elif requested_page == "face_generation_policy":
     st.session_state["current_page"] = "face_generation_policy"
+elif requested_page is None:
+    st.session_state["current_page"] = "landing"
 if "is_logged_in" not in st.session_state:
     st.session_state["is_logged_in"] = False
 if "studio_active_mode" not in st.session_state:
@@ -3020,9 +3517,10 @@ def _page_loading_spinner_markup(label):
     accessible_label = html_lib.escape(label, quote=True)
     return (
         "<style>"
-        ".zovix-page-loading-overlay{position:fixed;z-index:999999;inset:0;display:grid;"
+        ".zovix-page-loading-overlay{position:fixed;z-index:999999;inset:0;display:grid;pointer-events:none;"
         "place-items:center;background:#fff;backdrop-filter:none;"
         "pointer-events:all}"
+        "body:has(.zovix-page-loading-overlay[aria-label='Loading your studio']) .stDialog{display:none!important}"
         ".zovix-page-loading-wheel{width:42px;height:42px;border:4px solid #dbe6f2;"
         "border-top-color:#3979e8;border-right-color:#7654e8;border-radius:50%;"
         "animation:zovix-page-loading-spin .75s linear infinite}"
@@ -16008,6 +16506,31 @@ def show_auth_modal(mode="login"):
             color: #697586 !important;
             font: 400 13px/1.55 'Inter', sans-serif !important;
         }
+        .stDialog .zovix-auth-processing {
+            display:grid;
+            min-height:110px;
+            place-content:center;
+            justify-items:center;
+            gap:10px;
+            margin:12px 0;
+            padding:18px;
+            border:1px solid #e4ebf4;
+            border-radius:14px;
+            background:#f8fbff;
+            color:#34445d;
+            text-align:center;
+            font:600 13px/1.4 'Inter',sans-serif;
+        }
+        .stDialog .zovix-auth-processing-wheel {
+            width:30px;
+            height:30px;
+            border:3px solid #dbe6f2;
+            border-top-color:#3979e8;
+            border-right-color:#7654e8;
+            border-radius:50%;
+            animation:zovix-auth-processing-spin .75s linear infinite;
+        }
+        @keyframes zovix-auth-processing-spin { to { transform:rotate(360deg); } }
         .stDialog [data-testid="stTextInput"] label {
             color: #354345 !important;
             font: 600 12px/1.4 'Inter', sans-serif !important;
@@ -16145,7 +16668,9 @@ def show_auth_modal(mode="login"):
     def show_auth_loading():
         loading_placeholder = st.empty()
         loading_placeholder.markdown(
-            _page_loading_spinner_markup("Signing in"),
+            "<div class='zovix-auth-processing' role='status' aria-label='Signing in'>"
+            "<span class='zovix-auth-processing-wheel' aria-hidden='true'></span>"
+            "<span>Signing you in…</span></div>",
             unsafe_allow_html=True,
         )
         return loading_placeholder
@@ -22243,6 +22768,11 @@ elif st.session_state["current_page"] == "studio":
     avatar_initial = html_lib.escape(display_name[:1].upper())
     avatar_initials = f"<span class='zd-avatar'>{avatar_initial}</span>"
     safe_profile_avatar = html_lib.escape(creator_profile["avatar_data"], quote=True)
+    profile_avatar_html = (
+        f"<img src='data:image/jpeg;base64,{safe_profile_avatar}' alt=''>"
+        if safe_profile_avatar
+        else f"<span>{avatar_initial}</span>"
+    )
     credit_balance = int(st.session_state.get("user_credits", 0))
     subscription_active = bool(st.session_state.get("subscription_active", False))
     subscription_name = str(st.session_state.get("subscription_pack", "")).strip()
@@ -22337,6 +22867,10 @@ elif st.session_state["current_page"] == "studio":
         .zd-hero-tags { display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
         .zd-hero-tags span { padding:5px 8px; color:#edf3ff; border:1px solid rgba(255,255,255,.22); border-radius:99px; background:rgba(15,30,55,.3); font-size:8px; }
         .zd-section-head { display:flex; align-items:flex-end; justify-content:space-between; gap:12px; margin:17px 0 9px; }
+        .st-key-studio_engine_mode_header .zd-engine-mode-head { display:block; margin:18px 0 8px; }
+        .zd-engine-mode-title-row { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+        .zd-engine-mode-title-row .zd-section-heading { display:flex; align-items:center; gap:9px; }
+        .zd-engine-mode-title-row h2 { margin:0; }
         .zd-section-head h2 { margin:0; color:#1d2b42; font:800 15px/1.2 'Inter',sans-serif; letter-spacing:-.02em; }
         .zd-section-head p { margin:3px 0 0; color:#768399; font-size:9px; }
         .zd-section-head a { color:#376cda; font-size:9px; font-weight:750; text-decoration:none; white-space:nowrap; }
@@ -23158,6 +23692,152 @@ elif st.session_state["current_page"] == "studio":
             margin:0 !important;
             font:inherit !important;
         }
+        .st-key-studio_mobile_notifications_open { display:none !important; }
+        .st-key-studio_mobile_profile_open { display:none !important; }
+        .st-key-studio_desktop_topbar {
+            margin:0 0 12px !important;
+            padding:8px 0 !important;
+            border-bottom:1px solid #e6edf6 !important;
+        }
+        .st-key-studio_desktop_topbar [data-testid="stHorizontalBlock"] {
+            align-items:center !important;
+            gap:10px !important;
+        }
+        .st-key-studio_desktop_topbar [data-testid="stColumn"] {
+            min-width:0 !important;
+        }
+        .st-key-studio_desktop_profile_control {
+            position:relative !important;
+            width:38px !important;
+            min-width:38px !important;
+            max-width:38px !important;
+            height:38px !important;
+            min-height:38px !important;
+            margin:0 auto !important;
+            padding:0 !important;
+        }
+        .zd-desktop-profile-avatar {
+            position:absolute;
+            inset:0;
+            display:grid;
+            width:38px;
+            height:38px;
+            place-items:center;
+            overflow:hidden;
+            color:#fff;
+            border:0;
+            border-radius:50%;
+            background:linear-gradient(135deg,#16b8b1,#5868e9);
+            box-shadow:0 2px 8px rgba(46,81,156,.2);
+            font:750 13px/1 'Inter',Arial,sans-serif;
+        }
+        .zd-desktop-profile-avatar img {
+            display:block;
+            width:100%;
+            height:100%;
+            overflow:hidden;
+            border-radius:50%;
+            object-fit:cover;
+        }
+        .zd-desktop-profile-avatar span { color:#fff !important; }
+        .st-key-studio_desktop_profile_control [data-testid="stButton"] {
+            position:absolute !important;
+            z-index:1 !important;
+            inset:0 !important;
+            width:38px !important;
+            height:38px !important;
+            margin:0 !important;
+            padding:0 !important;
+        }
+        .st-key-studio_desktop_profile_control [data-testid="stButton"] > button {
+            box-sizing:border-box !important;
+            width:38px !important;
+            min-width:38px !important;
+            max-width:38px !important;
+            height:38px !important;
+            min-height:38px !important;
+            margin:0 !important;
+            padding:0 !important;
+            opacity:0 !important;
+            border:0 !important;
+            border-radius:50% !important;
+            background:transparent !important;
+            cursor:pointer !important;
+        }
+        .st-key-studio_desktop_profile_control [data-testid="stButton"] > button:focus-visible {
+            opacity:.25 !important;
+            outline:2px solid #3974e8 !important;
+            outline-offset:2px !important;
+        }
+        .st-key-studio_desktop_notification_control {
+            position:relative !important;
+            width:38px !important;
+            min-width:38px !important;
+            max-width:38px !important;
+            height:38px !important;
+            min-height:38px !important;
+            margin:0 auto !important;
+            padding:0 !important;
+        }
+        .zd-desktop-notification-bell {
+            position:absolute;
+            inset:0;
+            display:grid;
+            width:38px;
+            height:38px;
+            place-items:center;
+            color:#24466e;
+        }
+        .zd-desktop-notification-bell::after {
+            position:absolute;
+            top:6px;
+            right:6px;
+            width:7px;
+            height:7px;
+            border:1px solid #fff;
+            border-radius:50%;
+            background:#ed5265;
+            content:"";
+        }
+        .zd-desktop-notification-bell svg {
+            display:block;
+            width:21px;
+            height:21px;
+            fill:none;
+            stroke:currentColor;
+            stroke-linecap:round;
+            stroke-linejoin:round;
+            stroke-width:2.2;
+        }
+        .st-key-studio_desktop_notification_control [data-testid="stButton"] {
+            position:absolute !important;
+            z-index:1 !important;
+            inset:0 !important;
+            width:38px !important;
+            height:38px !important;
+            margin:0 !important;
+            padding:0 !important;
+        }
+        .st-key-studio_desktop_notification_control [data-testid="stButton"] > button {
+            box-sizing:border-box !important;
+            width:38px !important;
+            min-width:38px !important;
+            max-width:38px !important;
+            height:38px !important;
+            min-height:38px !important;
+            margin:0 !important;
+            padding:0 !important;
+            opacity:0 !important;
+            border:0 !important;
+            border-radius:50% !important;
+            background:transparent !important;
+            cursor:pointer !important;
+        }
+        .st-key-studio_desktop_notification_control [data-testid="stButton"] > button:focus-visible {
+            opacity:.25 !important;
+            outline:2px solid #3974e8 !important;
+            outline-offset:2px !important;
+        }
         [data-testid="stMain"] [data-testid="stHorizontalBlock"]:has(.st-key-studio_dashboard_search) {
             align-items:flex-start !important;
         }
@@ -23237,7 +23917,8 @@ elif st.session_state["current_page"] == "studio":
         }
         [class*="st-key-studio_sidebar_action_"] [data-testid="stButton"] > button,
         [class*="st-key-studio_library_"] [data-testid="stButton"] > button,
-        [class*="st-key-studio_resource_"] [data-testid="stButton"] > button {
+        [class*="st-key-studio_resource_"] [data-testid="stButton"] > button,
+        .st-key-studio_sidebar_logout [data-testid="stButton"] > button {
             justify-content:flex-start !important;
             min-height:29px !important;
             padding:0 8px !important;
@@ -23515,7 +24196,8 @@ elif st.session_state["current_page"] == "studio":
         }
         [class*="st-key-studio_sidebar_action_"] [data-testid="stButton"] > button,
         [class*="st-key-studio_library_"] [data-testid="stButton"] > button,
-        [class*="st-key-studio_resource_"] [data-testid="stButton"] > button {
+        [class*="st-key-studio_resource_"] [data-testid="stButton"] > button,
+        .st-key-studio_sidebar_logout [data-testid="stButton"] > button {
             min-height:36px !important;
             padding:7px 10px !important;
         }
@@ -23873,14 +24555,44 @@ elif st.session_state["current_page"] == "studio":
             -webkit-box-orient:vertical;
             -webkit-line-clamp:2;
         }
-        .zd-engine-grid {
-            display:grid;
-            grid-template-columns:repeat(4,minmax(0,1fr));
-            align-items:stretch;
-            gap:12px;
-            margin-top:10px;
+        .st-key-studio_engine_grid { margin-top:10px !important; }
+        .st-key-studio_engine_grid [data-testid="stHorizontalBlock"] {
+            align-items:stretch !important;
+            gap:12px !important;
         }
-        .zd-engine-grid > * { min-width:0; }
+        .st-key-studio_engine_grid [data-testid="stColumn"] { min-width:0 !important; }
+        [class*="st-key-studio_engine_card_"] { position:relative !important; }
+        [class*="st-key-studio_engine_card_open_"] {
+            position:absolute !important;
+            z-index:4 !important;
+            inset:0 !important;
+            width:100% !important;
+            height:100% !important;
+        }
+        [class*="st-key-studio_engine_card_open_"] [data-testid="stButton"],
+        [class*="st-key-studio_engine_card_open_"] [data-testid="stButton"] > button {
+            width:100% !important;
+            height:100% !important;
+            min-height:0 !important;
+        }
+        [class*="st-key-studio_engine_card_open_"] [data-testid="stButton"] > button {
+            padding:0 !important;
+            opacity:0 !important;
+            border:0 !important;
+            background:transparent !important;
+            box-shadow:none !important;
+            cursor:pointer !important;
+        }
+        [class*="st-key-studio_engine_card_open_"] [data-testid="stButton"] > button:focus-visible {
+            opacity:1 !important;
+            outline:3px solid #4778ed !important;
+            outline-offset:-3px !important;
+            background:rgba(255,255,255,.18) !important;
+        }
+        [class*="st-key-studio_engine_card_"]:hover .zd-engine-photo-card {
+            transform:translateY(-2px);
+            box-shadow:0 11px 23px rgba(37,65,105,.14);
+        }
         .zd-engine-photo-card { grid-template-rows:auto minmax(72px,auto); }
         .zd-engine-photo-copy { min-width:0; }
         .zd-engine-photo-copy strong {
@@ -24778,6 +25490,7 @@ elif st.session_state["current_page"] == "studio":
             [class*="st-key-studio_sidebar_action_"] [data-testid="stButton"] > button,
             [class*="st-key-studio_library_"] [data-testid="stButton"] > button,
             [class*="st-key-studio_resource_"] [data-testid="stButton"] > button,
+            .st-key-studio_sidebar_logout [data-testid="stButton"] > button,
             .st-key-studio_sidebar_ghost_engine [data-testid="stButton"] > button {
                 min-height:36px !important;
                 justify-content:flex-start !important;
@@ -24794,12 +25507,14 @@ elif st.session_state["current_page"] == "studio":
             [class*="st-key-studio_sidebar_action_"] [data-testid="stButton"] > button p,
             [class*="st-key-studio_library_"] [data-testid="stButton"] > button p,
             [class*="st-key-studio_resource_"] [data-testid="stButton"] > button p,
+            .st-key-studio_sidebar_logout [data-testid="stButton"] > button p,
             .st-key-studio_sidebar_ghost_engine [data-testid="stButton"] > button p {
                 color:inherit !important;
             }
             [class*="st-key-studio_sidebar_action_"] [data-testid="stButton"] > button:hover,
             [class*="st-key-studio_library_"] [data-testid="stButton"] > button:hover,
             [class*="st-key-studio_resource_"] [data-testid="stButton"] > button:hover,
+            .st-key-studio_sidebar_logout [data-testid="stButton"] > button:hover,
             .st-key-studio_sidebar_ghost_engine [data-testid="stButton"] > button:hover {
                 color:#0284c7 !important;
                 border-left-color:#06b6d4 !important;
@@ -25113,7 +25828,10 @@ elif st.session_state["current_page"] == "studio":
                         font:750 13px/1 'Inter',Arial,sans-serif;
                         text-decoration:none !important;
                     }
-                    .zd-mobile-menu { position:relative; }
+                    .zd-mobile-menu {
+                        position:relative;
+                        z-index:60;
+                    }
                     .zd-mobile-menu summary {
                         display:flex;
                         width:40px;
@@ -25136,44 +25854,151 @@ elif st.session_state["current_page"] == "studio":
                         border-radius:2px;
                         background:#f5f6f8;
                     }
-                    .zd-mobile-menu nav {
-                        position:absolute;
-                        top:48px;
-                        right:0;
-                        z-index:30;
-                        display:grid;
-                        width:min(270px,calc(100vw - 28px));
-                        max-height:70vh;
-                        gap:5px;
-                        overflow:auto;
-                        padding:12px;
-                        border:1px solid #29303b;
-                        border-radius:14px;
-                        background:#11141a;
-                        box-shadow:0 18px 38px rgba(0,0,0,.48);
+                    .zd-mobile-menu[open]::after {
+                        position:fixed;
+                        z-index:0;
+                        inset:0;
+                        pointer-events:none;
+                        background:rgba(9,15,28,.52);
+                        content:"";
                     }
-                    .zd-mobile-menu .zd-nav-label,
-                    .zd-mobile-menu .zd-nav-rule { display:none; }
-                    .zd-mobile-menu .zd-nav { display:grid; gap:5px; }
-                    .zd-mobile-menu nav a {
+                    .zd-mobile-menu[open] summary {
+                        position:fixed;
+                        z-index:63;
+                        top:10px;
+                        left:calc(min(300px, 86vw) - 48px);
+                        pointer-events:auto;
+                        border-color:#e2e9f3;
+                        background:#fff;
+                    }
+                    .zd-mobile-header:has(.zd-mobile-menu[open]) {
+                        z-index:62 !important;
+                        pointer-events:none;
+                    }
+                    .zd-mobile-menu[open] summary span:first-child { transform:translateY(7px) rotate(45deg); }
+                    .zd-mobile-menu[open] summary span:nth-child(2) { opacity:0; }
+                    .zd-mobile-menu[open] summary span:last-child { transform:translateY(-7px) rotate(-45deg); }
+                    .zd-mobile-menu > nav {
+                        position:fixed;
+                        top:0;
+                        right:auto;
+                        bottom:0;
+                        left:0;
+                        z-index:61;
+                        display:grid;
+                        width:min(300px,86vw);
+                        height:100vh;
+                        height:100dvh;
+                        max-height:100vh;
+                        max-height:100dvh;
+                        align-content:start;
+                        gap:8px;
+                        overflow-x:hidden;
+                        overflow-y:auto;
+                        overscroll-behavior:contain;
+                        padding:74px 14px 22px;
+                        border:0;
+                        border-right:1px solid #e2e9f3;
+                        border-radius:0 20px 20px 0;
+                        background:#fff;
+                        box-shadow:18px 0 42px rgba(37,65,105,.16);
+                        animation:zd-mobile-drawer-in .2s ease-out;
+                    }
+                    .zd-mobile-menu[open] > nav { display:none !important; }
+                    html body.zovix-mobile-dashboard-responsive
+                    [data-testid="stMain"] [data-testid="stHorizontalBlock"]:has(.zd-mobile-menu[open])
+                    > [data-testid="stColumn"]:has(.st-key-studio_sidebar_action_0) {
+                        position:fixed !important;
+                        z-index:100 !important;
+                        top:0 !important;
+                        right:auto !important;
+                        bottom:0 !important;
+                        left:0 !important;
+                        display:block !important;
+                        visibility:visible !important;
+                        flex:0 0 min(300px,86vw) !important;
+                        width:min(300px,86vw) !important;
+                        max-width:min(300px,86vw) !important;
+                        height:100vh !important;
+                        height:100dvh !important;
+                        max-height:100vh !important;
+                        max-height:100dvh !important;
+                        overflow-x:hidden !important;
+                        overflow-y:auto !important;
+                        padding:0 !important;
+                        border:0 !important;
+                        background:#fff !important;
+                        box-shadow:18px 0 42px rgba(37,65,105,.16) !important;
+                        pointer-events:auto !important;
+                    }
+                    html body.zovix-mobile-dashboard-responsive
+                    [data-testid="stMain"] [data-testid="stHorizontalBlock"]:has(.zd-mobile-menu[open])
+                    > [data-testid="stColumn"]:has(.st-key-studio_sidebar_action_0)
+                    > [data-testid="stVerticalBlock"] {
+                        box-sizing:border-box !important;
+                        display:flex !important;
+                        width:100% !important;
+                        min-height:100vh !important;
+                        min-height:100dvh !important;
+                        flex-direction:column !important;
+                        gap:5px !important;
+                        overflow:visible !important;
+                        padding:16px 14px 28px !important;
+                        border:0 !important;
+                        border-radius:0 20px 20px 0 !important;
+                        background:#fff !important;
+                        pointer-events:auto !important;
+                    }
+                    @keyframes zd-mobile-drawer-in {
+                        from { transform:translateX(-100%); }
+                        to { transform:translateX(0); }
+                    }
+                    .zd-mobile-engine-label {
+                        padding:3px 4px 1px;
+                        color:#71819a;
+                        font:750 10px/1.2 'Inter',Arial,sans-serif;
+                        letter-spacing:.08em;
+                        text-transform:uppercase;
+                    }
+                    .zd-mobile-menu .zd-nav-label {
+                        display:block;
+                        padding:10px 4px 2px;
+                        color:#71819a;
+                        font:750 10px/1.2 'Inter',Arial,sans-serif;
+                        letter-spacing:.09em;
+                    }
+                    .zd-mobile-menu .zd-nav-rule {
+                        display:block;
+                        height:1px;
+                        margin:2px 2px;
+                        background:#e5ebf4;
+                    }
+                    .zd-mobile-menu .zd-nav {
+                        display:grid;
+                        grid-template-columns:minmax(0,1fr);
+                        gap:5px;
+                        overflow:visible !important;
+                        padding:0 !important;
+                    }
+                    .zd-mobile-menu > nav a {
                         display:flex;
-                        min-height:39px;
+                        min-height:42px;
                         align-items:center;
                         gap:9px;
                         padding:0 10px;
-                        color:#e7ebf3 !important;
-                        border:1px solid #252b36;
+                        color:#29405e !important;
+                        border:1px solid #e5ebf4;
                         border-radius:9px;
-                        background:#171b23;
+                        background:#f7f9fd;
                         font:600 12px/1.3 'Inter',Arial,sans-serif;
                         text-decoration:none !important;
                     }
-                    .zd-mobile-menu nav a.active {
+                    .zd-mobile-menu > nav a.active {
                         color:#fff !important;
                         border-color:#5b65e7;
                         background:linear-gradient(105deg,#4d65df,#704de1);
                     }
-                    .zd-mobile-menu nav .zd-ghost-engine-link {
+                    .zd-mobile-menu > nav .zd-ghost-engine-link {
                         color:#fff !important;
                         border:0;
                         background:linear-gradient(105deg,#4d65df,#704de1);
@@ -25181,6 +26006,7 @@ elif st.session_state["current_page"] == "studio":
                     .st-key-studio_dashboard_notifications,
                     .st-key-studio_account_profile,
                     .st-key-studio_topbar_logout,
+                    .st-key-studio_desktop_topbar,
                     [data-testid="stHorizontalBlock"]:has(.st-key-studio_dashboard_notifications) {
                         display:none !important;
                     }
@@ -25558,10 +26384,6 @@ elif st.session_state["current_page"] == "studio":
                     }
                     .zd-engine-photo-copy strong { font-size:11px !important; }
                     .zd-engine-photo-copy small { font-size:9px !important; }
-                    .zd-section-head p::after {
-                        content:" · Swipe to explore";
-                        color:#7c8da7;
-                    }
                     .st-key-studio_quick_actions_panel {
                         display:grid !important;
                         grid-template-columns:repeat(2,minmax(0,1fr)) !important;
@@ -25594,7 +26416,8 @@ elif st.session_state["current_page"] == "studio":
                         background:#f3f6fb !important;
                     }
                     html body.zovix-desktop-mobile .zd-mobile-header {
-                        display:none !important;
+                        display:flex !important;
+                        visibility:visible !important;
                     }
                     html body.zovix-desktop-mobile [data-testid="stMain"]
                     [data-testid="stHorizontalBlock"]:has(.st-key-studio_hero_container) {
@@ -25606,20 +26429,15 @@ elif st.session_state["current_page"] == "studio":
                     html body.zovix-desktop-mobile [data-testid="stMain"]
                     [data-testid="stHorizontalBlock"]:has(.st-key-studio_hero_container)
                     > [data-testid="stColumn"]:has(.st-key-studio_sidebar_action_0) {
-                        display:block !important;
-                        visibility:visible !important;
-                        order:0 !important;
-                        flex:0 0 20% !important;
-                        width:20% !important;
-                        max-width:20% !important;
+                        display:none !important;
                     }
                     html body.zovix-desktop-mobile [data-testid="stMain"]
                     [data-testid="stHorizontalBlock"]:has(.st-key-studio_hero_container)
                     > [data-testid="stColumn"]:has(.st-key-studio_hero_container) {
-                        order:1 !important;
-                        flex:0 0 80% !important;
-                        width:80% !important;
-                        max-width:80% !important;
+                        order:0 !important;
+                        flex:0 0 100% !important;
+                        width:100% !important;
+                        max-width:100% !important;
                     }
                     html body.zovix-desktop-mobile [data-testid="stMain"]
                     [data-testid="stHorizontalBlock"]:has(.zd-upcoming-section),
@@ -25635,31 +26453,69 @@ elif st.session_state["current_page"] == "studio":
                     html body.zovix-desktop-mobile [data-testid="stMain"]
                     [data-testid="stHorizontalBlock"]:has(.zd-community-section)
                     > [data-testid="stColumn"]:not(:has(.zd-community-section)) {
-                        display:block !important;
-                        visibility:visible !important;
+                        display:none !important;
+                        visibility:hidden !important;
+                        flex:0 0 0% !important;
+                        width:0 !important;
+                        max-width:0 !important;
+                    }
+                    html body.zovix-desktop-mobile [data-testid="stMain"]
+                    [data-testid="stHorizontalBlock"]:has(.zd-upcoming-section)
+                    > [data-testid="stColumn"]:has(.zd-upcoming-section),
+                    html body.zovix-desktop-mobile [data-testid="stMain"]
+                    [data-testid="stHorizontalBlock"]:has(.zd-community-section)
+                    > [data-testid="stColumn"]:has(.zd-community-section) {
+                        order:1 !important;
+                    }
+                    html body.zovix-desktop-mobile [data-testid="stMain"]
+                    [data-testid="stHorizontalBlock"]:has(.zd-upcoming-section)
+                    > [data-testid="stColumn"]:has(.zd-upcoming-section),
+                    html body.zovix-desktop-mobile [data-testid="stMain"]
+                    [data-testid="stHorizontalBlock"]:has(.zd-community-section)
+                    > [data-testid="stColumn"]:has(.zd-community-section) {
                         order:0 !important;
-                        flex:0 0 20% !important;
-                        width:20% !important;
-                        max-width:20% !important;
+                        flex:0 0 100% !important;
+                        width:100% !important;
+                        max-width:100% !important;
+                        min-width:0 !important;
                     }
                     html body.zovix-desktop-mobile [data-testid="stMain"]
                     [data-testid="stHorizontalBlock"]:has(.zd-upcoming-section)
-                    > [data-testid="stColumn"]:has(.zd-upcoming-section),
-                    html body.zovix-desktop-mobile [data-testid="stMain"]
-                    [data-testid="stHorizontalBlock"]:has(.zd-community-section)
-                    > [data-testid="stColumn"]:has(.zd-community-section) {
-                        order:1 !important;
+                    > [data-testid="stColumn"]:has(.zd-upcoming-section) {
+                        order:0 !important;
+                        flex:0 0 100% !important;
+                        width:100% !important;
+                        max-width:100% !important;
+                        min-width:0 !important;
                     }
-                    html body.zovix-desktop-mobile [data-testid="stMain"]
-                    [data-testid="stHorizontalBlock"]:has(.zd-upcoming-section)
-                    > [data-testid="stColumn"]:has(.zd-upcoming-section),
-                    html body.zovix-desktop-mobile [data-testid="stMain"]
-                    [data-testid="stHorizontalBlock"]:has(.zd-community-section)
-                    > [data-testid="stColumn"]:has(.zd-community-section) {
-                        order:1 !important;
-                        flex:0 0 80% !important;
-                        width:80% !important;
-                        max-width:80% !important;
+                    html body.zovix-desktop-mobile [data-testid="stMain"] .st-key-studio_bottom_footer
+                    [data-testid="stHorizontalBlock"]:has(.st-key-studio_footer_actions)
+                    > [data-testid="stColumn"]:not(:has(.st-key-studio_footer_actions)) {
+                        display:none !important;
+                        flex:0 0 0% !important;
+                        width:0 !important;
+                        max-width:0 !important;
+                    }
+                    html body.zovix-desktop-mobile [data-testid="stMain"] .st-key-studio_bottom_footer
+                    [data-testid="stHorizontalBlock"]:has(.st-key-studio_footer_actions)
+                    > [data-testid="stColumn"]:has(.st-key-studio_footer_actions) {
+                        flex:0 0 100% !important;
+                        width:100% !important;
+                        max-width:100% !important;
+                        min-width:0 !important;
+                    }
+                    html body.zovix-desktop-mobile [data-testid="stMain"] .st-key-studio_footer_actions
+                    [data-testid="stHorizontalBlock"] {
+                        display:flex !important;
+                        flex-wrap:wrap !important;
+                        gap:8px !important;
+                    }
+                    html body.zovix-desktop-mobile [data-testid="stMain"] .st-key-studio_footer_actions
+                    [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] {
+                        flex:0 0 calc(50% - 4px) !important;
+                        width:calc(50% - 4px) !important;
+                        max-width:calc(50% - 4px) !important;
+                        min-width:0 !important;
                     }
                     html body.zovix-desktop-mobile [data-testid="stMain"]
                     [data-testid="stHorizontalBlock"]:has(.st-key-studio_sidebar_action_0)
@@ -25766,6 +26622,101 @@ elif st.session_state["current_page"] == "studio":
                         color:#6b7b91 !important;
                     }
                 }
+                @media (max-width:480px) {
+                    html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive .st-key-studio_engine_filters [data-testid="stHorizontalBlock"] {
+                        flex-wrap:wrap !important;
+                        overflow:visible !important;
+                        row-gap:6px !important;
+                    }
+                    html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive .st-key-studio_engine_filters [data-testid="stColumn"] {
+                        flex:0 0 calc((100% - 14px) / 3) !important;
+                        width:calc((100% - 14px) / 3) !important;
+                        min-width:0 !important;
+                        max-width:calc((100% - 14px) / 3) !important;
+                    }
+                    html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive .st-key-studio_engine_filters [data-testid="stButton"],
+                    html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive .st-key-studio_engine_filters [data-testid="stButton"] > button {
+                        width:100% !important;
+                        min-width:0 !important;
+                        max-width:100% !important;
+                    }
+                }
+                html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive [data-testid="stElementContainer"]:has(.zd-studio-brand),
+                html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive [data-testid="stElementContainer"]:has(.studio-sidebar-section-label) {
+                    display:block !important;
+                }
+                html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive
+                [data-testid="stHorizontalBlock"]:has(.zd-mobile-menu[open])
+                > [data-testid="stColumn"]:has(.st-key-studio_sidebar_action_0) .zd-brand-name {
+                    color:#e7ebf3 !important;
+                    -webkit-text-fill-color:#e7ebf3 !important;
+                }
+                html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive
+                [data-testid="stHorizontalBlock"]:has(.zd-mobile-menu[open])
+                > [data-testid="stColumn"]:has(.st-key-studio_sidebar_action_0) .zd-brand-sub {
+                    color:#9aa8be !important;
+                }
+                html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive
+                [data-testid="stHorizontalBlock"]:has(.zd-mobile-menu[open])
+                > [data-testid="stColumn"]:has(.st-key-studio_sidebar_action_0) .studio-sidebar-section-label {
+                    color:#9aa8be !important;
+                }
+                html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive [class*="st-key-studio_sidebar_action_"],
+                html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive [class*="st-key-studio_library_"],
+                html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive [class*="st-key-studio_resource_"],
+                html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive .st-key-studio_sidebar_logout,
+                html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive .st-key-studio_sidebar_ghost_engine {
+                    flex:0 0 auto !important;
+                    width:100% !important;
+                    min-width:0 !important;
+                    max-width:100% !important;
+                    margin:0 !important;
+                }
+                html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive [class*="st-key-studio_sidebar_action_"] [data-testid="stButton"] > button {
+                    box-sizing:border-box !important;
+                    width:100% !important;
+                    min-width:0 !important;
+                    min-height:42px !important;
+                    margin:0 !important;
+                    padding:8px 12px !important;
+                    color:#e7ebf3 !important;
+                    border:1px solid #252b36 !important;
+                    border-left:3px solid transparent !important;
+                    border-radius:9px !important;
+                    background:#171b23 !important;
+                    box-shadow:none !important;
+                    font-size:12px !important;
+                }
+                html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive [class*="st-key-studio_library_"] [data-testid="stButton"] > button,
+                html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive [class*="st-key-studio_resource_"] [data-testid="stButton"] > button,
+                html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive .st-key-studio_sidebar_logout [data-testid="stButton"] > button,
+                html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive .st-key-studio_sidebar_ghost_engine [data-testid="stButton"] > button {
+                    width:100% !important;
+                    min-width:0 !important;
+                    min-height:42px !important;
+                    color:#e7ebf3 !important;
+                    border:1px solid #252b36 !important;
+                    border-radius:9px !important;
+                    background:#171b23 !important;
+                }
+                html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive .st-key-studio_sidebar_action_0 [data-testid="stButton"] > button {
+                    color:#e7ebf3 !important;
+                    border-left-color:#16b8b1 !important;
+                    background:#202633 !important;
+                    font-weight:750 !important;
+                }
+                html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive [class*="st-key-studio_sidebar_action_"] [data-testid="stButton"] > button p,
+                html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive [class*="st-key-studio_library_"] [data-testid="stButton"] > button p,
+                html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive [class*="st-key-studio_resource_"] [data-testid="stButton"] > button p,
+                html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive .st-key-studio_sidebar_logout [data-testid="stButton"] > button p,
+                html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive .st-key-studio_sidebar_ghost_engine [data-testid="stButton"] > button p {
+                    color:inherit !important;
+                }
+                html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive [data-testid="stMain"] .st-key-studio_sidebar_action_0 [data-testid="stButton"] > button {
+                    color:#fff !important;
+                    border-color:#5b65e7 !important;
+                    background:linear-gradient(105deg,#4d65df,#704de1) !important;
+                }
         </style>
         """),
         unsafe_allow_html=True,
@@ -25782,12 +26733,20 @@ elif st.session_state["current_page"] == "studio":
             ("✂️", "Editor", f"?page=studio_mode&amp;mode={urllib.parse.quote('Video Editor Mode', safe='')}", False),
             ("🤖", "AI Agent", f"?page=studio_mode&amp;mode={urllib.parse.quote('AI Agent Mode', safe='')}", False),
             ("📣", "Sales Video", f"?page=studio_mode&amp;mode={urllib.parse.quote('AI Sales Mode', safe='')}", False),
+            ("🧠", "Dynamic UI", f"?page=studio_mode&amp;mode={urllib.parse.quote('Dynamic UI Mode', safe='')}", False),
             ("💜", "Live Emotions", f"?page=studio_mode&amp;mode={urllib.parse.quote('Live Emotion Mode', safe='')}", False),
             ("⚡", "Upscaler", f"?page=studio_mode&amp;mode={urllib.parse.quote('Upscaler Mode', safe='')}", False),
         ]),
         ("LIBRARY", [
             ("▣", "My Creations", "?page=portfolio", False),
             ("◷", "History", "?page=portfolio", False),
+        ]),
+        ("TOOLS & RESOURCES", [
+            ("▤", "Tutorials", "?page=tutorials", False),
+            ("ⓘ", "Documentation", "?page=documentation", False),
+            ("◉", "Community", "?page=community", False),
+            ("?", "Support", "?page=support", False),
+            ("↩", "Log out", "?page=logout", False),
         ]),
     ]
     sidebar_nav_html = []
@@ -26056,8 +27015,9 @@ elif st.session_state["current_page"] == "studio":
         <style>
         .st-key-studio_hero_container {{
             background-image:
-                linear-gradient(90deg,rgba(239,246,255,.9) 0%,rgba(239,246,255,.78) 42%,rgba(239,246,255,.35) 72%,rgba(239,246,255,.12) 100%),
+                linear-gradient(90deg,rgba(239,246,255,.64) 0%,rgba(239,246,255,.42) 32%,rgba(239,246,255,.12) 64%,rgba(239,246,255,0) 100%),
                 url("{dashboard_hero_image}") !important;
+            background-size:cover !important;
         }}
         </style>
         """,
@@ -26120,6 +27080,8 @@ elif st.session_state["current_page"] == "studio":
         ]:
             if st.button(label, key=f"studio_resource_{label}", width="stretch"):
                 _dashboard_go(action)
+        if st.button("↩  Log out", key="studio_sidebar_logout", width="stretch"):
+            _dashboard_go("logout")
 
     with dashboard_columns[1]:
         search_query = ""
@@ -26127,36 +27089,71 @@ elif st.session_state["current_page"] == "studio":
         if notice := st.session_state.pop("studio_dashboard_notice", None):
             st.info(notice)
 
+        with st.container(key="studio_desktop_topbar"):
+            desktop_topbar_columns = st.columns([1, 0.08, 0.08], gap="small")
+            with desktop_topbar_columns[0]:
+                st.markdown(
+                    "<div class='zd-breadcrumb'>Workspace&nbsp; / &nbsp;Dashboard</div>",
+                    unsafe_allow_html=True,
+                )
+            with desktop_topbar_columns[1]:
+                with st.container(key="studio_desktop_notification_control"):
+                    st.markdown(
+                        "<div class='zd-desktop-notification-bell' role='img' aria-label='Notifications'>"
+                        "<svg viewBox='0 0 24 24' aria-hidden='true'><path d='M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9'></path>"
+                        "<path d='M10 21h4'></path></svg></div>",
+                        unsafe_allow_html=True,
+                    )
+                    if st.button("Notifications", key="studio_desktop_notifications"):
+                        st.toast("You're all caught up.")
+            with desktop_topbar_columns[2]:
+                with st.container(key="studio_desktop_profile_control"):
+                    st.markdown(
+                        f"<div class='zd-desktop-profile-avatar' role='img' aria-label='Profile avatar'>{profile_avatar_html}</div>",
+                        unsafe_allow_html=True,
+                    )
+                    if st.button("Open profile", key="studio_account_profile"):
+                        _dashboard_go("profile")
+
         st.markdown(
             f"""
             <header class="zd-mobile-header">
+              <details class="zd-mobile-menu">
+                <summary aria-label="Open navigation menu"><span></span><span></span><span></span></summary>
+                <nav aria-label="Studio navigation"><div class="zd-mobile-engine-label">Studio navigation</div>{''.join(sidebar_nav_html)}
+                  <a class="zd-ghost-engine-link" href="?page=studio_mode&amp;mode={urllib.parse.quote('Cinematic Engine', safe='')}">🎬&nbsp; Story Engine</a>
+                  <a href="?page=payments">♛&nbsp; Credits &amp; Plans</a>
+                </nav>
+              </details>
               <a class="zd-mobile-brand" href="?page=studio">
                 <span class="zd-mobile-brand-mark">Z</span>
                 <span><strong>ZOVIX</strong><small>AI CREATIVE STUDIO</small></span>
               </a>
               <div class="zd-mobile-header-actions">
-                <a class="zd-mobile-profile" href="?page=profile" aria-label="Open profile">{avatar_initial}</a>
-                <details class="zd-mobile-menu">
-                  <summary aria-label="Open navigation menu"><span></span><span></span><span></span></summary>
-                  <nav>{''.join(sidebar_nav_html)}
-                    <a class="zd-ghost-engine-link" href="?page=studio_mode&amp;mode={urllib.parse.quote('Cinematic Engine', safe='')}">🎬&nbsp; Story Engine</a>
-                    <a href="?page=portfolio">▣&nbsp; My Creations</a>
-                    <a href="?page=payments">♛&nbsp; Credits &amp; Plans</a>
-                  </nav>
-                </details>
+                <a class="zd-mobile-icon-button" href="#engines" aria-label="Explore AI engines">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"></circle><path d="m16 16 5 5"></path></svg>
+                </a>
+                <div class="zd-mobile-icon-button zd-mobile-notifications" role="img" aria-label="Notifications">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path><path d="M10 21h4"></path></svg>
+                </div>
+                <div class="zd-mobile-profile-avatar" role="img" aria-label="Profile avatar">{profile_avatar_html}</div>
               </div>
             </header>
             """,
             unsafe_allow_html=True,
         )
+        if st.button("Open profile", key="studio_mobile_profile_open"):
+            _dashboard_go("profile")
+        if st.button("Notifications", key="studio_mobile_notifications_open"):
+            st.toast("You're all caught up.")
 
         with st.container(key="studio_hero_container"):
             st.markdown(
                 f"""
                 <section class="zd-hero">
-                  <div class="zd-hero-copy"><div class="zd-hero-kicker">Welcome back, {safe_name} 👋</div>
-                  <h1>What do you want to <span>create</span> today?</h1>
-                  <p>Turn your imagination into stunning visuals, videos, characters and voices — all with the power of ZOVIX AI.</p>
+                  <div class="zd-hero-copy"><div class="zd-hero-kicker">Welcome back, <strong>{safe_name}</strong> 👋</div>
+                  <h1>What will you <span>create</span> today?</h1>
+                  <p>Bring your ideas to life with stunning visuals, videos, characters, and voices using ZOVIX AI.</p>
                   </div>
                 </section>
                 """,
@@ -26210,20 +27207,13 @@ elif st.session_state["current_page"] == "studio":
                                 ("Scheduler", "scheduler"),
                                 ("My Creation", "portfolio"),
                                 ("Watch Tutorial", "tutorials"),
-                                ("Go to Library", "portfolio"),
-                                ("Notifications", "notifications"),
-                                ("Profile", "profile"),
-                                ("Log out", "logout"),
                             ]):
                                 if st.button(
                                     quick_label,
                                     key=f"studio_quick_action_{quick_index}",
                                     width="stretch",
                                 ):
-                                    if quick_action == "notifications":
-                                        st.toast("You're all caught up.")
-                                    else:
-                                        _dashboard_go(quick_action)
+                                    _dashboard_go(quick_action)
 
         if prompt_submitted:
             if not dashboard_prompt.strip():
@@ -26242,13 +27232,43 @@ elif st.session_state["current_page"] == "studio":
                 st.session_state["studio_mode_radio"] = "💡 Autonomous AI Topic"
                 _dashboard_go(f"mode:{selected_mode}")
 
-        with st.container(key="studio_engine_header"):
+        with st.container(key="studio_engine_mode_header"):
             st.markdown(
-                "<div class='zd-section-head'><div><h2>AI Engines</h2>"
-                f"<p>{len(engine_cards)} specialized engines. Endless creative possibilities.</p></div></div>",
+                "<div class='zd-section-head zd-engine-mode-head'>"
+                "<div class='zd-engine-mode-title-row'><div class='zd-section-heading'>"
+                "<span class='zd-section-icon' aria-hidden='true'>⚙</span><h2>Engine Mode</h2></div>"
+                "<a href='#engines'>View All&nbsp; →</a></div></div>",
                 unsafe_allow_html=True,
             )
-        engine_pool = engine_cards
+        engine_categories = ["All", "Image", "Video", "Character", "Voice", "Utility"]
+        selected_engine_category = st.session_state.get("studio_engine_category", "All")
+        if selected_engine_category not in engine_categories:
+            selected_engine_category = "All"
+            st.session_state["studio_engine_category"] = "All"
+        with st.container(key="studio_engine_filters"):
+            filter_columns = st.columns(len(engine_categories), gap="small")
+            for filter_column, category in zip(filter_columns, engine_categories):
+                with filter_column:
+                    if st.button(
+                        category,
+                        key=f"studio_engine_filter_{category.lower()}",
+                        type="primary" if selected_engine_category == category else "secondary",
+                        width="stretch",
+                    ):
+                        st.session_state["studio_engine_category"] = category
+                        st.rerun()
+
+        engine_category_terms = {
+            "Image": ("workshop", "blueprint", "draw", "upscaler"),
+            "Video": ("story", "editor", "sales", "cinematic"),
+            "Character": ("face",),
+            "Voice": ("emotion", "voice"),
+            "Utility": ("agent", "dynamic"),
+        }
+        engine_pool = engine_cards[:] if selected_engine_category == "All" else [
+            card for card in engine_cards
+            if any(term in f"{card[1]} {card[2]}".casefold() for term in engine_category_terms[selected_engine_category])
+        ]
         visible_engines = [
             card for card in engine_pool
             if not search_query
@@ -26256,6 +27276,14 @@ elif st.session_state["current_page"] == "studio":
             or search_query in card[2].casefold()
             or search_query in card[3].casefold()
         ]
+        with st.container(key="studio_engine_header"):
+            st.markdown(
+                "<div class='zd-section-head'>"
+                "<div class='zd-section-heading'><span class='zd-section-icon' aria-hidden='true'>✦</span><div>"
+                "<h2>AI Mode</h2></div></div>"
+                "<a href='#engines'>View All&nbsp; →</a></div>",
+                unsafe_allow_html=True,
+            )
         supplied_engine_images = {
             0: "studio_cinematic_engine.webp",
             1: "studio_expressive_face_background.webp",
@@ -26270,26 +27298,34 @@ elif st.session_state["current_page"] == "studio":
             10: "studio_upscaler_creature.png",
             11: "ghost_engine_cityscape.png",
         }
-        engine_card_html = []
-        for card in visible_engines:
-            icon, title, _mode, description, _image = card
-            supplied_image = supplied_engine_images.get(engine_cards.index(card))
-            if supplied_image is None:
-                raise ValueError(f"No dashboard image configured for {title!r}")
-            image_source = static_asset_data_uri(supplied_image)
-            engine_card_html.append(
-                "<div class='zd-engine-photo-card' style='cursor:default'>"
-                f"<img src='{html_lib.escape(image_source, quote=True)}' alt='' loading='eager' decoding='async'>"
-                f"<span class='zd-engine-photo-icon' aria-hidden='true'>{html_lib.escape(icon)}</span>"
-                "<span class='zd-engine-photo-copy'>"
-                f"<strong>{html_lib.escape(title)}</strong>"
-                f"<small>{html_lib.escape(description)}</small></span>"
-                "</div>"
-            )
-        st.markdown(
-            f"<section class='zd-engine-grid' id='engines'>{''.join(engine_card_html)}</section>",
-            unsafe_allow_html=True,
-        )
+        with st.container(key="studio_engine_grid"):
+            for row_start in range(0, len(visible_engines), 4):
+                card_columns = st.columns(4, gap="small")
+                for column, card in zip(card_columns, visible_engines[row_start:row_start + 4]):
+                    icon, title, mode, description, _image = card
+                    engine_index = engine_cards.index(card)
+                    supplied_image = supplied_engine_images.get(engine_index)
+                    if supplied_image is None:
+                        raise ValueError(f"No dashboard image configured for {title!r}")
+                    image_source = static_asset_data_uri(supplied_image)
+                    with column:
+                        with st.container(key=f"studio_engine_card_{engine_index}"):
+                            st.markdown(
+                                "<div class='zd-engine-photo-card'>"
+                                f"<img src='{html_lib.escape(image_source, quote=True)}' alt='' loading='lazy' decoding='async'>"
+                                f"<span class='zd-engine-photo-icon' aria-hidden='true'>{html_lib.escape(icon)}</span>"
+                                "<span class='zd-engine-photo-copy'>"
+                                f"<strong>{html_lib.escape(title)}</strong>"
+                                f"<small>{html_lib.escape(description)}</small></span>"
+                                "</div>",
+                                unsafe_allow_html=True,
+                            )
+                            if st.button(
+                                f"Open {title}",
+                                key=f"studio_engine_card_open_{engine_index}",
+                                width="stretch",
+                            ):
+                                _dashboard_go("ghost_engine" if mode == "ghost_engine" else f"mode:{mode}")
         if search_query and not visible_engines:
             st.info("No AI engines match your search.")
 
@@ -27954,6 +28990,185 @@ elif st.session_state.get("current_page") == "studio_mode":
             [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .block-container {
                 padding-left: 18px !important;
                 padding-right: 18px !important;
+            }
+        }
+        @media (max-width: 768px) {
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .block-container {
+                width: 100% !important;
+                max-width: 100% !important;
+                padding: 10px 12px 22px !important;
+            }
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) [data-testid="stVerticalBlock"] {
+                min-width: 0 !important;
+                gap: 10px !important;
+            }
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) [data-testid="stHorizontalBlock"] {
+                display: flex !important;
+                flex-wrap: wrap !important;
+                align-items: stretch !important;
+                gap: 10px !important;
+            }
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] {
+                box-sizing: border-box !important;
+                flex: 1 1 calc(50% - 5px) !important;
+                width: calc(50% - 5px) !important;
+                min-width: 0 !important;
+                max-width: calc(50% - 5px) !important;
+            }
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .studio-mode-photo-hero,
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .cinematic-header,
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .editor-header,
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .face-header,
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .live-emotion-hero,
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .upscaler-hero {
+                box-sizing: border-box !important;
+                min-height: 190px !important;
+                height: auto !important;
+                justify-content: center !important;
+                align-items: flex-start !important;
+                overflow: hidden !important;
+                margin: 4px 0 10px !important;
+                padding: 22px 18px !important;
+                border: 1px solid #dce7f4 !important;
+                border-radius: 16px !important;
+                background-position: center 42% !important;
+                background-size: cover !important;
+                box-shadow: 0 8px 24px rgba(26,55,96,.11) !important;
+                text-align: left !important;
+                transform: none !important;
+            }
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .studio-mode-photo-hero::before,
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .cinematic-header::before,
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .editor-header::before,
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .face-header::before,
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .live-emotion-hero::before,
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .upscaler-hero::before {
+                border-radius: inherit !important;
+                background: linear-gradient(90deg,rgba(255,255,255,.96),rgba(255,255,255,.84) 58%,rgba(255,255,255,.38)) !important;
+            }
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .studio-mode-photo-hero h2,
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .cinematic-header h2,
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .editor-header h2,
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .face-header h2,
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .live-emotion-hero h1,
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .upscaler-hero h1 {
+                max-width: 100% !important;
+                margin: 3px 0 7px !important;
+                font: 800 clamp(23px,6vw,29px)/1.14 'Inter',Arial,sans-serif !important;
+                letter-spacing: -.025em !important;
+                text-align: left !important;
+                overflow-wrap: anywhere !important;
+            }
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .studio-mode-photo-hero p,
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .cinematic-header p,
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .editor-header p,
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .face-header p,
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .live-emotion-hero p,
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .upscaler-hero p {
+                max-width: 38ch !important;
+                font: 500 12px/1.5 'Inter',Arial,sans-serif !important;
+                text-align: left !important;
+            }
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) [data-testid="stVerticalBlockBorderWrapper"],
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) [data-testid="stVerticalBlockBorder"] {
+                min-width: 0 !important;
+                border-color: #e2eaf4 !important;
+                border-radius: 14px !important;
+                background: #fff !important;
+                box-shadow: 0 4px 14px rgba(30,57,92,.055) !important;
+            }
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) [data-testid="stWidgetLabel"] label {
+                color: #263b56 !important;
+                font: 650 12px/1.4 'Inter',Arial,sans-serif !important;
+            }
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) input,
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) textarea,
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) [data-baseweb="select"] > div {
+                box-sizing: border-box !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                border-color: #d8e3f1 !important;
+                border-radius: 10px !important;
+                background-color: #fff !important;
+                font-size: 16px !important;
+            }
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) textarea {
+                min-height: 104px !important;
+                line-height: 1.5 !important;
+            }
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) [data-testid="stButton"] > button,
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) [data-testid="stDownloadButton"] > button {
+                box-sizing: border-box !important;
+                width: 100% !important;
+                min-width: 0 !important;
+                min-height: 44px !important;
+                padding: 9px 12px !important;
+                border-radius: 11px !important;
+                font: 650 12px/1.3 'Inter',Arial,sans-serif !important;
+                white-space: normal !important;
+                overflow-wrap: anywhere !important;
+            }
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) [data-testid="stFileUploader"] section {
+                padding: 12px !important;
+                border: 1px dashed #bdcde2 !important;
+                border-radius: 12px !important;
+                background: #f8fbff !important;
+            }
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) [data-testid="stTabs"] [role="tablist"] {
+                max-width: 100% !important;
+                overflow-x: auto !important;
+                flex-wrap: nowrap !important;
+                scrollbar-width: thin !important;
+            }
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) img,
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) video,
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) iframe,
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) canvas {
+                max-width: 100% !important;
+                height: auto !important;
+                border-radius: 10px !important;
+            }
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) [data-testid="stDataFrame"],
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) [data-testid="stTable"] {
+                max-width: 100% !important;
+                overflow-x: auto !important;
+            }
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) pre,
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) code {
+                max-width: 100% !important;
+                overflow-x: auto !important;
+                overflow-wrap: anywhere !important;
+            }
+        }
+        @media (max-width: 420px) {
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .block-container {
+                padding-left: 10px !important;
+                padding-right: 10px !important;
+            }
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) [data-testid="stHorizontalBlock"] {
+                gap: 8px !important;
+            }
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] {
+                flex-basis: calc(50% - 4px) !important;
+                width: calc(50% - 4px) !important;
+                max-width: calc(50% - 4px) !important;
+            }
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .studio-mode-photo-hero,
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .cinematic-header,
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .editor-header,
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .face-header,
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .live-emotion-hero,
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .upscaler-hero {
+                min-height: 176px !important;
+                padding: 18px 14px !important;
+            }
+        }
+        @media (max-width: 768px) {
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) [data-testid="stMainBlockContainer"] > [data-testid="stVerticalBlock"] > [data-testid="stHorizontalBlock"] > [data-testid="stColumn"],
+            [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) [data-testid="stMainBlockContainer"] > [data-testid="stVerticalBlock"] > [data-testid="stHorizontalBlock"] > [data-testid="column"] {
+                flex: 1 1 100% !important;
+                width: 100% !important;
+                max-width: 100% !important;
             }
         }
     </style>

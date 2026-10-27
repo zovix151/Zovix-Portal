@@ -275,12 +275,14 @@ def render_ghost_engine_studio(
         @media (max-width: 768px) {
             section[data-testid="stMain"] .block-container {
                 max-width: 100% !important;
-                padding: 0 22px 22px !important;
+                padding: 0 14px 22px !important;
             }
             .ghost-engine-hero {
-                min-height: 220px;
-                padding: 24px 18px;
-                border-radius: 12px;
+                min-height: 190px;
+                margin: 4px 0 12px;
+                padding: 20px 16px;
+                border-radius: 16px;
+                box-shadow: 0 8px 22px rgba(32,77,126,.1);
                 transform: none;
             }
             .ghost-engine-hero .ghost-engine-badge {
@@ -299,9 +301,10 @@ def render_ghost_engine_studio(
         }
         @media (max-width: 640px) {
             section[data-testid="stMain"] .block-container {
-                padding: 0 22px 22px !important;
+                padding: 0 12px 22px !important;
             }
-            section[data-testid="stMain"] [data-testid="stHorizontalBlock"]:has(.st-key-ghost_script) > [data-testid="column"] {
+            section[data-testid="stMain"] [data-testid="stHorizontalBlock"]:has(.st-key-ghost_script) > [data-testid="column"],
+            section[data-testid="stMain"] [data-testid="stHorizontalBlock"]:has(.st-key-ghost_script) > [data-testid="stColumn"] {
                 flex: 1 1 100% !important;
                 width: 100% !important;
                 min-width: 0 !important;
@@ -309,10 +312,31 @@ def render_ghost_engine_studio(
             section[data-testid="stMain"] [data-testid="stVerticalBlockBorderWrapper"] [data-testid="stHorizontalBlock"] {
                 flex-wrap: wrap !important;
             }
-            section[data-testid="stMain"] [data-testid="stVerticalBlockBorderWrapper"] [data-testid="stHorizontalBlock"] > [data-testid="column"] {
-                flex: 1 1 100% !important;
-                width: 100% !important;
+            section[data-testid="stMain"] [data-testid="stVerticalBlockBorderWrapper"] [data-testid="stHorizontalBlock"] > [data-testid="column"],
+            section[data-testid="stMain"] [data-testid="stVerticalBlockBorderWrapper"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] {
+                flex: 1 1 calc(50% - 6px) !important;
+                width: calc(50% - 6px) !important;
+                max-width: calc(50% - 6px) !important;
                 min-width: 0 !important;
+            }
+            section[data-testid="stMain"] [data-testid="stVerticalBlockBorderWrapper"] [data-testid="stHorizontalBlock"] {
+                gap: 10px !important;
+            }
+            section[data-testid="stMain"] [data-testid="stButton"] > button,
+            section[data-testid="stMain"] [data-testid="stDownloadButton"] > button {
+                box-sizing: border-box !important;
+                width: 100% !important;
+                min-height: 44px !important;
+                padding: 9px 12px !important;
+                border-radius: 10px !important;
+                white-space: normal !important;
+            }
+            section[data-testid="stMain"] [data-testid="stTextArea"] textarea {
+                min-height: 124px !important;
+            }
+            section[data-testid="stMain"] [data-testid="stFileUploader"] section {
+                padding: 12px !important;
+                border-radius: 12px !important;
             }
             section[data-testid="stMain"] [data-testid="stMainBlockContainer"] {
                 padding-left: 0 !important;
@@ -321,8 +345,9 @@ def render_ghost_engine_studio(
         }
         @media (max-width: 480px) {
             section[data-testid="stMain"] .block-container {
-                padding: 0 18px 22px !important;
+                padding: 0 10px 20px !important;
             }
+            .ghost-engine-hero { min-height: 176px; padding: 18px 14px; }
         }
         </style>
         <section class="ghost-engine-hero">
