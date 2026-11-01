@@ -1416,7 +1416,7 @@ components.html(
                 html body.zovix-mobile-dashboard-responsive .st-key-studio_engine_header { margin-top:18px !important; }
                 html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive .st-key-studio_engine_grid [data-testid="stHorizontalBlock"] { display:grid !important; grid-template-columns:repeat(3,minmax(0,1fr)) !important; align-items:stretch !important; gap:8px !important; }
                 html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive .st-key-studio_engine_grid [data-testid="stColumn"] { box-sizing:border-box !important; flex:none !important; width:auto !important; min-width:0 !important; max-width:none !important; }
-                html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive [class*="st-key-studio_engine_card_"] { min-height:112px !important; }
+                html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive [class*="st-key-studio_engine_card_"] { min-height:134px !important; }
                 html body.zovix-mobile-dashboard-responsive .zd-engine-photo-card {
                     position:relative !important;
                     display:grid !important;
@@ -1437,7 +1437,7 @@ components.html(
                     display:block !important;
                     width:100% !important;
                     height:auto !important;
-                    aspect-ratio:2.2 / 1 !important;
+                    aspect-ratio:1.55 / 1 !important;
                     object-fit:cover !important;
                 }
                 html body.zovix-mobile-dashboard-responsive .zd-engine-photo-copy {
@@ -1490,7 +1490,7 @@ components.html(
             }
             @media (min-width: 600px) and (max-width: 900px) {
                 html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive .st-key-studio_engine_grid [data-testid="stHorizontalBlock"] { grid-template-columns:repeat(3,minmax(0,1fr)) !important; }
-                html body.zovix-mobile-dashboard-responsive .zd-engine-photo-card img { aspect-ratio:3 / 1 !important; }
+                html body.zovix-mobile-dashboard-responsive .zd-engine-photo-card img { aspect-ratio:2.2 / 1 !important; }
                 html body.zovix-mobile-dashboard-responsive .zd-engine-photo-copy strong { font-size:11px !important; }
                 html body.zovix-mobile-dashboard-responsive .zd-engine-photo-copy small { font-size:9px !important; }
             }
@@ -27565,6 +27565,7 @@ elif st.session_state["current_page"] == "studio":
                     with creation_columns[6]:
                         with st.popover("\u26a1  Quick Actions", key="studio_prompt_quick_actions"):
                             for quick_index, (quick_label, quick_action) in enumerate([
+                                ("Subscription Packs", "payments"),
                                 ("Sub User", "subusers"),
                                 ("Scheduler", "scheduler"),
                                 ("My Creation", "portfolio"),
