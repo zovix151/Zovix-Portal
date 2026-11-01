@@ -273,6 +273,44 @@ def render_ghost_engine_studio(
         .ghost-engine-gallery-title { color:#173b66; font:750 16px/1.3 'Inter',Arial,sans-serif; }
         .ghost-engine-gallery-subtitle { color:#71849a; font:400 12px/1.5 'Inter',Arial,sans-serif; }
         @media (max-width: 768px) {
+            .st-key-ghost_engine_gallery_header [data-testid="stHorizontalBlock"] {
+                display:grid !important;
+                grid-template-columns:minmax(0,1fr) auto !important;
+                align-items:center !important;
+                gap:8px !important;
+            }
+            .st-key-ghost_engine_gallery_header [data-testid="stColumn"] {
+                box-sizing:border-box !important;
+                flex:none !important;
+                width:auto !important;
+                min-width:0 !important;
+                max-width:none !important;
+            }
+            section[data-testid="stMain"] [data-testid="stHorizontalBlock"]:has([class*="st-key-ghost_engine_gallery_card_"]) {
+                display:grid !important;
+                grid-template-columns:minmax(0,1fr) !important;
+                gap:12px !important;
+            }
+            section[data-testid="stMain"] [data-testid="stHorizontalBlock"]:has([class*="st-key-ghost_engine_gallery_card_"]) > [data-testid="stColumn"] {
+                box-sizing:border-box !important;
+                flex:none !important;
+                width:auto !important;
+                min-width:0 !important;
+                max-width:none !important;
+            }
+            section[data-testid="stMain"] [class*="st-key-ghost_engine_gallery_card_"] [data-testid="stVerticalBlockBorderWrapper"] {
+                padding:0 !important;
+                overflow:hidden !important;
+                border-radius:12px !important;
+            }
+            section[data-testid="stMain"] [class*="st-key-ghost_engine_gallery_card_"] video {
+                display:block !important;
+                width:100% !important;
+                max-width:100% !important;
+                aspect-ratio:16 / 9 !important;
+                object-fit:contain !important;
+                border-radius:12px !important;
+            }
             section[data-testid="stMain"] .block-container {
                 max-width: 100% !important;
                 padding: 0 14px 22px !important;
@@ -555,15 +593,12 @@ def render_ghost_engine_studio(
             # Keep the preview empty until the generated master video is ready.
 
     st.markdown("---")
-    gallery_title_column, gallery_link_column = st.columns([1, 0.2], vertical_alignment="center")
-    with gallery_title_column:
-        st.markdown("<div class='ghost-engine-gallery-title'>Cinematic Gallery</div>", unsafe_allow_html=True)
-        st.markdown(
-            "<div class='ghost-engine-gallery-subtitle'>Your finished cinematic videos appear here and in My Portfolio.</div>",
-            unsafe_allow_html=True,
-        )
-    with gallery_link_column:
-        st.link_button("View All →", "?page=portfolio", width="stretch")
+    with st.container(key="ghost_engine_gallery_header"):
+        gallery_title_column, gallery_link_column = st.columns([1, 0.2], vertical_alignment="center")
+        with gallery_title_column:
+            st.markdown("<div class='ghost-engine-gallery-title'>Cinematic Gallery</div>", unsafe_allow_html=True)
+        with gallery_link_column:
+            st.link_button("View All →", "?page=portfolio", width="stretch")
     gallery_items = [
         item for item in st.session_state.get("history_renders", [])
         if item.get("generation_type") == "Cinematic Engine"
@@ -578,10 +613,6 @@ def render_ghost_engine_studio(
             with column:
                 with st.container(border=True, key=f"ghost_engine_gallery_card_{index}"):
                     st.video(item["path"])
-                    st.markdown(f"**{item.get('file_name', 'Cinematic video')}**")
-                    prompt = str(item.get("prompt", "Cinematic video")).strip()
-                    st.caption(prompt[:100] + ("…" if len(prompt) > 100 else ""))
-                    st.caption("🎬 Cinematic · Zovix AI Studio")
 
     st.markdown(
         """

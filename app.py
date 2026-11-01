@@ -186,10 +186,11 @@ components.html(
         }
         if (!host.__zovixWorkspaceWidthPoll) {
             host.__zovixWorkspaceWidthPoll = host.setInterval(() => {
+                if (host.document.hidden) return;
                 if (typeof host.__zovixUpdateWorkspaceWidth === "function") {
                     host.__zovixUpdateWorkspaceWidth();
                 }
-            }, 250);
+            }, 500);
             host.addEventListener("popstate", updateWorkspaceWidth);
         }
 
@@ -206,8 +207,7 @@ components.html(
                     inset:0;
                     display:grid;
                     place-items:center;
-                    background:rgba(243,246,251,.58);
-                    backdrop-filter:blur(2px);
+                    background:rgba(243,246,251,.72);
                     pointer-events:none;
                 }
                 .zovix-navigation-loading-wheel {
@@ -1293,29 +1293,37 @@ components.html(
                 }
                 html body.zovix-mobile-dashboard-responsive .st-key-studio_hero_container {
                     margin:0 !important;
-                    padding:13px !important;
+                    min-height:0 !important;
+                    padding:10px !important;
                     overflow:hidden !important;
                     border:1px solid #e0e9f5 !important;
-                    border-radius:19px !important;
-                    background-color:#eaf2ff !important;
-                    background-position:72% center !important;
+                    border-radius:17px !important;
+                    background:#f4f8ff !important;
                     box-shadow:0 8px 22px rgba(48,83,145,.12) !important;
                 }
                 html body.zovix-mobile-dashboard-responsive .st-key-studio_hero_container .zd-hero {
-                    min-height:205px !important;
-                    padding:12px 10px !important;
+                    min-height:190px !important;
+                    padding:14px 12px !important;
                     align-items:flex-start !important;
                     justify-content:flex-start !important;
                     text-align:left !important;
+                    overflow:hidden !important;
+                    border-radius:13px !important;
+                    background:url('/app/static/studio_hero.webp') 66% center / cover no-repeat !important;
                 }
-                html body.zovix-mobile-dashboard-responsive .st-key-studio_hero_container .zd-hero-copy { width:74% !important; max-width:74% !important; align-self:flex-start !important; text-align:left !important; }
-                html body.zovix-mobile-dashboard-responsive .st-key-studio_hero_container .zd-hero-kicker { display:block !important; margin-bottom:9px !important; color:#29486d !important; font-size:14px !important; font-weight:650 !important; }
+                html body.zovix-mobile-dashboard-responsive .st-key-studio_hero_container .zd-hero::before {
+                    display:block !important;
+                    z-index:0 !important;
+                    background:linear-gradient(90deg,rgba(247,250,255,.98) 0%,rgba(247,250,255,.92) 53%,rgba(247,250,255,.2) 100%) !important;
+                }
+                html body.zovix-mobile-dashboard-responsive .st-key-studio_hero_container .zd-hero-copy { z-index:1 !important; width:74% !important; max-width:74% !important; align-self:flex-start !important; text-align:left !important; }
+                html body.zovix-mobile-dashboard-responsive .st-key-studio_hero_container .zd-hero-kicker { display:block !important; margin-bottom:7px !important; color:#29486d !important; font-size:11px !important; font-weight:650 !important; }
                 html body.zovix-mobile-dashboard-responsive .st-key-studio_hero_container .zd-hero-kicker strong { color:#514ed5 !important; font-weight:800 !important; }
-                html body.zovix-mobile-dashboard-responsive .st-key-studio_hero_container .zd-hero h1 { max-width:100% !important; color:#122747 !important; font-size:clamp(29px,7.6vw,40px) !important; font-weight:850 !important; line-height:1.03 !important; letter-spacing:-.035em !important; text-transform:none !important; text-shadow:0 1px 1px rgba(255,255,255,.9) !important; }
+                html body.zovix-mobile-dashboard-responsive .st-key-studio_hero_container .zd-hero h1 { max-width:100% !important; color:#122747 !important; font-size:clamp(24px,7vw,29px) !important; font-weight:850 !important; line-height:1.08 !important; letter-spacing:0 !important; text-transform:none !important; text-shadow:0 1px 1px rgba(255,255,255,.9) !important; }
                 html body.zovix-mobile-dashboard-responsive .st-key-studio_hero_container .zd-hero h1 span { color:#315fdf !important; background:none !important; -webkit-text-fill-color:#315fdf !important; text-shadow:0 1px 1px rgba(255,255,255,.95) !important; }
-                html body.zovix-mobile-dashboard-responsive .st-key-studio_hero_container .zd-hero p { display:block !important; max-width:100% !important; margin:9px 0 0 !important; color:#29486d !important; font-size:13px !important; font-weight:500 !important; line-height:1.45 !important; text-shadow:0 1px 1px rgba(255,255,255,.65) !important; }
+                html body.zovix-mobile-dashboard-responsive .st-key-studio_hero_container .zd-hero p { display:block !important; max-width:100% !important; margin:7px 0 0 !important; color:#29486d !important; font-size:11px !important; font-weight:500 !important; line-height:1.4 !important; text-shadow:0 1px 1px rgba(255,255,255,.65) !important; }
                 html body.zovix-mobile-dashboard-responsive .st-key-studio_hero_controls {
-                    margin:-2px 0 0 !important;
+                    margin:8px 0 0 !important;
                     padding:8px !important;
                     border:1px solid #fff !important;
                     border-radius:15px !important;
@@ -1336,23 +1344,14 @@ components.html(
                     transform:translateY(-50%) !important;
                     pointer-events:none !important;
                 }
-                html body.zovix-mobile-dashboard-responsive .st-key-studio_hero_prompt_form [data-testid="stHorizontalBlock"] { gap:7px !important; }
-                html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive .st-key-studio_hero_prompt_form [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:first-child {
-                    flex:1 1 0% !important;
-                    width:auto !important;
-                    min-width:0 !important;
-                }
-                html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive .st-key-studio_hero_prompt_form [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:last-child {
-                    flex:0 0 108px !important;
-                    width:108px !important;
-                    min-width:108px !important;
-                    max-width:108px !important;
-                }
+                html body.zovix-mobile-dashboard-responsive .st-key-studio_hero_controls [data-testid="stForm"] [data-testid="stHorizontalBlock"] { display:grid !important; grid-template-columns:minmax(0,1fr) 100px !important; align-items:center !important; gap:7px !important; }
+                html body.zovix-mobile-dashboard-responsive .st-key-studio_hero_controls [data-testid="stForm"] [data-testid="stColumn"] { box-sizing:border-box !important; flex:none !important; width:auto !important; min-width:0 !important; max-width:none !important; }
                 html body.zovix-mobile-dashboard-responsive .st-key-studio_dashboard_prompt input { min-height:42px !important; padding-left:36px !important; font-size:12px !important; }
-                html body.zovix-mobile-dashboard-responsive .st-key-studio_hero_prompt_form [data-testid="stFormSubmitButton"] > button { width:100% !important; min-height:40px !important; padding:0 8px !important; border-radius:999px !important; white-space:nowrap !important; }
-                html body.zovix-mobile-dashboard-responsive .st-key-studio_creation_type_choices [data-testid="stHorizontalBlock"] { flex-wrap:wrap !important; gap:6px !important; }
-                html body.zovix-mobile-dashboard-responsive .st-key-studio_creation_type_choices [data-testid="stColumn"] { flex:0 0 auto !important; width:auto !important; max-width:none !important; }
-                html body.zovix-mobile-dashboard-responsive .st-key-studio_creation_type_choices [data-testid="stButton"] > button { min-height:34px !important; padding:0 10px !important; color:#315174 !important; border:1px solid #e1e9f4 !important; border-radius:999px !important; background:#fff !important; font-size:10px !important; white-space:nowrap !important; }
+                html body.zovix-mobile-dashboard-responsive .st-key-studio_hero_controls [data-testid="stFormSubmitButton"] > button { width:100% !important; min-height:40px !important; padding:0 6px !important; border-radius:10px !important; font-size:10px !important; white-space:nowrap !important; }
+                html body.zovix-mobile-dashboard-responsive .st-key-studio_creation_type_choices [data-testid="stHorizontalBlock"] { display:grid !important; grid-template-columns:repeat(3,minmax(0,1fr)) !important; gap:6px !important; }
+                html body.zovix-mobile-dashboard-responsive .st-key-studio_creation_type_choices [data-testid="stColumn"] { box-sizing:border-box !important; flex:none !important; width:auto !important; min-width:0 !important; max-width:none !important; }
+                html body.zovix-mobile-dashboard-responsive .st-key-studio_creation_type_choices [data-testid="stButton"] > button { width:100% !important; min-width:0 !important; min-height:34px !important; height:auto !important; padding:5px 4px !important; color:#315174 !important; border:1px solid #e1e9f4 !important; border-radius:14px !important; background:#fff !important; font-size:9px !important; line-height:1.25 !important; white-space:normal !important; overflow-wrap:anywhere !important; text-align:center !important; }
+                html body.zovix-mobile-dashboard-responsive .st-key-studio_creation_type_choices [data-testid="stButton"] > button p { white-space:normal !important; overflow-wrap:anywhere !important; line-height:1.25 !important; margin:0 !important; }
                 html body.zovix-mobile-dashboard-responsive .st-key-studio_creation_type_choices [data-testid="stButton"] > button[kind="primary"] { color:#fff !important; border:0 !important; background:linear-gradient(105deg,#3478f6,#7755e8) !important; }
                 html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive .st-key-studio_engine_filters [data-testid="stHorizontalBlock"] { display:flex !important; flex-wrap:nowrap !important; gap:7px !important; overflow-x:auto !important; padding:4px 1px 9px !important; scrollbar-width:none !important; }
                 html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive .st-key-studio_engine_filters [data-testid="stColumn"] { flex:0 0 max-content !important; width:max-content !important; min-width:max-content !important; max-width:max-content !important; }
@@ -1415,16 +1414,16 @@ components.html(
                     white-space:nowrap !important;
                 }
                 html body.zovix-mobile-dashboard-responsive .st-key-studio_engine_header { margin-top:18px !important; }
-                html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive .st-key-studio_engine_grid [data-testid="stHorizontalBlock"] { flex-wrap:wrap !important; gap:10px !important; }
-                html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive .st-key-studio_engine_grid [data-testid="stColumn"] { flex:0 0 calc(50% - 5px) !important; width:calc(50% - 5px) !important; max-width:calc(50% - 5px) !important; }
-                html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive [class*="st-key-studio_engine_card_"] { min-height:145px !important; }
+                html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive .st-key-studio_engine_grid [data-testid="stHorizontalBlock"] { display:grid !important; grid-template-columns:repeat(3,minmax(0,1fr)) !important; align-items:stretch !important; gap:8px !important; }
+                html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive .st-key-studio_engine_grid [data-testid="stColumn"] { box-sizing:border-box !important; flex:none !important; width:auto !important; min-width:0 !important; max-width:none !important; }
+                html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive [class*="st-key-studio_engine_card_"] { min-height:112px !important; }
                 html body.zovix-mobile-dashboard-responsive .zd-engine-photo-card {
                     position:relative !important;
                     display:grid !important;
                     height:auto !important;
                     min-height:0 !important;
                     grid-template-columns:minmax(0,1fr) !important;
-                    grid-template-rows:auto 70px !important;
+                    grid-template-rows:auto 58px !important;
                     overflow:hidden !important;
                     padding:0 !important;
                     border-radius:14px !important;
@@ -1438,22 +1437,24 @@ components.html(
                     display:block !important;
                     width:100% !important;
                     height:auto !important;
-                    aspect-ratio:1.9 / 1 !important;
+                    aspect-ratio:2.2 / 1 !important;
                     object-fit:cover !important;
                 }
                 html body.zovix-mobile-dashboard-responsive .zd-engine-photo-copy {
                     position:relative !important;
                     inset:auto !important;
                     grid-row:2 !important;
-                    min-height:70px !important;
+                    min-height:58px !important;
                     align-content:center !important;
                     gap:4px !important;
                     margin:0 !important;
                     padding:7px 10px !important;
                     background:#fff !important;
                 }
-                html body.zovix-mobile-dashboard-responsive .zd-engine-photo-copy strong { color:#1c3152 !important; font-size:11px !important; line-height:1.2 !important; white-space:normal !important; }
-                html body.zovix-mobile-dashboard-responsive .zd-engine-photo-copy small { color:#6b7b92 !important; font-size:9px !important; line-height:1.35 !important; }
+                html body.zovix-mobile-dashboard-responsive .zd-engine-photo-icon { top:5px !important; left:5px !important; width:21px !important; height:21px !important; border-radius:7px !important; font-size:12px !important; }
+                html body.zovix-mobile-dashboard-responsive .zd-engine-photo-copy { gap:3px !important; padding:5px 6px !important; }
+                html body.zovix-mobile-dashboard-responsive .zd-engine-photo-copy strong { color:#1c3152 !important; font-size:9px !important; line-height:1.2 !important; white-space:normal !important; }
+                html body.zovix-mobile-dashboard-responsive .zd-engine-photo-copy small { color:#6b7b92 !important; font-size:7px !important; line-height:1.25 !important; }
                 html body.zovix-mobile-dashboard-responsive [data-testid="stMain"] [data-testid="stHorizontalBlock"]:has(.st-key-studio_hero_container) { display:flex !important; flex-direction:row !important; flex-wrap:nowrap !important; gap:0 !important; }
                 html body.zovix-mobile-dashboard-responsive [data-testid="stMain"] [data-testid="stHorizontalBlock"]:has(.st-key-studio_hero_container) > [data-testid="stColumn"]:has(.st-key-studio_hero_container) { display:block !important; flex:1 1 100% !important; width:100% !important; max-width:100% !important; }
                 html body.zovix-mobile-dashboard-responsive [data-testid="stMain"] [data-testid="stHorizontalBlock"]:has(.st-key-studio_hero_container) > [data-testid="stColumn"]:has(.st-key-studio_sidebar_action_0) { display:none !important; flex:0 0 0% !important; width:0 !important; max-width:0 !important; }
@@ -1488,7 +1489,7 @@ components.html(
                 html body.zovix-mobile-dashboard-responsive [data-testid="stHorizontalBlock"]:has(.zd-mobile-menu[open]) .zd-brand-sub { color:#000 !important; -webkit-text-fill-color:#000 !important; }
             }
             @media (min-width: 600px) and (max-width: 900px) {
-                html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive .st-key-studio_engine_grid [data-testid="stColumn"] { flex-basis:calc(33.333% - 7px) !important; width:calc(33.333% - 7px) !important; max-width:calc(33.333% - 7px) !important; }
+                html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive .st-key-studio_engine_grid [data-testid="stHorizontalBlock"] { grid-template-columns:repeat(3,minmax(0,1fr)) !important; }
                 html body.zovix-mobile-dashboard-responsive .zd-engine-photo-card img { aspect-ratio:3 / 1 !important; }
                 html body.zovix-mobile-dashboard-responsive .zd-engine-photo-copy strong { font-size:11px !important; }
                 html body.zovix-mobile-dashboard-responsive .zd-engine-photo-copy small { font-size:9px !important; }
@@ -1496,6 +1497,10 @@ components.html(
         `.replace(/html body\.zovix-mobile-dashboard-responsive/g, "html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive");
 
         const setStudioDesktopMedia = (active) => {
+            // Restoring is only needed after media rules were disabled; skip the
+            // expensive stylesheet scan that otherwise ran every poll tick.
+            if (!active && !host.__zovixDesktopMediaDisabled) return;
+            host.__zovixDesktopMediaDisabled = active;
             for (const style of host.document.querySelectorAll("style")) {
                 const cssText = style.textContent || "";
                 if (cssText.length < 10000
@@ -10185,18 +10190,18 @@ def process_editor_video(uploaded_files, output_path, effect="none", transition=
             pass
 
 def render_premium_selection_cards(label, options, session_key):
-    st.markdown(f"<div class='compact-label'>{label}</div>", unsafe_allow_html=True)
+    if label:
+        st.markdown(f"<div class='compact-label'>{label}</div>", unsafe_allow_html=True)
     num_opts = len(options)
     cols = st.columns(num_opts)
     for idx, opt in enumerate(options):
         is_selected = (st.session_state[session_key] == opt)
-        wrapper_class = "selected-opt-wrap" if is_selected else "unselected-opt-wrap"
         with cols[idx]:
-            st.markdown(f"<div class='{wrapper_class}'>", unsafe_allow_html=True)
-            if st.button(opt, key=f"opt_btn_{session_key}_{idx}", width="stretch"):
-                st.session_state[session_key] = opt
-                st.rerun()
-            st.markdown("</div>", unsafe_allow_html=True)
+            wrapper_key = f"cinematic_choice_{'active' if is_selected else 'idle'}_{session_key}_{idx}"
+            with st.container(key=wrapper_key):
+                if st.button(opt, key=f"opt_btn_{session_key}_{idx}", width="stretch"):
+                    st.session_state[session_key] = opt
+                    st.rerun()
 
 # ========================================================
 # 34. GENERATE HOOK VARIATIONS
@@ -10683,6 +10688,41 @@ def render_ai_agent_ui():
     </div>
     """, unsafe_allow_html=True)
 
+    st.markdown("""
+    <style>
+        @media (max-width:600px) {
+            section[data-testid="stMain"]:has(.studio-mode-photo-hero--agent) [data-testid="stTabs"] [role="tablist"] {
+                display:flex !important;
+                gap:4px !important;
+                overflow-x:hidden !important;
+                scrollbar-width:none !important;
+            }
+            section[data-testid="stMain"]:has(.studio-mode-photo-hero--agent) [data-testid="stTabs"] button[aria-label*="Scroll tabs"] {
+                display:none !important;
+            }
+            section[data-testid="stMain"]:has(.studio-mode-photo-hero--agent) [data-testid="stTabs"] [role="tab"] {
+                box-sizing:border-box !important;
+                flex:1 1 0% !important;
+                width:0 !important;
+                min-width:0 !important;
+                max-width:none !important;
+                min-height:40px !important;
+                padding:8px 4px !important;
+                white-space:normal !important;
+                text-align:center !important;
+                font-size:10px !important;
+            }
+            section[data-testid="stMain"]:has(.studio-mode-photo-hero--agent) [data-testid="stTabs"] [role="tab"] p {
+                margin:0 !important;
+                line-height:1.2 !important;
+                white-space:normal !important;
+                overflow-wrap:anywhere !important;
+                text-align:center !important;
+            }
+        }
+    </style>
+    """, unsafe_allow_html=True)
+
     tab1, tab2, tab3 = st.tabs(["🏢 Brand Profile", "📦 Product Manager", "⚡ Agent Actions"])
 
     with tab1:
@@ -10778,9 +10818,45 @@ def render_ai_sales_ui():
     </div>
     """, unsafe_allow_html=True)
 
+    st.markdown(
+        """
+        <style>
+        .st-key-sales_parameters,
+        .st-key-sales_output_panel {
+            min-width: 0;
+        }
+        .st-key-sales_output_panel [data-testid="stVideo"],
+        .st-key-sales_output_panel video,
+        .st-key-sales_output_panel iframe {
+            max-width: 100% !important;
+        }
+        @media (max-width: 768px) {
+            html body section[data-testid="stMain"]:has(.st-key-sales_parameters):has(.st-key-sales_output_panel)
+            [data-testid="stHorizontalBlock"]:has(.st-key-sales_parameters):has(.st-key-sales_output_panel) {
+                display: flex !important;
+                flex-flow: column nowrap !important;
+                align-items: stretch !important;
+                gap: 16px !important;
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+            html body section[data-testid="stMain"]:has(.st-key-sales_parameters):has(.st-key-sales_output_panel)
+            [data-testid="stHorizontalBlock"]:has(.st-key-sales_parameters):has(.st-key-sales_output_panel) > [data-testid="stColumn"] {
+                box-sizing: border-box !important;
+                flex: 0 0 auto !important;
+                width: 100% !important;
+                min-width: 0 !important;
+                max-width: 100% !important;
+            }
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
     col1, col2 = st.columns(STUDIO_ENGINE_PANEL_RATIO, gap="medium")
     with col1:
-        with st.container(border=True):
+        with st.container(border=True, key="sales_parameters"):
             st.markdown('<h4 style="font-family: Orbitron; font-size: 12px; color: #EC4899; margin-bottom: 12px;">⚙️ SALES PARAMETERS</h4>', unsafe_allow_html=True)
             
             # ============================================
@@ -10879,41 +10955,32 @@ def render_ai_sales_ui():
             product_price = st.text_input("Price", placeholder="e.g. Rs. 999", key="sales_product_price", label_visibility="collapsed")
             
             # Product Category
-            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">📂 Product Category</p>', unsafe_allow_html=True)
             product_category = st.selectbox(
-                "Category",
+                "📂 Product Category",
                 ["Electronics", "Fashion", "Food & Beverage", "Beauty", "Home & Living", "Sports", "Other"],
                 key="sales_category",
-                label_visibility="collapsed"
             )
             
-            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">🌐 Language</p>', unsafe_allow_html=True)
             sales_language = st.selectbox(
-                "Language",
+                "🌐 Language",
                 ["Hindi", "English", "Hinglish", "Bhojpuri", "French", "Japanese", "Spanish", "German"],
                 key="sales_language",
-                label_visibility="collapsed"
             )
             
-            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">🎤 Voice Profile</p>', unsafe_allow_html=True)
             voice_options = list(ELEVENLABS_VOICES.keys())
-            sales_voice = st.selectbox("Voice", voice_options, key="sales_voice", label_visibility="collapsed")
+            sales_voice = st.selectbox("🎤 Voice Profile", voice_options, key="sales_voice")
             
-            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">📊 Quality</p>', unsafe_allow_html=True)
             sales_quality = st.selectbox(
-                "Quality",
+                "📊 Video Quality",
                 ["Standard", "HD"],
                 key="sales_quality",
-                label_visibility="collapsed"
             )
             
             # ✅ NEW: Tone selection
-            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">🎭 Sales Tone</p>', unsafe_allow_html=True)
             sales_tone = st.selectbox(
-                "Tone",
+                "🎭 Sales Tone",
                 ["Professional", "Friendly", "Urgent", "Luxury", "Youthful", "Humorous", "Inspirational"],
                 key="sales_tone",
-                label_visibility="collapsed"
             )
 
             st.markdown("<br>", unsafe_allow_html=True)
@@ -11066,7 +11133,7 @@ def render_ai_sales_ui():
                             st.caption(f"Last generation stage: {last_engine}")
 
     with col2:
-        with st.container(border=True):
+        with st.container(border=True, key="sales_output_panel"):
             st.markdown('<h3 style="font-family: Orbitron; font-size: 14px; color: #EC4899; margin-bottom: 12px;">🎬 SALES VIDEO OUTPUT</h3>', unsafe_allow_html=True)
             
             # ✅ Show generated script
@@ -11088,7 +11155,7 @@ def render_ai_sales_ui():
             is_remote_sales_video = isinstance(sales_output, str) and sales_output.startswith("http")
             is_local_sales_video = isinstance(sales_output, str) and os.path.exists(sales_output)
             if is_remote_sales_video or is_local_sales_video:
-                st.video(sales_output)
+                st.video(sales_output, width="stretch")
                 sales_engine_used = st.session_state.get("sales_video_engine_used")
                 if sales_engine_used:
                     st.caption(f"Generated with: {sales_engine_used}")
@@ -11771,9 +11838,69 @@ def run_blueprints_mode():
     </div>
     """, unsafe_allow_html=True)
 
+    st.markdown("""
+    <style>
+        @media (max-width:600px) {
+            html body section[data-testid="stMain"]:has(.st-key-blueprint_parameters_panel)
+            .st-key-blueprint_parameters_panel [data-testid="stElementContainer"]:has(p[style*="font-family: Inter"]) {
+                display:flow-root !important;
+                box-sizing:border-box !important;
+                height:auto !important;
+                min-height:30px !important;
+                padding:4px 0 6px !important;
+            }
+            html body section[data-testid="stMain"]:has(.st-key-blueprint_parameters_panel)
+            .st-key-blueprint_parameters_panel [data-testid="stMarkdownContainer"] p[style*="font-family: Inter"] {
+                box-sizing:border-box !important;
+                margin:3px 0 4px !important;
+                font-size:11px !important;
+                line-height:1.35 !important;
+                white-space:normal !important;
+                overflow-wrap:anywhere !important;
+            }
+            section[data-testid="stMain"]:has(.st-key-blueprint_parameters_panel)
+            .st-key-bp_prompt_input,
+            section[data-testid="stMain"]:has(.st-key-blueprint_parameters_panel)
+            .st-key-bp_type_select,
+            section[data-testid="stMain"]:has(.st-key-blueprint_parameters_panel)
+            .st-key-bp_style_select,
+            section[data-testid="stMain"]:has(.st-key-blueprint_parameters_panel)
+            .st-key-bp_render_mode_select,
+            section[data-testid="stMain"]:has(.st-key-blueprint_parameters_panel)
+            .st-key-bp_quality_select,
+            section[data-testid="stMain"]:has(.st-key-blueprint_parameters_panel)
+            .st-key-bp_template_select {
+                margin-top:8px !important;
+            }
+            html body section[data-testid="stMain"]:has(.st-key-blueprint_parameters_panel)
+            [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"] .st-key-blueprint_viewer_panel) {
+                display:grid !important;
+                grid-template-columns:minmax(0,1fr) !important;
+                align-items:stretch !important;
+                gap:12px !important;
+            }
+            html body section[data-testid="stMain"]:has(.st-key-blueprint_parameters_panel)
+            [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"] .st-key-blueprint_viewer_panel)
+            > [data-testid="stColumn"] {
+                box-sizing:border-box !important;
+                flex:none !important;
+                width:auto !important;
+                min-width:0 !important;
+                max-width:none !important;
+            }
+            html body section[data-testid="stMain"]:has(.st-key-blueprint_viewer_panel) .blueprint-viewer-empty {
+                box-sizing:border-box !important;
+                height:auto !important;
+                min-height:250px !important;
+                padding:20px !important;
+            }
+        }
+    </style>
+    """, unsafe_allow_html=True)
+
     bp_col1, bp_col2 = st.columns(STUDIO_ENGINE_PANEL_RATIO, gap="medium")
     with bp_col1:
-        with st.container(border=True):
+        with st.container(border=True, key="blueprint_parameters_panel"):
             st.markdown("""
             <h4 style="
                 font-family: 'Orbitron', sans-serif;
@@ -11965,7 +12092,7 @@ def run_blueprints_mode():
                         st.rerun()
 
     with bp_col2:
-        with st.container(border=True):
+        with st.container(border=True, key="blueprint_viewer_panel"):
             st.markdown("""
             <h3 style="
                 font-family: 'Orbitron', sans-serif;
@@ -12050,7 +12177,7 @@ def run_blueprints_mode():
                 if active_error:
                     st.error(active_error)
                 st.markdown("""
-                    <div style="height: 380px; min-height: 380px; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #64748b; text-align: center; padding: 12px; overflow: hidden; background: rgba(10,10,12,0.4); border-radius: 12px; border: 1px dashed rgba(255,192,203,0.12);">
+                    <div class="blueprint-viewer-empty" style="height: 380px; min-height: 380px; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #64748b; text-align: center; padding: 12px; overflow: hidden; background: rgba(10,10,12,0.4); border-radius: 12px; border: 1px dashed rgba(255,192,203,0.12);">
                         <span style="font-size: 48px; margin-bottom: 10px;">📐</span>
                         <p style="font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500; color: #EC4899; margin: 0;">Blueprint will render here</p>
                         <p style="font-family: 'Inter', sans-serif; font-size: 11px; color: #94a3b8; max-width: 400px; text-align: center; margin-top: 4px; line-height: 1.4;">Professional architectural drawings with detailed analysis.</p>
@@ -13468,10 +13595,11 @@ def upscale_image_fixed(
         logger.warning("Upscaler received invalid image path: %s", image_path)
         return None
 
-    restored_source_path = None
+    temporary_input_paths = []
     output_path = None
     codeformer_fallback = False
     st.session_state["upscaler_codeformer_fallback"] = False
+    st.session_state.pop("upscaler_error", None)
 
     def report_progress(message):
         if callable(progress_callback):
@@ -13522,12 +13650,47 @@ def upscale_image_fixed(
                 raise RuntimeError(f"{stage_name} returned an empty image file.")
             return image_bytes
 
-        super_resolution_input = image_path
+        def prepare_model_input(source_path, stage_name):
+            max_pixels = 2_000_000
+            with Image.open(source_path) as source_image:
+                source_image = ImageOps.exif_transpose(source_image)
+                width, height = source_image.size
+                pixel_count = width * height
+                if pixel_count <= max_pixels:
+                    return source_path
+
+                ratio = (max_pixels / pixel_count) ** 0.5
+                resized_width = max(1, int(width * ratio))
+                resized_height = max(1, int(height * ratio))
+                resized_image = source_image.convert("RGB").resize(
+                    (resized_width, resized_height), Image.Resampling.LANCZOS
+                )
+                os.makedirs("upscaled_outputs", exist_ok=True)
+                resized_path = f"upscaled_outputs/model_input_{uuid.uuid4().hex[:8]}.png"
+                resized_image.save(resized_path, format="PNG", optimize=True)
+
+            temporary_input_paths.append(resized_path)
+            logger.info(
+                "Resized %s input from %sx%s (%s pixels) to %sx%s (%s pixels) for GPU limit.",
+                stage_name,
+                width,
+                height,
+                pixel_count,
+                resized_width,
+                resized_height,
+                resized_width * resized_height,
+            )
+            report_progress(f"Resizing image to fit {stage_name}'s GPU limit…")
+            return resized_path
+
+        super_resolution_input = prepare_model_input(
+            image_path, "CodeFormer" if restore_faces else "Real-ESRGAN"
+        )
         if restore_faces:
             logger.info("Restoring face/background first with CodeFormer (fidelity=%.2f).", face_fidelity)
             report_progress("Enhancing facial details with CodeFormer…")
             try:
-                with open(image_path, "rb") as source_file:
+                with open(super_resolution_input, "rb") as source_file:
                     restored_output = client.run(
                         codeformer_model_ref,
                         input={
@@ -13541,11 +13704,12 @@ def upscale_image_fixed(
                 restored_bytes = read_replicate_image(restored_output, "CodeFormer face restoration")
                 os.makedirs("upscaled_outputs", exist_ok=True)
                 restored_source_path = f"upscaled_outputs/restored_source_{uuid.uuid4().hex[:8]}.png"
+                temporary_input_paths.append(restored_source_path)
                 with Image.open(io.BytesIO(restored_bytes)) as restored_image:
                     ImageOps.exif_transpose(restored_image).convert("RGB").save(
                         restored_source_path, format="PNG", optimize=True
                     )
-                super_resolution_input = restored_source_path
+                super_resolution_input = prepare_model_input(restored_source_path, "Real-ESRGAN")
             except Exception as codeformer_error:
                 codeformer_fallback = True
                 logger.warning(
@@ -13607,8 +13771,8 @@ def upscale_image_fixed(
         logger.exception("Replicate photo restoration failed for %s: %s", image_path, e)
         return None
     finally:
-        if restored_source_path:
-            safe_remove_file(restored_source_path)
+        for temporary_path in temporary_input_paths:
+            safe_remove_file(temporary_path)
 
 
 def run_creative_workshop():
@@ -13656,6 +13820,34 @@ def run_creative_workshop():
             High-Quality Thumbnail • Banner • Poster Generator
         </p>
     </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("""
+    <style>
+        @media (max-width:600px) {
+            section[data-testid="stMain"]:has(.st-key-workshop_generation_action_btn)
+            [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"] .st-key-workshop_generation_action_btn) {
+                display:grid !important;
+                grid-template-columns:minmax(0,1fr) !important;
+                align-items:stretch !important;
+                gap:12px !important;
+            }
+            section[data-testid="stMain"]:has(.st-key-workshop_generation_action_btn)
+            [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"] .st-key-workshop_generation_action_btn)
+            > [data-testid="stColumn"] {
+                box-sizing:border-box !important;
+                flex:none !important;
+                width:auto !important;
+                min-width:0 !important;
+                max-width:none !important;
+            }
+            section[data-testid="stMain"]:has(.st-key-workshop_generation_action_btn) .workshop-empty-state {
+                height:auto !important;
+                min-height:240px !important;
+                padding:20px !important;
+            }
+        }
+    </style>
     """, unsafe_allow_html=True)
 
     w_col1, w_col2 = st.columns(STUDIO_ENGINE_PANEL_RATIO, gap="medium")
@@ -13825,7 +14017,7 @@ def run_creative_workshop():
                         st.rerun()
             else:
                 st.markdown("""
-                    <div style="
+                    <div class="workshop-empty-state" style="
                         height: 380px;
                         min-height: 380px;
                         display: flex;
@@ -14372,6 +14564,30 @@ def run_draw_mode():
             margin-top:18px !important;
             margin-bottom:8px !important;
         }
+        @media (max-width:600px) {
+            html body section[data-testid="stMain"]:has(.st-key-draw_parameters_panel)
+            [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"] .st-key-draw_viewer_panel) {
+                display:grid !important;
+                grid-template-columns:minmax(0,1fr) !important;
+                align-items:stretch !important;
+                gap:12px !important;
+            }
+            html body section[data-testid="stMain"]:has(.st-key-draw_parameters_panel)
+            [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"] .st-key-draw_viewer_panel)
+            > [data-testid="stColumn"] {
+                box-sizing:border-box !important;
+                flex:none !important;
+                width:auto !important;
+                min-width:0 !important;
+                max-width:none !important;
+            }
+            section[data-testid="stMain"] .st-key-draw_viewer_panel [data-testid="stMarkdownContainer"] div[style*="height: 380px"] {
+                box-sizing:border-box !important;
+                height:auto !important;
+                min-height:240px !important;
+                padding:20px !important;
+            }
+        }
         </style>
         """,
         unsafe_allow_html=True,
@@ -14380,7 +14596,7 @@ def run_draw_mode():
     dr_col1, dr_col2 = st.columns(STUDIO_ENGINE_PANEL_RATIO, gap="medium")
     
     with dr_col1:
-        with st.container(border=True):
+        with st.container(border=True, key="draw_parameters_panel"):
             st.markdown("""
             <h4 style="
                 font-family: 'Orbitron', sans-serif;
@@ -14504,7 +14720,7 @@ def run_draw_mode():
                             st.error(f"❌ Error: {str(e)}")
     
     with dr_col2:
-        with st.container(border=True):
+        with st.container(border=True, key="draw_viewer_panel"):
             st.markdown("""
             <h3 style="
                 font-family: 'Orbitron', sans-serif;
@@ -15125,6 +15341,48 @@ def run_video_editor_mode():
             font-size: 12px !important;
             color: #e0e0e0 !important;
         }
+        @media (max-width:600px) {
+            html body section[data-testid="stMain"]:has(.st-key-video_editor_parameters_panel)
+            [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"] .st-key-video_editor_output_panel) {
+                display:grid !important;
+                grid-template-columns:minmax(0,1fr) !important;
+                align-items:stretch !important;
+                gap:12px !important;
+            }
+            html body section[data-testid="stMain"]:has(.st-key-video_editor_parameters_panel)
+            [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"] .st-key-video_editor_output_panel)
+            > [data-testid="stColumn"] {
+                box-sizing:border-box !important;
+                flex:none !important;
+                width:auto !important;
+                min-width:0 !important;
+                max-width:none !important;
+            }
+            section[data-testid="stMain"]:has(.st-key-video_editor_parameters_panel)
+            .st-key-video_editor_parameters_panel [data-testid="stElementContainer"]:has(.editor-label) {
+                display:flow-root !important;
+                box-sizing:border-box !important;
+                height:auto !important;
+                min-height:24px !important;
+                padding:2px 0 4px !important;
+                overflow:visible !important;
+            }
+            section[data-testid="stMain"]:has(.st-key-video_editor_parameters_panel)
+            .st-key-video_editor_parameters_panel .editor-label {
+                box-sizing:border-box !important;
+                margin:0 !important;
+                font-size:11px !important;
+                line-height:1.35 !important;
+                white-space:normal !important;
+                overflow-wrap:anywhere !important;
+            }
+            section[data-testid="stMain"]:has(.st-key-video_editor_output_panel) .empty-state {
+                box-sizing:border-box !important;
+                height:auto !important;
+                min-height:240px !important;
+                padding:20px !important;
+            }
+        }
     </style>
     """, unsafe_allow_html=True)
     
@@ -15145,7 +15403,7 @@ def run_video_editor_mode():
     ve_col1, ve_col2 = st.columns(STUDIO_ENGINE_PANEL_RATIO, gap="medium")
     
     with ve_col1:
-        with st.container(border=True):
+        with st.container(border=True, key="video_editor_parameters_panel"):
             st.markdown("<style>.editor-title { color: #EC4899 !important; }</style>", unsafe_allow_html=True)
             st.markdown('<h4 class="editor-title"><span style="color: #EC4899 !important;">⚙️ EDITOR PARAMETERS</span></h4>', unsafe_allow_html=True)
             
@@ -15311,7 +15569,7 @@ def run_video_editor_mode():
                             logger.error(f"Video editor process error: {e}")
     
     with ve_col2:
-        with st.container(border=True):
+        with st.container(border=True, key="video_editor_output_panel"):
             st.markdown('<h4 class="editor-title">🎬 EDITED VIDEO OUTPUT</h4>', unsafe_allow_html=True)
             
             active_output = st.session_state.get("active_editor_output")
@@ -16124,6 +16382,29 @@ def run_unified_face_video_mode():
             font-family: 'Inter', sans-serif !important;
             font-size: 12px !important;
             color: #e0e0e0 !important;
+        }
+        @media (max-width: 600px) {
+            section[data-testid="stMain"]:has(.st-key-unified_fv_generate_btn)
+            [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"] .st-key-unified_fv_generate_btn) {
+                display:grid !important;
+                grid-template-columns:minmax(0,1fr) !important;
+                align-items:stretch !important;
+                gap:12px !important;
+            }
+            section[data-testid="stMain"]:has(.st-key-unified_fv_generate_btn)
+            [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"] .st-key-unified_fv_generate_btn)
+            > [data-testid="stColumn"] {
+                box-sizing:border-box !important;
+                flex:none !important;
+                width:auto !important;
+                min-width:0 !important;
+                max-width:none !important;
+            }
+            section[data-testid="stMain"]:has(.st-key-unified_fv_generate_btn) .empty-state {
+                height:auto !important;
+                min-height:260px !important;
+                padding:20px !important;
+            }
         }
     </style>
     """, unsafe_allow_html=True)
@@ -17343,8 +17624,8 @@ def run_cinematic_engine():
         /* ============================================
            SELECTION CARDS - DARK
            ============================================ */
-        .selected-opt-wrap button,
-        .unselected-opt-wrap button {
+        html body [data-testid="stMain"]:has(.cinematic-header) [class*="st-key-cinematic_choice_active_"] [data-testid="stButton"] > button,
+        html body [data-testid="stMain"]:has(.cinematic-header) [class*="st-key-cinematic_choice_idle_"] [data-testid="stButton"] > button {
             font-family: 'Inter', sans-serif !important;
             font-size: 11px !important;
             font-weight: 600 !important;
@@ -17352,18 +17633,20 @@ def run_cinematic_engine():
             padding: 8px 12px !important;
             min-height: 40px !important;
         }
-        .selected-opt-wrap button {
+        html body [data-testid="stMain"]:has(.cinematic-header) [class*="st-key-cinematic_choice_active_"] [data-testid="stButton"] > button {
             background: #EC4899 !important;
             color: #FFFFFF !important;
+            background-image:none !important;
             border: 2px solid #EC4899 !important;
             box-shadow: 0 0 20px rgba(236,72,153,0.15) !important;
         }
-        .unselected-opt-wrap button {
+        html body [data-testid="stMain"]:has(.cinematic-header) [class*="st-key-cinematic_choice_idle_"] [data-testid="stButton"] > button {
             background: rgba(255,255,255,0.04) !important;
             color: #94a3b8 !important;
+            background-image:none !important;
             border: 1px solid rgba(255,255,255,0.06) !important;
         }
-        .unselected-opt-wrap button:hover {
+        html body [data-testid="stMain"]:has(.cinematic-header) [class*="st-key-cinematic_choice_idle_"] [data-testid="stButton"] > button:hover {
             background: rgba(236,72,153,0.05) !important;
             border-color: #EC4899 !important;
             color: #FFFFFF !important;
@@ -17522,6 +17805,46 @@ def run_cinematic_engine():
             white-space: normal !important;
             overflow-wrap: anywhere !important;
         }
+        .global-trending-heading {
+            margin:0 0 15px !important;
+            color:#EC4899 !important;
+            font:700 16px/1.35 'Inter',sans-serif !important;
+            letter-spacing:0 !important;
+            overflow-wrap:anywhere !important;
+        }
+        .global-trending-meta {
+            display:flex !important;
+            flex-wrap:wrap !important;
+            align-items:flex-start !important;
+            justify-content:space-between !important;
+            gap:4px 8px !important;
+            margin-bottom:8px !important;
+        }
+        .global-trend-hashtag { overflow-wrap:anywhere !important; }
+        .global-trend-clicks { flex:0 0 auto !important; white-space:nowrap !important; }
+        .global-trend-title {
+            height:auto !important;
+            min-height:0 !important;
+            overflow:visible !important;
+            line-height:1.4 !important;
+            overflow-wrap:anywhere !important;
+        }
+        @media (max-width:600px) {
+            .global-trending-heading { margin-bottom:10px !important; font-size:14px !important; line-height:1.3 !important; }
+            [data-testid="stMain"]:has(.cinematic-header) [data-testid="stHorizontalBlock"]:has([class*="st-key-global_trending_topic_"]) {
+                display:grid !important;
+                grid-template-columns:minmax(0,1fr) !important;
+                align-items:stretch !important;
+                gap:10px !important;
+            }
+            [data-testid="stMain"]:has(.cinematic-header) [data-testid="stHorizontalBlock"]:has([class*="st-key-global_trending_topic_"]) > [data-testid="stColumn"] {
+                box-sizing:border-box !important;
+                flex:none !important;
+                width:auto !important;
+                min-width:0 !important;
+                max-width:none !important;
+            }
+        }
     </style>
     """, unsafe_allow_html=True)
     
@@ -17540,7 +17863,7 @@ def run_cinematic_engine():
     # ============================================
     st.markdown('<p class="compact-label">🌐 TRANSLATION, KEYS & SHORTCUTS</p>', unsafe_allow_html=True)
     
-    t_col1, t_col2, t_col3 = st.columns([1, 1, 1.2])
+    t_col1, t_col2 = st.columns(2, gap="small")
     with t_col1:
         st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">⚡ Smart Template Quick Mode</p>', unsafe_allow_html=True)
         st.session_state["quick_template_mode"] = st.toggle(
@@ -17550,15 +17873,33 @@ def run_cinematic_engine():
         )
     with t_col2:
         st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">🌐 Voice Language</p>', unsafe_allow_html=True)
-        st.session_state["language_choice"] = st.selectbox(
+        voice_language_options = {
+            "🇮🇳 Hinglish": "🇮🇳 Hinglish (Fluent Hindi Mix)",
+            "🇬🇧 English": "🇬🇧 English (US Standard)",
+            "🇫🇷 French": "🇫🇷 French (Parisian Neural)",
+            "🇯🇵 Japanese": "🇯🇵 Japanese (Formal Tokyo)",
+        }
+        voice_language_labels = list(voice_language_options)
+        current_language = st.session_state.get("language_choice", next(iter(voice_language_options.values())))
+        current_language_label = next(
+            (label for label, value in voice_language_options.items() if value == current_language),
+            voice_language_labels[0],
+        )
+        saved_language_label = st.session_state.get("studio_language_selector_layer")
+        if saved_language_label in voice_language_options.values():
+            saved_language_label = next(
+                label for label, value in voice_language_options.items() if value == saved_language_label
+            )
+        if saved_language_label in voice_language_options:
+            current_language_label = saved_language_label
+        st.session_state["studio_language_selector_layer"] = current_language_label
+        selected_language_label = st.selectbox(
             "Voice Language",
-            ["🇮🇳 Hinglish (Fluent Hindi Mix)", "🇬🇧 English (US Standard)", "🇫🇷 French (Parisian Neural)", "🇯🇵 Japanese (Formal Tokyo)"],
+            voice_language_labels,
             key="studio_language_selector_layer",
             label_visibility="collapsed"
         )
-    with t_col3:
-        st.text(" ")
-    
+        st.session_state["language_choice"] = voice_language_options[selected_language_label]
     st.markdown("<hr style='border-color: rgba(255,255,255,0.06); margin: 12px 0;'>", unsafe_allow_html=True)
     
     # ============================================
@@ -22700,14 +23041,14 @@ elif st.session_state["current_page"] == "studio":
         ("👤", "Face Studio", "Face Video Mode", "Generate realistic characters, faces and talking videos.", "photo-1534528741775-53994a69daeb"),
         ("🎨", "Creative Workshop", "Creative Workshop Mode", "Turn ideas into unique visual creations.", "photo-1470770841072-f978cf4d019e"),
         ("⬡", "Blueprint", "Blueprints Mode", "Plan concepts, compositions and creative structures.", "photo-1487958449943-2429e8be8625"),
+        ("📣", "Sales Video", "AI Sales Mode", "Create marketing and promotional videos.", "photo-1497366754035-f200968a6e72"),
+        ("🎥", "Cinematic", "ghost_engine", "Create cinematic scenes with director controls for camera motion, lighting, and atmosphere.", "photo-1500530855697-b586d89ba3ee"),
         ("✏️", "Draw", "Draw Mode", "Create artwork, illustrations and concept art.", "photo-1579783902614-a3fb3927b6a5"),
         ("✂️", "Editor", "Video Editor Mode", "Edit, enhance and combine your content.", "photo-1574717024653-61fd2cf4d44d"),
         ("🤖", "AI Agent", "AI Agent Mode", "Automate tasks and build intelligent workflows.", "photo-1485827404703-89b55fcc595e"),
-        ("📣", "Sales Video", "AI Sales Mode", "Create marketing and promotional videos.", "photo-1497366754035-f200968a6e72"),
         ("🧠", "Dynamic UI", "Dynamic UI Mode", "Adapt your creative workspace to each project.", "photo-1497366811353-6870744d04b2"),
         ("💜", "Live Emotions", "Live Emotion Mode", "Bring characters to life with expressive voices.", "photo-1508214751196-bcfd4ca60f91"),
         ("⚡", "Upscaler", "Upscaler Mode", "Enhance image detail and resolution.", "photo-1519681393784-d120267933ba"),
-        ("🎥", "Cinematic", "ghost_engine", "Create cinematic scenes with director controls for camera motion, lighting, and atmosphere.", "photo-1500530855697-b586d89ba3ee"),
     ]
     engine_cards_html = ""
 
@@ -24557,10 +24898,12 @@ elif st.session_state["current_page"] == "studio":
         }
         .st-key-studio_engine_grid { margin-top:10px !important; }
         .st-key-studio_engine_grid [data-testid="stHorizontalBlock"] {
+            display:grid !important;
+            grid-template-columns:repeat(4,minmax(0,1fr)) !important;
             align-items:stretch !important;
             gap:12px !important;
         }
-        .st-key-studio_engine_grid [data-testid="stColumn"] { min-width:0 !important; }
+        .st-key-studio_engine_grid [data-testid="stColumn"] { flex:none !important; width:auto !important; min-width:0 !important; max-width:none !important; }
         [class*="st-key-studio_engine_card_"] { position:relative !important; }
         [class*="st-key-studio_engine_card_open_"] {
             position:absolute !important;
@@ -26642,19 +26985,39 @@ elif st.session_state["current_page"] == "studio":
                     }
                 }
                 html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive [data-testid="stElementContainer"]:has(.zd-studio-brand),
-                html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive [data-testid="stElementContainer"]:has(.studio-sidebar-section-label) {
+                html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive [data-testid="stElementContainer"]:has(.zd-studio-brand) {
                     display:block !important;
+                }
+                html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive [data-testid="stElementContainer"]:has(.studio-sidebar-section-label) {
+                    display:flow-root !important;
+                    box-sizing:border-box !important;
+                    height:auto !important;
+                    min-height:36px !important;
+                    padding:8px 0 14px !important;
+                    overflow:visible !important;
+                }
+                html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive .studio-sidebar-section-label {
+                    box-sizing:border-box !important;
+                    margin:0 8px !important;
+                    line-height:14px !important;
+                }
+                html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive
+                [data-testid="stHorizontalBlock"]:has(.zd-mobile-menu[open])
+                > [data-testid="stColumn"]:has(.st-key-studio_sidebar_action_0) .zd-brand-mark {
+                    color:#fff !important;
+                    -webkit-text-fill-color:#fff !important;
                 }
                 html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive
                 [data-testid="stHorizontalBlock"]:has(.zd-mobile-menu[open])
                 > [data-testid="stColumn"]:has(.st-key-studio_sidebar_action_0) .zd-brand-name {
-                    color:#e7ebf3 !important;
-                    -webkit-text-fill-color:#e7ebf3 !important;
+                    color:#18375e !important;
+                    background:none !important;
+                    -webkit-text-fill-color:#18375e !important;
                 }
                 html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive
                 [data-testid="stHorizontalBlock"]:has(.zd-mobile-menu[open])
                 > [data-testid="stColumn"]:has(.st-key-studio_sidebar_action_0) .zd-brand-sub {
-                    color:#9aa8be !important;
+                    color:#647b99 !important;
                 }
                 html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive
                 [data-testid="stHorizontalBlock"]:has(.zd-mobile-menu[open])
@@ -27165,7 +27528,7 @@ elif st.session_state["current_page"] == "studio":
                     with prompt_columns[0]:
                         dashboard_prompt = st.text_input(
                             "Describe your idea",
-                            placeholder="Describe your idea... (e.g. a cinematic scene, character, product, etc.)",
+                            placeholder="Your idea...",
                             key="studio_dashboard_prompt",
                             label_visibility="collapsed",
                         )
@@ -27285,26 +27648,26 @@ elif st.session_state["current_page"] == "studio":
                 unsafe_allow_html=True,
             )
         supplied_engine_images = {
-            0: "studio_cinematic_engine.webp",
-            1: "studio_expressive_face_background.webp",
-            2: "studio_creative_workshop_engine.webp",
-            3: "studio_blueprint_engine.webp",
-            4: "studio_draw_engine.webp",
-            5: "studio_editor_engine.webp",
-            6: "studio_ai_agent_engine.webp",
-            7: "studio_sales_engine.webp",
-            8: "studio_dynamic_ui_engine.webp",
-            9: "studio_live_emotions_engine.webp",
-            10: "studio_upscaler_creature.png",
-            11: "ghost_engine_cityscape.png",
+            "Story Engine": "studio_cinematic_engine.webp",
+            "Face Studio": "studio_expressive_face_background.webp",
+            "Creative Workshop": "studio_creative_workshop_engine.webp",
+            "Blueprint": "studio_blueprint_engine.webp",
+            "Sales Video": "studio_sales_engine.webp",
+            "Cinematic": "ghost_engine_cityscape.png",
+            "Draw": "studio_draw_engine.webp",
+            "Editor": "studio_editor_engine.webp",
+            "AI Agent": "studio_ai_agent_engine.webp",
+            "Dynamic UI": "studio_dynamic_ui_engine.webp",
+            "Live Emotions": "studio_live_emotions_engine.webp",
+            "Upscaler": "studio_upscaler_creature.png",
         }
         with st.container(key="studio_engine_grid"):
-            for row_start in range(0, len(visible_engines), 4):
-                card_columns = st.columns(4, gap="small")
-                for column, card in zip(card_columns, visible_engines[row_start:row_start + 4]):
+            if visible_engines:
+                card_columns = st.columns(len(visible_engines), gap="small")
+                for column, card in zip(card_columns, visible_engines):
                     icon, title, mode, description, _image = card
                     engine_index = engine_cards.index(card)
-                    supplied_image = supplied_engine_images.get(engine_index)
+                    supplied_image = supplied_engine_images.get(title)
                     if supplied_image is None:
                         raise ValueError(f"No dashboard image configured for {title!r}")
                     image_source = static_asset_data_uri(supplied_image)
@@ -27888,6 +28251,13 @@ def render_engine_portfolio_section(include_discovery=True):
             object-fit: cover !important;
             border-radius: 12px !important;
         }
+        [data-testid="stMain"] .engine-gallery-heading {
+            margin:0 0 12px !important;
+            color:#EC4899 !important;
+            font:700 16px/1.3 'Inter',sans-serif !important;
+            letter-spacing:0 !important;
+            overflow-wrap:anywhere !important;
+        }
         [data-testid="stMain"] .engine-gallery-title {
             display: block !important;
             min-height: 36px !important;
@@ -27905,7 +28275,99 @@ def render_engine_portfolio_section(include_discovery=True):
             white-space: normal !important;
             overflow-wrap: anywhere !important;
         }
+        [data-testid="stMain"] [class*="st-key-engine_gallery_card_image_workshop_"] {
+            min-width:0 !important;
+            height:auto !important;
+        }
+        [data-testid="stMain"] [class*="st-key-engine_gallery_card_image_workshop_"] [data-testid="stVerticalBlockBorderWrapper"] {
+            height:auto !important;
+            padding:0 !important;
+            overflow:hidden !important;
+            border:0 !important;
+            border-radius:12px !important;
+            background:transparent !important;
+            box-shadow:none !important;
+        }
+        [data-testid="stMain"] [class*="st-key-engine_gallery_card_image_workshop_"] [data-testid="stMarkdownContainer"] div[style*="font-family: 'Orbitron'"] {
+            display:none !important;
+        }
+        [data-testid="stMain"] [class*="st-key-engine_gallery_card_image_workshop_"] [data-testid="stMarkdownContainer"] p,
+        [data-testid="stMain"] [class*="st-key-engine_gallery_card_image_workshop_"] [data-testid="stButton"] {
+            display:none !important;
+        }
+        [data-testid="stMain"] [class*="st-key-engine_gallery_card_image_workshop_"] [data-testid="stMarkdownContainer"] div:has(> img) {
+            height:auto !important;
+            margin:0 !important;
+            overflow:hidden !important;
+            border:0 !important;
+            background:transparent !important;
+        }
+        [data-testid="stMain"] [class*="st-key-engine_gallery_card_image_workshop_"] [data-testid="stMarkdownContainer"] img {
+            display:block !important;
+            width:100% !important;
+            height:auto !important;
+            max-width:100% !important;
+            max-height:none !important;
+            object-fit:contain !important;
+            border-radius:12px !important;
+        }
         @media (max-width: 768px) {
+            html body section[data-testid="stMain"]:has(.st-key-workshop_generation_action_btn)
+            [data-testid="stHorizontalBlock"]:has([class*="st-key-engine_gallery_card_image_workshop_"]) {
+                display:grid !important;
+                grid-template-columns:minmax(0,1fr) !important;
+                align-items:stretch !important;
+                gap:10px !important;
+            }
+            html body section[data-testid="stMain"]:has(.st-key-workshop_generation_action_btn)
+            [data-testid="stHorizontalBlock"]:has([class*="st-key-engine_gallery_card_image_workshop_"])
+            > [data-testid="stColumn"] {
+                box-sizing:border-box !important;
+                flex:none !important;
+                width:auto !important;
+                min-width:0 !important;
+                max-width:none !important;
+            }
+            [data-testid="stMain"] .engine-gallery-heading {
+                margin-bottom:10px !important;
+                font-size:14px !important;
+                line-height:1.35 !important;
+            }
+            [data-testid="stMain"]:has(.cinematic-header) [data-testid="stHorizontalBlock"]:has([class*="st-key-engine_gallery_card_video_cinematic_"]) {
+                display:grid !important;
+                grid-template-columns:minmax(0,1fr) !important;
+                align-items:stretch !important;
+                gap:10px !important;
+            }
+            [data-testid="stMain"]:has(.cinematic-header) [data-testid="stHorizontalBlock"]:has([class*="st-key-engine_gallery_card_video_cinematic_"]) > [data-testid="stColumn"] {
+                box-sizing:border-box !important;
+                flex:none !important;
+                width:auto !important;
+                min-width:0 !important;
+                max-width:none !important;
+            }
+            html body section[data-testid="stMain"]:has(.st-key-unified_fv_generate_btn)
+            [data-testid="stHorizontalBlock"]:has([class*="st-key-engine_gallery_card_video_face_"]) {
+                display:grid !important;
+                grid-template-columns:minmax(0,1fr) !important;
+                align-items:stretch !important;
+                gap:10px !important;
+            }
+            html body section[data-testid="stMain"]:has(.st-key-unified_fv_generate_btn)
+            [data-testid="stHorizontalBlock"]:has([class*="st-key-engine_gallery_card_video_face_"])
+            > [data-testid="stColumn"] {
+                box-sizing:border-box !important;
+                flex:none !important;
+                width:auto !important;
+                min-width:0 !important;
+                max-width:none !important;
+            }
+            [data-testid="stMain"]:has(.cinematic-header) [class*="st-key-engine_gallery_card_video_cinematic_"] [data-testid="stVideo"] {
+                width:100% !important;
+                max-width:100% !important;
+                margin:0 !important;
+                padding:0 !important;
+            }
             [data-testid="stMain"] [class*="st-key-engine_gallery_card_"] [data-testid="stVerticalBlockBorderWrapper"] {
                 padding: 10px !important;
                 border-radius: 13px !important;
@@ -28094,7 +28556,7 @@ def render_engine_portfolio_section(include_discovery=True):
 
     valid_items, gallery_title, no_items_msg, display_type = get_mode_portfolio(current_mode)
     valid_items = valid_items[:3]
-    st.markdown(f"<h3 style='font-family: Orbitron; font-size: 16px; color:  #EC4899; margin-bottom: 15px; letter-spacing: 0.5px;'>{gallery_title}</h3>", unsafe_allow_html=True)
+    st.markdown(f"<h3 class='engine-gallery-heading'>{gallery_title}</h3>", unsafe_allow_html=True)
 
     if not valid_items:
         st.info(no_items_msg)
@@ -28142,26 +28604,34 @@ def render_engine_portfolio_section(include_discovery=True):
                         """, unsafe_allow_html=True)
         elif display_type == "video":
             video_cols = st.columns(3)
+            video_only_gallery = current_mode in {"Cinematic Engine", "Face Video Mode"}
             for idx, item in enumerate(valid_items[:9]):
                 with video_cols[idx % 3]:
-                    with st.container(border=True, key=f"engine_gallery_card_video_{idx}"):
+                    if current_mode == "Cinematic Engine":
+                        card_key = f"engine_gallery_card_video_cinematic_{idx}"
+                    elif current_mode == "Face Video Mode":
+                        card_key = f"engine_gallery_card_video_face_{idx}"
+                    else:
+                        card_key = f"engine_gallery_card_video_{idx}"
+                    with st.container(border=not video_only_gallery, key=card_key):
                         file_path = item.get("path", "")
                         file_name = item.get("file_name", "Untitled")
                         prompt = item.get("prompt", "")
-                        if "quality" in item:
-                            quality = item.get("quality", "Standard")
-                            st.markdown(f"""
-                                <div style="font-family: 'Orbitron'; font-size: 10px; color: #EC4899; font-weight: bold; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                    📁 {file_name[:25]}
-                                    <span style="font-size: 8px; color: #45f3ff; margin-left: 5px;">[{quality}]</span>
-                                </div>
-                            """, unsafe_allow_html=True)
-                        else:
-                            st.markdown(f"""
-                                <div style="font-family: 'Orbitron'; font-size: 10px; color:  #EC4899; font-weight: bold; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                    📁 {file_name[:30]}
-                                </div>
-                            """, unsafe_allow_html=True)
+                        if not video_only_gallery:
+                            if "quality" in item:
+                                quality = item.get("quality", "Standard")
+                                st.markdown(f"""
+                                    <div style="font-family: 'Orbitron'; font-size: 10px; color: #EC4899; font-weight: bold; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                        📁 {file_name[:25]}
+                                        <span style="font-size: 8px; color: #45f3ff; margin-left: 5px;">[{quality}]</span>
+                                    </div>
+                                """, unsafe_allow_html=True)
+                            else:
+                                st.markdown(f"""
+                                    <div style="font-family: 'Orbitron'; font-size: 10px; color:  #EC4899; font-weight: bold; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                        📁 {file_name[:30]}
+                                    </div>
+                                """, unsafe_allow_html=True)
                         if os.path.exists(file_path):
                             try:
                                 st.video(file_path, format="video/mp4", autoplay=False, loop=True, muted=False)
@@ -28179,65 +28649,71 @@ def render_engine_portfolio_section(include_discovery=True):
                                     <span style="font-family: 'Orbitron'; font-size: 9px; color: #EC4899; margin-top: 5px; text-transform: uppercase;">VIDEO</span>
                                 </div>
                             """, unsafe_allow_html=True)
-                        st.markdown(f"""
-                            <p style="font-size: 10px; color:  #EC4899; line-height: 1.3; height: 36px; overflow: hidden; text-overflow: ellipsis; margin: 8px 0 0 0; font-weight: 300;">
-                                "{prompt[:60]}"
-                            </p>
-                        """, unsafe_allow_html=True)
-                        if os.path.exists(file_path):
-                            if st.button("👁️ Open", key=f"{preview_key_prefix}_open_video_{current_mode}_{idx}", width="stretch"):
-                                st.session_state["portfolio_preview_path"] = file_path
-                                st.session_state["portfolio_preview_name"] = file_name
+                        if not video_only_gallery:
+                            st.markdown(f"""
+                                <p style="font-size: 10px; color:  #EC4899; line-height: 1.3; height: 36px; overflow: hidden; text-overflow: ellipsis; margin: 8px 0 0 0; font-weight: 300;">
+                                    "{prompt[:60]}"
+                                </p>
+                            """, unsafe_allow_html=True)
+                            if os.path.exists(file_path):
+                                if st.button("👁️ Open", key=f"{preview_key_prefix}_open_video_{current_mode}_{idx}", width="stretch"):
+                                    st.session_state["portfolio_preview_path"] = file_path
+                                    st.session_state["portfolio_preview_name"] = file_name
         else:
             image_cols = st.columns(3)
+            workshop_image_gallery = current_mode == "Creative Workshop Mode"
             for idx, item in enumerate(valid_items[:8]):
                 with image_cols[idx % 3]:
-                    with st.container(border=True, key=f"engine_gallery_card_image_{idx}"):
+                    card_key = f"engine_gallery_card_image_workshop_{idx}" if workshop_image_gallery else f"engine_gallery_card_image_{idx}"
+                    with st.container(border=not workshop_image_gallery, key=card_key):
                         file_path = item.get("path", "")
                         file_name = item.get("file_name", "Untitled")
                         prompt = item.get("prompt", "")
-                        st.markdown(f"""
-                            <div style="font-family: 'Orbitron'; font-size: 10px; color: #EC4899; font-weight: bold; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                📁 {file_name[:30]}
-                            </div>
-                        """, unsafe_allow_html=True)
-                        file_ext = os.path.splitext(file_path)[1].lower()
-                        preview_bytes = (
-                            _get_image_preview_bytes(file_path)
-                            if file_ext in {".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp"}
-                            else None
-                        )
-                        if preview_bytes:
-                            img_b64 = base64.b64encode(preview_bytes).decode("ascii")
-                            mime_type = "image/webp"
+                        if workshop_image_gallery:
+                            st.image(_get_image_preview_bytes(file_path) or file_path, width="stretch")
                         else:
-                            img_b64 = get_base64_img_raw(file_path)
-                            ext = file_ext.lstrip(".")
-                            if ext == "jpg":
-                                ext = "jpeg"
-                            mime_type = f"image/{ext}" if ext in {"png", "jpeg", "webp", "gif", "svg"} else "image/png"
-                        if img_b64:
                             st.markdown(f"""
-                                <div style="height: 120px; width: 100%; border-radius: 6px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; background: #000; margin-bottom: 10px;">
-                                    <img src="data:{mime_type};base64,{img_b64}" style="max-height: 100%; max-width: 100%; object-fit: contain;" />
+                                <div style="font-family: 'Orbitron'; font-size: 10px; color: #EC4899; font-weight: bold; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                    📁 {file_name[:30]}
                                 </div>
                             """, unsafe_allow_html=True)
-                        else:
-                            st.markdown("""
-                                <div style="height: 120px; width: 100%; border-radius: 6px; overflow: hidden; border: 1px solid rgba(255,192,203,0.2); display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle, #1e1b29 0%, #0a0a0f 100%); margin-bottom: 10px;">
-                                    <span style="font-size: 36px; display: block;">🖼️</span>
-                                    <span style="font-family: 'Orbitron'; font-size: 9px; color: #FFC0CB; margin-top: 5px; text-transform: uppercase;">IMAGE</span>
-                                </div>
+                            file_ext = os.path.splitext(file_path)[1].lower()
+                            preview_bytes = (
+                                _get_image_preview_bytes(file_path)
+                                if file_ext in {".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp"}
+                                else None
+                            )
+                            if preview_bytes:
+                                img_b64 = base64.b64encode(preview_bytes).decode("ascii")
+                                mime_type = "image/webp"
+                            else:
+                                img_b64 = get_base64_img_raw(file_path)
+                                ext = file_ext.lstrip(".")
+                                if ext == "jpg":
+                                    ext = "jpeg"
+                                mime_type = f"image/{ext}" if ext in {"png", "jpeg", "webp", "gif", "svg"} else "image/png"
+                            if img_b64:
+                                st.markdown(f"""
+                                    <div style="height: 120px; width: 100%; border-radius: 6px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; background: #000; margin-bottom: 10px;">
+                                        <img src="data:{mime_type};base64,{img_b64}" style="max-height: 100%; max-width: 100%; object-fit: contain;" />
+                                    </div>
+                                """, unsafe_allow_html=True)
+                            else:
+                                st.markdown("""
+                                    <div style="height: 120px; width: 100%; border-radius: 6px; overflow: hidden; border: 1px solid rgba(255,192,203,0.2); display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle, #1e1b29 0%, #0a0a0f 100%); margin-bottom: 10px;">
+                                        <span style="font-size: 36px; display: block;">🖼️</span>
+                                        <span style="font-family: 'Orbitron'; font-size: 9px; color: #FFC0CB; margin-top: 5px; text-transform: uppercase;">IMAGE</span>
+                                    </div>
+                                """, unsafe_allow_html=True)
+                            st.markdown(f"""
+                                <p style="font-size: 10px; color: #94a3b8; line-height: 1.3; height: 36px; overflow: hidden; text-overflow: ellipsis; margin: 8px 0 0 0; font-weight: 300;">
+                                    "{prompt[:60]}"
+                                </p>
                             """, unsafe_allow_html=True)
-                        st.markdown(f"""
-                            <p style="font-size: 10px; color: #94a3b8; line-height: 1.3; height: 36px; overflow: hidden; text-overflow: ellipsis; margin: 8px 0 0 0; font-weight: 300;">
-                                "{prompt[:60]}"
-                            </p>
-                        """, unsafe_allow_html=True)
-                        if os.path.exists(file_path):
-                            if st.button("👁️ Open", key=f"{preview_key_prefix}_open_image_{current_mode}_{idx}", width="stretch"):
-                                st.session_state["portfolio_preview_path"] = file_path
-                                st.session_state["portfolio_preview_name"] = file_name
+                            if os.path.exists(file_path):
+                                if st.button("👁️ Open", key=f"{preview_key_prefix}_open_image_{current_mode}_{idx}", width="stretch"):
+                                    st.session_state["portfolio_preview_path"] = file_path
+                                    st.session_state["portfolio_preview_name"] = file_name
 
         preview_path = st.session_state.get("portfolio_preview_path")
         preview_name = st.session_state.get("portfolio_preview_name", "Portfolio Item")
@@ -28295,7 +28771,7 @@ def render_engine_portfolio_section(include_discovery=True):
 
     if include_discovery:
         st.markdown("<hr style='border-color: rgba(255,255,255,0.06); margin: 25px 0;'>", unsafe_allow_html=True)
-        st.markdown("<h3 style='font-family: Orbitron; font-size: 16px; color: #EC4899; margin-bottom: 15px; letter-spacing: 0.5px;'>📈 GLOBAL TRENDING HOT TOPICS (ONE-CLICK IMPORT)</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 class='global-trending-heading'>📈 GLOBAL TRENDING HOT TOPICS (ONE-CLICK IMPORT)</h3>", unsafe_allow_html=True)
         trend_cols = st.columns(3)
         mock_trends = [
             {
@@ -28325,13 +28801,13 @@ def render_engine_portfolio_section(include_discovery=True):
         ]
         for idx_t, trend in enumerate(mock_trends):
             with trend_cols[idx_t]:
-                with st.container(border=True):
+                with st.container(border=True, key=f"global_trending_topic_{trend['trend_id']}"):
                     st.markdown(f"""
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                            <span style="font-family:'Orbitron'; font-size: 10px; font-weight:bold; color:#fbbf24;">{trend["hashtag"]}</span>
-                            <span style="font-size: 9px; color:#EC4899; font-weight:bold;">🔥 {trend["clicks"]}</span>
+                        <div class="global-trending-meta">
+                            <span class="global-trend-hashtag" style="font-family:'Orbitron'; font-size: 10px; font-weight:bold; color:#fbbf24;">{trend["hashtag"]}</span>
+                            <span class="global-trend-clicks" style="font-size: 9px; color:#EC4899; font-weight:bold;">🔥 {trend["clicks"]}</span>
                         </div>
-                        <div style="font-size: 11px; color:#ffffff; font-weight:bold; height: 38px; overflow:hidden;">{trend["title"]}</div>
+                        <div class="global-trend-title" style="font-size: 11px; color:#ffffff; font-weight:bold;">{trend["title"]}</div>
                         <div style="font-size: 10px; color: #EC4899; margin-bottom: 10px;">Channel: {trend["category"]}</div>
                     """, unsafe_allow_html=True)
                     st.button(
@@ -29709,7 +30185,7 @@ def run_production_engine_mode():
                 )
     
     st.markdown("<hr style='border-color: rgba(255,255,255,0.06); margin: 25px 0;'>", unsafe_allow_html=True)
-    st.markdown("<h3 style='font-family: Orbitron; font-size: 16px; color: #EC4899; margin-bottom: 15px; letter-spacing: 0.5px;'>📈 GLOBAL TRENDING HOT TOPICS (ONE-CLICK IMPORT)</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 class='global-trending-heading'>📈 GLOBAL TRENDING HOT TOPICS (ONE-CLICK IMPORT)</h3>", unsafe_allow_html=True)
     trend_cols = st.columns(3)
     mock_trends = [
         {
@@ -29739,13 +30215,13 @@ def run_production_engine_mode():
     ]
     for idx_t, trend in enumerate(mock_trends):
         with trend_cols[idx_t]:
-            with st.container(border=True):
+            with st.container(border=True, key=f"global_trending_topic_{trend['trend_id']}"):
                 st.markdown(f"""
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                        <span style="font-family:'Orbitron'; font-size: 10px; font-weight:bold; color:#fbbf24;">{trend["hashtag"]}</span>
-                        <span style="font-size: 9px; color:#EC4899; font-weight:bold;">🔥 {trend["clicks"]}</span>
+                    <div class="global-trending-meta">
+                        <span class="global-trend-hashtag" style="font-family:'Orbitron'; font-size: 10px; font-weight:bold; color:#fbbf24;">{trend["hashtag"]}</span>
+                        <span class="global-trend-clicks" style="font-size: 9px; color:#EC4899; font-weight:bold;">🔥 {trend["clicks"]}</span>
                     </div>
-                    <div style="font-size: 11px; color:#ffffff; font-weight:bold; height: 38px; overflow:hidden;">{trend["title"]}</div>
+                    <div class="global-trend-title" style="font-size: 11px; color:#ffffff; font-weight:bold;">{trend["title"]}</div>
                     <div style="font-size: 10px; color: #EC4899; margin-bottom: 10px;">Channel: {trend["category"]}</div>
                 """, unsafe_allow_html=True)
                 st.button(
