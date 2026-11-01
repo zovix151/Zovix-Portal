@@ -14208,40 +14208,34 @@ def run_upscaler_mode():
                 )
             
             # Scale Factor
-            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">🔍 Scale Factor</p>', unsafe_allow_html=True)
             if not st.session_state.get("us_scale_4x_default_migrated"):
                 st.session_state["us_scale_factor"] = 4
                 st.session_state["us_scale_4x_default_migrated"] = True
             if st.session_state.get("us_scale_factor") not in {4, 6}:
                 st.session_state["us_scale_factor"] = 4
-            scale_factor = st.select_slider(
-                "Scale Factor",
+            scale_factor = st.selectbox(
+                "🔍 Scale Factor",
                 options=[4, 6],
-                value=4,
+                format_func=lambda value: f"{value}x",
                 key="us_scale_factor",
-                label_visibility="collapsed"
             )
             
             # Enhancement Type
-            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">🎨 Enhancement Method</p>', unsafe_allow_html=True)
             if st.session_state.get("us_enhancement_type") == "smooth":
                 st.session_state["us_enhancement_type"] = "standard"
             enhancement_type = st.selectbox(
-                "Enhancement",
+                "🎨 Enhancement Method",
                 ["standard", "sharp", "enhance", "cinematic", "neon"],
                 key="us_enhancement_type",
-                label_visibility="collapsed"
             )
             
             # Quality
-            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">📊 Upscale Quality</p>', unsafe_allow_html=True)
             if st.session_state.get("us_quality") not in {"Standard", "HD"}:
                 st.session_state["us_quality"] = "HD" if st.session_state.get("us_quality") == "4K" else "Standard"
             us_quality = st.selectbox(
-                "Quality",
+                "📊 Upscale Quality",
                 ["Standard", "HD"],
                 key="us_quality",
-                label_visibility="collapsed"
             )
             st.markdown('<div class="upscaler-info">&#8505; &nbsp;AI restoration enhances details, reduces noise and preserves natural textures, faces and edges.</div>', unsafe_allow_html=True)
             restore_faces = st.checkbox(
@@ -16304,7 +16298,7 @@ def run_unified_face_video_mode():
             font-family: 'Inter', sans-serif !important;
             font-size: 11px !important;
             color: #94a3b8 !important;
-            margin-bottom: 4px !important;
+            margin-bottom: 12px !important;
         }
         
         .face-title {
@@ -17805,6 +17799,9 @@ def run_cinematic_engine():
             white-space: normal !important;
             overflow-wrap: anywhere !important;
         }
+        [data-testid="stMain"]:has(.cinematic-header) .cinematic-field-label {
+            margin-bottom: 12px !important;
+        }
         .global-trending-heading {
             margin:0 0 15px !important;
             color:#EC4899 !important;
@@ -17865,14 +17862,14 @@ def run_cinematic_engine():
     
     t_col1, t_col2 = st.columns(2, gap="small")
     with t_col1:
-        st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">⚡ Smart Template Quick Mode</p>', unsafe_allow_html=True)
+        st.markdown('<p class="cinematic-field-label" style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">⚡ Smart Template Quick Mode</p>', unsafe_allow_html=True)
         st.session_state["quick_template_mode"] = st.toggle(
             "Fast 30s Compile",
             value=st.session_state["quick_template_mode"],
             label_visibility="collapsed"
         )
     with t_col2:
-        st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">🌐 Voice Language</p>', unsafe_allow_html=True)
+        st.markdown('<p class="cinematic-field-label" style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">🌐 Voice Language</p>', unsafe_allow_html=True)
         voice_language_options = {
             "🇮🇳 Hinglish": "🇮🇳 Hinglish (Fluent Hindi Mix)",
             "🇬🇧 English": "🇬🇧 English (US Standard)",
@@ -17930,7 +17927,7 @@ def run_cinematic_engine():
             )
             st.caption(f"✍️ Characters: **{len(user_input or '')}/600**")
             
-            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">📐 Aspect Ratio</p>', unsafe_allow_html=True)
+            st.markdown('<p class="cinematic-field-label" style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">📐 Aspect Ratio</p>', unsafe_allow_html=True)
             aspect_choice = st.selectbox(
                 "Aspect Ratio",
                 ["16:9 LANDSCAPE (YOUTUBE)", "9:16 VERTICAL (SHORTS/REELS)"],
@@ -18057,7 +18054,7 @@ def run_cinematic_engine():
             )
         
         # Render Quality
-        st.markdown('<p class="compact-label" style="margin: 10px 0 4px 0;">📊 Render Quality</p>', unsafe_allow_html=True)
+        st.markdown('<p class="compact-label cinematic-field-label" style="margin: 10px 0 4px 0;">📊 Render Quality</p>', unsafe_allow_html=True)
         cinematic_quality = st.selectbox(
             "Quality",
             ["Standard", "HD"],
@@ -18156,23 +18153,23 @@ def run_cinematic_engine():
             """, unsafe_allow_html=True)
             
             # Model Core
-            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">🤖 Model Core</p>', unsafe_allow_html=True)
+            st.markdown('<p class="cinematic-field-label" style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">🤖 Model Core</p>', unsafe_allow_html=True)
             render_premium_selection_cards("", ["🤖Fast Stream Processing", "🤖Deep Creative Narrative"], "model_choice")
             selected_model = "gemini-2.5-pro" if "gemini-2.5-pro" in st.session_state["model_choice"] else "gemini-2.5-flash"
             
             # Aspect Ratio
-            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 10px 0 4px 0;">📐 Aspect Ratio</p>', unsafe_allow_html=True)
+            st.markdown('<p class="cinematic-field-label" style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 10px 0 4px 0;">📐 Aspect Ratio</p>', unsafe_allow_html=True)
             render_premium_selection_cards("", ["📐 9:16 Vertical (Shorts/Reels)", "📐 16:9 Landscape (YouTube)", "📐 1:1 Square (Instagram)"], "aspect_ratio")
             
             # Duration
-            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 10px 0 4px 0;">⏱️ Duration</p>', unsafe_allow_html=True)
+            st.markdown('<p class="cinematic-field-label" style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 10px 0 4px 0;">⏱️ Duration</p>', unsafe_allow_html=True)
             duration_options = ["⏱️ Quick Format Shorts (10-15s)", "⏱️ Expanded Long Format (1 Minute / 60s)"]
             if st.session_state.get("duration_choice") not in duration_options:
                 st.session_state["duration_choice"] = duration_options[0]
             render_premium_selection_cards("", duration_options, "duration_choice")
             
             # Voice Profile
-            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 10px 0 4px 0;">🎤 Voice Profile</p>', unsafe_allow_html=True)
+            st.markdown('<p class="cinematic-field-label" style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 10px 0 4px 0;">🎤 Voice Profile</p>', unsafe_allow_html=True)
             voice_options = list(ELEVENLABS_VOICES.keys())
             current_voice = st.session_state.get("voice_profile", "Adam (Premium Male)")
             if current_voice not in voice_options:
@@ -18188,7 +18185,7 @@ def run_cinematic_engine():
                 st.session_state["voice_profile"] = selected_voice
             
             # Resolution
-            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 10px 0 4px 0;">📊 Resolution</p>', unsafe_allow_html=True)
+            st.markdown('<p class="cinematic-field-label" style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 10px 0 4px 0;">📊 Resolution</p>', unsafe_allow_html=True)
             if st.session_state.get("res_choice") not in {"720p", "1080p"}:
                 st.session_state["res_choice"] = "720p"
             render_premium_selection_cards("", ["720p", "1080p"], "res_choice")
@@ -24896,6 +24893,9 @@ elif st.session_state["current_page"] == "studio":
             -webkit-box-orient:vertical;
             -webkit-line-clamp:2;
         }
+        [data-testid="stMain"] .st-key-studio_engine_grid [data-testid="stMarkdownContainer"] {
+            margin-bottom:0 !important;
+        }
         .st-key-studio_engine_grid { margin-top:10px !important; }
         .st-key-studio_engine_grid [data-testid="stHorizontalBlock"] {
             display:grid !important;
@@ -26628,7 +26628,6 @@ elif st.session_state["current_page"] == "studio":
                         background:linear-gradient(105deg,#3478f6,#655eea) !important;
                     }
                     [data-testid="stMain"]:has(.st-key-studio_sidebar_action_0)
-                    .st-key-studio_sidebar_ghost_engine,
                     [data-testid="stMain"]:has(.st-key-studio_sidebar_action_0)
                     [data-testid="stElementContainer"]:has(.zd-studio-brand),
                     [data-testid="stMain"]:has(.st-key-studio_sidebar_action_0)
@@ -27539,8 +27538,8 @@ elif st.session_state["current_page"] == "studio":
                             width="stretch",
                         )
                 creation_options = [
-                    ("Sales Video", "\U0001f4e3  Sales Video"),
-                    ("Face Studio", "\U0001f464  Face Studio"),
+                    ("Sales Video", "\U0001f4e3  Sales"),
+                    ("Face Studio", "\U0001f464  Face"),
                     ("Image", "\U0001f3a8  Image"),
                     ("Blueprint", "\u2b21  Blueprint"),
                     ("Draw", "\u270f\ufe0f  Draw"),
