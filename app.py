@@ -1105,7 +1105,7 @@ components.html(
                     background:#f3f7fc !important;
                 }
                 html body.zovix-mobile-dashboard-responsive [data-testid="stMain"] .block-container {
-                    padding:10px 14px 28px !important;
+                    padding:0 14px 28px !important;
                     position:relative !important;
                 }
                 html body.zovix-mobile-dashboard-responsive .zd-mobile-header {
@@ -1314,7 +1314,7 @@ components.html(
                 html body.zovix-mobile-dashboard-responsive .st-key-studio_hero_container .zd-hero::before {
                     display:block !important;
                     z-index:0 !important;
-                    background:linear-gradient(90deg,rgba(247,250,255,.98) 0%,rgba(247,250,255,.92) 53%,rgba(247,250,255,.2) 100%) !important;
+                    background:linear-gradient(90deg,rgba(247,250,255,.96) 0%,rgba(247,250,255,.86) 32%,rgba(247,250,255,.38) 54%,rgba(247,250,255,.08) 100%) !important;
                 }
                 html body.zovix-mobile-dashboard-responsive .st-key-studio_hero_container .zd-hero-copy { z-index:1 !important; width:74% !important; max-width:74% !important; align-self:flex-start !important; text-align:left !important; }
                 html body.zovix-mobile-dashboard-responsive .st-key-studio_hero_container .zd-hero-kicker { display:block !important; margin-bottom:7px !important; color:#29486d !important; font-size:11px !important; font-weight:650 !important; }
