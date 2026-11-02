@@ -11,16 +11,20 @@ import subprocess
 import shutil
 import requests
 import traceback
+import logging
 import asyncio
 import threading
 import concurrent.futures
 import urllib.parse
 from typing import List, Dict, Any, Tuple, Optional
+from negative_prompts import DRAW_DEFAULT_NEGATIVE_PROMPT
 from pydantic import BaseModel, Field
 import edge_tts
 from mutagen.mp3 import MP3
 from PIL import Image, ImageDraw, ImageOps
 import streamlit as st
+
+logger = logging.getLogger(__name__)
 
 # --- SAFELY RESOLVE STREAMLIT THREADING CONTEXT ---
 try:
@@ -972,17 +976,30 @@ STYLE_MAP_FALLBACK = {
 
 def _enhance_prompt(prompt, style):
     style_desc = STYLE_MAP.get(style, "beautiful, high quality")
-    return f"Generate a {style_desc} image: {prompt}. High quality, professional, detailed."
+    return (
+        f"Generate a {style_desc} image: {prompt}. "
+        "High quality, professional, detailed. "
+        f"Avoid these common defects: {DRAW_DEFAULT_NEGATIVE_PROMPT}."
+    )
 
 # ─── TIER 1: POLLINATIONS ───────────
 def _draw_pollinations(prompt, style, canvas_size, timeout=30):
     width, height = canvas_size
     clean = prompt.replace('"', '').replace("'", "").strip()
     style_tag = STYLE_MAP_FALLBACK.get(style, "")
-    enhanced = f"{style_tag} {clean}, high quality, detailed" if style_tag else f"{clean}, high quality"
+    enhanced = (
+        f"{style_tag} {clean}, high quality, detailed. Avoid: "
+        f"{DRAW_DEFAULT_NEGATIVE_PROMPT}"
+        if style_tag
+        else f"{clean}, high quality. Avoid: {DRAW_DEFAULT_NEGATIVE_PROMPT}"
+    )
     encoded = urllib.parse.quote(enhanced)
     seed = random.randint(1, 999999)
-    url = f"https://image.pollinations.ai/p/{encoded}?width={width}&height={height}&seed={seed}&nologo=true"
+    negative = urllib.parse.quote(DRAW_DEFAULT_NEGATIVE_PROMPT)
+    url = (
+        f"https://image.pollinations.ai/p/{encoded}?width={width}&height={height}"
+        f"&seed={seed}&nologo=true&negative={negative}"
+    )
     headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36", "Accept": "image/webp,image/apng,image/*,*/*;q=0.8"}
     for attempt in range(3):
         try:
@@ -1020,7 +1037,12 @@ def _draw_stability(prompt, style, canvas_size, timeout=45):
     if canvas_size[0] > canvas_size[1]: aspect = "16:9"
     elif canvas_size[0] == canvas_size[1]: aspect = "1:1"
     enhanced = _enhance_prompt(prompt, style)
-    files = {"prompt": (None, enhanced), "output_format": (None, "png"), "aspect_ratio": (None, aspect)}
+    files = {
+        "prompt": (None, enhanced),
+        "negative_prompt": (None, DRAW_DEFAULT_NEGATIVE_PROMPT),
+        "output_format": (None, "png"),
+        "aspect_ratio": (None, aspect),
+    }
     headers = {"authorization": f"Bearer {api_key}", "accept": "image/*"}
     try:
         resp = requests.post("https://api.stability.ai/v2beta/stable-image/generate/core", headers=headers, files=files, timeout=timeout)
@@ -1031,35 +1053,90 @@ def _draw_stability(prompt, style, canvas_size, timeout=45):
 # ─── TIER 4: REPLICATE ───────────
 def _draw_replicate(prompt, style, canvas_size, timeout=60):
     api_key = os.getenv("REPLICATE_API_KEY") or get_system_secret("REPLICATE_API_KEY")
-    if not api_key: return None
+    if not api_key:
+        return None
+    width, height = (max(256, int(value)) for value in canvas_size)
+    supported_aspect_ratios = {
+        "1:1": 1,
+        "16:9": 16 / 9,
+        "21:9": 21 / 9,
+        "3:2": 3 / 2,
+        "2:3": 2 / 3,
+        "4:5": 4 / 5,
+        "5:4": 5 / 4,
+        "3:4": 3 / 4,
+        "4:3": 4 / 3,
+        "9:16": 9 / 16,
+        "9:21": 9 / 21,
+    }
+    aspect_ratio = min(
+        supported_aspect_ratios,
+        key=lambda candidate: abs(supported_aspect_ratios[candidate] - width / height),
+    )
     enhanced = _enhance_prompt(prompt, style)
     try:
         headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
         model_ref = "black-forest-labs/flux-dev"
-        payload = {"input": {"prompt": enhanced, "width": canvas_size[0], "height": canvas_size[1], "num_outputs": 1}}
+        payload = {
+            "input": {
+                "prompt": enhanced,
+                "aspect_ratio": aspect_ratio,
+                "num_outputs": 1,
+                "output_format": "png",
+            }
+        }
         create = requests.post(
             f"https://api.replicate.com/v1/models/{model_ref}/predictions",
             json=payload,
             headers=headers,
-            timeout=15,
+            timeout=min(15, max(1, timeout)),
         )
-        if create.status_code not in {200, 201, 202}: return None
-        get_url = create.json().get("urls", {}).get("get")
-        if not get_url: return None
-        for _ in range(30):
-            time.sleep(2)
-            check = requests.get(get_url, headers=headers, timeout=10)
+        if create.status_code not in {200, 201, 202}:
+            logger.warning("Replicate Draw prediction creation returned HTTP %s.", create.status_code)
+            return None
+        created_payload = create.json()
+        get_url = (
+            (created_payload.get("urls") or {}).get("get")
+            if isinstance(created_payload, dict)
+            else None
+        )
+        if not get_url:
+            logger.warning("Replicate Draw prediction response did not include a polling URL.")
+            return None
+        deadline = time.monotonic() + max(1, timeout)
+        while time.monotonic() < deadline:
+            remaining = deadline - time.monotonic()
+            time.sleep(min(2, remaining))
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                break
+            check = requests.get(get_url, headers=headers, timeout=min(10, max(1, remaining)))
             if check.status_code != 200: continue
-            status = check.json().get("status")
+            prediction = check.json()
+            if not isinstance(prediction, dict):
+                logger.warning("Replicate Draw polling response was not a JSON object.")
+                return None
+            status = prediction.get("status")
             if status == "succeeded":
-                output = check.json().get("output")
+                output = prediction.get("output")
                 if output:
                     img_url = output[0] if isinstance(output, list) else output
-                    img_resp = requests.get(img_url, timeout=15)
-                    if img_resp.status_code == 200 and len(img_resp.content) > 5000: return img_resp.content
-                break
-            elif status == "failed": break
-    except Exception: pass
+                    img_resp = requests.get(
+                        img_url,
+                        timeout=min(15, max(1, deadline - time.monotonic())),
+                    )
+                    if img_resp.status_code == 200 and len(img_resp.content) > 5000:
+                        return img_resp.content
+                    logger.warning("Replicate Draw image download returned HTTP %s.", img_resp.status_code)
+                    return None
+                logger.warning("Replicate Draw prediction succeeded without an image output.")
+                return None
+            if status in {"failed", "canceled"}:
+                logger.warning("Replicate Draw prediction ended with status %s.", status)
+                return None
+        logger.warning("Replicate Draw prediction did not finish within %s seconds.", timeout)
+    except (requests.RequestException, ValueError, TypeError) as exc:
+        logger.warning("Replicate Draw request failed (%s).", type(exc).__name__)
     return None
 
 # ─── TIER 5: HUGGING FACE ───────────
@@ -1186,7 +1263,6 @@ def _draw_generative_fallback(prompt="artistic composition", style="realistic", 
             img = ImageEnhance.Contrast(img).enhance(1.2)
             d = ImageDraw.Draw(img); d.rectangle([(0,0),(width,int(height*0.07))], fill=(0,0,0,255)); d.rectangle([(0,int(height*0.93)),(width,height)], fill=(0,0,0,255))
         elif style == "oil_painting": img = ImageEnhance.Sharpness(img).enhance(2.0); img = ImageEnhance.Color(img).enhance(1.6)
-        d = ImageDraw.Draw(img); d.text((width-200,height-25), "ZOVIX Draw", fill=(150,150,150,150))
         img.convert("RGB").save(output_path, quality=92)
         return output_path
     except Exception as e:

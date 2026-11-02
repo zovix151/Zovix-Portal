@@ -18,6 +18,7 @@ FACE_VIDEO_WORD_PRICES = {
     "Standard": ((50, 15), (85, 20), (120, 30)),
     "HD": ((50, 20), (85, 26), (120, 40)),
     "4K": ((50, 25), (85, 32), (120, 50)),
+    "Premium": ((50, 38), (85, 48), (120, 75)),
 }
 SALES_VIDEO_QUALITY_COSTS = {"Standard": 70, "HD": 85, "4K": 100}
 GHOST_ENGINE_TOKEN_COST = 25

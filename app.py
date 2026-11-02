@@ -207,8 +207,13 @@ components.html(
                     inset:0;
                     display:grid;
                     place-items:center;
-                    background:rgba(243,246,251,.72);
+                    background:rgba(255,255,255,.86);
+                    -webkit-backdrop-filter:blur(12px);
+                    backdrop-filter:blur(12px);
                     pointer-events:none;
+                }
+                .zovix-navigation-loading-overlay--opaque {
+                    background:#fff;
                 }
                 .zovix-navigation-loading-wheel {
                     width:42px;
@@ -238,6 +243,13 @@ components.html(
                 } catch {
                     return null;
                 }
+            };
+
+            const pageFromLocation = () => {
+                const params = new URLSearchParams(host.location.search);
+                const page = params.get("page") || "landing";
+                if (page === "login") return null;
+                return {page, mode: params.get("mode") || "", force: true, opaque: true};
             };
 
             const pageFromButton = (button) => {
@@ -320,7 +332,7 @@ components.html(
                     if (label.includes("mass factory")) return {page: "factory"};
                 }
                 if (key === "st-key-standalone_back_to_studio" || key === "st-key-studio_change_mode_btn") {
-                    return {page: "studio"};
+                    return {page: "studio", opaque: true};
                 }
                 return null;
             };
@@ -385,6 +397,7 @@ components.html(
                 const overlay = host.document.createElement("div");
                 overlay.id = "zovix-navigation-loading-overlay";
                 overlay.className = "zovix-navigation-loading-overlay";
+                if (target.opaque) overlay.classList.add("zovix-navigation-loading-overlay--opaque");
                 overlay.setAttribute("role", "status");
                 overlay.setAttribute("aria-label", "Loading page");
                 const wheel = host.document.createElement("span");
@@ -398,6 +411,11 @@ components.html(
                     if (state.pending && Date.now() - state.pending.startedAt > 600000) removeOverlay();
                 }, 600000);
             };
+
+            host.addEventListener("popstate", () => {
+                const target = pageFromLocation();
+                if (target) showOverlay(target);
+            });
 
             host.document.addEventListener("click", (event) => {
                 if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
@@ -1658,6 +1676,10 @@ from datetime import datetime, timedelta
 from functools import wraps
 from collections import defaultdict
 from plan_catalog import GLOBAL_PLANS
+from image_watermark import apply_zovix_watermark, should_apply_free_watermark
+from blueprint_svg import sanitize_blueprint_svg
+from blueprint_generation import generate_blueprint_image_with_gpt4o
+from negative_prompts import WORKSHOP_DEFAULT_NEGATIVE_PROMPT, combine_negative_prompts
 import psutil
 import socket
 import platform
@@ -1771,6 +1793,7 @@ DEEPSEEK_API_KEY = get_system_secret("DEEPSEEK_API_KEY")
 DEEPINFRA_API_KEY = get_system_secret("DEEPINFRA_API_KEY") or get_system_secret("DEEPINFRA_API_TOKEN") or os.getenv("DEEPINFRA_API_KEY", "")
 DEEPINFRA_TEXT_MODEL = os.getenv("DEEPINFRA_TEXT_MODEL", "deepseek-ai/DeepSeek-V3")
 FACE_VIDEO_MAX_SECONDS = 10
+FACE_VIDEO_PREMIUM_MAX_SECONDS = 20
 # RunPod Production Infrastructure
 RUNPOD_API_KEY = os.getenv("RUNPOD_API_KEY", "") or get_system_secret("RUNPOD_API_KEY")
 FACE_ENDPOINT_ID = os.getenv("FACE_ENDPOINT_ID", "") or get_system_secret("FACE_ENDPOINT_ID")
@@ -5659,7 +5682,7 @@ def save_face_video_to_db(username, file_name, prompt, path, face_path, quality=
     cursor = conn.cursor()
     try:
         timestamp = time.strftime("%b %d, %Y - %I:%M %p")
-        quality_credit_costs = {"Standard": 25, "HD": 35, "4K": 50}
+        quality_credit_costs = {"Standard": 25, "HD": 35, "4K": 50, "Premium": 75}
         credits_charged = quality_credit_costs.get(quality, 25) if credits_charged is None else credits_charged
         cost_inr = calculate_render_cost("Face Video", quality=quality)
         cursor.execute(
@@ -6197,7 +6220,7 @@ def safe_generate_face_video_wrapper(prompt, face_image_path, duration=30, emoti
             return None, "Face image file is corrupted or too small. Please re-upload."
         
         # Enforce hard limit: face videos are capped at 10 seconds.
-        duration = _clamp_face_video_duration(duration)
+        duration = _clamp_face_video_duration(duration, quality)
 
         # Run generation
         video_path = generate_face_video(
@@ -6271,7 +6294,12 @@ def _replicate_face_runtime_tokens(predict_time, quality="Standard"):
         usd_per_second = max(0.0, float(os.getenv("REPLICATE_FACE_COST_PER_SECOND_USD", "0.006")))
         credits_per_usd = max(1.0, float(os.getenv("ZOVIX_CREDITS_PER_USD", "1000")))
         safety_buffer = max(1.0, float(os.getenv("REPLICATE_FACE_BILLING_BUFFER", "1.25")))
-        quality_multiplier = {"Standard": 1.0, "HD": 1.15, "4K": 1.35}.get(str(quality), 1.0)
+        quality_multiplier = {
+            "Standard": 1.0,
+            "HD": 1.15,
+            "4K": 1.35,
+            "Premium": 1.5,
+        }.get(str(quality), 1.0)
         return max(1, int(math.ceil(seconds * usd_per_second * credits_per_usd * quality_multiplier * safety_buffer)))
     except (TypeError, ValueError):
         return None
@@ -7409,7 +7437,7 @@ def _generate_replicate_workshop_image(
     model_ref, model_label = model_override or WORKSHOP_MODEL_BY_QUALITY.get(
         quality_name, WORKSHOP_MODEL_BY_QUALITY["Standard"]
     )
-    ratio = aspect_ratio if aspect_ratio in {"16:9", "9:16", "1:1", "21:9", "4:5", "3:2"} else "16:9"
+    ratio = aspect_ratio if aspect_ratio in {"16:9", "9:16", "1:1", "21:9", "4:5", "3:2", "4:3"} else "16:9"
     effective_prompt, effective_negative_prompt = _enhance_workshop_face_prompt(prompt, negative_prompt)
     if effective_negative_prompt:
         effective_prompt += f" Avoid these unwanted elements: {effective_negative_prompt}"
@@ -7597,6 +7625,15 @@ def generate_pro_image(prompt, aspect_ratio="16:9", negative_prompt="", quality=
     st.session_state["workshop_image_error"] = combined_error
     logger.error("Creative Workshop image generation failed: %s", combined_error)
     return None
+
+
+def _watermark_if_free_plan(image_path):
+    if should_apply_free_watermark(
+        st.session_state.get("subscription_active", False),
+        st.session_state.get("subscription_pack", ""),
+    ):
+        return apply_zovix_watermark(image_path)
+    return image_path
 
 def convert_image_to_video_svd_robust(image_path, motion_bucket_id=127):
     """
@@ -8290,7 +8327,12 @@ def generate_face_video_real(image_path, audio_path=None, output_width=512, outp
     if not image_path or not os.path.exists(image_path):
         return None
     cv2 = _get_opencv()
-    quality_settings = {"Standard": {"crf": 23, "preset": "medium", "bitrate": "1M"}, "HD": {"crf": 18, "preset": "slow", "bitrate": "4M"}, "4K": {"crf": 15, "preset": "veryslow", "bitrate": "10M", "scale": 2.0}}
+    quality_settings = {
+        "Standard": {"crf": 23, "preset": "medium", "bitrate": "1M"},
+        "HD": {"crf": 18, "preset": "slow", "bitrate": "4M"},
+        "4K": {"crf": 15, "preset": "veryslow", "bitrate": "10M", "scale": 2.0},
+        "Premium": {"crf": 13, "preset": "veryslow", "bitrate": "12M", "scale": 2.0},
+    }
     q_settings = quality_settings.get(quality, quality_settings["Standard"])
     scale_factor = q_settings.get("scale", 1.0)
     out_w = int(output_width * scale_factor)
@@ -9101,6 +9143,7 @@ def generate_expressive_face_video(prompt, face_image_path, duration=30, emotion
         "Standard": (512, 512),
         "HD": (768, 768),
         "4K": (1024, 1024),
+        "Premium": (1024, 1024),
     }
     out_w, out_h = quality_settings.get(quality, (768, 768))
     output_video_path = f"face_videos/expressive_face_video_{quality.lower()}_{uuid.uuid4().hex[:8]}.mp4"
@@ -9435,12 +9478,17 @@ def deepface_scan_face_and_select_voice(face_image_path):
     return result
 
 
-def _clamp_face_video_duration(duration):
+def _clamp_face_video_duration(duration, quality="Standard"):
     try:
         requested = int(float(duration))
     except Exception:
         requested = FACE_VIDEO_MAX_SECONDS
-    clamped = max(1, min(FACE_VIDEO_MAX_SECONDS, requested))
+    max_duration = (
+        FACE_VIDEO_PREMIUM_MAX_SECONDS
+        if str(quality).casefold() == "premium"
+        else FACE_VIDEO_MAX_SECONDS
+    )
+    clamped = max(1, min(max_duration, requested))
     if requested != clamped:
         logger.info(f"Face video duration clamped from {requested}s to {clamped}s")
     return clamped
@@ -9450,7 +9498,7 @@ def generate_face_video(prompt, face_image_path, duration=30, emotion="neutral",
                         camera_angle="front", quality="Standard", 
                         voice_language=None, voice_label=None, runpod_api_key=None,
                         audio_path=None):
-    """Prefer configured RunPod face generation. Only use Replicate when RunPod is not configured."""
+    """Generate through Replicate first, with the configured RunPod workflow as fallback."""
     print("=" * 60)
     print("🎬 generate_face_video() called - ComfyUI RunPod Cloud Mode")
     print("=" * 60)
@@ -9458,6 +9506,7 @@ def generate_face_video(prompt, face_image_path, duration=30, emotion="neutral",
     if not face_image_path or not os.path.exists(face_image_path):
         return None
 
+    duration = _clamp_face_video_duration(duration, quality)
     voice_cfg = _resolve_face_voice_config(
         voice_language=voice_language,
         voice_label=voice_label,
@@ -9573,22 +9622,46 @@ def _generate_replicate_face_video(prompt, face_image_path, duration, quality, v
             if not _synthesize_face_audio_strict(prompt, temp_audio, voice_cfg, duration_hint=duration):
                 raise RuntimeError("Could not generate speech audio for the selected voice.")
             source_audio_path = temp_audio
-            model_candidates = [
-                os.getenv("REPLICATE_FACE_MODEL", "prunaai/p-video-avatar"),
-                "prunaai/p-video-avatar",
-                "lucataco/sadtalker",
-                "cjwbw/sadtalker",
-                "gandhana/liveportrait",
-            ]
+            if str(quality).casefold() == "premium":
+                model_candidates = [
+                    "lucataco/sadtalker",
+                    "cjwbw/sadtalker",
+                    os.getenv("REPLICATE_FACE_MODEL", "prunaai/p-video-avatar"),
+                    "prunaai/p-video-avatar",
+                    "gandhana/liveportrait",
+                ]
+            else:
+                model_candidates = [
+                    os.getenv("REPLICATE_FACE_MODEL", "prunaai/p-video-avatar"),
+                    "prunaai/p-video-avatar",
+                    "lucataco/sadtalker",
+                    "cjwbw/sadtalker",
+                    "gandhana/liveportrait",
+                ]
 
         client = replicate.Client(api_token=token)
         seen = set()
+        video_prompt = None
+        if str(quality).casefold() == "premium":
+            video_prompt = (
+                "Accurate audio-synchronized lip movement for every spoken phrase, "
+                "natural expressive face and eyes, subtle head motion, stable identity, "
+                "no exaggerated mouth movement"
+            )
         for model_ref in model_candidates:
             model_ref = str(model_ref).strip()
             if not model_ref or model_ref.lower() in seen:
                 continue
             seen.add(model_ref.lower())
-            result = _run_replicate_face_model(client, model_ref, face_image_path, source_audio_path, prompt)
+            result = _run_replicate_face_model(
+                client,
+                model_ref,
+                face_image_path,
+                source_audio_path,
+                prompt,
+                video_prompt=video_prompt,
+                quality=quality,
+            )
             if result:
                 video_url, predict_time = result
                 st.session_state["face_video_replicate_predict_time"] = predict_time
@@ -9773,6 +9846,7 @@ def generate_world_face_video(prompt, face_image_path, duration=10, quality="HD"
     """Generate with Replicate first, then fall back to RunPod if needed."""
     if not face_image_path or not os.path.exists(face_image_path):
         return None
+    duration = _clamp_face_video_duration(duration, quality)
 
     st.session_state["face_video_replicate_predict_time"] = None
 
@@ -9825,7 +9899,7 @@ def generate_world_face_video(prompt, face_image_path, duration=10, quality="HD"
             audio_path=source_audio_path,
             script_text=prompt,
             duration=duration,
-            quality=quality,
+            quality="4K" if str(quality).casefold() == "premium" else quality,
             api_key=effective_runpod_key,
             endpoint_id=effective_endpoint,
         )
@@ -12043,16 +12117,18 @@ def run_blueprints_mode():
                             selected_template_name = selected_template
                             if selected_template_name and selected_template_name != "None" and selected_template_name in template_map:
                                 template_context = template_map[selected_template_name].get("prompt", "")
-                            with st.spinner("Generating ZOVIX Blueprint..."):
+                            with st.spinner("GPT-4o is reading your brief; Replicate is rendering the blueprint..."):
                                 try:
-                                    blueprint_path = generate_blueprint_with_deepseek(
+                                    blueprint_path = generate_blueprint_with_gpt4o_replicate(
                                         cleaned_prompt,
                                         blueprint_type,
                                         blueprint_style,
                                         blueprint_render_mode,
                                         template_context=template_context,
+                                        quality=bp_quality,
                                     )
                                     if blueprint_path and os.path.exists(blueprint_path):
+                                        blueprint_path = _watermark_if_free_plan(blueprint_path)
                                         st.session_state["active_blueprint"] = blueprint_path
                                         timestamp = time.strftime("%Y%m%d_%H%M%S")
                                         output_ext = os.path.splitext(blueprint_path)[1] or ".png"
@@ -12136,22 +12212,23 @@ def run_blueprints_mode():
                     components.html(_wrap_svg_for_streamlit(svg_code), height=620, scrolling=False)
                 else:
                     st.image(active_bp, width="stretch")
-                try:
-                    analysis = analyze_blueprint(active_bp)
-                    if analysis:
-                        with st.expander("Blueprint Analysis", expanded=False):
-                            st.markdown(f"""
-                            <div style="background: rgba(255,255,255,0.02); border-radius: 8px; padding: 12px; font-family: 'Inter', sans-serif;">
-                                <p style="font-size: 12px; color: #94a3b8; margin: 4px 0;"><strong style="color: #FFC0CB;">Format:</strong> {analysis.get('format', 'N/A')}</p>
-                                <p style="font-size: 12px; color: #94a3b8; margin: 4px 0;"><strong style="color: #FFC0CB;">Dimensions:</strong> {analysis.get('width', 'N/A')} x {analysis.get('height', 'N/A')} px</p>
-                                <p style="font-size: 12px; color: #94a3b8; margin: 4px 0;"><strong style="color: #FFC0CB;">Estimated Rooms:</strong> {analysis.get('estimated_rooms', 'N/A')}</p>
-                                <p style="font-size: 12px; color: #94a3b8; margin: 4px 0;"><strong style="color: #FFC0CB;">Total Area:</strong> {analysis.get('total_area', 'N/A')}</p>
-                                <p style="font-size: 12px; color: #94a3b8; margin: 4px 0;"><strong style="color: #FFC0CB;">Structure Type:</strong> {analysis.get('structure_type', 'N/A')}</p>
-                                <p style="font-size: 12px; color: #94a3b8; margin: 4px 0;"><strong style="color: #FFC0CB;">Confidence Score:</strong> {analysis.get('confidence_score', 0.0) * 100:.1f}%</p>
-                            </div>
-                            """, unsafe_allow_html=True)
-                except Exception as e:
-                    st.warning(f"Blueprint analysis temporarily unavailable: {str(e)[:100]}")
+                if not str(active_bp).lower().endswith(".svg"):
+                    try:
+                        analysis = analyze_blueprint(active_bp)
+                        if analysis:
+                            with st.expander("Blueprint Analysis", expanded=False):
+                                st.markdown(f"""
+                                <div style="background: rgba(255,255,255,0.02); border-radius: 8px; padding: 12px; font-family: 'Inter', sans-serif;">
+                                    <p style="font-size: 12px; color: #94a3b8; margin: 4px 0;"><strong style="color: #FFC0CB;">Format:</strong> {analysis.get('format', 'N/A')}</p>
+                                    <p style="font-size: 12px; color: #94a3b8; margin: 4px 0;"><strong style="color: #FFC0CB;">Dimensions:</strong> {analysis.get('width', 'N/A')} x {analysis.get('height', 'N/A')} px</p>
+                                    <p style="font-size: 12px; color: #94a3b8; margin: 4px 0;"><strong style="color: #FFC0CB;">Estimated Rooms:</strong> {analysis.get('estimated_rooms', 'N/A')}</p>
+                                    <p style="font-size: 12px; color: #94a3b8; margin: 4px 0;"><strong style="color: #FFC0CB;">Total Area:</strong> {analysis.get('total_area', 'N/A')}</p>
+                                    <p style="font-size: 12px; color: #94a3b8; margin: 4px 0;"><strong style="color: #FFC0CB;">Structure Type:</strong> {analysis.get('structure_type', 'N/A')}</p>
+                                    <p style="font-size: 12px; color: #94a3b8; margin: 4px 0;"><strong style="color: #FFC0CB;">Confidence Score:</strong> {analysis.get('confidence_score', 0.0) * 100:.1f}%</p>
+                                </div>
+                                """, unsafe_allow_html=True)
+                    except Exception as e:
+                        st.warning(f"Blueprint analysis temporarily unavailable: {str(e)[:100]}")
 
                 st.markdown("<br>", unsafe_allow_html=True)
                 col_dl, col_clr = st.columns(2)
@@ -12181,7 +12258,7 @@ def run_blueprints_mode():
                         <span style="font-size: 48px; margin-bottom: 10px;">📐</span>
                         <p style="font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500; color: #EC4899; margin: 0;">Blueprint will render here</p>
                         <p style="font-family: 'Inter', sans-serif; font-size: 11px; color: #94a3b8; max-width: 400px; text-align: center; margin-top: 4px; line-height: 1.4;">Professional architectural drawings with detailed analysis.</p>
-                        <p style="font-family: 'Inter', sans-serif; font-size: 10px; color: #45f3ff; margin-top: 4px;">Powered by Gemini SVG generation</p>
+                        <p style="font-family: 'Inter', sans-serif; font-size: 10px; color: #45f3ff; margin-top: 4px;">Prompt by GPT-4o · Image by Replicate Flux</p>
                     </div>
                 """, unsafe_allow_html=True)
 
@@ -12363,7 +12440,7 @@ def _build_fallback_svg_blueprint(user_prompt, blueprint_type="floor_plan", styl
     return "\n".join(svg_parts)
 
 
-def _build_blueprint_generation_prompt(user_prompt, blueprint_type="floor_plan", style="Modern", render_mode="2D Technical Plan", template_context=None):
+def _build_blueprint_generation_prompt(user_prompt, blueprint_type="floor_plan", style="Modern", render_mode="2D Technical Plan", template_context=None, quality="Standard"):
     """Build a prompt that prioritizes the user's explicit blueprint details while keeping template context as support."""
     user_text = (user_prompt or "").strip()
     template_text = (template_context or "").strip()
@@ -12407,12 +12484,21 @@ def _build_blueprint_generation_prompt(user_prompt, blueprint_type="floor_plan",
         },
     )
 
+    detail_guidance = (
+        "Use HD detail: include clear room dimensions, construction annotations, and carefully spaced labels."
+        if str(quality).casefold() == "hd"
+        else "Use clean, readable standard detail without overcrowding the drawing."
+    )
     return (
         f"{guidance['summary']} "
         f"Render mode: {render_mode}. "
         f"Design brief: {combined_context}. "
         f"{guidance['details']} "
+        "Treat the user's requested objects, quantities, dimensions, and relationships as requirements. "
+        "Do not replace, omit, or add requested rooms or components. "
+        f"{detail_guidance} "
         "Use a deep navy/cyan blueprint palette with crisp white or cyan lines and white sans-serif labels. "
+        "Use basic SVG shapes and presentation attributes only; do not include scripts, external resources, or CSS blocks. "
         "Return only raw SVG code with no markdown fences or explanations."
     )
 
@@ -12433,7 +12519,7 @@ def _extract_svg_markup(raw_text):
     return content.strip()
 
 
-def _generate_gemini_svg_blueprint(user_prompt, blueprint_type="floor_plan", style="Modern", render_mode="2D Technical Plan", template_context=None):
+def _generate_gemini_svg_blueprint(user_prompt, blueprint_type="floor_plan", style="Modern", render_mode="2D Technical Plan", template_context=None, quality="Standard"):
     """Generate a raw SVG blueprint using Gemini and return the SVG string."""
     effective_api_key = st.session_state.get("user_gemini_api_key", "").strip() or GEMINI_API_KEY
     if not effective_api_key:
@@ -12462,6 +12548,7 @@ def _generate_gemini_svg_blueprint(user_prompt, blueprint_type="floor_plan", sty
         style=style,
         render_mode=render_mode,
         template_context=template_context,
+        quality=quality,
     )
 
     payload = {
@@ -12470,69 +12557,73 @@ def _generate_gemini_svg_blueprint(user_prompt, blueprint_type="floor_plan", sty
         "generationConfig": {
             "temperature": 0.2,
             "topP": 0.95,
-            "maxOutputTokens": 3000,
+            "maxOutputTokens": 6000 if str(quality).casefold() == "hd" else 3500,
         },
     }
 
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={effective_api_key}"
-    response = requests.post(url, json=payload, timeout=60)
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent"
+    response = requests.post(
+        url,
+        json=payload,
+        headers={"x-goog-api-key": effective_api_key},
+        timeout=60,
+    )
     if response.status_code != 200:
         raise RuntimeError(f"Gemini request failed ({response.status_code}): {response.text[:400]}")
 
     response_data = response.json()
-    candidate_text = ""
     try:
         candidate_text = response_data["candidates"][0]["content"]["parts"][0]["text"]
-    except Exception:
-        candidate_text = ""
+    except (KeyError, IndexError, TypeError) as exc:
+        raise RuntimeError("Gemini returned no blueprint content.") from exc
 
     svg_code = _extract_svg_markup(candidate_text)
     if not svg_code or "<svg" not in svg_code.lower():
-        logger.warning("Gemini blueprint output was invalid; using local fallback SVG.")
-        return _build_fallback_svg_blueprint(
-            user_prompt,
-            blueprint_type=blueprint_type,
-            style=style,
-            render_mode=render_mode,
-            template_context=template_context,
-        )
+        raise RuntimeError("Gemini returned invalid blueprint SVG.")
 
-    return svg_code
+    return sanitize_blueprint_svg(svg_code)
 
 
-def generate_blueprint_with_deepseek(prompt, blueprint_type="floor_plan", style="Modern", render_mode="2D Technical Plan", template_context=None):
-    """Generate a professional blueprint asset for the viewer."""
+def generate_blueprint_with_gpt4o_replicate(prompt, blueprint_type="floor_plan", style="Modern", render_mode="2D Technical Plan", template_context=None, quality="Standard"):
+    """Use GPT-4o to interpret the brief and Replicate Flux to render the blueprint."""
     try:
-        combined_prompt = str(prompt or "").strip()
-        template_text = str(template_context or "").strip()
-        if template_text:
-            combined_prompt = f"{combined_prompt}\n\nTemplate reference: {template_text}" if combined_prompt else template_text
-        blueprint_data = {
-            "description": combined_prompt or "Professional technical blueprint generated from your prompt.",
-            "style": style,
-            "structure_type": blueprint_type.replace("_", " ").title(),
-            "title": f"Zovix {blueprint_type.replace('_', ' ').title()}",
-        }
-        output_path = _render_professional_blueprint(
-            prompt=combined_prompt or prompt,
-            blueprint_type=blueprint_type,
-            style=style,
-            blueprint_data=blueprint_data,
-            render_mode=render_mode,
+        def generate_with_replicate(replicate_prompt, aspect_ratio, negative_prompt, selected_quality):
+            output_path = generate_pro_image(
+                replicate_prompt,
+                aspect_ratio,
+                negative_prompt,
+                selected_quality,
+                strict_provider=True,
+            )
+            if not output_path:
+                provider_error = st.session_state.get("workshop_image_error")
+                raise RuntimeError(provider_error or "Replicate did not return a blueprint image.")
+            return output_path
+
+        generated_path = generate_blueprint_image_with_gpt4o(
+            prompt,
+            blueprint_type,
+            style,
+            render_mode,
+            quality,
+            template_context,
+            get_system_secret("OPENAI_API_KEY"),
+            generate_with_replicate,
         )
-        st.session_state["active_blueprint"] = output_path
+        output_dir = Path("blueprints")
+        output_dir.mkdir(parents=True, exist_ok=True)
+        output_path = output_dir / f"blueprint_{uuid.uuid4().hex[:8]}.png"
+        shutil.copy2(generated_path, output_path)
+        st.session_state["active_blueprint"] = str(output_path)
         st.session_state["active_blueprint_svg"] = None
         st.session_state["active_blueprint_error"] = None
-        return output_path
+        st.session_state["blueprint_image_engine_used"] = "GPT-4o + Replicate Flux"
+        return str(output_path)
     except Exception as e:
-        logger.error(f"Blueprint professional generation error: {e}")
-        fallback_path = generate_blueprint(prompt or template_context or "Blueprint request", blueprint_type=blueprint_type, render_mode=render_mode)
-        if fallback_path and os.path.exists(fallback_path):
-            st.session_state["active_blueprint"] = fallback_path
-            st.session_state["active_blueprint_svg"] = None
-            st.session_state["active_blueprint_error"] = None
-            return fallback_path
-        st.session_state["active_blueprint_error"] = f"Blueprint generation failed: {str(e)}"
+        logger.error("GPT-4o + Replicate blueprint generation failed: %s", e)
+        st.session_state["active_blueprint_error"] = (
+            f"GPT-4o + Replicate blueprint generation failed: {str(e)}"
+        )
         return None
 
 
@@ -13930,10 +14021,14 @@ def run_creative_workshop():
                                 st.session_state['credit_balance'] = st.session_state['user_credits']
 
                                 with st.spinner("Generating by ZOVIX..."):
+                                    effective_workshop_negative_prompt = combine_negative_prompts(
+                                        workshop_neg_prompt_str,
+                                        WORKSHOP_DEFAULT_NEGATIVE_PROMPT,
+                                    )
                                     try:
                                         enhanced_workshop_prompt = _enhance_workshop_prompt_gpt4o(
                                             workshop_prompt_str,
-                                            workshop_neg_prompt_str,
+                                            effective_workshop_negative_prompt,
                                         )
                                     except Exception as exc:
                                         logger.warning(
@@ -13947,12 +14042,13 @@ def run_creative_workshop():
                                     img_path = generate_pro_image(
                                         enhanced_workshop_prompt,
                                         workshop_ar,
-                                        workshop_neg_prompt_str,
+                                        effective_workshop_negative_prompt,
                                         workshop_quality,
                                         strict_provider=False,
                                     )
 
                                 if img_path and os.path.exists(img_path):
+                                    img_path = _watermark_if_free_plan(img_path)
                                     st.session_state["workshop_active_image"] = img_path
 
                                     timestamp = time.strftime("%Y%m%d_%H%M%S")
@@ -14687,6 +14783,7 @@ def run_draw_mode():
                                 )
                                 
                                 if drawing_path and os.path.exists(drawing_path):
+                                    drawing_path = _watermark_if_free_plan(drawing_path)
                                     st.session_state["active_drawing"] = drawing_path
                                     from engine import DrawEngine
                                     st.session_state["draw_engine_used"] = DrawEngine.get_last_engine_used()
@@ -15776,14 +15873,37 @@ def run_face_video_mode():
             st.markdown("""<div class='face-control-item'><div class='label'>📊 Quality</div><div class='value'>Select Below</div></div>""", unsafe_allow_html=True)
             st.markdown("</div>", unsafe_allow_html=True)
             col_mode, col_motion, col_dur, col_qual = st.columns(4)
+            face_quality_options = ["Standard", "HD", "4K", "Premium"]
+            face_selected_quality = st.session_state.get("fv_quality", "Standard")
+            if face_selected_quality not in face_quality_options:
+                face_selected_quality = "Standard"
+            face_duration_options = [10, 15, 20] if face_selected_quality == "Premium" else [10]
+            previous_face_quality = st.session_state.get("fv_previous_quality", "Standard")
+            if face_selected_quality == "Premium" and previous_face_quality != "Premium":
+                st.session_state["fv_duration"] = 20
+            elif face_selected_quality != "Premium":
+                st.session_state["fv_duration"] = 10
+            st.session_state["fv_previous_quality"] = face_selected_quality
+            if st.session_state.get("fv_duration") not in face_duration_options:
+                st.session_state["fv_duration"] = 20 if face_selected_quality == "Premium" else 10
             with col_mode:
                 st.selectbox("Mode:", ["Lip-Sync Only"], key="fv_mode", disabled=True)
             with col_motion:
                 st.selectbox("Motion:", ["No Head Motion"], key="fv_motion", disabled=True)
             with col_dur:
-                video_duration = st.select_slider("Duration (seconds)", options=[10], value=10, key="fv_duration")
+                video_duration = st.select_slider(
+                    "Duration (seconds)",
+                    options=face_duration_options,
+                    value=st.session_state["fv_duration"],
+                    key="fv_duration",
+                )
             with col_qual:
-                quality = st.selectbox("Video Quality:", ["Standard", "HD", "4K"], key="fv_quality")
+                quality = st.selectbox(
+                    "Video Quality:",
+                    face_quality_options,
+                    index=face_quality_options.index(face_selected_quality),
+                    key="fv_quality",
+                )
             fv_voice_language = st.selectbox(
                 "Voice Language",
                 ["Hindi", "English", "All Voices"],
@@ -16438,6 +16558,27 @@ def run_unified_face_video_mode():
                 st.success(f"✅ {face_image_upload.name} uploaded successfully!")
                 st.image(st.session_state["unified_face_image_bytes"], caption="Uploaded Face", width="stretch")
             
+            quality_options = ["Standard", "HD", "4K", "Premium"]
+            selected_quality = st.session_state.get("fv_quality", "Standard")
+            if selected_quality not in quality_options:
+                selected_quality = "Standard"
+            is_premium_quality = selected_quality == "Premium"
+            duration_options = [10, 15, 20] if is_premium_quality else [10]
+            previous_quality = st.session_state.get("fv_previous_quality", "Standard")
+            if is_premium_quality and previous_quality != "Premium":
+                st.session_state["fv_duration"] = 20
+            elif not is_premium_quality:
+                st.session_state["fv_duration"] = 10
+            st.session_state["fv_previous_quality"] = selected_quality
+            if st.session_state.get("fv_duration") not in duration_options:
+                st.session_state["fv_duration"] = 20 if is_premium_quality else 10
+            selected_duration = st.session_state["fv_duration"]
+            script_character_limit = (
+                min(240, selected_duration * 12)
+                if is_premium_quality
+                else 120
+            )
+
             voice_source = st.radio(
                 "Dialogue voice source",
                 ["Generate voice from script", "Use my recorded voice"],
@@ -16451,12 +16592,12 @@ def run_unified_face_video_mode():
                     "Dialogue / Script",
                     placeholder="Type what the person should speak naturally...",
                     height=80,
-                    max_chars=120,
+                    max_chars=240,
                     key="unified_fv_prompt",
                     label_visibility="collapsed",
-                    help="Starter plan allows max 120 characters (~10-12 seconds video)."
+                    help=f"Up to {script_character_limit} characters for {selected_quality} quality."
                 )
-                st.caption(f"{len(face_prompt)}/120 characters")
+                st.caption(f"{len(face_prompt)}/{script_character_limit} characters")
             else:
                 face_prompt = ""
                 st.markdown('<p class="face-label">🎙️ Upload your recorded dialogue</p>', unsafe_allow_html=True)
@@ -16465,7 +16606,7 @@ def run_unified_face_video_mode():
                     type=["mp3", "wav", "m4a", "ogg"],
                     key="unified_fv_recorded_voice",
                     label_visibility="collapsed",
-                    help="Upload your own spoken dialogue (MP3, WAV, M4A, or OGG; up to 10 seconds).",
+                    help="Upload your own spoken dialogue and keep it within the selected video duration.",
                 )
                 if recorded_voice_upload:
                     st.audio(recorded_voice_upload)
@@ -16476,8 +16617,8 @@ def run_unified_face_video_mode():
                 st.markdown('<p class="face-label">⏱️ Duration</p>', unsafe_allow_html=True)
                 video_duration = st.select_slider(
                     "Duration",
-                    options=[10],
-                    value=10,
+                    options=duration_options,
+                    value=st.session_state["fv_duration"],
                     key="fv_duration",
                     label_visibility="collapsed"
                 )
@@ -16485,11 +16626,11 @@ def run_unified_face_video_mode():
                 st.markdown('<p class="face-label">📊 Quality</p>', unsafe_allow_html=True)
                 quality = st.selectbox(
                     "Quality",
-                    ["Standard", "HD", "4K"],
+                    quality_options,
+                    index=quality_options.index(selected_quality),
                     key="fv_quality",
                     label_visibility="collapsed"
                 )
-            
             st.markdown("<br>", unsafe_allow_html=True)
             
             # ============================================
@@ -16543,11 +16684,21 @@ def run_unified_face_video_mode():
 
             # Generate Button - ComfyUI on RunPod Serverless ☁️
             render_face_generation_policy_notice()
-            if st.button("🌍 Generate Global Face Video", key="unified_fv_generate_btn", width="stretch"):
+            generate_button_label = (
+                "✨ Generate Premium Face Video"
+                if quality == "Premium"
+                else "🌍 Generate Global Face Video"
+            )
+            if st.button(generate_button_label, key="unified_fv_generate_btn", width="stretch"):
                 if not require_login_for_generation("Face Video Mode"):
                     st.stop()
                 elif voice_source == "Generate voice from script" and not face_prompt.strip():
                     st.error("Please enter dialogue or select recorded voice.")
+                elif voice_source == "Generate voice from script" and len(face_prompt) > script_character_limit:
+                    st.error(
+                        f"Script limit is {script_character_limit} characters for {quality} quality "
+                        f"at {video_duration} seconds."
+                    )
                 elif voice_source == "Use my recorded voice" and not recorded_voice_upload:
                     st.error("Please upload your recorded dialogue audio.")
                 elif voice_source == "Generate voice from script" and len(face_prompt.split()) > 120:
@@ -23192,7 +23343,7 @@ elif st.session_state["current_page"] == "studio":
         .zd-breadcrumb { color:#738198; font-size:10px; font-weight:650; }
         .zd-user { display:flex; align-items:center; gap:8px; color:#26354c; text-decoration:none; font-size:10px; font-weight:750; }
         .zd-avatar { display:grid; place-items:center; width:29px; height:29px; color:#fff; background:linear-gradient(135deg,#16b8b1,#5868e9); border-radius:50%; font-size:12px; }
-        .zd-hero { position:relative; display:flex; align-items:flex-end; min-height:218px; overflow:hidden; padding:23px; color:#fff; border:1px solid rgba(55,105,167,.22); border-radius:15px; background:#12274c center 42%/cover no-repeat; box-shadow:0 8px 22px rgba(33,57,91,.1); }
+        .zd-hero { position:relative; display:flex; align-items:flex-end; min-height:218px; overflow:hidden; padding:23px; color:#fff; border:1px solid rgba(55,105,167,.22); border-radius:15px; background:#12274c center 12%/cover no-repeat; box-shadow:0 8px 22px rgba(33,57,91,.1); }
         .zd-hero::before { position:absolute; inset:0; content:""; background:linear-gradient(90deg,rgba(8,18,40,.92) 0%,rgba(9,21,46,.76) 41%,rgba(8,20,43,.12) 100%),linear-gradient(0deg,rgba(8,18,40,.36),transparent 60%); }
         .zd-hero-copy { position:relative; z-index:1; max-width:560px; }
         .zd-hero-kicker { margin-bottom:8px; color:#e2efff; font-size:10px; font-weight:650; }
@@ -24867,6 +25018,11 @@ elif st.session_state["current_page"] == "studio":
             aspect-ratio:1 / 1;
             object-fit:cover;
         }
+        @media (min-width:901px) {
+            .st-key-studio_engine_grid .zd-engine-photo-card img {
+                aspect-ratio:4 / 3;
+            }
+        }
         .zd-engine-photo-icon {
             position:absolute;
             z-index:2;
@@ -25762,7 +25918,7 @@ elif st.session_state["current_page"] == "studio":
             .st-key-studio_hero_container {
                 background:
                     linear-gradient(115deg, rgba(243,248,255,.96) 0%, rgba(232,240,255,.84) 42%, rgba(88,105,190,.34) 100%),
-                    url('/app/static/studio_hero.webp') center 45%/cover no-repeat !important;
+                    url('/app/static/studio_hero.webp') center 12%/cover no-repeat !important;
                 box-shadow:0 16px 38px rgba(45,75,135,.18), 0 0 0 1px rgba(255,255,255,.8) inset !important;
             }
             .st-key-studio_hero_container .zd-hero h1 {
@@ -25793,7 +25949,7 @@ elif st.session_state["current_page"] == "studio":
             .st-key-studio_hero_controls {
                 border-color:rgba(255,255,255,.95) !important;
                 background:rgba(255,255,255,.9) !important;
-                box-shadow:0 0 0 1px rgba(90,133,232,.18), 0 0 24px rgba(74,117,237,.28), 0 10px 26px rgba(35,62,115,.16) !important;
+                box-shadow:0 8px 22px rgba(35,62,115,.14) !important;
             }
             .st-key-studio_hero_prompt_form [data-testid="stTextInput"] input {
                 border-color:#cbd9f4 !important;
@@ -28098,12 +28254,16 @@ elif st.session_state["current_page"] == "studio":
                         with open(preview_path, "rb") as f:
                             audio_bytes = f.read()
                         st.audio(audio_bytes)
+                    elif ext == ".svg":
+                        with open(preview_path, "r", encoding="utf-8") as f:
+                            components.html(_wrap_svg_for_streamlit(f.read()), height=620, scrolling=False)
                     elif ext in [".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp"]:
                         st.image(preview_path, width="stretch")
                     else:
                         st.info("Preview is not supported for this file type, but you can still download it.")
 
                     mime_map = {
+                        ".svg": "image/svg+xml",
                         ".png": "image/png",
                         ".jpg": "image/jpeg",
                         ".jpeg": "image/jpeg",
@@ -28727,6 +28887,9 @@ def render_engine_portfolio_section(include_discovery=True):
             elif ext in [".mp3", ".wav", ".m4a", ".ogg"]:
                 with open(preview_path, "rb") as f:
                     st.audio(f.read())
+            elif ext == ".svg":
+                with open(preview_path, "r", encoding="utf-8") as f:
+                    components.html(_wrap_svg_for_streamlit(f.read()), height=620, scrolling=False)
             elif ext in [".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp"]:
                 if current_mode == "Upscaler Mode":
                     st.image(
@@ -28739,6 +28902,7 @@ def render_engine_portfolio_section(include_discovery=True):
                 st.info("Preview is not supported for this file type, but you can still download it.")
 
             mime_map = {
+                ".svg": "image/svg+xml",
                 ".png": "image/png",
                 ".jpg": "image/jpeg",
                 ".jpeg": "image/jpeg",
@@ -30153,12 +30317,16 @@ def run_production_engine_mode():
             elif ext in [".mp3", ".wav", ".m4a", ".ogg"]:
                 with open(preview_path, "rb") as f:
                     st.audio(f.read())
+            elif ext == ".svg":
+                with open(preview_path, "r", encoding="utf-8") as f:
+                    components.html(_wrap_svg_for_streamlit(f.read()), height=620, scrolling=False)
             elif ext in [".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp"]:
                 st.image(preview_path, width="stretch")
             else:
                 st.info("Preview is not supported for this file type, but you can still download it.")
 
             mime_map = {
+                ".svg": "image/svg+xml",
                 ".png": "image/png",
                 ".jpg": "image/jpeg",
                 ".jpeg": "image/jpeg",

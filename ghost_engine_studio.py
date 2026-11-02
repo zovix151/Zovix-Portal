@@ -23,6 +23,16 @@ from spatial_director_engine import (
 logger = logging.getLogger("Zovix.Layer7")
 
 
+def _forget_session_character_reference():
+    for key in (
+        "ghost_character_reference_bytes",
+        "ghost_character_reference_name",
+        "ghost_character_name",
+        "ghost_face_reference",
+    ):
+        st.session_state.pop(key, None)
+
+
 def render_ghost_engine_studio(
     save_output_callback=None,
     load_portfolio_callback=None,
@@ -457,10 +467,11 @@ def render_ghost_engine_studio(
                 )
             with face_lock_column:
                 face_lock = st.checkbox(
-                    "Enable Face Lock",
+                    "Enable Face Lock / Reuse Character",
                     key="ghost_face_lock_enabled",
+                    help="Upload a character once and reuse that same reference for each render during this session.",
                 )
-                face_reference = None
+                face_reference_bytes = None
                 if face_lock:
                     face_reference = st.file_uploader(
                         "Face reference image",
@@ -468,8 +479,45 @@ def render_ghost_engine_studio(
                         key="ghost_face_reference",
                         help="Upload a clear, front-facing image. It guides the Flux keyframe and may incur model usage charges.",
                     )
+                    character_name = st.text_input(
+                        "Session character name (optional)",
+                        key="ghost_character_name",
+                        max_chars=48,
+                    )
+                    if face_reference is not None:
+                        uploaded_bytes = face_reference.getvalue()
+                        if len(uploaded_bytes) > 20 * 1024 * 1024:
+                            st.session_state["ghost_character_reference_bytes"] = None
+                            st.session_state["ghost_character_reference_name"] = ""
+                            st.error("Character reference must be 20 MB or smaller.")
+                        elif uploaded_bytes:
+                            st.session_state["ghost_character_reference_bytes"] = uploaded_bytes
+                            st.session_state["ghost_character_reference_name"] = (
+                                character_name.strip() or Path(face_reference.name).stem
+                            )
+
+                    face_reference_bytes = st.session_state.get(
+                        "ghost_character_reference_bytes"
+                    )
+                    if face_reference_bytes:
+                        if character_name.strip():
+                            st.session_state["ghost_character_reference_name"] = character_name.strip()
+                        active_name = st.session_state.get(
+                            "ghost_character_reference_name",
+                            "Reusable character",
+                        )
+                        st.caption(
+                            f"Session character ready: {active_name}. "
+                            "This reference stays in this session only."
+                        )
+                        st.button(
+                            "Forget session character",
+                            key="ghost_character_reference_forget",
+                            on_click=_forget_session_character_reference,
+                            width="stretch",
+                        )
             run_clicked = st.button(
-                "▶ Generate Story Video",
+                "▶ Generate",
                 key="ghost_generate_master",
                 type="primary",
                 width="stretch",
@@ -485,7 +533,7 @@ def render_ghost_engine_studio(
             if run_clicked:
                 if not script.strip():
                     st.warning("Enter a script or scene prompt to begin.")
-                elif face_lock and face_reference is None:
+                elif face_lock and not face_reference_bytes:
                     st.warning("Upload a face reference image to use Face Lock.")
                 elif not get_openai_api_key():
                     st.error(
@@ -520,9 +568,7 @@ def render_ghost_engine_studio(
                                         "character_action": character_action,
                                     },
                                     face_reference_bytes=(
-                                        face_reference.getvalue()
-                                        if face_lock and face_reference
-                                        else None
+                                        face_reference_bytes if face_lock else None
                                     ),
                                     quality=quality,
                                 )
