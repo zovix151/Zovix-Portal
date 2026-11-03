@@ -101,6 +101,21 @@ _EDGE_FEATHER_PIXELS = 10
 _OUTPUT_ROOT = Path(__file__).resolve().parent / "static" / "outputs"
 
 
+def _output_size_for_aspect_ratio(aspect_ratio: str) -> tuple[int, int]:
+    sizes = {
+        "16:9": _OUTPUT_SIZE,
+        "9:16": (_OUTPUT_SIZE[1], _OUTPUT_SIZE[0]),
+        "1:1": (_OUTPUT_SIZE[1], _OUTPUT_SIZE[1]),
+    }
+    try:
+        return sizes[aspect_ratio]
+    except KeyError as exc:
+        raise ValueError(
+            f"Unsupported camera-motion aspect ratio {aspect_ratio!r}. "
+            f"Choose one of: {', '.join(sizes)}."
+        ) from exc
+
+
 def _fit_frame_to_size(frame: np.ndarray, output_size: tuple[int, int]) -> np.ndarray:
     """Center-crop to a target aspect ratio, then resize without stretching."""
     target_width, target_height = output_size
@@ -120,9 +135,12 @@ def _fit_frame_to_size(frame: np.ndarray, output_size: tuple[int, int]) -> np.nd
     return cv2.resize(frame, output_size, interpolation=cv2.INTER_AREA)
 
 
-def _fit_frame_to_output(frame: np.ndarray) -> np.ndarray:
-    """Center-crop to the 16:9 master canvas, then resize without stretching."""
-    return _fit_frame_to_size(frame, _OUTPUT_SIZE)
+def _fit_frame_to_output(
+    frame: np.ndarray,
+    output_size: tuple[int, int] = _OUTPUT_SIZE,
+) -> np.ndarray:
+    """Center-crop to the requested master canvas, then resize without stretching."""
+    return _fit_frame_to_size(frame, output_size)
 
 
 def _normalize_i2v_video(
@@ -131,6 +149,7 @@ def _normalize_i2v_video(
     frame_count: int,
     duration_seconds: float,
     source_fps: float,
+    output_size: tuple[int, int] = _OUTPUT_SIZE,
 ) -> None:
     """Encode at browser FPS while preserving source timing; reject truncated motion."""
     ffmpeg = shutil.which("ffmpeg")
@@ -144,7 +163,7 @@ def _normalize_i2v_video(
         )
     filters = (
         f"fps={_FPS},trim=duration={duration_seconds:.6f},"
-        f"scale={_OUTPUT_SIZE[0]}:{_OUTPUT_SIZE[1]}:flags=lanczos,"
+        f"scale={output_size[0]}:{output_size[1]}:flags=lanczos,"
         "setsar=1,format=yuv420p"
     )
     result = subprocess.run(
@@ -162,7 +181,11 @@ def _normalize_i2v_video(
         raise RuntimeError(f"Could not normalize I2V output: {(result.stderr or '')[-1200:]}")
 
 
-def _load_inputs(keyframe_path: str, depth_path: str):
+def _load_inputs(
+    keyframe_path: str,
+    depth_path: str,
+    output_size: tuple[int, int] = _OUTPUT_SIZE,
+):
     if not isinstance(keyframe_path, str) or not keyframe_path.strip():
         raise ValueError("keyframe_path must be a non-empty path.")
     if not isinstance(depth_path, str) or not depth_path.strip():
@@ -184,7 +207,7 @@ def _load_inputs(keyframe_path: str, depth_path: str):
     if abs(image_ratio - depth_ratio) > 0.02:
         raise ValueError("Keyframe and depth map must have matching aspect ratios.")
 
-    width, height = _OUTPUT_SIZE
+    width, height = output_size
     keyframe = cv2.resize(keyframe, (width, height), interpolation=cv2.INTER_AREA)
     depth = cv2.resize(depth, (width, height), interpolation=cv2.INTER_AREA)
     depth = depth.astype(np.float32)
@@ -202,8 +225,12 @@ def _load_inputs(keyframe_path: str, depth_path: str):
     return keyframe, near_weight
 
 
-def _prepare_point_cloud(keyframe: np.ndarray, near_weight: np.ndarray):
-    width, height = _OUTPUT_SIZE
+def _prepare_point_cloud(
+    keyframe: np.ndarray,
+    near_weight: np.ndarray,
+    output_size: tuple[int, int] = _OUTPUT_SIZE,
+):
+    width, height = output_size
     margin_x = round(width * 0.08)
     margin_y = round(height * 0.08)
     padded_frame = cv2.copyMakeBorder(
@@ -600,6 +627,7 @@ def _run_replicate_video_model(
     label: str,
     timeout_seconds: int = 120,
     version: str = "",
+    output_size: tuple[int, int] = _OUTPUT_SIZE,
 ) -> tuple[str, str]:
     """Run a Replicate video model and return its normalized local MP4 and source URL."""
     token = _get_replicate_token()
@@ -625,11 +653,15 @@ def _run_replicate_video_model(
         max(1, int(timeout_seconds)),
         label,
     )
-    return _download_remote_video(video_url, label), video_url
+    return _download_remote_video(video_url, label, output_size), video_url
 
 
-def _download_remote_video(video_url: str, label: str) -> str:
-    """Download a model result and normalize it to the Ghost Engine 16:9 canvas."""
+def _download_remote_video(
+    video_url: str,
+    label: str,
+    output_size: tuple[int, int] = _OUTPUT_SIZE,
+) -> str:
+    """Download a model result and normalize it to the requested Ghost Engine canvas."""
     _OUTPUT_ROOT.mkdir(parents=True, exist_ok=True)
     temp_path = _OUTPUT_ROOT / f".{label}-{uuid.uuid4().hex}.download.mp4"
     output_path = _OUTPUT_ROOT / f"{label}_{uuid.uuid4().hex}.mp4"
@@ -646,7 +678,10 @@ def _download_remote_video(video_url: str, label: str) -> str:
         source_fps = capture.get(cv2.CAP_PROP_FPS)
         output_fps = source_fps if math.isfinite(source_fps) and source_fps >= 8 else _FPS
         writer = cv2.VideoWriter(
-            str(output_path), cv2.VideoWriter_fourcc(*"mp4v"), float(output_fps), _OUTPUT_SIZE
+            str(output_path),
+            cv2.VideoWriter_fourcc(*"mp4v"),
+            float(output_fps),
+            output_size,
         )
         if not writer.isOpened():
             capture.release()
@@ -657,7 +692,7 @@ def _download_remote_video(video_url: str, label: str) -> str:
                 success, frame = capture.read()
                 if not success:
                     break
-                writer.write(_fit_frame_to_output(frame))
+                writer.write(_fit_frame_to_output(frame, output_size))
                 written += 1
         finally:
             capture.release()
@@ -749,6 +784,7 @@ def _run_i2v_prediction(
     model_version: str | None = None,
     timeout_seconds: int = _I2V_TIMEOUT_SECONDS,
     wan_resolution: str | None = None,
+    output_size: tuple[int, int] = _OUTPUT_SIZE,
 ) -> tuple[str, str]:
     token = _get_replicate_token()
     if not token:
@@ -761,7 +797,15 @@ def _run_i2v_prediction(
     if not re.fullmatch(r"[A-Za-z0-9_-]+/[A-Za-z0-9_.-]+", selected_model):
         raise RuntimeError("ZOVIX_GHOST_I2V_MODEL must be an owner/model reference.")
 
-    image_data = _compact_image_data_uri(keyframe_path, target_size=(768, 448))
+    if output_size == _OUTPUT_SIZE:
+        image_target_size = (768, 448)
+    else:
+        ratio = output_size[0] / output_size[1]
+        if ratio >= 1:
+            image_target_size = (768, max(2, round(768 / ratio / 2) * 2))
+        else:
+            image_target_size = (max(2, round(768 * ratio / 2) * 2), 768)
+    image_data = _compact_image_data_uri(keyframe_path, target_size=image_target_size)
     duration = min(_I2V_MAX_DURATION_SECONDS, max(2.0, duration_seconds))
     frame_count = max(9, round(duration * 24))
     frame_count = ((frame_count - 1 + 4) // 8) * 8 + 1
@@ -829,7 +873,12 @@ def _run_i2v_prediction(
             raise RuntimeError("Image-to-video returned invalid frame metadata.")
         written = min(source_frame_count, round(duration * source_fps))
         _normalize_i2v_video(
-            download_path, output_path, written, duration, source_fps
+            download_path,
+            output_path,
+            written,
+            duration,
+            source_fps,
+            output_size,
         )
         return str(output_path), video_url
     except Exception as exc:
@@ -839,17 +888,25 @@ def _run_i2v_prediction(
         download_path.unlink(missing_ok=True)
 
 
-def _render_2d_camera_motion(keyframe_path: str, motion_type: str, duration: float) -> str:
+def _render_2d_camera_motion(
+    keyframe_path: str,
+    motion_type: str,
+    duration: float,
+    output_size: tuple[int, int] = _OUTPUT_SIZE,
+) -> str:
     """Create a smooth local Ken Burns fallback without requiring a depth map."""
     image = cv2.imread(keyframe_path, cv2.IMREAD_COLOR)
     if image is None:
         raise ValueError(f"Could not read local-motion keyframe: {keyframe_path}")
-    source = _fit_frame_to_output(image)
-    width, height = _OUTPUT_SIZE
+    source = _fit_frame_to_output(image, output_size)
+    width, height = output_size
     _OUTPUT_ROOT.mkdir(parents=True, exist_ok=True)
     output_path = _OUTPUT_ROOT / f"motion_local_{uuid.uuid4().hex}.mp4"
     writer = cv2.VideoWriter(
-        str(output_path), cv2.VideoWriter_fourcc(*"mp4v"), float(_FPS), _OUTPUT_SIZE
+        str(output_path),
+        cv2.VideoWriter_fourcc(*"mp4v"),
+        float(_FPS),
+        output_size,
     )
     if not writer.isOpened():
         writer.release()
@@ -921,7 +978,7 @@ def _render_2d_camera_motion(keyframe_path: str, motion_type: str, duration: flo
                 dtype=np.float32,
             )
             frame = cv2.warpAffine(
-                source, matrix, _OUTPUT_SIZE, flags=cv2.INTER_LINEAR,
+                source, matrix, output_size, flags=cv2.INTER_LINEAR,
                 borderMode=cv2.BORDER_REFLECT_101,
             )
             writer.write(frame)
@@ -946,6 +1003,7 @@ def apply_camera_motion(
     return_remote_url: bool = False,
     scene_prompt: str = "",
     quality: str | None = None,
+    aspect_ratio: str = "16:9",
 ) -> str | tuple[str, str]:
     """Create an image-to-video action clip or fall back to depth-guided camera motion."""
     if motion_type not in _MOTION_TYPES:
@@ -958,6 +1016,7 @@ def apply_camera_motion(
             f"Unsupported character_action {character_action!r}. "
             f"Choose one of: {', '.join(_CHARACTER_ACTIONS)}."
         )
+    output_size = _output_size_for_aspect_ratio(aspect_ratio)
     try:
         duration_seconds = float(duration_seconds)
     except (TypeError, ValueError) as exc:
@@ -996,6 +1055,7 @@ def apply_camera_motion(
                 model_version=fast_version,
                 timeout_seconds=router_timeout,
                 wan_resolution="720p" if quality == "HD" else "480p",
+                output_size=output_size,
             )
             final_video = driving_video[0]
             if route == "portrait" and driving_video[1]:
@@ -1044,16 +1104,25 @@ def apply_camera_motion(
             ) from exc
 
     if not depth_path:
-        return _render_2d_camera_motion(keyframe_path, motion_type, duration_seconds)
+        return _render_2d_camera_motion(
+            keyframe_path,
+            motion_type,
+            duration_seconds,
+            output_size,
+        )
 
-    keyframe, near_weight = _load_inputs(keyframe_path, depth_path)
-    points, focal_length, anchor_depth = _prepare_point_cloud(keyframe, near_weight)
+    keyframe, near_weight = _load_inputs(keyframe_path, depth_path, output_size)
+    points, focal_length, anchor_depth = _prepare_point_cloud(
+        keyframe,
+        near_weight,
+        output_size,
+    )
     _OUTPUT_ROOT.mkdir(parents=True, exist_ok=True)
     output_id = uuid.uuid4().hex
     temporary_path = _OUTPUT_ROOT / f".motion-{output_id}.tmp.mp4"
     output_path = _OUTPUT_ROOT / f"motion_{output_id}.mp4"
     frame_count = max(1, round(_FPS * duration_seconds))
-    width, height = _OUTPUT_SIZE
+    width, height = output_size
     writer = cv2.VideoWriter(
         str(temporary_path),
         cv2.VideoWriter_fourcc(*"mp4v"),
@@ -1079,7 +1148,7 @@ def apply_camera_motion(
             frame = _reproject_frame(
                 points,
                 pose,
-                _OUTPUT_SIZE,
+                output_size,
             )
             writer.write(frame)
         completed = True

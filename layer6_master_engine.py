@@ -28,6 +28,24 @@ GHOST_QUALITY_PROFILES = {
         "preset": "veryfast", "profile": "high", "level": "4.2",
     },
 }
+GHOST_ASPECT_RATIOS = ("16:9", "9:16", "1:1")
+
+
+def _size_for_aspect_ratio(
+    base_size: tuple[int, int],
+    aspect_ratio: str,
+) -> tuple[int, int]:
+    if aspect_ratio not in GHOST_ASPECT_RATIOS:
+        raise ValueError(
+            f"Unsupported Ghost Engine aspect ratio {aspect_ratio!r}. "
+            f"Choose one of: {', '.join(GHOST_ASPECT_RATIOS)}."
+        )
+    width, height = base_size
+    if aspect_ratio == "16:9":
+        return width, height
+    if aspect_ratio == "9:16":
+        return height, width
+    return height, height
 
 
 def _ffmpeg() -> str:
@@ -254,6 +272,7 @@ def finalize_browser_video(
     voice_id: str | None = None,
     quality: str | None = None,
     voice_model: str | None = None,
+    aspect_ratio: str = "16:9",
 ) -> str:
     """Upscale, grade, and package a silent or narrated MP4 for browser playback."""
     source = Path(video_path).expanduser().resolve()
@@ -268,7 +287,7 @@ def finalize_browser_video(
             )
         profile = GHOST_QUALITY_PROFILES[quality]
         scale = profile["scale"]
-        output_size = profile["size"]
+        output_size = _size_for_aspect_ratio(profile["size"], aspect_ratio)
         target_fps = profile["fps"]
         crf = profile["crf"]
         encoder_preset = profile["preset"]
@@ -361,10 +380,16 @@ def run_zovix_ghost_engine(
     quality: str | None = None,
     voice_model: str | None = None,
     face_reference_bytes: bytes | None = None,
+    aspect_ratio: str = "16:9",
 ) -> str:
     """Run the direct GPT-4o → Flux Pro → image-to-video workflow."""
     if not isinstance(user_script, str) or not user_script.strip():
         raise ValueError("user_script must be a non-empty string.")
+    if aspect_ratio not in GHOST_ASPECT_RATIOS:
+        raise ValueError(
+            f"Unsupported Ghost Engine aspect ratio {aspect_ratio!r}. "
+            f"Choose one of: {', '.join(GHOST_ASPECT_RATIOS)}."
+        )
     started = time.perf_counter()
     stage = "validation"
     artifacts: list[str] = []
@@ -409,9 +434,11 @@ def run_zovix_ghost_engine(
         camera_motion = (config_overrides or {}).get("camera_motion", config["camera_motion"])
         lighting_setup = (config_overrides or {}).get("lighting_setup", config["lighting_setup"])
         atmosphere_fx = (config_overrides or {}).get("atmosphere_fx", config["atmosphere_fx"])
+        config["aspect_ratio"] = aspect_ratio
         config["flux_prompt"] = (
             f"{config['flux_prompt'].rstrip()} Director controls: {camera_motion} camera movement, "
             f"{lighting_setup} lighting, {atmosphere_fx} atmosphere. "
+            f"Compose specifically for a {aspect_ratio} aspect ratio. "
             "Compose with consistent subject identity, cinematic framing, and clean frame edges."
         )
         if face_reference_bytes:
@@ -458,6 +485,7 @@ def run_zovix_ghost_engine(
             character_action=character_action,
             scene_prompt=config["flux_prompt"],
             quality=quality,
+            aspect_ratio=aspect_ratio,
         )
         artifacts.append(final_path)
         logger.info(
@@ -474,6 +502,7 @@ def run_zovix_ghost_engine(
             voice_id=voice_id,
             quality=quality,
             voice_model=voice_model,
+            aspect_ratio=aspect_ratio,
         )
         artifacts.append(final_path)
         logger.info(

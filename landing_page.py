@@ -1705,7 +1705,7 @@ class WorldClassLandingPage:
         .creative-workshop-guide .cinematic-guide-visual {
             background:
                 linear-gradient(180deg, rgba(25, 18, 18, .04) 8%, rgba(25, 18, 18, .16) 42%, rgba(25, 18, 18, .9) 100%),
-                url('/app/static/studio_creative_workshop_background.webp') center 50%/cover;
+                url('/app/static/studio_creative_workshop_ai_mode.jpg') center 50%/cover;
             box-shadow: 0 34px 70px rgba(141, 83, 44, .2), 0 0 0 10px rgba(255, 255, 255, .28);
         }
         .creative-workshop-guide .cinematic-visual-copy .eyebrow { color: #ffdfbd; }
@@ -2661,7 +2661,7 @@ class WorldClassLandingPage:
         photo_assets = {
             "1506905925346-21bda4d32df4": "studio_cinematic_engine.webp",
             "1524504388940-b1c1722653e1": "studio_face_generate.webp",
-            "1497366754035-f200968a6e72": "studio_creative_workshop_engine.webp",
+            "1497366754035-f200968a6e72": "studio_creative_workshop_ai_mode.jpg",
             "1518709268805-4e9042af9f23": "studio_blueprint_engine.webp",
             "1460661419201-fd4cecdf8a8b": "studio_draw_engine.webp",
             "1517502884422-41eaead166d4": "studio_editor_engine.webp",
@@ -3227,8 +3227,8 @@ class WorldClassLandingPage:
                 "Creative Workshop",
                 "Colorful poster artwork",
                 "An art-forward visual direction for a poster, thumbnail, banner or social post.",
-                "studio_creative_workshop_engine.webp",
-                "Colorful abstract poster artwork",
+                "studio_creative_workshop_ai_mode.jpg",
+                "Futuristic armored robot in an orange-lit scene",
             ),
             (
                 "Live Emotion Voice",
@@ -3269,8 +3269,8 @@ class WorldClassLandingPage:
                 "Creative Workshop",
                 "Creative campaign visual",
                 "A polished campaign image direction for a brand banner or promotional creative.",
-                "studio_creative_workshop_background.webp",
-                "Creative workspace campaign visual",
+                "studio_creative_workshop_ai_mode.jpg",
+                "Futuristic armored robot in an orange-lit scene",
             ),
         ]
         cards = "".join(

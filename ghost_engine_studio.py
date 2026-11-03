@@ -422,6 +422,17 @@ def render_ghost_engine_studio(
                 help="GPT-4o optimizes the scene prompt; Flux creates the keyframe and Wan animates it.",
                 key="ghost_script",
             )
+            aspect_ratio_labels = {
+                "16:9 Landscape": "16:9",
+                "9:16 Portrait": "9:16",
+                "1:1 Square": "1:1",
+            }
+            aspect_ratio_label = st.selectbox(
+                "Aspect Ratio",
+                list(aspect_ratio_labels),
+                key="ghost_aspect_ratio",
+            )
+            aspect_ratio = aspect_ratio_labels[aspect_ratio_label]
             camera_column, lighting_column = st.columns(2, gap="medium")
             with camera_column:
                 camera_motion = st.selectbox(
@@ -571,10 +582,12 @@ def render_ghost_engine_studio(
                                         face_reference_bytes if face_lock else None
                                     ),
                                     quality=quality,
+                                    aspect_ratio=aspect_ratio,
                                 )
                                 generation_succeeded = True
                                 st.session_state["ghost_engine_last_output"] = output_path
                                 st.session_state["ghost_engine_last_quality"] = quality
+                                st.session_state["ghost_engine_last_aspect_ratio"] = aspect_ratio
                             output_name = f"cinematic_{Path(output_path).name}"
                             username = st.session_state.get("logged_user", "")
                             if username and save_output_callback:
@@ -620,12 +633,17 @@ def render_ghost_engine_studio(
                 else:
                     st.video(video_bytes, format="video/mp4")
                     output_quality = st.session_state.get("ghost_engine_last_quality", quality)
+                    output_aspect_ratio = st.session_state.get(
+                        "ghost_engine_last_aspect_ratio",
+                        aspect_ratio,
+                    )
                     profile = GHOST_QUALITY_PROFILES.get(output_quality, GHOST_QUALITY_PROFILES[quality])
                     st.markdown(
                         "<div style='display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 16px'>"
-                        f"<span style='padding:8px 14px;border-radius:22px;background:#e7f7ff;color:#247ab4;font:650 12px Inter,Arial,sans-serif'>{profile['size'][0]}p</span>"
+                        f"<span style='padding:8px 14px;border-radius:22px;background:#e7f7ff;color:#247ab4;font:650 12px Inter,Arial,sans-serif'>{min(profile['size'])}p</span>"
                         f"<span style='padding:8px 14px;border-radius:22px;background:#eef4ff;color:#526bc1;font:650 12px Inter,Arial,sans-serif'>{profile['fps']} FPS</span>"
                         f"<span style='padding:8px 14px;border-radius:22px;background:#e7f7ff;color:#247ab4;font:650 12px Inter,Arial,sans-serif'>{output_quality}</span>"
+                        f"<span style='padding:8px 14px;border-radius:22px;background:#eef4ff;color:#526bc1;font:650 12px Inter,Arial,sans-serif'>{output_aspect_ratio}</span>"
                         "</div>",
                         unsafe_allow_html=True,
                     )
@@ -659,17 +677,3 @@ def render_ghost_engine_studio(
             with column:
                 with st.container(border=True, key=f"ghost_engine_gallery_card_{index}"):
                     st.video(item["path"])
-
-    st.markdown(
-        """
-        <div role="contentinfo" style="text-align:center;padding:18px 12px 24px;color:#64748b;font-family:Inter,Arial,sans-serif;font-size:12px">
-          <p style="margin:0 0 8px">© 2026 ZOVIX. All rights reserved.</p>
-          <nav style="display:flex;justify-content:center;flex-wrap:wrap;gap:16px">
-            <a href="#" style="color:#64748b;text-decoration:none">Privacy Policy</a>
-            <a href="#" style="color:#64748b;text-decoration:none">Terms</a>
-            <a href="#" style="color:#64748b;text-decoration:none">Support</a>
-          </nav>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )

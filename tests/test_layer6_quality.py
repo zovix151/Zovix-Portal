@@ -1,4 +1,8 @@
-from layer6_master_engine import GHOST_QUALITY_PROFILES, _quality_filter_chain
+from layer6_master_engine import (
+    GHOST_QUALITY_PROFILES,
+    _quality_filter_chain,
+    _size_for_aspect_ratio,
+)
 
 
 def test_quality_filter_chain_upscales_interpolates_and_grades():
@@ -54,3 +58,9 @@ def test_hd_profile_has_higher_resolution_and_quality_than_standard():
     assert standard["fps"] < hd["fps"]
     assert standard["scale"] < hd["scale"]
     assert standard["crf"] > hd["crf"]
+
+
+def test_quality_output_sizes_preserve_selected_aspect_ratio():
+    assert _size_for_aspect_ratio((1280, 720), "16:9") == (1280, 720)
+    assert _size_for_aspect_ratio((1280, 720), "9:16") == (720, 1280)
+    assert _size_for_aspect_ratio((1920, 1080), "1:1") == (1080, 1080)

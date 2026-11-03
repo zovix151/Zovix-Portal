@@ -25,6 +25,11 @@ _FLUX_FALLBACK_MODEL = "black-forest-labs/flux-schnell"
 _DEPTH_MODEL = "chenxwh/depth-anything-v2"
 _TARGET_SIZE = (7680, 4320)
 _I2V_KEYFRAME_SIZE = (1536, 864)
+_I2V_KEYFRAME_SIZES = {
+    "16:9": _I2V_KEYFRAME_SIZE,
+    "9:16": (864, 1536),
+    "1:1": (1024, 1024),
+}
 _PREDICTION_TIMEOUT_SECONDS = 600
 _POLL_INTERVAL_SECONDS = 0.5
 _RATE_LIMIT_RETRIES = 3
@@ -252,17 +257,28 @@ def _estimate_local_depth(image: Image.Image) -> Image.Image:
 
 
 def generate_flux_keyframe(config_dict: dict) -> str:
-    """Generate a 16:9 keyframe sized for the direct image-to-video input."""
+    """Generate an aspect-matched keyframe sized for direct image-to-video input."""
     if not isinstance(config_dict, dict):
         raise TypeError("config_dict must be a dictionary.")
     flux_prompt = config_dict.get("flux_prompt")
     if not isinstance(flux_prompt, str) or not flux_prompt.strip():
         raise ValueError("config_dict must contain a non-empty flux_prompt string.")
+    aspect_ratio = config_dict.get("aspect_ratio", "16:9")
+    keyframe_size = _I2V_KEYFRAME_SIZES.get(aspect_ratio)
+    if keyframe_size is None:
+        raise ValueError(
+            f"Unsupported keyframe aspect ratio {aspect_ratio!r}. "
+            f"Choose one of: {', '.join(_I2V_KEYFRAME_SIZES)}."
+        )
     token = _get_replicate_token()
     if not token:
         raise RuntimeError("REPLICATE_API_TOKEN or REPLICATE_API_KEY must be configured.")
 
-    flux_input = {"prompt": flux_prompt.strip(), "aspect_ratio": "16:9", "output_format": "png"}
+    flux_input = {
+        "prompt": flux_prompt.strip(),
+        "aspect_ratio": aspect_ratio,
+        "output_format": "png",
+    }
     face_reference = config_dict.get("face_reference_bytes")
     if face_reference:
         try:
@@ -296,7 +312,7 @@ def generate_flux_keyframe(config_dict: dict) -> str:
     source_image = _download_image(keyframe_url, "Flux keyframe").convert("RGB")
     keyframe = ImageOps.fit(
         source_image,
-        _I2V_KEYFRAME_SIZE,
+        keyframe_size,
         method=Image.Resampling.LANCZOS,
         centering=(0.5, 0.5),
     )
@@ -311,7 +327,7 @@ def generate_flux_keyframe(config_dict: dict) -> str:
         raise
     logger.info(
         "Flux I2V keyframe saved at %dx%d to %s.",
-        *_I2V_KEYFRAME_SIZE,
+        *keyframe_size,
         output_path,
     )
     return str(output_path)

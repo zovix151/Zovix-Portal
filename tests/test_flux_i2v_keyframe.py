@@ -28,6 +28,34 @@ def test_direct_i2v_keyframe_avoids_unneeded_8k_resize(tmp_path, monkeypatch):
     assert output.stat().st_size < 5_000_000
 
 
+def test_direct_i2v_keyframe_uses_selected_portrait_aspect_ratio(tmp_path, monkeypatch):
+    calls = {}
+    monkeypatch.setattr(flux_render_engine, "_OUTPUT_ROOT", tmp_path)
+    monkeypatch.setattr(flux_render_engine, "_get_replicate_token", lambda: "test-token")
+
+    def run_model(_model, model_input, _token):
+        calls["model_input"] = model_input
+        return {"output": "https://example.test/keyframe.png"}
+
+    monkeypatch.setattr(flux_render_engine, "_run_replicate_model", run_model)
+    monkeypatch.setattr(
+        flux_render_engine,
+        "_download_image",
+        lambda *_args: Image.new("RGB", (576, 1024), color="blue"),
+    )
+
+    output = Path(
+        flux_render_engine.generate_flux_keyframe({
+            "flux_prompt": "A cinematic portrait test scene.",
+            "aspect_ratio": "9:16",
+        })
+    )
+
+    with Image.open(output) as image:
+        assert image.size == (864, 1536)
+    assert calls["model_input"]["aspect_ratio"] == "9:16"
+
+
 def test_video_status_poll_interval_is_subsecond():
     import camera_motion_engine
 

@@ -10764,6 +10764,68 @@ def render_ai_agent_ui():
 
     st.markdown("""
     <style>
+        html body section[data-testid="stMain"]:has(.st-key-workshop_parameters_panel)
+        .st-key-workshop_parameters_panel,
+        html body section[data-testid="stMain"]:has(.st-key-workshop_parameters_panel)
+        .st-key-workshop_parameters_panel [data-testid="stSelectbox"],
+        html body section[data-testid="stMain"]:has(.st-key-workshop_parameters_panel)
+        .st-key-workshop_parameters_panel [data-testid="stTextArea"] {
+            box-sizing:border-box !important;
+            width:100% !important;
+            min-width:0 !important;
+            max-width:100% !important;
+        }
+        html body section[data-testid="stMain"]:has(.st-key-workshop_parameters_panel)
+        .st-key-workshop_parameters_panel [data-testid="stWidgetLabel"],
+        html body section[data-testid="stMain"]:has(.st-key-workshop_parameters_panel)
+        .st-key-workshop_parameters_panel [data-testid="stWidgetLabel"] label {
+            box-sizing:border-box !important;
+            display:block !important;
+            width:100% !important;
+            min-width:0 !important;
+            height:auto !important;
+            min-height:20px !important;
+            max-height:none !important;
+            margin:0 0 5px !important;
+            overflow:visible !important;
+            line-height:1.4 !important;
+            white-space:normal !important;
+            overflow-wrap:anywhere !important;
+        }
+        html body section[data-testid="stMain"]:has(.st-key-workshop_parameters_panel)
+        .st-key-workshop_parameters_panel [data-baseweb="select"] > div {
+            box-sizing:border-box !important;
+            width:100% !important;
+            min-height:44px !important;
+            height:auto !important;
+            overflow:visible !important;
+        }
+        html body section[data-testid="stMain"]:has(.st-key-workshop_parameters_panel)
+        .st-key-workshop_parameters_panel [data-baseweb="select"] [data-testid="stMarkdownContainer"] {
+            max-width:100% !important;
+            overflow:visible !important;
+            text-overflow:clip !important;
+            white-space:normal !important;
+            overflow-wrap:anywhere !important;
+        }
+        @media (max-width:768px) {
+            html body section[data-testid="stMain"]:has(.st-key-workshop_parameters_panel)
+            [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"] .st-key-workshop_parameters_panel):has(> [data-testid="stColumn"] .st-key-workshop_output_panel) {
+                display:grid !important;
+                grid-template-columns:minmax(0,1fr) !important;
+                align-items:stretch !important;
+                gap:12px !important;
+            }
+            html body section[data-testid="stMain"]:has(.st-key-workshop_parameters_panel)
+            [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"] .st-key-workshop_parameters_panel):has(> [data-testid="stColumn"] .st-key-workshop_output_panel)
+            > [data-testid="stColumn"] {
+                box-sizing:border-box !important;
+                flex:none !important;
+                width:auto !important;
+                min-width:0 !important;
+                max-width:none !important;
+            }
+        }
         @media (max-width:600px) {
             section[data-testid="stMain"]:has(.studio-mode-photo-hero--agent) [data-testid="stTabs"] [role="tablist"] {
                 display:flex !important;
@@ -10800,7 +10862,7 @@ def render_ai_agent_ui():
     tab1, tab2, tab3 = st.tabs(["🏢 Brand Profile", "📦 Product Manager", "⚡ Agent Actions"])
 
     with tab1:
-        with st.container(border=True):
+        with st.container(border=True, key="workshop_parameters_panel"):
             st.markdown('<p style="color: #8B5CF6; font-family: Orbitron; font-size: 12px;">🏢 BUSINESS PROFILE</p>', unsafe_allow_html=True)
             biz_name = st.text_input("Business Name", value=st.session_state.get("agent_business_name", ""), placeholder="e.g. Zovix Tech Solutions")
             if biz_name != st.session_state.get("agent_business_name"):
@@ -11412,14 +11474,115 @@ def generate_dynamic_ui():
     </div>
     """, unsafe_allow_html=True)
 
+    st.markdown("""
+    <style>
+        [data-testid="stMain"] .studio-mode-photo-hero--dynamic {
+            box-sizing:border-box !important;
+            width:100% !important;
+            max-width:100% !important;
+            min-width:0 !important;
+            overflow:visible !important;
+        }
+        [data-testid="stMain"] .studio-mode-photo-hero--dynamic > span,
+        [data-testid="stMain"] .studio-mode-photo-hero--dynamic h2,
+        [data-testid="stMain"] .studio-mode-photo-hero--dynamic h2 span,
+        [data-testid="stMain"] .studio-mode-photo-hero--dynamic p {
+            box-sizing:border-box !important;
+            max-width:100% !important;
+            white-space:normal !important;
+            overflow-wrap:anywhere !important;
+            word-break:normal !important;
+            line-height:1.4 !important;
+        }
+        [data-testid="stMain"]:has(.st-key-dynamic_ui_settings_panel)
+        .st-key-dynamic_ui_settings_panel,
+        [data-testid="stMain"]:has(.st-key-dynamic_ui_settings_panel)
+        .st-key-dynamic_ui_settings_panel [data-testid="stSelectbox"],
+        [data-testid="stMain"]:has(.st-key-dynamic_ui_settings_panel)
+        .st-key-dynamic_ui_settings_panel [data-testid="stFileUploader"] {
+            box-sizing:border-box !important;
+            width:100% !important;
+            min-width:0 !important;
+            max-width:100% !important;
+        }
+        [data-testid="stMain"]:has(.st-key-dynamic_ui_settings_panel)
+        .st-key-dynamic_ui_settings_panel [data-testid="stWidgetLabel"],
+        [data-testid="stMain"]:has(.st-key-dynamic_ui_settings_panel)
+        .st-key-dynamic_ui_settings_panel [data-testid="stWidgetLabel"] label {
+            box-sizing:border-box !important;
+            display:block !important;
+            width:100% !important;
+            min-width:0 !important;
+            height:auto !important;
+            min-height:20px !important;
+            max-height:none !important;
+            margin:0 0 5px !important;
+            overflow:visible !important;
+            line-height:1.4 !important;
+            white-space:normal !important;
+            overflow-wrap:anywhere !important;
+        }
+        [data-testid="stMain"]:has(.st-key-dynamic_ui_settings_panel)
+        .st-key-dynamic_ui_settings_panel [data-baseweb="select"] > div {
+            box-sizing:border-box !important;
+            width:100% !important;
+            min-height:44px !important;
+            height:auto !important;
+            overflow:visible !important;
+        }
+        [data-testid="stMain"]:has(.st-key-dynamic_ui_settings_panel)
+        .st-key-dynamic_ui_settings_panel [data-baseweb="select"] [data-testid="stMarkdownContainer"] {
+            max-width:100% !important;
+            overflow:visible !important;
+            text-overflow:clip !important;
+            white-space:normal !important;
+            overflow-wrap:anywhere !important;
+        }
+        [data-testid="stMain"]:has(.st-key-dynamic_ui_dashboard_panel)
+        .st-key-dynamic_ui_dashboard_panel [data-testid="stMarkdownContainer"] p {
+            max-width:100% !important;
+            overflow-wrap:anywhere !important;
+        }
+        @media (max-width:768px) {
+            html body section[data-testid="stMain"]:has(.st-key-dynamic_ui_settings_panel)
+            [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"] .st-key-dynamic_ui_settings_panel):has(> [data-testid="stColumn"] .st-key-dynamic_ui_dashboard_panel) {
+                display:grid !important;
+                grid-template-columns:minmax(0,1fr) !important;
+                align-items:stretch !important;
+                gap:12px !important;
+            }
+            html body section[data-testid="stMain"]:has(.st-key-dynamic_ui_settings_panel)
+            [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"] .st-key-dynamic_ui_settings_panel):has(> [data-testid="stColumn"] .st-key-dynamic_ui_dashboard_panel)
+            > [data-testid="stColumn"] {
+                box-sizing:border-box !important;
+                flex:none !important;
+                width:auto !important;
+                min-width:0 !important;
+                max-width:none !important;
+            }
+        }
+    </style>
+    """, unsafe_allow_html=True)
+
     col1, col2 = st.columns(STUDIO_ENGINE_PANEL_RATIO, gap="medium")
     with col1:
-        with st.container(border=True):
+        with st.container(border=True, key="dynamic_ui_settings_panel"):
             st.markdown('<h4 style="font-family: Orbitron; font-size: 12px; color: #EC4899; margin-bottom: 12px;">🧠 BEHAVIOR PROFILE</h4>', unsafe_allow_html=True)
-            profile = st.selectbox("UI Experience Level", ["beginner", "intermediate", "advanced"], key="dyn_ui_profile", label_visibility="collapsed")
+            profile = st.selectbox(
+                "UI Experience Level",
+                ["beginner", "intermediate", "advanced"],
+                key="dyn_ui_profile",
+                format_func=lambda value: value.title(),
+                label_visibility="visible",
+            )
             st.session_state["dynamic_ui_profile_mode"] = profile
             st.session_state["user_behavior_profile"] = profile
-            theme = st.selectbox("Theme Mode", ["Auto", "Dark", "Light"], key="dyn_ui_theme", label_visibility="collapsed")
+            theme = st.selectbox(
+                "Theme Mode",
+                ["Auto", "Dark", "Light"],
+                key="dyn_ui_theme",
+                label_visibility="visible",
+            )
             st.session_state["ui_theme_mode"] = theme
             if profile == "beginner":
                 st.info("🧑 Beginner mode: Simplified interface with tooltips and guided workflows")
@@ -11433,7 +11596,7 @@ def generate_dynamic_ui():
                 st.rerun()
 
     with col2:
-        with st.container(border=True):
+        with st.container(border=True, key="dynamic_ui_dashboard_panel"):
             st.markdown('<h3 style="font-family: Orbitron; font-size: 14px; color: #EC4899; margin-bottom: 12px;">📊 DYNAMIC UI PANEL</h3>', unsafe_allow_html=True)
             profile = st.session_state.get("dynamic_ui_profile_mode", "intermediate")
             theme = st.session_state.get("ui_theme_mode", "auto")
@@ -11660,13 +11823,47 @@ def render_live_emotion_voice():
         [data-testid="stMain"]:has(.live-emotion-design-root) [data-testid="stTextArea"] textarea,
         [data-testid="stMain"]:has(.live-emotion-design-root) [data-baseweb="select"] > div { color:#18375e !important; -webkit-text-fill-color:#18375e !important; background:#fff !important; border:1px solid #d9e5f1 !important; border-radius:10px !important; font:13px/1.5 'Inter',Arial,sans-serif !important; }
         [data-testid="stMain"]:has(.live-emotion-design-root) [data-testid="stTextArea"] textarea { min-height:124px !important; }
+        [data-testid="stMain"]:has(.live-emotion-design-root) .live-emotion-hero {
+          box-sizing:border-box !important; width:100% !important; height:auto !important;
+          max-width:100% !important; min-width:0 !important; overflow:visible !important;
+        }
+        [data-testid="stMain"]:has(.live-emotion-design-root) .live-emotion-hero > *,
+        [data-testid="stMain"]:has(.live-emotion-design-root) .live-emotion-hero h1,
+        [data-testid="stMain"]:has(.live-emotion-design-root) .live-emotion-hero h1 span,
+        [data-testid="stMain"]:has(.live-emotion-design-root) .live-emotion-hero p {
+          box-sizing:border-box !important; max-width:100% !important; white-space:normal !important;
+          overflow-wrap:anywhere !important; line-height:1.4 !important;
+        }
+        [data-testid="stMain"]:has(.live-emotion-design-root) .st-key-live_emotion_parameters_panel,
+        [data-testid="stMain"]:has(.live-emotion-design-root) .st-key-live_emotion_parameters_panel [data-testid="stSelectbox"],
+        [data-testid="stMain"]:has(.live-emotion-design-root) .st-key-live_emotion_parameters_panel [data-testid="stTextArea"] {
+          box-sizing:border-box !important; width:100% !important; min-width:0 !important; max-width:100% !important;
+        }
+        [data-testid="stMain"]:has(.live-emotion-design-root) .st-key-live_emotion_parameters_panel [data-testid="stWidgetLabel"],
+        [data-testid="stMain"]:has(.live-emotion-design-root) .st-key-live_emotion_parameters_panel [data-testid="stWidgetLabel"] label {
+          box-sizing:border-box !important; display:block !important; width:100% !important; min-width:0 !important;
+          height:auto !important; min-height:20px !important; max-height:none !important; margin:0 0 5px !important;
+          overflow:visible !important; line-height:1.4 !important; white-space:normal !important; overflow-wrap:anywhere !important;
+        }
+        [data-testid="stMain"]:has(.live-emotion-design-root) .st-key-live_emotion_parameters_panel [data-baseweb="select"] > div {
+          box-sizing:border-box !important; width:100% !important; min-height:44px !important; height:auto !important;
+          overflow:visible !important;
+        }
+        [data-testid="stMain"]:has(.live-emotion-design-root) .st-key-live_emotion_parameters_panel [data-baseweb="select"] [data-testid="stMarkdownContainer"] {
+          max-width:100% !important; overflow:visible !important; text-overflow:clip !important;
+          white-space:normal !important; overflow-wrap:anywhere !important;
+        }
+        [data-testid="stMain"]:has(.live-emotion-design-root) .st-key-live_emotion_output_panel,
+        [data-testid="stMain"]:has(.live-emotion-design-root) .st-key-live_emotion_output_panel [data-testid="stAudio"] {
+          box-sizing:border-box !important; width:100% !important; min-width:0 !important; max-width:100% !important;
+        }
         [data-testid="stMain"]:has(.live-emotion-design-root) [data-testid="stButton"] button { min-height:42px !important; border-radius:9px !important; font:700 12px 'Inter',Arial,sans-serif !important; }
         [data-testid="stMain"]:has(.live-emotion-design-root) .st-key-emotion_generate_btn button { color:#fff !important; background:linear-gradient(105deg,#08b9d4,#6656e9) !important; border:0 !important; box-shadow:0 5px 14px rgba(73,112,221,.16) !important; }
         [data-testid="stMain"]:has(.live-emotion-design-root) [class*="st-key-engine_gallery_card_audio_"] { background:#fff !important; border:1px solid #e1eaf3 !important; border-radius:14px !important; box-shadow:0 5px 18px rgba(43,81,118,.065) !important; }
         [data-testid="stMain"]:has(.live-emotion-design-root) [class*="st-key-engine_gallery_card_audio_"] audio { width:100%; }
         [data-testid="stMain"]:has(.live-emotion-design-root) [class*="st-key-engine_gallery_card_audio_"] div[style*="Orbitron"] { color:#178fc9 !important; }
         [data-testid="stMain"]:has(.live-emotion-design-root) [class*="st-key-engine_gallery_card_audio_"] p { color:#647b99 !important; }
-        .live-emotion-hero { position:relative; display:flex; box-sizing:border-box; min-height:184px; width:100%; overflow:hidden; margin:0 0 18px; padding:26px 30px; flex-direction:column; justify-content:center; align-items:center; border:1px solid #e4eafa; border-radius:14px; text-align:center; background:linear-gradient(112deg,#e6fbff 0%,#f5f7ff 54%,#f4eaff 100%); }
+        .live-emotion-hero { position:relative; display:flex; box-sizing:border-box; min-height:184px; width:100%; overflow:visible; margin:0 0 18px; padding:26px 30px; flex-direction:column; justify-content:center; align-items:center; border:1px solid #e4eafa; border-radius:14px; text-align:center; background:linear-gradient(112deg,#e6fbff 0%,#f5f7ff 54%,#f4eaff 100%); }
         .live-emotion-hero:before,.live-emotion-hero:after { position:absolute; top:50%; transform:translateY(-50%); color:#84a9ff; opacity:.62; font-size:46px; font-weight:800; }
         .live-emotion-hero:before { left:8%; content:'▂▅▇▃▆'; letter-spacing:3px; }
         .live-emotion-hero:after { right:8%; content:'🎧'; font-size:54px; }
@@ -11680,13 +11877,20 @@ def render_live_emotion_voice():
         .live-emotion-empty strong { color:#18375e; font:750 16px 'Inter',Arial,sans-serif; }
         .live-emotion-empty span { margin-top:6px; color:#6a83a0; font:400 13px 'Inter',Arial,sans-serif; }
         @media(max-width:900px) { .live-emotion-hero:before { left:3%; font-size:32px; } .live-emotion-hero:after { right:3%; font-size:42px; } }
+        @media(max-width:768px) {
+          .live-emotion-hero:before,.live-emotion-hero:after { display:none; }
+          [data-testid="stMain"]:has(.live-emotion-design-root) [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"] .st-key-live_emotion_parameters_panel):has(> [data-testid="stColumn"] .st-key-live_emotion_output_panel) {
+            display:grid !important; grid-template-columns:minmax(0,1fr) !important; align-items:stretch !important; gap:12px !important;
+          }
+          [data-testid="stMain"]:has(.live-emotion-design-root) [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"] .st-key-live_emotion_parameters_panel):has(> [data-testid="stColumn"] .st-key-live_emotion_output_panel) > [data-testid="stColumn"] {
+            box-sizing:border-box !important; flex:none !important; width:auto !important; min-width:0 !important; max-width:none !important;
+          }
+        }
         @media(max-width:640px) {
           .live-emotion-hero { min-height:160px; padding:22px 16px; }
           .live-emotion-hero:before,.live-emotion-hero:after { display:none; }
           .live-emotion-empty { min-height:280px; }
           [data-testid="stMain"]:has(.live-emotion-design-root) [data-testid="stMainBlockContainer"] { padding-left:12px !important; padding-right:12px !important; }
-          [data-testid="stMain"]:has(.live-emotion-design-root) [data-testid="stHorizontalBlock"]:has(.live-emotion-card-title) { flex-direction:column !important; flex-wrap:nowrap !important; }
-          [data-testid="stMain"]:has(.live-emotion-design-root) [data-testid="stHorizontalBlock"]:has(.live-emotion-card-title) > [data-testid="stColumn"] { flex:1 1 100% !important; width:100% !important; max-width:100% !important; }
           [data-testid="stMain"]:has(.live-emotion-design-root) [data-testid="stHorizontalBlock"]:has([class*="st-key-engine_gallery_card_"]) > [data-testid="stColumn"] { flex:1 1 100% !important; width:100% !important; max-width:100% !important; }
         }
         </style>
@@ -11722,15 +11926,37 @@ def render_live_emotion_voice():
 
     col1, col2 = st.columns(STUDIO_ENGINE_PANEL_RATIO, gap="medium")
     with col1:
-        with st.container(border=True):
+        with st.container(border=True, key="live_emotion_parameters_panel"):
             st.markdown('<h4 style="font-family: Orbitron; font-size: 12px; color: #EC4899; margin-bottom: 12px;">🎤 EMOTION PARAMETERS</h4>', unsafe_allow_html=True)
-            emotion_text = st.text_area("Text to speak", placeholder="Enter text for emotional voice generation...", height=124, max_chars=2000, key="emotion_voice_text_input")
-            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">😊 Select Emotion</p>', unsafe_allow_html=True)
-            emotion = st.selectbox("Emotion", ["neutral", "happy", "sad", "angry", "excited", "fearful", "mysterious", "serious"], key="emotion_voice_select", label_visibility="collapsed")
-            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">🎤 Voice Filter</p>', unsafe_allow_html=True)
-            voice_gender = st.selectbox("Voice Filter", ["all", "male", "female"], key="emotion_voice_gender", label_visibility="collapsed")
+            emotion_text = st.text_area(
+                "🎙️ Text to Speak",
+                placeholder="Enter text for emotional voice generation...",
+                height=124,
+                max_chars=2000,
+                key="emotion_voice_text_input",
+                label_visibility="visible",
+            )
+            emotion = st.selectbox(
+                "😊 Select Emotion",
+                ["neutral", "happy", "sad", "angry", "excited", "fearful", "mysterious", "serious"],
+                key="emotion_voice_select",
+                format_func=lambda value: value.title(),
+                label_visibility="visible",
+            )
+            voice_gender = st.selectbox(
+                "🎤 Voice Filter",
+                ["all", "male", "female"],
+                key="emotion_voice_gender",
+                format_func=lambda value: value.title(),
+                label_visibility="visible",
+            )
             voice_opts = list(ELEVENLABS_VOICES.keys()) if voice_gender == "all" else [v for v, m in ELEVENLABS_VOICES.items() if m.get('gender') == voice_gender]
-            emotion_voice = st.selectbox("Voice", voice_opts or list(ELEVENLABS_VOICES.keys()), key="emotion_voice_voice", label_visibility="collapsed")
+            emotion_voice = st.selectbox(
+                "🎙️ Voice",
+                voice_opts or list(ELEVENLABS_VOICES.keys()),
+                key="emotion_voice_voice",
+                label_visibility="visible",
+            )
 
             if st.button("🎤 Generate Emotion Voice", key="emotion_generate_btn", width="stretch"):
                 if not require_login_for_generation("Live Emotion Mode"):
@@ -11782,7 +12008,7 @@ def render_live_emotion_voice():
                             st.error(f"Error: {str(e)}")
 
     with col2:
-        with st.container(border=True):
+        with st.container(border=True, key="live_emotion_output_panel"):
             st.markdown('<h3 style="font-family: Orbitron; font-size: 14px; color: #EC4899; margin-bottom: 12px;">🎧 VOICE OUTPUT</h3>', unsafe_allow_html=True)
             audio_output = st.session_state.get("emotion_voice_output")
             emotion_used = st.session_state.get("emotion_voice_emotion", "neutral")
@@ -11914,24 +12140,51 @@ def run_blueprints_mode():
 
     st.markdown("""
     <style>
+        html body section[data-testid="stMain"]:has(.st-key-blueprint_parameters_panel)
+        .st-key-blueprint_parameters_panel,
+        html body section[data-testid="stMain"]:has(.st-key-blueprint_parameters_panel)
+        .st-key-blueprint_parameters_panel [data-testid="stSelectbox"],
+        html body section[data-testid="stMain"]:has(.st-key-blueprint_parameters_panel)
+        .st-key-blueprint_parameters_panel [data-testid="stTextArea"] {
+            box-sizing:border-box !important;
+            width:100% !important;
+            min-width:0 !important;
+            max-width:100% !important;
+        }
+        html body section[data-testid="stMain"]:has(.st-key-blueprint_parameters_panel)
+        .st-key-blueprint_parameters_panel [data-testid="stWidgetLabel"],
+        html body section[data-testid="stMain"]:has(.st-key-blueprint_parameters_panel)
+        .st-key-blueprint_parameters_panel [data-testid="stWidgetLabel"] label {
+            box-sizing:border-box !important;
+            display:block !important;
+            width:100% !important;
+            min-width:0 !important;
+            height:auto !important;
+            min-height:20px !important;
+            max-height:none !important;
+            margin:0 0 5px !important;
+            overflow:visible !important;
+            line-height:1.4 !important;
+            white-space:normal !important;
+            overflow-wrap:anywhere !important;
+        }
+        html body section[data-testid="stMain"]:has(.st-key-blueprint_parameters_panel)
+        .st-key-blueprint_parameters_panel [data-baseweb="select"] > div {
+            box-sizing:border-box !important;
+            width:100% !important;
+            min-height:44px !important;
+            height:auto !important;
+            overflow:visible !important;
+        }
+        html body section[data-testid="stMain"]:has(.st-key-blueprint_parameters_panel)
+        .st-key-blueprint_parameters_panel [data-baseweb="select"] [data-testid="stMarkdownContainer"] {
+            max-width:100% !important;
+            overflow:visible !important;
+            text-overflow:clip !important;
+            white-space:normal !important;
+            overflow-wrap:anywhere !important;
+        }
         @media (max-width:600px) {
-            html body section[data-testid="stMain"]:has(.st-key-blueprint_parameters_panel)
-            .st-key-blueprint_parameters_panel [data-testid="stElementContainer"]:has(p[style*="font-family: Inter"]) {
-                display:flow-root !important;
-                box-sizing:border-box !important;
-                height:auto !important;
-                min-height:30px !important;
-                padding:4px 0 6px !important;
-            }
-            html body section[data-testid="stMain"]:has(.st-key-blueprint_parameters_panel)
-            .st-key-blueprint_parameters_panel [data-testid="stMarkdownContainer"] p[style*="font-family: Inter"] {
-                box-sizing:border-box !important;
-                margin:3px 0 4px !important;
-                font-size:11px !important;
-                line-height:1.35 !important;
-                white-space:normal !important;
-                overflow-wrap:anywhere !important;
-            }
             section[data-testid="stMain"]:has(.st-key-blueprint_parameters_panel)
             .st-key-bp_prompt_input,
             section[data-testid="stMain"]:has(.st-key-blueprint_parameters_panel)
@@ -11987,45 +12240,41 @@ def run_blueprints_mode():
             </h4>
             """, unsafe_allow_html=True)
 
-            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">Architectural Description</p>', unsafe_allow_html=True)
             blueprint_prompt = st.text_area(
-                "Description",
+                "Architectural Description",
                 placeholder="E.g. Modern 2-bedroom house with open kitchen, master bedroom with en-suite bathroom, large living room, study room...",
                 height=100,
                 key="bp_prompt_input",
-                label_visibility="collapsed"
+                label_visibility="visible",
             )
 
-            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">Blueprint Type</p>', unsafe_allow_html=True)
             blueprint_type = st.selectbox(
-                "Type",
+                "Blueprint Type",
                 ["floor_plan", "elevation", "section", "site_plan", "mechanical_drawing", "electrical_drawing", "structural_drawing", "technical_illustration"],
+                format_func=lambda value: value.replace("_", " ").title(),
                 key="bp_type_select",
-                label_visibility="collapsed"
+                label_visibility="visible",
             )
 
-            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">Blueprint Style</p>', unsafe_allow_html=True)
             blueprint_style = st.selectbox(
-                "Style",
+                "Blueprint Style",
                 ["Modern", "Classic", "Minimalist", "Industrial", "Traditional"],
                 key="bp_style_select",
-                label_visibility="collapsed"
+                label_visibility="visible",
             )
 
-            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">Blueprint View</p>', unsafe_allow_html=True)
             blueprint_render_mode = st.selectbox(
-                "View",
+                "Blueprint View",
                 ["2D Technical Plan", "3D Concept View"],
                 key="bp_render_mode_select",
-                label_visibility="collapsed"
+                label_visibility="visible",
             )
 
-            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">Blueprint Quality</p>', unsafe_allow_html=True)
             bp_quality = st.selectbox(
-                "Quality",
+                "Blueprint Quality",
                 ["Standard", "HD"],
                 key="bp_quality_select",
-                label_visibility="collapsed"
+                label_visibility="visible",
             )
 
             template_map = {
@@ -12086,13 +12335,12 @@ def run_blueprints_mode():
             if default_template not in template_names:
                 default_template = "None"
 
-            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">Quick Template Library</p>', unsafe_allow_html=True)
             selected_template = st.selectbox(
-                "Choose Template",
+                "Quick Template Library",
                 template_names,
                 index=template_names.index(default_template),
                 key="bp_template_select",
-                label_visibility="collapsed"
+                label_visibility="visible",
             )
 
             st.markdown("<br>", unsafe_allow_html=True)
@@ -13960,38 +14208,34 @@ def run_creative_workshop():
             workshop_aspect_options = ["16:9", "9:16", "1:1", "21:9", "4:5", "3:2"]
             if st.session_state.get("workshop_aspect_ratio_choice") not in workshop_aspect_options:
                 st.session_state["workshop_aspect_ratio_choice"] = workshop_aspect_options[0]
-            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">📐 Select Aspect Ratio</p>', unsafe_allow_html=True)
             workshop_ar = st.selectbox(
-                "Aspect Ratio",
+                "📐 Select Aspect Ratio",
                 workshop_aspect_options,
                 key="workshop_aspect_ratio_choice",
-                label_visibility="collapsed"
+                label_visibility="visible",
             )
 
-            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">🎨 Masterpiece Prompt Input</p>', unsafe_allow_html=True)
             workshop_prompt_str = st.text_area(
-                "Prompt",
+                "🎨 Masterpiece Prompt Input",
                 placeholder="E.g. A gorgeous cyberpunk temple with pink neon aurora, hyperrealistic, 8k resolution, cinematic lighting...",
                 height=120,
                 key="workshop_prompt_str_area",
-                label_visibility="collapsed"
+                label_visibility="visible",
             )
 
-            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">🚫 Negative Prompt</p>', unsafe_allow_html=True)
             workshop_neg_prompt_str = st.text_area(
-                "Negative Prompt",
+                "🚫 Negative Prompt",
                 placeholder="E.g. blurry, low quality, distorted, extra limbs, bad anatomy, text, watermark...",
                 height=80,
                 key="workshop_neg_prompt_str_area",
-                label_visibility="collapsed"
+                label_visibility="visible",
             )
 
-            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin: 8px 0 4px 0;">📊 Image Quality</p>', unsafe_allow_html=True)
             workshop_quality = st.selectbox(
-                "Quality",
+                "📊 Image Quality",
                 ["Standard", "HD", "Pro"],
                 key="workshop_quality",
-                label_visibility="collapsed"
+                label_visibility="visible",
             )
             workshop_quality_settings = WORKSHOP_QUALITY_SETTINGS[workshop_quality]
 
@@ -14077,7 +14321,7 @@ def run_creative_workshop():
                             st.error(f"❌ Error: {str(e)}")
 
     with w_col2:
-        with st.container(border=True):
+        with st.container(border=True, key="workshop_output_panel"):
             st.markdown("""
             <h3 style="
                 font-family: 'Orbitron', sans-serif;
@@ -14176,6 +14420,55 @@ def run_upscaler_mode():
         [data-testid="stMain"]:has(.upscaler-design-root) [data-testid="stButton"] button,
         [data-testid="stMain"]:has(.upscaler-design-root) [data-testid="stDownloadButton"] button { min-height:42px !important; border-radius:9px !important; font:700 12px 'Inter',Arial,sans-serif !important; }
         [data-testid="stMain"]:has(.upscaler-design-root) .st-key-us_upscale_btn button { color:#fff !important; background:linear-gradient(105deg,#08b9d4,#6656e9) !important; border:0 !important; box-shadow:0 5px 14px rgba(73,112,221,.16) !important; }
+        [data-testid="stMain"]:has(.upscaler-design-root) .upscaler-hero > *,
+        [data-testid="stMain"]:has(.upscaler-design-root) .upscaler-hero h1,
+        [data-testid="stMain"]:has(.upscaler-design-root) .upscaler-hero h1 span,
+        [data-testid="stMain"]:has(.upscaler-design-root) .upscaler-hero p {
+          box-sizing:border-box !important; width:100% !important; max-width:100% !important;
+          white-space:normal !important; overflow-wrap:anywhere !important; line-height:1.4 !important;
+        }
+        [data-testid="stMain"]:has(.upscaler-design-root) .st-key-upscaler_parameters_panel,
+        [data-testid="stMain"]:has(.upscaler-design-root) .st-key-upscaler_parameters_panel [data-testid="stFileUploader"],
+        [data-testid="stMain"]:has(.upscaler-design-root) .st-key-upscaler_parameters_panel [data-testid="stSelectbox"],
+        [data-testid="stMain"]:has(.upscaler-design-root) .st-key-upscaler_parameters_panel [data-testid="stSlider"] {
+          box-sizing:border-box !important; width:100% !important; min-width:0 !important; max-width:100% !important;
+        }
+        [data-testid="stMain"]:has(.upscaler-design-root) .st-key-upscaler_parameters_panel [data-testid="stWidgetLabel"],
+        [data-testid="stMain"]:has(.upscaler-design-root) .st-key-upscaler_parameters_panel [data-testid="stWidgetLabel"] label {
+          box-sizing:border-box !important; display:block !important; width:100% !important; min-width:0 !important;
+          height:auto !important; min-height:20px !important; max-height:none !important; margin:0 0 5px !important;
+          overflow:visible !important; line-height:1.4 !important; white-space:normal !important; overflow-wrap:anywhere !important;
+        }
+        [data-testid="stMain"]:has(.upscaler-design-root) .st-key-upscaler_parameters_panel [data-baseweb="select"] > div {
+          box-sizing:border-box !important; width:100% !important; min-height:44px !important; height:auto !important;
+          overflow:visible !important;
+        }
+        [data-testid="stMain"]:has(.upscaler-design-root) .st-key-upscaler_parameters_panel [data-baseweb="select"] [data-testid="stMarkdownContainer"] {
+          max-width:100% !important; overflow:visible !important; text-overflow:clip !important;
+          white-space:normal !important; overflow-wrap:anywhere !important;
+        }
+        [data-testid="stMain"]:has(.upscaler-design-root) .st-key-upscaler_viewer_panel,
+        [data-testid="stMain"]:has(.upscaler-design-root) .st-key-upscaler_viewer_panel [data-testid="stImage"] {
+          box-sizing:border-box !important; width:100% !important; min-width:0 !important; max-width:100% !important;
+        }
+        [data-testid="stMain"]:has(.upscaler-design-root) .st-key-upscaler_viewer_panel [data-testid="stMarkdownContainer"] p {
+          max-width:100% !important; overflow-wrap:anywhere !important;
+        }
+        @media(max-width:768px) {
+          [data-testid="stMain"]:has(.upscaler-design-root) [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"] .st-key-upscaler_parameters_panel):has(> [data-testid="stColumn"] .st-key-upscaler_viewer_panel) {
+            display:grid !important; grid-template-columns:minmax(0,1fr) !important; align-items:stretch !important; gap:12px !important;
+          }
+          [data-testid="stMain"]:has(.upscaler-design-root) [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"] .st-key-upscaler_parameters_panel):has(> [data-testid="stColumn"] .st-key-upscaler_viewer_panel) > [data-testid="stColumn"] {
+            box-sizing:border-box !important; flex:none !important; width:auto !important; min-width:0 !important; max-width:none !important;
+          }
+          [data-testid="stMain"]:has(.upscaler-design-root) .st-key-upscaler_viewer_panel [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"] [data-testid="stImage"]) {
+            display:grid !important; grid-template-columns:minmax(0,1fr) !important; align-items:stretch !important; gap:12px !important;
+          }
+          [data-testid="stMain"]:has(.upscaler-design-root) .st-key-upscaler_viewer_panel [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"] [data-testid="stImage"]) > [data-testid="stColumn"] {
+            box-sizing:border-box !important; flex:none !important; width:auto !important; min-width:0 !important; max-width:none !important;
+          }
+          .upscaler-hero:before,.upscaler-hero:after { display:none !important; }
+        }
         .upscaler-hero { box-sizing:border-box; min-height:162px; display:flex; flex-direction:column; align-items:center; justify-content:center; margin:12px 0 18px; padding:20px; overflow:visible; text-align:center; border:1px solid #e4eafa; border-radius:14px; background:linear-gradient(112deg,#e6fbff 0%,#f5f7ff 54%,#f4eaff 100%); }
         .upscaler-hero .badge { padding:6px 14px; border:1px solid #d8dff8; border-radius:20px; color:#6255dc; background:#ffffffb8; font:750 10px 'Inter',Arial,sans-serif; letter-spacing:1px; }
         .upscaler-hero h1 { margin:8px 0 2px; color:#18375e !important; font:800 clamp(27px,4vw,38px)/1.2 'Inter',Arial,sans-serif !important; }
@@ -14190,6 +14483,7 @@ def run_upscaler_mode():
           .upscaler-hero { min-height:140px; padding:18px 14px; }
           .upscaler-empty { min-height:280px; }
           [data-testid="stMain"]:has(.upscaler-design-root) [data-testid="stMainBlockContainer"] { padding-left:12px !important; padding-right:12px !important; }
+          [data-testid="stMain"]:has(.upscaler-design-root) div[style*="rgba(10,10,12,0.4)"] { height:auto !important; min-height:280px !important; }
           [data-testid="stMain"]:has(.upscaler-design-root) [data-testid="stHorizontalBlock"]:has([data-testid="stFileUploader"]),
           [data-testid="stMain"]:has(.upscaler-design-root) [data-testid="stHorizontalBlock"]:has(.upscaler-empty) { flex-direction:column !important; flex-wrap:nowrap !important; }
           [data-testid="stMain"]:has(.upscaler-design-root) [data-testid="stHorizontalBlock"]:has([data-testid="stFileUploader"]) > [data-testid="stColumn"],
@@ -14257,7 +14551,7 @@ def run_upscaler_mode():
     us_col1, us_col2 = st.columns(STUDIO_ENGINE_PANEL_RATIO, gap="medium")
     
     with us_col1:
-        with st.container(border=True):
+        with st.container(border=True, key="upscaler_parameters_panel"):
             st.markdown("""
             <h4 style="
                 font-family: 'Orbitron', sans-serif;
@@ -14271,12 +14565,11 @@ def run_upscaler_mode():
             """, unsafe_allow_html=True)
             
             # Image Upload
-            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">📷 Upload Image to Upscale</p>', unsafe_allow_html=True)
             uploaded_image_up = st.file_uploader(
-                "Upload Image",
+                "📷 Upload Image to Upscale",
                 type=['png', 'jpg', 'jpeg', 'webp'],
                 key="us_image_upload",
-                label_visibility="collapsed"
+                label_visibility="visible",
             )
             
             if uploaded_image_up:
@@ -14323,6 +14616,7 @@ def run_upscaler_mode():
                 "🎨 Enhancement Method",
                 ["standard", "sharp", "enhance", "cinematic", "neon"],
                 key="us_enhancement_type",
+                format_func=lambda value: value.title(),
             )
             
             # Quality
@@ -14421,7 +14715,7 @@ def run_upscaler_mode():
                                 st.error(f"Replicate upscaling failed: {error_message or 'No image output was returned.'}")
     
     with us_col2:
-        with st.container(border=True):
+        with st.container(border=True, key="upscaler_viewer_panel"):
             st.markdown("""
             <h3 style="
                 font-family: 'Orbitron', sans-serif;
@@ -14603,6 +14897,52 @@ def run_draw_mode():
     st.markdown(
         """
         <style>
+        [data-testid="stMain"]:has(.st-key-draw_parameters_panel)
+        .st-key-draw_parameters_panel,
+        [data-testid="stMain"]:has(.st-key-draw_parameters_panel)
+        .st-key-draw_parameters_panel [data-testid="stTextArea"],
+        [data-testid="stMain"]:has(.st-key-draw_parameters_panel)
+        .st-key-draw_parameters_panel [data-testid="stSelectbox"],
+        [data-testid="stMain"]:has(.st-key-draw_parameters_panel)
+        .st-key-draw_parameters_panel [data-testid="stNumberInput"] {
+            box-sizing:border-box !important;
+            width:100% !important;
+            min-width:0 !important;
+            max-width:100% !important;
+        }
+        [data-testid="stMain"]:has(.st-key-draw_parameters_panel)
+        .st-key-draw_parameters_panel [data-testid="stWidgetLabel"],
+        [data-testid="stMain"]:has(.st-key-draw_parameters_panel)
+        .st-key-draw_parameters_panel [data-testid="stWidgetLabel"] label {
+            box-sizing:border-box !important;
+            display:block !important;
+            width:100% !important;
+            min-width:0 !important;
+            height:auto !important;
+            min-height:20px !important;
+            max-height:none !important;
+            margin:0 0 5px !important;
+            overflow:visible !important;
+            line-height:1.4 !important;
+            white-space:normal !important;
+            overflow-wrap:anywhere !important;
+        }
+        [data-testid="stMain"]:has(.st-key-draw_parameters_panel)
+        .st-key-draw_parameters_panel [data-baseweb="select"] > div {
+            box-sizing:border-box !important;
+            width:100% !important;
+            min-height:44px !important;
+            height:auto !important;
+            overflow:visible !important;
+        }
+        [data-testid="stMain"]:has(.st-key-draw_parameters_panel)
+        .st-key-draw_parameters_panel [data-baseweb="select"] [data-testid="stMarkdownContainer"] {
+            max-width:100% !important;
+            overflow:visible !important;
+            text-overflow:clip !important;
+            white-space:normal !important;
+            overflow-wrap:anywhere !important;
+        }
         [data-testid="stMain"]:has(.st-key-dr_style) [data-testid="stSelectbox"] [data-baseweb="select"] > div {
             min-height:44px !important;
             align-items:center !important;
@@ -14641,6 +14981,16 @@ def run_draw_mode():
             font:500 14px/1.45 'Inter',Arial,sans-serif !important;
         }
         [data-testid="stMain"]:has(.st-key-dr_style) .draw-field-label {
+            display:block !important;
+            box-sizing:border-box !important;
+            width:100% !important;
+            min-width:0 !important;
+            height:auto !important;
+            min-height:17px !important;
+            max-height:none !important;
+            overflow:visible !important;
+            white-space:normal !important;
+            overflow-wrap:anywhere !important;
             margin:16px 0 8px !important;
             color:#334b62 !important;
             font:650 12px/1.35 'Inter',Arial,sans-serif !important;
@@ -14653,6 +15003,24 @@ def run_draw_mode():
         [data-testid="stMain"]:has(.st-key-dr_style) .draw-field-label--quality {
             margin-top:18px !important;
             margin-bottom:8px !important;
+        }
+        @media (max-width:768px) {
+            html body section[data-testid="stMain"]:has(.st-key-draw_parameters_panel)
+            [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"] .st-key-draw_parameters_panel):has(> [data-testid="stColumn"] .st-key-draw_viewer_panel) {
+                display:grid !important;
+                grid-template-columns:minmax(0,1fr) !important;
+                align-items:stretch !important;
+                gap:12px !important;
+            }
+            html body section[data-testid="stMain"]:has(.st-key-draw_parameters_panel)
+            [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"] .st-key-draw_parameters_panel):has(> [data-testid="stColumn"] .st-key-draw_viewer_panel)
+            > [data-testid="stColumn"] {
+                box-sizing:border-box !important;
+                flex:none !important;
+                width:auto !important;
+                min-width:0 !important;
+                max-width:none !important;
+            }
         }
         @media (max-width:600px) {
             html body section[data-testid="stMain"]:has(.st-key-draw_parameters_panel)
@@ -14700,25 +15068,23 @@ def run_draw_mode():
             """, unsafe_allow_html=True)
             
             # Drawing Prompt
-            st.markdown('<p style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">🎨 Drawing Description</p>', unsafe_allow_html=True)
             draw_prompt = st.text_area(
-                "Description",
+                "🎨 Drawing Description",
                 placeholder="E.g. A beautiful sunset over mountains, digital art style, A mystical dragon in flight, A futuristic cyberpunk city...",
                 height=100,
                 key="dr_prompt",
-                label_visibility="collapsed"
+                label_visibility="visible",
             )
             
             engine_choice = "Auto (Pollinations → Gemini → Fallback)"
             
             # Artistic Style
-            st.markdown('<div class="draw-field-label">Artistic Style</div>', unsafe_allow_html=True)
             draw_style = st.selectbox(
-                "Style",
+                "Artistic Style",
                 ["realistic", "digital", "sketch", "watercolor", "anime", "cinematic", "neon"],
                 key="dr_style",
                 format_func=lambda option: option.title(),
-                label_visibility="collapsed"
+                label_visibility="visible",
             )
             
             # Canvas Size
@@ -14744,14 +15110,13 @@ def run_draw_mode():
                 )
             
             # Quality
-            st.markdown('<div class="draw-field-label draw-field-label--quality">Drawing Quality</div>', unsafe_allow_html=True)
             if st.session_state.get("dr_quality") not in {None, "Standard", "HD"}:
                 st.session_state["dr_quality"] = "Standard"
             dr_quality = st.selectbox(
-                "Quality",
+                "Drawing Quality",
                 ["Standard", "HD"],
                 key="dr_quality",
-                label_visibility="collapsed"
+                label_visibility="visible",
             )
             
             st.markdown("<br>", unsafe_allow_html=True)
@@ -15131,6 +15496,72 @@ def run_video_editor_mode():
     # ============================================
     st.markdown("""
     <style>
+        [data-testid="stMain"]:has(.st-key-video_editor_parameters_panel)
+        .st-key-video_editor_parameters_panel,
+        [data-testid="stMain"]:has(.st-key-video_editor_parameters_panel)
+        .st-key-video_editor_parameters_panel [data-testid="stFileUploader"],
+        [data-testid="stMain"]:has(.st-key-video_editor_parameters_panel)
+        .st-key-video_editor_parameters_panel [data-testid="stSelectbox"],
+        [data-testid="stMain"]:has(.st-key-video_editor_parameters_panel)
+        .st-key-video_editor_parameters_panel [data-testid="stTextArea"],
+        [data-testid="stMain"]:has(.st-key-video_editor_parameters_panel)
+        .st-key-video_editor_parameters_panel [data-testid="stSlider"] {
+            box-sizing:border-box !important;
+            width:100% !important;
+            min-width:0 !important;
+            max-width:100% !important;
+        }
+        [data-testid="stMain"]:has(.st-key-video_editor_parameters_panel)
+        .st-key-video_editor_parameters_panel [data-testid="stWidgetLabel"],
+        [data-testid="stMain"]:has(.st-key-video_editor_parameters_panel)
+        .st-key-video_editor_parameters_panel [data-testid="stWidgetLabel"] label {
+            box-sizing:border-box !important;
+            display:block !important;
+            width:100% !important;
+            min-width:0 !important;
+            height:auto !important;
+            min-height:20px !important;
+            max-height:none !important;
+            margin:0 0 5px !important;
+            overflow:visible !important;
+            line-height:1.4 !important;
+            white-space:normal !important;
+            overflow-wrap:anywhere !important;
+        }
+        [data-testid="stMain"]:has(.st-key-video_editor_parameters_panel)
+        .st-key-video_editor_parameters_panel [data-baseweb="select"] > div {
+            box-sizing:border-box !important;
+            width:100% !important;
+            min-height:44px !important;
+            height:auto !important;
+            overflow:visible !important;
+        }
+        [data-testid="stMain"]:has(.st-key-video_editor_parameters_panel)
+        .st-key-video_editor_parameters_panel [data-baseweb="select"] [data-testid="stMarkdownContainer"] {
+            max-width:100% !important;
+            overflow:visible !important;
+            text-overflow:clip !important;
+            white-space:normal !important;
+            overflow-wrap:anywhere !important;
+        }
+        @media (max-width:768px) {
+            html body section[data-testid="stMain"]:has(.st-key-video_editor_parameters_panel)
+            [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"] .st-key-video_editor_parameters_panel):has(> [data-testid="stColumn"] .st-key-video_editor_output_panel) {
+                display:grid !important;
+                grid-template-columns:minmax(0,1fr) !important;
+                align-items:stretch !important;
+                gap:12px !important;
+            }
+            html body section[data-testid="stMain"]:has(.st-key-video_editor_parameters_panel)
+            [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"] .st-key-video_editor_parameters_panel):has(> [data-testid="stColumn"] .st-key-video_editor_output_panel)
+            > [data-testid="stColumn"] {
+                box-sizing:border-box !important;
+                flex:none !important;
+                width:auto !important;
+                min-width:0 !important;
+                max-width:none !important;
+            }
+        }
         /* ============================================
            VIDEO EDITOR - DARK THEME
            ============================================ */
@@ -15352,16 +15783,6 @@ def run_video_editor_mode():
             padding: 16px !important;
         }
         
-        /* ============================================
-           LABELS - DARK
-           ============================================ */
-        .editor-label {
-            font-family: 'Inter', sans-serif !important;
-            font-size: 11px !important;
-            color: #94a3b8 !important;
-            margin-bottom: 4px !important;
-        }
-        
         .editor-title {
             font-family: 'Orbitron', sans-serif !important;
             font-size: 12px !important;
@@ -15449,24 +15870,6 @@ def run_video_editor_mode():
                 min-width:0 !important;
                 max-width:none !important;
             }
-            section[data-testid="stMain"]:has(.st-key-video_editor_parameters_panel)
-            .st-key-video_editor_parameters_panel [data-testid="stElementContainer"]:has(.editor-label) {
-                display:flow-root !important;
-                box-sizing:border-box !important;
-                height:auto !important;
-                min-height:24px !important;
-                padding:2px 0 4px !important;
-                overflow:visible !important;
-            }
-            section[data-testid="stMain"]:has(.st-key-video_editor_parameters_panel)
-            .st-key-video_editor_parameters_panel .editor-label {
-                box-sizing:border-box !important;
-                margin:0 !important;
-                font-size:11px !important;
-                line-height:1.35 !important;
-                white-space:normal !important;
-                overflow-wrap:anywhere !important;
-            }
             section[data-testid="stMain"]:has(.st-key-video_editor_output_panel) .empty-state {
                 box-sizing:border-box !important;
                 height:auto !important;
@@ -15499,96 +15902,91 @@ def run_video_editor_mode():
             st.markdown('<h4 class="editor-title"><span style="color: #EC4899 !important;">⚙️ EDITOR PARAMETERS</span></h4>', unsafe_allow_html=True)
             
             # Upload Media
-            st.markdown('<p class="editor-label">📤 UPLOAD UNLIMITED MEDIA</p>', unsafe_allow_html=True)
             uploaded_media = st.file_uploader(
-                "Upload Videos, Images",
+                "📤 Upload Unlimited Media",
                 type=['mp4', 'mov', 'avi', 'webm', 'png', 'jpg', 'jpeg', 'webp', 'mp3', 'wav'],
                 accept_multiple_files=True,
                 key="editor_media_upload",
-                label_visibility="collapsed"
+                label_visibility="visible",
             )
             if uploaded_media:
                 st.session_state["editor_uploads"] = uploaded_media
                 st.success(f"✅ {len(uploaded_media)} media files uploaded successfully!")
             
             # Transitions & Effects
-            st.markdown('<p class="editor-label">🎞️ Transition Effect</p>', unsafe_allow_html=True)
             transition_effect = st.selectbox(
-                "Transition",
+                "🎞️ Transition Effect",
                 ["none", "fade", "crossfade", "zoom", "slide", "circle", "radial", "smooth"],
                 key="editor_transition",
-                label_visibility="collapsed"
+                label_visibility="visible",
             )
             
-            st.markdown('<p class="editor-label">🎨 Video Effect</p>', unsafe_allow_html=True)
             video_effect = st.selectbox(
-                "Effect",
+                "🎨 Video Effect",
                 ["none", "sepia", "grayscale", "vintage", "cinematic", "neon", "glitch", "dreamy", "dramatic"],
                 key="editor_effect",
-                label_visibility="collapsed"
+                label_visibility="visible",
             )
             
             # Resolution
-            st.markdown('<p class="editor-label">📐 Output Resolution</p>', unsafe_allow_html=True)
             output_resolution = st.selectbox(
-                "Resolution",
+                "📐 Output Resolution",
                 ["720p", "1080p", "4K"],
                 key="editor_resolution",
-                label_visibility="collapsed"
+                label_visibility="visible",
             )
             
             # BGM Upload
-            st.markdown('<p class="editor-label">🎵 ADD CUSTOM BACKGROUND MUSIC</p>', unsafe_allow_html=True)
             editor_bgm = st.file_uploader(
-                "Upload BGM",
+                "🎵 Add Custom Background Music",
                 type=['mp3', 'wav'],
                 key="editor_bgm_upload",
-                label_visibility="collapsed"
+                label_visibility="visible",
             )
             if editor_bgm is not None:
                 st.info("✅ Custom BGM uploaded.")
             
             # Voiceover
-            st.markdown('<p class="editor-label">🎙️ Add Cinematic AI Voiceover</p>', unsafe_allow_html=True)
-            use_editor_voiceover = st.toggle("Enable Voiceover", value=False, key="editor_enable_voiceover")
+            use_editor_voiceover = st.toggle(
+                "🎙️ Add Cinematic AI Voiceover",
+                value=False,
+                key="editor_enable_voiceover",
+            )
             if use_editor_voiceover:
                 editor_voice_text = st.text_area(
-                    "Voiceover Script",
+                    "🎙️ Voiceover Script",
                     placeholder="Yahan narration likho...",
                     height=60,
                     key="editor_voiceover_text",
-                    label_visibility="collapsed"
+                    label_visibility="visible",
                 )
                 
-                st.markdown('<p class="editor-label">🎤 Voice Profile</p>', unsafe_allow_html=True)
                 voice_options = list(ELEVENLABS_VOICES.keys())
                 editor_voice_profile = st.selectbox(
-                    "Voice Profile",
+                    "🎤 Voice Profile",
                     voice_options,
                     index=0,
                     key="editor_voiceover_profile",
-                    label_visibility="collapsed"
+                    label_visibility="visible",
                 )
             
             # BGM Volume
-            st.markdown('<p class="editor-label">🎵 BGM Volume Level</p>', unsafe_allow_html=True)
             editor_bgm_volume = st.slider(
-                "Volume",
+                "🎵 BGM Volume Level",
                 min_value=0.0,
                 max_value=1.0,
                 value=0.30,
                 step=0.05,
                 key="editor_bgm_volume",
-                label_visibility="collapsed"
+                label_visibility="visible",
             )
             
             # Quality
-            st.markdown('<p class="editor-label">📊 Editor Quality</p>', unsafe_allow_html=True)
             editor_quality = st.selectbox(
-                "Quality",
+                "📊 Editor Quality",
                 ["Standard", "HD", "4K"],
                 key="editor_quality",
-                label_visibility="collapsed"  
+                label_visibility="visible",
         )
             
             st.markdown("<br>", unsafe_allow_html=True)
@@ -19560,14 +19958,14 @@ def render_zovix_site_footer():
     """Render the shared ZOVIX legal/support footer at the end of a page."""
     st.markdown(
         """
-        <footer role="contentinfo" style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 18px;width:100%;max-width:1480px;margin:24px auto 0;padding:14px 4px 18px;border-top:1px solid rgba(120,140,160,.24);color:#718096;font:500 12px/1.5 Inter,Arial,sans-serif">
+        <div class="zovix-site-footer" role="contentinfo" style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 18px;width:100%;max-width:1480px;margin:24px auto 0;padding:14px 4px 18px;border-top:1px solid rgba(120,140,160,.24);color:#718096;font:500 12px/1.5 Inter,Arial,sans-serif">
           <span>&copy; 2026 ZOVIX. All rights reserved.</span>
           <nav aria-label="Legal and support links" style="display:flex;flex-wrap:wrap;gap:16px">
-            <a href="?page=face_generation_policy" style="color:#52647d;text-decoration:none">Face Generation Policy</a>
+            <a href="#privacy-policy" style="color:#52647d;text-decoration:none">Privacy Policy</a>
             <a href="#terms" style="color:#52647d;text-decoration:none">Terms</a>
             <a href="?page=support" style="color:#52647d;text-decoration:none">Support</a>
           </nav>
-        </footer>
+        </div>
         """,
         unsafe_allow_html=True,
     )
@@ -27806,7 +28204,7 @@ elif st.session_state["current_page"] == "studio":
         supplied_engine_images = {
             "Story Engine": "studio_cinematic_engine.webp",
             "Face Studio": "studio_expressive_face_background.webp",
-            "Creative Workshop": "studio_creative_workshop_engine.webp",
+            "Creative Workshop": "WhatsApp Image 2026-11-03 at 1.50.32 PM.jpeg",
             "Blueprint": "studio_blueprint_engine.webp",
             "Sales Video": "studio_sales_engine.webp",
             "Cinematic": "ghost_engine_cityscape.png",
@@ -27941,34 +28339,6 @@ elif st.session_state["current_page"] == "studio":
             unsafe_allow_html=True,
         )
 
-    with st.container(key="studio_bottom_footer"):
-        footer_notice = st.session_state.pop("studio_footer_notice", None)
-        if footer_notice:
-            st.info(footer_notice)
-        if st.session_state.get("show_studio_privacy_policy", False):
-            with st.container(key="studio_footer_policy"):
-                policy_columns = st.columns([0.20, 0.80], gap="small")
-                with policy_columns[1]:
-                    show_privacy_policy()
-
-        footer_columns = st.columns([0.20, 0.80], gap="small")
-        with footer_columns[1]:
-            with st.container(key="studio_footer_actions"):
-                footer_actions = st.columns(4, gap="small")
-                with footer_actions[0]:
-                    if st.button("AI Engines", key="studio_footer_engines", width="stretch"):
-                        st.rerun()
-                with footer_actions[1]:
-                    if st.button("Community", key="studio_footer_community", width="stretch"):
-                        _dashboard_go("community")
-                with footer_actions[2]:
-                    if st.button("What's Ahead", key="studio_footer_future", width="stretch"):
-                        st.session_state["studio_footer_notice"] = "What's Ahead highlights ways to explore engines, community and plans."
-                        st.rerun()
-                with footer_actions[3]:
-                    if st.button("Privacy Policy", key="studio_footer_privacy", width="stretch"):
-                        st.session_state["show_studio_privacy_policy"] = not st.session_state.get("show_studio_privacy_policy", False)
-                        st.rerun()
     render_zovix_site_footer()
     st.stop()
 

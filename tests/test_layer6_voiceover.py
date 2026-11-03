@@ -75,6 +75,31 @@ def test_quality_pass_locks_browser_video_dimensions_codec_and_fps(tmp_path):
     assert video_stream["avg_frame_rate"] == "30/1"
 
 
+def test_quality_mastering_applies_portrait_dimensions(tmp_path, monkeypatch):
+    source = tmp_path / "scene.mp4"
+    _write_test_video(source)
+    calls = {}
+    monkeypatch.setattr(
+        layer6_master_engine,
+        "_neural_upscale",
+        lambda _src, target, **kwargs: (
+            calls.update(kwargs) or shutil.copy2(source, target) or "test"
+        ),
+    )
+
+    output = Path(
+        layer6_master_engine.finalize_browser_video(
+            str(source),
+            quality="HD",
+            aspect_ratio="9:16",
+        )
+    )
+    try:
+        assert calls["output_size"] == (1080, 1920)
+    finally:
+        output.unlink(missing_ok=True)
+
+
 def test_i2v_normalization_preserves_five_seconds_at_16_fps(tmp_path):
     source = tmp_path / "five-seconds-16fps.mp4"
     output = tmp_path / "five-seconds-24fps.mp4"
@@ -96,6 +121,30 @@ def test_i2v_normalization_preserves_five_seconds_at_16_fps(tmp_path):
     )
 
     assert float(duration_result.stdout) == pytest.approx(5.0, abs=0.05)
+
+
+def test_i2v_normalization_supports_portrait_output_size(tmp_path):
+    source = tmp_path / "portrait-source.mp4"
+    output = tmp_path / "portrait-output.mp4"
+    _run([
+        FFMPEG, "-y", "-f", "lavfi", "-i", "testsrc2=s=180x320:r=16:d=5",
+        "-c:v", "libx264", "-pix_fmt", "yuv420p", str(source),
+    ])
+    import camera_motion_engine
+
+    camera_motion_engine._normalize_i2v_video(
+        source,
+        output,
+        80,
+        5.0,
+        16.0,
+        output_size=(720, 1280),
+    )
+
+    video_stream = next(
+        stream for stream in _streams(output) if stream["codec_type"] == "video"
+    )
+    assert (video_stream["width"], video_stream["height"]) == (720, 1280)
 
 
 def test_i2v_normalization_rejects_short_motion_instead_of_freeze_padding(tmp_path):

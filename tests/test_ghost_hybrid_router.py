@@ -1,10 +1,17 @@
 import camera_motion_engine
 import numpy as np
+
 from spatial_director_engine import (
     _CAMERA_MOTIONS,
     _CHARACTER_ACTION_OPTIONS,
     _CONFIG_SCHEMA,
 )
+
+
+def test_camera_motion_output_sizes_match_selected_aspect_ratio():
+    assert camera_motion_engine._output_size_for_aspect_ratio("16:9") == (1280, 720)
+    assert camera_motion_engine._output_size_for_aspect_ratio("9:16") == (720, 1280)
+    assert camera_motion_engine._output_size_for_aspect_ratio("1:1") == (720, 720)
 
 
 def test_hybrid_router_maps_portrait_and_dynamic_actions():
@@ -110,12 +117,14 @@ def test_dynamic_action_uses_wan_22_default_route(monkeypatch):
         "Tracking (Forward)",
         duration_seconds=5.0,
         character_action="Sword Fight Action",
+        aspect_ratio="9:16",
     )
 
     assert result == "action.mp4"
     assert calls["duration"] == 5.0
     assert calls["model_ref"] == "wan-video/wan-2.2-i2v-fast"
     assert calls["wan_resolution"] == "480p"
+    assert calls["output_size"] == (720, 1280)
 
 
 def test_wan_22_input_defaults_to_fast_480p_and_supports_hd(monkeypatch):
