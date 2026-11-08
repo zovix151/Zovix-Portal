@@ -53,7 +53,7 @@ async def serve_face_generation_policy(_request):
 
 
 app = App(
-    "replit_face_app.py",
+    "app.py",
     routes=[
         Route("/", serve_home),
         Route("/zovix-logo.svg", serve_brand_logo),
