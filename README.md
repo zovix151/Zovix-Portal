@@ -156,7 +156,7 @@ Streamlit prints a local URL (typically `http://localhost:8501`) when the app is
 For a Render web service using the main Streamlit app:
 
 - **Build command:** `pip install -r requirements.txt`
-- **Start command:** `streamlit run app.py --server.address 0.0.0.0 --server.port $PORT`
+- **Start command:** `streamlit run seo_entrypoint.py --server.address 0.0.0.0 --server.port $PORT` (serves `/robots.txt`, `/sitemap.xml` and the SEO pages, then runs `app.py`)
 - Add the required database URL and provider credentials under the service's environment settings.
 - Ensure FFmpeg is installed in the service environment if you use video processing.
 
