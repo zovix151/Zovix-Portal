@@ -14,6 +14,7 @@ import os
 import re
 import shutil
 import subprocess
+import tempfile
 import time
 import uuid
 
@@ -101,11 +102,12 @@ _EDGE_FEATHER_PIXELS = 10
 _OUTPUT_ROOT = Path(__file__).resolve().parent / "static" / "outputs"
 
 
-def _output_size_for_aspect_ratio(aspect_ratio: str) -> tuple[int, int]:
+def _output_size_for_aspect_ratio(aspect_ratio: str, quality: str | None = None) -> tuple[int, int]:
+    width, height = (1920, 1080) if quality == "HD" else _OUTPUT_SIZE
     sizes = {
-        "16:9": _OUTPUT_SIZE,
-        "9:16": (_OUTPUT_SIZE[1], _OUTPUT_SIZE[0]),
-        "1:1": (_OUTPUT_SIZE[1], _OUTPUT_SIZE[1]),
+        "16:9": (width, height),
+        "9:16": (height, width),
+        "1:1": (height, height),
     }
     try:
         return sizes[aspect_ratio]
@@ -150,6 +152,7 @@ def _normalize_i2v_video(
     duration_seconds: float,
     source_fps: float,
     output_size: tuple[int, int] = _OUTPUT_SIZE,
+    preserve_source_size: bool = False,
 ) -> None:
     """Encode at browser FPS while preserving source timing; reject truncated motion."""
     ffmpeg = shutil.which("ffmpeg")
@@ -161,16 +164,23 @@ def _normalize_i2v_video(
             f"Image-to-video generated only {actual_duration:.2f}s of motion; "
             f"{duration_seconds:.2f}s is required. Refusing to pad with frozen frames."
         )
+    width, height = output_size
+    crop = (
+        f"crop=w='trunc(min(iw,ih*{width}/{height})/2)*2':"
+        f"h='trunc(min(ih,iw*{height}/{width})/2)*2'"
+    )
+    resize = "" if preserve_source_size else f",scale={width}:{height}:flags=lanczos"
     filters = (
         f"fps={_FPS},trim=duration={duration_seconds:.6f},"
-        f"scale={output_size[0]}:{output_size[1]}:flags=lanczos,"
+        f"{crop}{resize},"
         "setsar=1,format=yuv420p"
     )
     result = subprocess.run(
         [
             ffmpeg, "-y", "-i", str(source), "-vf", filters,
             "-an", "-c:v", "libx264", "-profile:v", "main", "-level:v", "4.1",
-            "-preset", "veryfast", "-crf", "17", "-r", str(_FPS), "-fps_mode", "cfr",
+            "-preset", "fast", "-crf", "14" if preserve_source_size else "17",
+            "-r", str(_FPS), "-fps_mode", "cfr",
             "-movflags", "+faststart", str(output),
         ],
         capture_output=True,
@@ -712,12 +722,21 @@ def _compact_image_data_uri(image_path: str, target_size=(1536, 864)) -> str:
     if image is None:
         raise ValueError(f"Could not read reference image: {image_path}")
     image = _fit_frame_to_size(image, target_size)
-    for quality in (82, 76, 70, 64, 58):
-        encoded, image_bytes = cv2.imencode(
-            ".jpg", image, [cv2.IMWRITE_JPEG_QUALITY, quality]
-        )
-        if encoded and len(image_bytes) <= 240 * 1024:
-            return "data:image/jpeg;base64," + base64.b64encode(image_bytes).decode("ascii")
+    while True:
+        for quality in (88, 82, 76, 70, 64, 58):
+            encoded, image_bytes = cv2.imencode(
+                ".jpg", image, [cv2.IMWRITE_JPEG_QUALITY, quality]
+            )
+            if encoded and len(image_bytes) <= 240 * 1024:
+                return "data:image/jpeg;base64," + base64.b64encode(image_bytes).decode("ascii")
+        height, width = image.shape[:2]
+        if max(width, height) <= 768:
+            break
+        factor = max(768 / max(width, height), 0.85)
+        size = (max(2, round(width * factor / 2) * 2),
+                max(2, round(height * factor / 2) * 2))
+        logger.info("Reducing I2V reference to %dx%d to meet inline file limit.", *size)
+        image = cv2.resize(image, size, interpolation=cv2.INTER_AREA)
     raise RuntimeError("Could not compress the reference image below Replicate's inline-file limit.")
 
 
@@ -797,7 +816,13 @@ def _run_i2v_prediction(
     if not re.fullmatch(r"[A-Za-z0-9_-]+/[A-Za-z0-9_.-]+", selected_model):
         raise RuntimeError("ZOVIX_GHOST_I2V_MODEL must be an owner/model reference.")
 
-    if output_size == _OUTPUT_SIZE:
+    if wan_resolution == "720p" and "wan-2.2-i2v-fast" in selected_model.lower():
+        ratio = output_size[0] / output_size[1]
+        if ratio >= 1:
+            image_target_size = (1280, max(2, round(1280 / ratio / 2) * 2))
+        else:
+            image_target_size = (max(2, round(1280 * ratio / 2) * 2), 1280)
+    elif output_size == _OUTPUT_SIZE:
         image_target_size = (768, 448)
     else:
         ratio = output_size[0] / output_size[1]
@@ -814,11 +839,15 @@ def _run_i2v_prediction(
         for part in (
             scene_prompt,
             motion_prompt,
-            "cinematic high-dynamic character action with continuous full-body movement",
-            "preserve the exact character identity, face, clothing, lighting, and scene composition from the input image",
+            "preserve the subject, environment, architecture, landscape, lighting and composition of the input image",
+            "preserve each character's face, hair, body, clothing, armor design, materials, colors, "
+            "markings and accessories throughout the shot; no identity changes, costume changes, "
+            "missing armor, swapped objects or duplicated characters",
             _CAMERA_MOTION_PROMPTS[camera_motion],
-            "one continuous shot with visible temporal change from the first frame to the last, no cuts, no frozen pose, no Ken Burns or digital zoom substitute",
-            "natural acceleration, grounded weight shifts, believable follow-through, restrained cinematic motion blur, stable coherent background",
+            "one continuous shot with natural movement, no cuts or sudden scene changes",
+            "keep background objects and structures geometrically stable and consistent across frames; "
+            "avoid flicker, warping, melting, disappearing objects and duplicated details; "
+            "retain any environmental motion explicitly requested in the scene",
         )
         if part and part.strip()
     )
@@ -879,6 +908,7 @@ def _run_i2v_prediction(
             duration,
             source_fps,
             output_size,
+            preserve_source_size=wan_resolution == "720p",
         )
         return str(output_path), video_url
     except Exception as exc:
@@ -902,15 +932,21 @@ def _render_2d_camera_motion(
     width, height = output_size
     _OUTPUT_ROOT.mkdir(parents=True, exist_ok=True)
     output_path = _OUTPUT_ROOT / f"motion_local_{uuid.uuid4().hex}.mp4"
-    writer = cv2.VideoWriter(
-        str(output_path),
-        cv2.VideoWriter_fourcc(*"mp4v"),
-        float(_FPS),
-        output_size,
-    )
-    if not writer.isOpened():
-        writer.release()
-        raise RuntimeError("Could not initialize the local camera-motion encoder.")
+    ffmpeg = shutil.which("ffmpeg")
+    if not ffmpeg:
+        raise RuntimeError("ffmpeg is required for local camera-motion encoding.")
+    errors = tempfile.TemporaryFile()
+    try:
+        writer = subprocess.Popen(
+            [ffmpeg, "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "bgr24",
+             "-s", f"{width}x{height}", "-r", str(_FPS), "-i", "pipe:0",
+             "-an", "-c:v", "libx264", "-preset", "fast", "-crf", "16",
+             "-pix_fmt", "yuv420p", "-movflags", "+faststart", str(output_path)],
+            stdin=subprocess.PIPE, stderr=errors,
+        )
+    except OSError:
+        errors.close()
+        raise
     frame_count = max(2, round(_FPS * duration))
     try:
         for index in range(frame_count):
@@ -962,35 +998,60 @@ def _render_2d_camera_motion(
                 angle = 3.0 * math.sin(progress * math.pi)
             if motion_type == "Static (No Motion)":
                 zoom, shift_x, shift_y, angle = 1.0, 0.0, 0.0, 0.0
+            if motion_type != "Static (No Motion)":
+                zoom += 0.08
+                radians = math.radians(angle)
+                cosine, sine = math.cos(radians), math.sin(radians)
+                required = max(
+                    (abs(cosine) * width + abs(sine) * height
+                     + 2 * abs(cosine * shift_x + sine * shift_y)) / width,
+                    (abs(sine) * width + abs(cosine) * height
+                     + 2 * abs(-sine * shift_x + cosine * shift_y)) / height,
+                )
+                zoom = max(zoom, required + 0.001)
+            a = zoom * math.cos(math.radians(angle))
+            b = -zoom * math.sin(math.radians(angle))
             matrix = np.array(
                 [
                     [
-                        zoom * math.cos(math.radians(angle)),
-                        -zoom * math.sin(math.radians(angle)),
-                        (1.0 - zoom) * width / 2.0 + shift_x,
+                        a, b, width / 2.0 - a * width / 2.0 - b * height / 2.0 + shift_x,
                     ],
                     [
-                        zoom * math.sin(math.radians(angle)),
-                        zoom * math.cos(math.radians(angle)),
-                        (1.0 - zoom) * height / 2.0 + shift_y,
+                        -b, a, height / 2.0 + b * width / 2.0 - a * height / 2.0 + shift_y,
                     ],
                 ],
                 dtype=np.float32,
             )
             frame = cv2.warpAffine(
                 source, matrix, output_size, flags=cv2.INTER_LINEAR,
-                borderMode=cv2.BORDER_REFLECT_101,
+                borderMode=cv2.BORDER_CONSTANT,
             )
-            writer.write(frame)
+            try:
+                writer.stdin.write(frame.tobytes())
+            except BrokenPipeError as exc:
+                writer.wait(timeout=30)
+                errors.seek(0)
+                detail = errors.read().decode(errors="replace")[-1200:]
+                raise RuntimeError(f"Local camera-motion encoding failed: {detail}") from exc
+        writer.stdin.close()
+        return_code = writer.wait(timeout=300)
+        if return_code:
+            errors.seek(0)
+            raise RuntimeError(f"Local camera-motion encoding failed: {errors.read().decode(errors='replace')[-1200:]}")
     except Exception:
-        writer.release()
+        if writer.poll() is None:
+            writer.kill()
+            writer.wait()
         output_path.unlink(missing_ok=True)
         raise
-    writer.release()
+    finally:
+        if writer.stdin and not writer.stdin.closed:
+            writer.stdin.close()
+        errors.close()
     if not output_path.is_file() or output_path.stat().st_size < 1000:
         output_path.unlink(missing_ok=True)
         raise RuntimeError("Local camera-motion fallback produced no usable video.")
-    logger.warning("Using local 2D camera-motion fallback from the Flux keyframe.")
+    logger.info("Rendered local 2D camera motion from the Flux keyframe.")
     return str(output_path)
 
 
@@ -1016,7 +1077,7 @@ def apply_camera_motion(
             f"Unsupported character_action {character_action!r}. "
             f"Choose one of: {', '.join(_CHARACTER_ACTIONS)}."
         )
-    output_size = _output_size_for_aspect_ratio(aspect_ratio)
+    output_size = _output_size_for_aspect_ratio(aspect_ratio, quality)
     try:
         duration_seconds = float(duration_seconds)
     except (TypeError, ValueError) as exc:
@@ -1077,6 +1138,7 @@ def apply_camera_motion(
                         model_ref=portrait_model,
                         model_version=portrait_version,
                         timeout_seconds=router_timeout,
+                        output_size=output_size,
                     )
                     if animated:
                         final_video = animated_path

@@ -419,7 +419,7 @@ def render_ghost_engine_studio(
                 height=112,
                 max_chars=2000,
                 placeholder="Write your scene and character direction...",
-                help="GPT-4o optimizes the scene prompt; Flux creates the keyframe and Wan animates it.",
+                help="Describe the character, armor, colors, materials, accessories and setting. Explicit director controls override conflicting camera, lighting, atmosphere and action details in the prompt.",
                 key="ghost_script",
             )
             aspect_ratio_labels = {
@@ -476,11 +476,16 @@ def render_ghost_engine_studio(
                     index=0,
                     key="ghost_video_quality",
                 )
+                if quality == "HD":
+                    st.caption(
+                        "HD exports at 1080p. Hosted action clips are generated at up to 720p "
+                        "and upscaled; motion and scene consistency depend on the model."
+                    )
             with face_lock_column:
                 face_lock = st.checkbox(
                     "Enable Face Lock / Reuse Character",
                     key="ghost_face_lock_enabled",
-                    help="Upload a character once and reuse that same reference for each render during this session.",
+                    help="Reuse a reference image during this session. A reference-aware hosted model guides identity but cannot guarantee an exact match; provider charges may vary.",
                 )
                 face_reference_bytes = None
                 if face_lock:
@@ -488,7 +493,7 @@ def render_ghost_engine_studio(
                         "Face reference image",
                         type=["png", "jpg", "jpeg", "webp"],
                         key="ghost_face_reference",
-                        help="Upload a clear, front-facing image. It guides the Flux keyframe and may incur model usage charges.",
+                        help="Use a clear image showing the face and, for costume continuity, the character's outfit or armor. The reference guides the keyframe; it does not guarantee an exact match.",
                     )
                     character_name = st.text_input(
                         "Session character name (optional)",

@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 
 _FLUX_MODEL = "black-forest-labs/flux-1.1-pro"
 _FLUX_FALLBACK_MODEL = "black-forest-labs/flux-schnell"
+_FLUX_REFERENCE_MODEL = "black-forest-labs/flux-kontext-pro"
 _DEPTH_MODEL = "chenxwh/depth-anything-v2"
 _TARGET_SIZE = (7680, 4320)
 _I2V_KEYFRAME_SIZE = (1536, 864)
@@ -280,7 +281,9 @@ def generate_flux_keyframe(config_dict: dict) -> str:
         "output_format": "png",
     }
     face_reference = config_dict.get("face_reference_bytes")
+    model = _FLUX_MODEL
     if face_reference:
+        model = _FLUX_REFERENCE_MODEL
         try:
             with Image.open(io.BytesIO(face_reference)) as reference:
                 reference = ImageOps.contain(reference.convert("RGB"), (640, 640))
@@ -289,19 +292,19 @@ def generate_flux_keyframe(config_dict: dict) -> str:
             reference_bytes = encoded.getvalue()
             if len(reference_bytes) > 256 * 1024:
                 raise ValueError("Face reference image must be small enough to process safely.")
-            flux_input["image_prompt"] = (
+            flux_input["input_image"] = (
                 "data:image/jpeg;base64," + base64.b64encode(reference_bytes).decode("ascii")
             )
         except (UnidentifiedImageError, OSError) as exc:
             raise ValueError("Face Lock needs a valid PNG, JPEG, or WebP image.") from exc
     try:
-        flux_output = _run_replicate_model(_FLUX_MODEL, flux_input, token)
+        flux_output = _run_replicate_model(model, flux_input, token)
     except _ReplicateSubmissionError as exc:
         if exc.status_code not in {402, 429}:
             raise
         if face_reference:
             raise RuntimeError(
-                "Face Lock requires Flux Pro, but Flux Pro was unavailable. Please try again later."
+                "Face Lock requires the reference-image model, but it was unavailable. Please try again later."
             ) from exc
         logger.warning("Flux Pro unavailable; trying fallback image model %s.", _FLUX_FALLBACK_MODEL)
         flux_output = _run_replicate_model(_FLUX_FALLBACK_MODEL, flux_input, token)

@@ -39,6 +39,11 @@ The application orchestrates external model providers; available features depend
 | Dynamic UI | Configure a workspace around a user-selected experience profile. |
 | Live Emotion Voice | Generate speech with selectable voice and emotion options. |
 
+Creative Workshop retains the original image prompt alongside any GPT-4o enhancement
+and adds guidance for coherent scene geometry. Requested styles and intentional
+damage remain part of the prompt. Image quality and exact prompt adherence depend
+on the selected provider; enhancement failures are shown in the UI.
+
 ## Cinematic pipeline
 
 ```text

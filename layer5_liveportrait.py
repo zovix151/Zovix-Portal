@@ -38,6 +38,7 @@ def animate_face_from_motion(
     model_ref: str | None = None,
     model_version: str | None = None,
     timeout_seconds: int = 120,
+    output_size: tuple[int, int] = (1280, 720),
 ) -> tuple[str, bool]:
     """Apply LivePortrait expression, blink, and head motion from the action clip."""
     try:
@@ -46,7 +47,12 @@ def animate_face_from_motion(
             _run_replicate_video_model,
         )
 
-        image_data = _compact_image_data_uri(source_image_path, target_size=(1024, 576))
+        ratio = output_size[0] / output_size[1]
+        if ratio >= 1:
+            target_size = (1024, max(2, round(1024 / ratio / 2) * 2))
+        else:
+            target_size = (max(2, round(1024 * ratio / 2) * 2), 1024)
+        image_data = _compact_image_data_uri(source_image_path, target_size=target_size)
         output_path, _ = _run_replicate_video_model(
             model_ref or _LIVEPORTRAIT_MODEL,
             {
@@ -58,6 +64,7 @@ def animate_face_from_motion(
             label="liveportrait_face",
             timeout_seconds=timeout_seconds,
             version=model_version or _LIVEPORTRAIT_VERSION,
+            output_size=output_size,
         )
         return output_path, True
     except Exception as exc:

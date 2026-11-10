@@ -1660,6 +1660,7 @@ from image_watermark import apply_zovix_watermark, should_apply_free_watermark
 from blueprint_svg import sanitize_blueprint_svg
 from blueprint_generation import generate_blueprint_image_with_gpt4o
 from negative_prompts import WORKSHOP_DEFAULT_NEGATIVE_PROMPT, combine_negative_prompts
+from workshop_prompt import WORKSHOP_ENHANCEMENT_SYSTEM_PROMPT, build_workshop_prompt
 import psutil
 import socket
 import platform
@@ -7341,13 +7342,7 @@ def _enhance_workshop_prompt_gpt4o(prompt, negative_prompt=""):
             "messages": [
                 {
                     "role": "system",
-                    "content": (
-                        "Rewrite the user's image idea as one vivid, cinematic, photorealistic prompt optimized for "
-                        "Flux Dev. Preserve the requested subject, style, and intent. Add precise composition, "
-                        "lighting, camera, material, texture, and realism details without introducing unrelated "
-                        "subjects. Respect the negative constraints. Return only the finished prompt, with no "
-                        "explanation or quotation marks."
-                    ),
+                    "content": WORKSHOP_ENHANCEMENT_SYSTEM_PROMPT,
                 },
                 {
                     "role": "user",
@@ -7357,8 +7352,8 @@ def _enhance_workshop_prompt_gpt4o(prompt, negative_prompt=""):
                     ),
                 },
             ],
-            "temperature": 0.7,
-            "max_tokens": 500,
+            "temperature": 0.3,
+            "max_tokens": 900,
         },
         timeout=60,
     )
@@ -14267,7 +14262,7 @@ def run_creative_workshop():
                                         )
                                         enhanced_workshop_prompt = workshop_prompt_str
                                     img_path = generate_pro_image(
-                                        enhanced_workshop_prompt,
+                                        build_workshop_prompt(workshop_prompt_str, enhanced_workshop_prompt),
                                         workshop_ar,
                                         effective_workshop_negative_prompt,
                                         workshop_quality,

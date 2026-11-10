@@ -25,7 +25,7 @@ GHOST_QUALITY_PROFILES = {
     },
     "HD": {
         "scale": 2, "size": (1920, 1080), "fps": 30, "crf": 18,
-        "preset": "veryfast", "profile": "high", "level": "4.2",
+        "preset": "fast", "profile": "high", "level": "4.2",
     },
 }
 GHOST_ASPECT_RATIOS = ("16:9", "9:16", "1:1")
@@ -191,9 +191,8 @@ def _neural_upscale(
     if result.returncode or not silent_output.is_file() or silent_output.stat().st_size < 1000:
         raise RuntimeError(f"Video upscale failed: {(result.stderr or '')[-1200:]}")
     logger.warning(
-        "Real-ESRGAN unavailable; applied %sx Lanczos upscale, %g FPS motion interpolation, "
-        "and cinematic color grading.",
-        scale,
+        "Real-ESRGAN unavailable or failed; applied Lanczos scaling, %g FPS conversion, "
+        "and cinematic color grading (no neural detail recovery).",
         target_fps,
     )
     return "Lanczos fallback"
@@ -436,16 +435,22 @@ def run_zovix_ghost_engine(
         atmosphere_fx = (config_overrides or {}).get("atmosphere_fx", config["atmosphere_fx"])
         config["aspect_ratio"] = aspect_ratio
         config["flux_prompt"] = (
-            f"{config['flux_prompt'].rstrip()} Director controls: {camera_motion} camera movement, "
+            "The following is the user's scene description; preserve its explicitly stated "
+            "characters, armor, clothing, materials, colors, markings, objects, environment and negations. "
+            f"Original scene: {user_script.strip()}\n"
+            f"Visual direction: {config['flux_prompt'].strip()}\n"
+            f"Selected director controls override conflicting camera, lighting, atmosphere, and action descriptions: "
+            f"{camera_motion} camera movement, "
             f"{lighting_setup} lighting, {atmosphere_fx} atmosphere. "
             f"Compose specifically for a {aspect_ratio} aspect ratio. "
-            "Compose with consistent subject identity, cinematic framing, and clean frame edges."
+            "Keep each character's distinct face, body, hairstyle, costume, armor, accessories "
+            "and distinguishing markings consistent; do not add, remove, or exchange these details."
         )
         if face_reference_bytes:
             config["face_reference_bytes"] = face_reference_bytes
             config["flux_prompt"] += (
-                " Use the supplied face reference to preserve the same person's facial identity, "
-                "age, and key facial features in the main subject."
+                " Use the supplied reference to preserve the main character's face, age, "
+                "hair and defining features while following the requested scene and costume."
             )
         apply_character_action_to_config(config, character_action)
         logger.info(
