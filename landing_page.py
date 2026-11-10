@@ -890,17 +890,9 @@ class WorldClassLandingPage:
             border: calc(var(--p) * 2.5) solid rgba(255, 255, 255, .92);
             box-shadow: 0 calc(var(--p) * 16) calc(var(--p) * 40) rgba(60, 100, 200, .32), 0 0 0 calc(var(--p) * 6) rgba(170, 200, 255, .22);
         }
-        .zx-demo::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(8, 20, 50, .38), rgba(8, 20, 50, .02) 42%, rgba(5, 10, 30, .62)); }
-        .zx-demo-title { position: absolute; left: calc(var(--p) * 20); top: calc(var(--p) * 17); font: 800 calc(var(--p) * 21)/1.1 'Inter', sans-serif; letter-spacing: .02em; }
+        .zx-demo-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+        .zx-demo-title { position: absolute; left: calc(var(--p) * 20); top: calc(var(--p) * 17); pointer-events: none; text-shadow: 0 1px 5px #000; font: 800 calc(var(--p) * 21)/1.1 'Inter', sans-serif; letter-spacing: .02em; }
         .zx-demo-title small { display: block; margin-top: calc(var(--p) * 3); color: #fff; font: 700 calc(var(--p) * 14.5)/1.2 'Inter', sans-serif; letter-spacing: .03em; }
-        .zx-play {
-            position: absolute; left: 50%; top: 52%; display: grid; place-items: center; width: calc(var(--p) * 46); height: calc(var(--p) * 46);
-            transform: translate(-50%, -50%); border-radius: 50%; background: rgba(22, 30, 48, .62); border: 1px solid rgba(255, 255, 255, .4); backdrop-filter: blur(6px);
-        }
-        .zx-play .zx-i { font-size: calc(var(--p) * 26); color: #fff; }
-        .zx-demo-cap { position: absolute; left: calc(var(--p) * 14); bottom: calc(var(--p) * 11); font: 600 calc(var(--p) * 8)/1 'Inter', sans-serif; }
-        .zx-demo-time { position: absolute; right: calc(var(--p) * 12); bottom: calc(var(--p) * 9); display: inline-flex; align-items: center; gap: calc(var(--p) * 3); padding: calc(var(--p) * 3) calc(var(--p) * 6); border-radius: 99px; background: rgba(10, 20, 40, .5); font: 600 calc(var(--p) * 7.6)/1 'Inter', sans-serif; }
-        .zx-demo-time .zx-i { font-size: calc(var(--p) * 9); }
 
         .zx-stats {
             z-index: 2; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: center;
@@ -2792,11 +2784,12 @@ class WorldClassLandingPage:
             "<a class='zx-btn zx-btn-ghost' href='#how-it-works'><i class='zx-i'>play_arrow</i>Watch ZOVIX in Action</a></div>"
             f"{stats_html}"
             f"<div class='zx-a zx-checks' style='{pos(160, 518, 440)}'><span>No Credit Card Required</span><span>Instant Access</span><span>Free Plan Available</span></div>"
-            f"<a class='zx-a zx-demo' href='#how-it-works' aria-label='Watch the ZOVIX cinematic demo' style=\"{pos(674, 225, 410, 230)};background-image:url('{photo('1493246507139-91e8fad9978e')}');\">"
+            f"<div class='zx-a zx-demo' style=\"{pos(674, 225, 410, 230)};background-image:url('{photo('1493246507139-91e8fad9978e')}');\">"
+            "<video class='zx-demo-video' aria-label='ZOVIX cinematic demo' "
+            "src='/app/static/WhatsApp%20Video%202026-11-10%20at%206.32.59%20PM.mp4' "
+            "autoplay muted loop playsinline controls preload='auto'></video>"
             "<div class='zx-demo-title'><span class='zx-grad'>ZOVIX</span><small>CINEMATIC DEMO</small></div>"
-            "<span class='zx-play'><i class='zx-i'>play_arrow</i></span>"
-            "<span class='zx-demo-cap'>Real AI Generated Content</span>"
-            "<span class='zx-demo-time'><i class='zx-i'>schedule</i>2:18</span></a>"
+            "</div>"
         )
         how_it_works = (
             f"<div class='zx-a zx-followup-item zx-pill' id='how-it-works' style='{pos(35, 0, 90)}'><i class='zx-i'>bolt</i>HOW IT WORKS</div>"

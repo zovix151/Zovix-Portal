@@ -156,7 +156,10 @@ Streamlit prints a local URL (typically `http://localhost:8501`) when the app is
 For a Render web service using the main Streamlit app:
 
 - **Build command:** `pip install -r requirements.txt`
-- **Start command:** `streamlit run app.py --server.address 0.0.0.0 --server.port $PORT`
+- **Start command:** `python -m uvicorn seo_entrypoint:app --host 0.0.0.0 --port $PORT`
+- Use Streamlit 1.58 or newer for the ASGI entrypoint.
+- The main Studio is the default. Set `ZOVIX_APP_MODE=replit` only for the separate Replit face-testing UI and its static home page. If the deployment already sets this variable to `replit`, remove it or set it to `studio`.
+- The ASGI entrypoint serves `static/sitemap.xml` at `/sitemap.xml` as `application/xml` and `static/robots.txt` at `/robots.txt`. A direct `streamlit run app.py` does not provide these root routes.
 - Add the required database URL and provider credentials under the service's environment settings.
 - Ensure FFmpeg is installed in the service environment if you use video processing.
 

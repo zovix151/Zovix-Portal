@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 from starlette.responses import FileResponse
@@ -5,7 +6,8 @@ from starlette.routing import Route
 from streamlit.web.server.starlette import App
 
 
-STATIC_DIR = Path(__file__).parent / "static"
+ROOT_DIR = Path(__file__).resolve().parent
+STATIC_DIR = ROOT_DIR / "static"
 
 
 async def serve_robots(_request):
@@ -52,15 +54,26 @@ async def serve_face_generation_policy(_request):
     )
 
 
-app = App(
-    "replit_face_app.py",
-    routes=[
-        Route("/", serve_home),
-        Route("/zovix-logo.svg", serve_brand_logo),
+def create_app(mode):
+    seo_routes = [
         Route("/robots.txt", serve_robots),
         Route("/sitemap.xml", serve_sitemap),
+        Route("/zovix-logo.svg", serve_brand_logo),
         Route("/about", serve_about),
         Route("/engines", serve_engines),
         Route("/face-generation-policy", serve_face_generation_policy),
-    ],
-)
+    ]
+    if mode == "studio":
+        return App(ROOT_DIR / "app.py", routes=seo_routes)
+    if mode != "replit":
+        raise ValueError(f"Unknown ZOVIX_APP_MODE: {mode!r}; expected 'replit' or 'studio'")
+
+    return App(
+        ROOT_DIR / "replit_face_app.py",
+        routes=seo_routes + [
+            Route("/", serve_home),
+        ],
+    )
+
+
+app = create_app(os.environ.get("ZOVIX_APP_MODE", "studio"))

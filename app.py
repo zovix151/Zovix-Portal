@@ -1651,26 +1651,6 @@ _GENERATION_SUCCESS_MESSAGE = "Generated successfully by Zovix"
 def _show_generation_success():
     st.toast(_GENERATION_SUCCESS_MESSAGE)
 
-# Serve crawler files at the standard root URLs instead of returning Streamlit's app shell.
-try:
-    import tornado.web
-    from streamlit.web.server.server import Server
-
-    _seo_server = Server.get_current()
-    _seo_tornado_app = getattr(_seo_server, "_tornado_app", None)
-    if _seo_tornado_app and not getattr(_seo_tornado_app, "_zovix_seo_routes_registered", False):
-        _seo_static_path = os.path.join(os.path.dirname(__file__), "static")
-        _seo_tornado_app.add_handlers(
-            r".*",
-            [
-                (r"/robots\.txt", tornado.web.StaticFileHandler, {"path": os.path.join(_seo_static_path, "robots.txt")}),
-                (r"/sitemap\.xml", tornado.web.StaticFileHandler, {"path": os.path.join(_seo_static_path, "sitemap.xml")}),
-            ],
-        )
-        _seo_tornado_app._zovix_seo_routes_registered = True
-except Exception:
-    pass
-
 from typing import List, Dict, Any, Tuple, Optional, Union
 from datetime import datetime, timedelta
 from functools import wraps
@@ -2516,7 +2496,10 @@ if requested_page == "login":
         st.query_params["page"] = "landing"
 elif requested_page in {"studio", "studio_mode", "payments", "profile", "scheduler", "subusers", "factory", "portfolio", "tutorials", "documentation", "community", "support", "ghost_engine"} and not st.session_state.get("is_logged_in", False):
     st.session_state["current_page"] = "landing"
-    st.session_state.pop("auth_redirect_mode", None)
+    if requested_page == "studio":
+        st.session_state["auth_redirect_mode"] = "Cinematic Engine"
+    else:
+        st.session_state.pop("auth_redirect_mode", None)
     st.query_params["page"] = "landing"
 elif requested_page in {"landing", "studio"}:
     st.session_state["current_page"] = requested_page
