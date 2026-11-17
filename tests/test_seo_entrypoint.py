@@ -61,6 +61,7 @@ def test_sitemap_and_robots_are_served_at_root(mode):
             assert head.read() == b""
 
         with urllib.request.urlopen(base_url + "/robots.txt") as robots:
+            assert robots.headers.get("Cache-Control") == "no-cache, max-age=0, must-revalidate"
             assert robots.read() == (seo_entrypoint.STATIC_DIR / "robots.txt").read_bytes()
 
         for path, filename in [

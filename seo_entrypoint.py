@@ -11,7 +11,11 @@ STATIC_DIR = ROOT_DIR / "static"
 
 
 async def serve_robots(_request):
-    return FileResponse(STATIC_DIR / "robots.txt", media_type="text/plain")
+    return FileResponse(
+        STATIC_DIR / "robots.txt",
+        media_type="text/plain",
+        headers={"Cache-Control": "no-cache, max-age=0, must-revalidate"},
+    )
 
 
 async def serve_sitemap(_request):
