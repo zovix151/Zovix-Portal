@@ -1,5 +1,11 @@
-import camera_motion_engine
+import shutil
+import subprocess
+
+import cv2
 import numpy as np
+import pytest
+
+import camera_motion_engine
 
 from spatial_director_engine import (
     _CAMERA_MOTIONS,
@@ -125,6 +131,96 @@ def test_dynamic_action_uses_wan_22_default_route(monkeypatch):
     assert calls["model_ref"] == "wan-video/wan-2.2-i2v-fast"
     assert calls["wan_resolution"] == "480p"
     assert calls["output_size"] == (720, 1280)
+
+
+@pytest.mark.parametrize("duration", [5, 10])
+def test_camera_only_uses_selected_duration(monkeypatch, duration):
+    calls = {}
+    monkeypatch.setattr(
+        camera_motion_engine,
+        "_render_2d_camera_motion",
+        lambda image, motion, seconds, size: calls.update(duration=seconds) or "camera.mp4",
+    )
+    assert camera_motion_engine.apply_camera_motion(
+        "keyframe.png", None, "Pan Left", duration_seconds=duration,
+        character_action="None (Camera Motion Only)",
+    ) == "camera.mp4"
+    assert calls["duration"] == duration
+
+
+def test_ten_second_action_uses_wan_slow_motion(monkeypatch):
+    calls = {}
+    monkeypatch.delenv("ZOVIX_GHOST_FAST_I2V_MODEL", raising=False)
+    monkeypatch.setattr(
+        camera_motion_engine,
+        "_run_i2v_prediction",
+        lambda image, prompt, motion, seconds, scene, **kwargs: (
+            calls.update(duration=seconds, model=kwargs["model_ref"]) or "action.mp4",
+            "https://example.test/action.mp4",
+        ),
+    )
+    assert camera_motion_engine.apply_camera_motion(
+        "keyframe.png", None, "Pan Left", duration_seconds=10,
+        character_action="Sword Fight Action",
+    ) == "action.mp4"
+    assert calls == {"duration": 10, "model": "wan-video/wan-2.2-i2v-fast"}
+
+
+def test_ten_second_action_rejects_non_wan_model(monkeypatch):
+    monkeypatch.setenv("ZOVIX_GHOST_FAST_I2V_MODEL", "lightricks/ltx-video-0.9.7")
+    with pytest.raises(ValueError, match="require the Wan 2.2 fast model"):
+        camera_motion_engine.apply_camera_motion(
+            "keyframe.png", None, "Pan Left", duration_seconds=10,
+            character_action="Sword Fight Action",
+        )
+
+
+@pytest.mark.skipif(not shutil.which("ffmpeg"), reason="FFmpeg is required")
+def test_ten_second_wan_output_is_ten_seconds(tmp_path, monkeypatch):
+    source = tmp_path / "provider.mp4"
+    subprocess.run(
+        [
+            shutil.which("ffmpeg"), "-y", "-f", "lavfi",
+            "-i", "testsrc2=s=160x90:r=8", "-frames:v", "81",
+            "-c:v", "libx264", "-pix_fmt", "yuv420p", str(source),
+        ],
+        check=True, capture_output=True,
+    )
+    calls = {}
+    monkeypatch.setattr(camera_motion_engine, "_OUTPUT_ROOT", tmp_path)
+    monkeypatch.setattr(camera_motion_engine, "_get_replicate_token", lambda: "test")
+    monkeypatch.setattr(camera_motion_engine, "_compact_image_data_uri", lambda *args, **kwargs: "image")
+
+    def submit(endpoint, headers, payload):
+        calls["input"] = payload["input"]
+        return {"id": "prediction"}
+
+    class Response:
+        def raise_for_status(self):
+            pass
+
+        def iter_content(self, chunk_size):
+            yield source.read_bytes()
+
+    monkeypatch.setattr(camera_motion_engine, "_post_i2v_prediction", submit)
+    monkeypatch.setattr(
+        camera_motion_engine, "_poll_video_prediction",
+        lambda *args, **kwargs: "https://example.test/video.mp4",
+    )
+    monkeypatch.setattr(camera_motion_engine.requests, "get", lambda *args, **kwargs: Response())
+    video_path, _ = camera_motion_engine._run_i2v_prediction(
+        "keyframe.png", "Walk", "Pan Left", 10,
+        model_ref="wan-video/wan-2.2-i2v-fast",
+        output_size=(160, 90),
+    )
+    assert calls["input"]["num_frames"] == 81
+    assert calls["input"]["frames_per_second"] == 8
+    capture = cv2.VideoCapture(video_path)
+    fps = capture.get(cv2.CAP_PROP_FPS)
+    frames = capture.get(cv2.CAP_PROP_FRAME_COUNT)
+    capture.release()
+    assert fps > 0
+    assert frames / fps == pytest.approx(10, abs=1 / fps)
 
 
 def test_wan_22_input_defaults_to_fast_480p_and_supports_hd(monkeypatch):

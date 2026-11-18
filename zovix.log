@@ -30111,3 +30111,241 @@ ConnectionResetError: [WinError 10054] An existing connection was forcibly close
 2026-11-10 19:46:18,772 - Zovix - INFO - Using Supabase PostgreSQL database
 2026-11-10 19:46:30,954 - Zovix - INFO - Using Supabase PostgreSQL database
 2026-11-10 19:46:31,933 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:00:22,911 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:00:23,408 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-11-18 13:00:23,419 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-11-18 13:00:23,420 - Zovix - INFO - Redis cache client initialized lazily
+2026-11-18 13:00:25,451 - Zovix - INFO - Database initialized successfully
+2026-11-18 13:04:20,872 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:04:24,167 - Zovix - INFO - Database initialized successfully
+2026-11-18 13:04:30,308 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:04:44,637 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:04:45,628 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:05:03,770 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:05:26,267 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:07:02,219 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:07:04,393 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:07:10,834 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:07:11,420 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:07:20,973 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:07:21,985 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:07:53,835 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:07:54,973 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:08:10,016 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:08:11,125 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:08:14,974 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:08:15,861 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:08:21,890 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:08:22,808 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:08:27,758 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:08:28,653 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:08:37,386 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:08:38,368 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:08:44,065 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:08:45,045 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:08:49,967 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:08:50,455 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:28:43,406 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:28:44,013 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:38:18,852 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:38:19,363 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:38:23,324 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:38:24,016 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:40:43,681 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:40:44,295 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:40:50,181 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:40:50,703 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:41:06,853 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:41:07,776 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:41:12,150 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:41:13,027 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:41:30,290 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:41:30,808 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:41:38,250 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:41:38,879 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:47:56,695 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:47:57,246 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:48:00,577 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:48:01,117 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:48:09,468 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:48:10,267 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:48:14,328 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:48:15,264 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:49:05,871 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:49:07,018 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:49:09,601 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:49:10,560 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:54:26,120 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:54:26,669 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:54:29,999 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:54:30,482 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:56:22,499 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:56:23,321 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:56:26,618 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:56:27,612 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:57:01,161 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:57:02,263 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-11-18 13:57:02,274 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-11-18 13:57:02,275 - Zovix - INFO - Redis cache client initialized lazily
+2026-11-18 13:57:05,672 - Zovix - INFO - Database initialized successfully
+2026-11-18 13:57:07,406 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:57:09,475 - Zovix - INFO - Database initialized successfully
+2026-11-18 13:57:36,296 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:57:37,930 - Zovix - INFO - Database initialized successfully
+2026-11-18 13:57:43,780 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:57:46,590 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 13:57:47,369 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:02:30,443 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:02:44,197 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:02:49,558 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:02:52,418 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:02:53,734 - Zovix.Layer6 - INFO - Ghost Engine pipeline started.
+2026-11-18 14:02:58,038 - Zovix.Layer6 - INFO - Ghost Engine stage completed: Layer 1: spatial direction in 4.30s.
+2026-11-18 14:02:58,041 - flux_render_engine - INFO - Submitting Replicate prediction for black-forest-labs/flux-1.1-pro.
+2026-11-18 14:03:06,820 - flux_render_engine - INFO - Flux I2V keyframe saved at 1536x864 to C:\Zovix-Clean\static\outputs\keyframe_3e565ef54c.png.
+2026-11-18 14:03:06,820 - Zovix.Layer6 - INFO - Ghost Engine stage completed: Flux Pro keyframe in 8.78s.
+2026-11-18 14:03:07,923 - camera_motion_engine - ERROR - Replicate I2V submission rejected (HTTP 401): {"title":"Unauthenticated","detail":"You did not pass a valid authentication token","status":401}
+
+2026-11-18 14:03:07,923 - Zovix.Layer6 - ERROR - Ghost Engine failed at Direct image-to-video after 14.19s
+Traceback (most recent call last):
+  File "C:\Zovix-Clean\layer6_master_engine.py", line 490, in run_zovix_ghost_engine
+    final_path = apply_camera_motion(
+  File "C:\Zovix-Clean\camera_motion_engine.py", line 1165, in apply_camera_motion
+    video_path, video_url = generate_ghost_replicate_video(
+  File "C:\Zovix-Clean\camera_motion_engine.py", line 720, in generate_ghost_replicate_video
+    return _run_replicate_video_model(
+  File "C:\Zovix-Clean\camera_motion_engine.py", line 659, in _run_replicate_video_model
+    prediction = _post_i2v_prediction(endpoint, headers, payload)
+  File "C:\Zovix-Clean\camera_motion_engine.py", line 516, in _post_i2v_prediction
+    raise RuntimeError(
+RuntimeError: Image-to-video request returned HTTP 401: {"title":"Unauthenticated","detail":"You did not pass a valid authentication token","status":401}
+
+2026-11-18 14:03:07,925 - Zovix.Layer7 - ERROR - Cinematic Engine render failed.
+Traceback (most recent call last):
+  File "C:\Zovix-Clean\layer6_master_engine.py", line 490, in run_zovix_ghost_engine
+    final_path = apply_camera_motion(
+  File "C:\Zovix-Clean\camera_motion_engine.py", line 1165, in apply_camera_motion
+    video_path, video_url = generate_ghost_replicate_video(
+  File "C:\Zovix-Clean\camera_motion_engine.py", line 720, in generate_ghost_replicate_video
+    return _run_replicate_video_model(
+  File "C:\Zovix-Clean\camera_motion_engine.py", line 659, in _run_replicate_video_model
+    prediction = _post_i2v_prediction(endpoint, headers, payload)
+  File "C:\Zovix-Clean\camera_motion_engine.py", line 516, in _post_i2v_prediction
+    raise RuntimeError(
+RuntimeError: Image-to-video request returned HTTP 401: {"title":"Unauthenticated","detail":"You did not pass a valid authentication token","status":401}
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Zovix-Clean\ghost_engine_studio.py", line 605, in render_ghost_engine_studio
+    output_path = run_zovix_ghost_engine(
+  File "C:\Zovix-Clean\layer6_master_engine.py", line 531, in run_zovix_ghost_engine
+    raise RuntimeError(f"Zovix Ghost Engine failed at {stage} after {elapsed:.1f}s: {exc}") from exc
+RuntimeError: Zovix Ghost Engine failed at Direct image-to-video after 14.2s: Image-to-video request returned HTTP 401: {"title":"Unauthenticated","detail":"You did not pass a valid authentication token","status":401}
+
+2026-11-18 14:03:08,544 - Zovix - INFO - [TOKEN TXN] add_credits OK: +25 (standard) to 'zovixenterprises@gmail.com' -> new_total_balance=828
+2026-11-18 14:03:09,293 - Zovix - INFO - Refunded 25 credits to zovixenterprises@gmail.com: Cinematic Engine generation failed: Zovix Ghost Engine failed at Direct image-to-video after 14.2s: Image-to-video request returned HTTP 401: {"title":"Unauthenticated","detail":"You did not pass a valid authentication token","status":401}
+
+2026-11-18 14:06:51,995 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:06:52,911 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:06:55,716 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:06:56,216 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:06:58,970 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:06:59,765 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:07:02,537 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:07:03,111 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:07:07,356 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:07:08,311 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:07:14,694 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:07:18,334 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:07:20,185 - Zovix.Layer6 - INFO - Ghost Engine pipeline started.
+2026-11-18 14:07:23,668 - Zovix.Layer6 - INFO - Ghost Engine stage completed: Layer 1: spatial direction in 3.48s.
+2026-11-18 14:07:23,676 - flux_render_engine - INFO - Submitting Replicate prediction for black-forest-labs/flux-1.1-pro.
+2026-11-18 14:07:30,221 - flux_render_engine - INFO - Flux I2V keyframe saved at 1536x864 to C:\Zovix-Clean\static\outputs\keyframe_9da085f1ff.png.
+2026-11-18 14:07:30,221 - Zovix.Layer6 - INFO - Ghost Engine stage completed: Flux Pro keyframe in 6.55s.
+2026-11-18 14:10:53,590 - camera_motion_engine - INFO - ghost-seedance-2.0 completed after 184 status checks in 201.97s.
+2026-11-18 14:10:57,491 - Zovix.Layer6 - INFO - Ghost Engine stage completed: Direct image-to-video in 207.27s.
+2026-11-18 14:10:57,911 - Zovix.Layer6 - WARNING - Real-ESRGAN unavailable or failed; applied Lanczos scaling, 30 FPS conversion, and cinematic color grading (no neural detail recovery).
+2026-11-18 14:10:57,916 - Zovix.Layer6 - INFO - Silent browser-ready master created with Lanczos fallback: C:\Zovix-Clean\static\outputs\browser_ready_b495661a5a.mp4
+2026-11-18 14:10:57,917 - Zovix.Layer6 - INFO - Ghost Engine stage completed: Browser-ready video mastering in 0.42s.
+2026-11-18 14:10:57,917 - Zovix.Layer6 - INFO - Ghost Engine pipeline completed in 217.73s: C:\Zovix-Clean\static\outputs\browser_ready_b495661a5a.mp4
+2026-11-18 14:10:59,037 - Zovix.Layer7 - INFO - Cinematic Engine render complete: C:\Zovix-Clean\static\outputs\browser_ready_b495661a5a.mp4
+2026-11-18 14:10:59,896 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:13:23,424 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:13:27,632 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:13:33,047 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:13:34,653 - Zovix.Layer6 - INFO - Ghost Engine pipeline started.
+2026-11-18 14:13:38,211 - Zovix.Layer6 - INFO - Ghost Engine stage completed: Layer 1: spatial direction in 3.56s.
+2026-11-18 14:13:38,211 - flux_render_engine - INFO - Submitting Replicate prediction for black-forest-labs/flux-1.1-pro.
+2026-11-18 14:13:45,926 - flux_render_engine - INFO - Flux I2V keyframe saved at 1536x864 to C:\Zovix-Clean\static\outputs\keyframe_d4c93238ce.png.
+2026-11-18 14:13:45,929 - Zovix.Layer6 - INFO - Ghost Engine stage completed: Flux Pro keyframe in 7.72s.
+2026-11-18 14:15:00,479 - camera_motion_engine - INFO - ghost-veo-3.1 completed after 64 status checks in 71.67s.
+2026-11-18 14:15:07,099 - Zovix.Layer6 - INFO - Ghost Engine stage completed: Direct image-to-video in 81.17s.
+2026-11-18 14:15:07,671 - Zovix.Layer6 - WARNING - Real-ESRGAN unavailable or failed; applied Lanczos scaling, 30 FPS conversion, and cinematic color grading (no neural detail recovery).
+2026-11-18 14:15:07,680 - Zovix.Layer6 - INFO - Silent browser-ready master created with Lanczos fallback: C:\Zovix-Clean\static\outputs\browser_ready_48c8b8d8ea.mp4
+2026-11-18 14:15:07,682 - Zovix.Layer6 - INFO - Ghost Engine stage completed: Browser-ready video mastering in 0.58s.
+2026-11-18 14:15:07,682 - Zovix.Layer6 - INFO - Ghost Engine pipeline completed in 93.03s: C:\Zovix-Clean\static\outputs\browser_ready_48c8b8d8ea.mp4
+2026-11-18 14:15:08,831 - Zovix.Layer7 - INFO - Cinematic Engine render complete: C:\Zovix-Clean\static\outputs\browser_ready_48c8b8d8ea.mp4
+2026-11-18 14:15:10,168 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:20:48,671 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:20:49,786 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:20:59,703 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:21:00,570 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:21:05,160 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:21:06,174 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:23:25,382 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:23:25,874 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:23:37,820 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:23:38,380 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:23:41,003 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:23:41,552 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:24:06,406 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:24:07,428 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:24:10,898 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:24:11,415 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:24:14,804 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:24:15,330 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:24:17,514 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:24:18,056 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:24:21,080 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:24:21,560 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:24:23,703 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:24:24,246 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:24:26,756 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:24:27,284 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:24:27,287 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-11-18 14:24:27,290 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-11-18 14:24:27,292 - Zovix - INFO - Redis cache client initialized lazily
+2026-11-18 14:24:30,623 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:24:32,654 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:29:58,107 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:29:59,729 - Zovix - INFO - Database initialized successfully
+2026-11-18 14:30:01,724 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:30:03,108 - Zovix - INFO - Database initialized successfully
+2026-11-18 14:31:00,530 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:31:05,337 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:31:15,589 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:31:16,121 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:31:18,250 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:31:18,724 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:31:22,536 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:31:23,119 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:31:25,325 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:31:25,867 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:31:28,729 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:31:29,260 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:31:31,446 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:31:32,440 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:32:45,047 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:32:46,191 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:42:19,900 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:42:21,954 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-11-18 14:42:21,963 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-11-18 14:42:21,965 - Zovix - INFO - Redis cache client initialized lazily
+2026-11-18 14:42:25,067 - Zovix - INFO - Database initialized successfully
+2026-11-18 14:43:05,943 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:43:07,421 - Zovix - INFO - Database initialized successfully
+2026-11-18 14:43:11,630 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:43:16,785 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-18 14:43:17,820 - Zovix - INFO - Using Supabase PostgreSQL database

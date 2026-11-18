@@ -746,6 +746,7 @@ def _build_i2v_input(
     prompt: str,
     frame_count: int,
     wan_resolution: str | None = None,
+    duration_seconds: float = 5.0,
 ) -> dict:
     """Build payloads from fields supported by the selected public model."""
     normalized_model = model_ref.lower()
@@ -756,11 +757,15 @@ def _build_i2v_input(
         ).strip()
         if resolution not in {"480p", "720p"}:
             raise ValueError("ZOVIX_GHOST_WAN_RESOLUTION must be either '480p' or '720p'.")
-        return {
+        model_input = {
             "prompt": prompt,
             "image": image_data,
             "resolution": resolution,
         }
+        if duration_seconds == 10.0:
+            model_input["num_frames"] = 81
+            model_input["frames_per_second"] = 8
+        return model_input
     if "cogvideox" in normalized_model:
         return {
             "image": image_data,
@@ -831,7 +836,14 @@ def _run_i2v_prediction(
         else:
             image_target_size = (max(2, round(768 * ratio / 2) * 2), 768)
     image_data = _compact_image_data_uri(keyframe_path, target_size=image_target_size)
-    duration = min(_I2V_MAX_DURATION_SECONDS, max(2.0, duration_seconds))
+    wan_slow_motion = (
+        duration_seconds == 10.0 and "wan-2.2-i2v-fast" in selected_model.lower()
+    )
+    if duration_seconds == 10.0 and not wan_slow_motion:
+        raise ValueError("10-second hosted action clips require the Wan 2.2 fast model.")
+    duration = 10.0 if wan_slow_motion else min(
+        _I2V_MAX_DURATION_SECONDS, max(2.0, duration_seconds)
+    )
     frame_count = max(9, round(duration * 24))
     frame_count = ((frame_count - 1 + 4) // 8) * 8 + 1
     prompt = ", ".join(
@@ -858,6 +870,7 @@ def _run_i2v_prediction(
             prompt,
             frame_count,
             wan_resolution=wan_resolution,
+            duration_seconds=duration,
         )
     }
     if selected_version:
@@ -1088,7 +1101,10 @@ def apply_camera_motion(
     route, routed_duration = _select_hybrid_route(character_action)
     if route != "camera":
         fast_model = os.getenv("ZOVIX_GHOST_FAST_I2V_MODEL", _WAN_I2V_MODEL).strip()
-        if "wan-2.2-i2v-fast" in fast_model.lower():
+        if duration_seconds == 10.0:
+            if "wan-2.2-i2v-fast" not in fast_model.lower():
+                raise ValueError("10-second hosted action clips require the Wan 2.2 fast model.")
+        elif "wan-2.2-i2v-fast" in fast_model.lower():
             duration_seconds = _WAN_I2V_DURATION_SECONDS
         else:
             duration_seconds = routed_duration
@@ -1141,6 +1157,13 @@ def apply_camera_motion(
                         output_size=output_size,
                     )
                     if animated:
+                        if duration_seconds == 10.0:
+                            capture = cv2.VideoCapture(animated_path)
+                            fps = capture.get(cv2.CAP_PROP_FPS)
+                            frames = capture.get(cv2.CAP_PROP_FRAME_COUNT)
+                            capture.release()
+                            if not math.isfinite(fps) or fps <= 0 or frames / fps < 10.0 - 1.0 / fps:
+                                raise RuntimeError("LivePortrait returned a clip shorter than 10 seconds.")
                         final_video = animated_path
                 except Exception:
                     logger.exception(

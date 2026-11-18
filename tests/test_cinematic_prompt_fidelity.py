@@ -11,7 +11,8 @@ import spatial_director_engine
 
 
 @pytest.mark.parametrize("with_reference", [False, True])
-def test_original_details_reach_keyframe_and_motion(monkeypatch, with_reference):
+@pytest.mark.parametrize("duration_seconds", [5, 10])
+def test_original_details_reach_keyframe_and_motion(monkeypatch, with_reference, duration_seconds):
     calls = {}
     script = "नीला कवच with tiny gold stars, a red left glove, no helmet."
     config = {
@@ -40,7 +41,7 @@ def test_original_details_reach_keyframe_and_motion(monkeypatch, with_reference)
 
     reference = b"reference" if with_reference else None
     result = layer6_master_engine.run_zovix_ghost_engine(
-        script, face_reference_bytes=reference, quality="HD",
+        script, face_reference_bytes=reference, quality="HD", duration_seconds=duration_seconds,
     )
 
     assert result == "master.mp4"
@@ -48,7 +49,13 @@ def test_original_details_reach_keyframe_and_motion(monkeypatch, with_reference)
     assert script in calls["motion"]["scene_prompt"]
     assert "Selected director controls override" in calls["motion"]["scene_prompt"]
     assert "armor" in calls["motion"]["scene_prompt"]
+    assert calls["motion"]["duration_seconds"] == duration_seconds
     assert calls["keyframe"].get("face_reference_bytes") == reference
+
+
+def test_unsupported_ghost_duration_is_rejected_before_generation():
+    with pytest.raises(ValueError, match="5 or 10 seconds"):
+        layer6_master_engine.run_zovix_ghost_engine("A scene", duration_seconds=8)
 
 
 @pytest.mark.parametrize("with_reference", [False, True])

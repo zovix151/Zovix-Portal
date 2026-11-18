@@ -10,6 +10,7 @@ import logging
 
 import streamlit as st
 
+from generation_credit_ui import generation_credit_progress
 from layer6_master_engine import GHOST_QUALITY_PROFILES, run_zovix_ghost_engine
 from workspace_ui import render_workspace_header
 from spatial_director_engine import (
@@ -38,6 +39,7 @@ def render_ghost_engine_studio(
     load_portfolio_callback=None,
     deduct_tokens_callback=None,
     refund_tokens_callback=None,
+    report_credit_usage_callback=None,
 ) -> None:
     """Render scene controls, pipeline progress, and the last master render."""
     if render_workspace_header("ghost_engine_back_to_studio"):
@@ -433,6 +435,17 @@ def render_ghost_engine_studio(
                 key="ghost_aspect_ratio",
             )
             aspect_ratio = aspect_ratio_labels[aspect_ratio_label]
+            duration_seconds = st.selectbox(
+                "Video Duration",
+                [5, 10],
+                format_func=lambda seconds: f"{seconds} seconds",
+                key="ghost_video_duration",
+            )
+            if duration_seconds == 10:
+                st.caption(
+                    "10-second hosted action clips use slower motion; camera-only motion "
+                    "runs for the full 10 seconds."
+                )
             camera_column, lighting_column = st.columns(2, gap="medium")
             with camera_column:
                 camera_motion = st.selectbox(
@@ -574,7 +587,7 @@ def render_ghost_engine_studio(
                     else:
                         generation_succeeded = False
                         try:
-                            with st.spinner("Creating your cinematic video…"):
+                            with generation_credit_progress("Ghost Engine", deducted_tokens) as credit_notice, st.spinner("Creating your cinematic video…"):
                                 output_path = run_zovix_ghost_engine(
                                     script,
                                     config_overrides={
@@ -588,7 +601,9 @@ def render_ghost_engine_studio(
                                     ),
                                     quality=quality,
                                     aspect_ratio=aspect_ratio,
+                                    duration_seconds=duration_seconds,
                                 )
+                                credit_notice.empty()
                                 generation_succeeded = True
                                 st.session_state["ghost_engine_last_output"] = output_path
                                 st.session_state["ghost_engine_last_quality"] = quality
@@ -614,6 +629,8 @@ def render_ghost_engine_studio(
                                     "generation_type": "Cinematic Engine",
                                 })
                             logger.info("Cinematic Engine render complete: %s", output_path)
+                            if report_credit_usage_callback:
+                                report_credit_usage_callback("Ghost Engine", deducted_tokens)
                             st.rerun()
                         except Exception as exc:
                             logger.exception("Cinematic Engine render failed.")

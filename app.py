@@ -35,14 +35,19 @@ from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageFont, ImageOps
 import streamlit as st
 import streamlit.components.v1 as components
 from workspace_ui import render_workspace_header
+from generation_credit_ui import generation_credit_message, generation_credit_progress
 from pydantic import BaseModel, Field
 import textwrap
 from static_assets import inline_static_asset_urls, static_asset_data_uri
+from face_video_utils import (
+    default_elevenlabs_voice_id_for_gender as _default_elevenlabs_voice_id_for_gender,
+    face_video_dimensions as _face_video_dimensions,
+)
 
 STUDIO_ENGINE_PANEL_RATIO = (1, 1.2)
 
 st.set_page_config(
-    page_title="Zovix AI Studio | AI SaaS Platform",
+    page_title="Zovix AI Studio | AI Video Creation",
     page_icon=str(Path(__file__).resolve().parent / "static" / "zovix-logo.svg"),
     layout="wide",
     initial_sidebar_state="collapsed",
@@ -331,7 +336,7 @@ components.html(
                     if (label.includes("sub-user")) return {page: "subusers"};
                     if (label.includes("mass factory")) return {page: "factory"};
                 }
-                if (key === "st-key-standalone_back_to_studio" || key === "st-key-studio_change_mode_btn") {
+                if (key.endsWith("_back_to_studio") || key === "st-key-studio_change_mode_btn") {
                     return {page: "studio", opaque: true};
                 }
                 return null;
@@ -447,10 +452,10 @@ components.html(
                 nextUrl.searchParams.set("page", target.page);
                 if (target.mode) nextUrl.searchParams.set("mode", target.mode);
                 else if (target.page !== "studio_mode") nextUrl.searchParams.delete("mode");
+                showOverlay(target);
                 if (nextUrl.href !== host.location.href) {
                     host.history.pushState(host.history.state, "", nextUrl.href);
                 }
-                showOverlay(target);
             }, true);
 
             if (!host.__zovixMobileDrawerOutsideClickInstalled) {
@@ -2770,8 +2775,8 @@ except Exception:
 # ========================================================
 
 ELEVENLABS_VOICES = {
-    "Adam (Premium Male)": {"id": "21m00Tcm4TlvDq8ikWAM", "gender": "male", "accent": "American", "language": "English"},
-    "Rachel (Premium Female)": {"id": "pNInz6obpgDQ5IdwJg7p", "gender": "female", "accent": "American", "language": "English"},
+    "Adam (Premium Male)": {"id": _default_elevenlabs_voice_id_for_gender("male"), "gender": "male", "accent": "American", "language": "English"},
+    "Rachel (Premium Female)": {"id": _default_elevenlabs_voice_id_for_gender("female"), "gender": "female", "accent": "American", "language": "English"},
     "Drew (Professional Male)": {"id": "YOz3nT0uBm7MOT3M3f5A", "gender": "male", "accent": "American", "language": "English"},
     "Bella (Warm Female)": {"id": "MF3mGyEYCl7XYWbV9V6O", "gender": "female", "accent": "American", "language": "English"},
     "Antoni (Deep Male)": {"id": "ErXwobaYiN019PkySvjV", "gender": "male", "accent": "British", "language": "English"},
@@ -2828,7 +2833,7 @@ VOICE_MODULE_SPLIT = {
         "max_age": 99,
         "gender": "male",
         "default_voice": "Adam (Premium Male)",
-        "default_voice_id": "21m00Tcm4TlvDq8ikWAM",
+        "default_voice_id": _default_elevenlabs_voice_id_for_gender("male"),
         "recommended_voices": ["Adam (Premium Male)", "Drew (Professional Male)", "Antoni (Deep Male)", "James (Narrator Male)", "Arjun (Hindi Male)", "Ravi (Hindi Professional Male)", "Pierre (French Male)", "Kenji (Japanese Male)", "Vikram (Bhojpuri Male)", "Adit (Youthful Hindi Male)"],
         "description": "Adult male voice - professional and authoritative"
     },
@@ -2839,7 +2844,7 @@ VOICE_MODULE_SPLIT = {
         "max_age": 99,
         "gender": "female",
         "default_voice": "Rachel (Premium Female)",
-        "default_voice_id": "pNInz6obpgDQ5IdwJg7p",
+        "default_voice_id": _default_elevenlabs_voice_id_for_gender("female"),
         "recommended_voices": ["Rachel (Premium Female)", "Bella (Warm Female)", "Charlotte (Elegant Female)", "Emily (Professional Female)", "Sarah (Soothing Female)", "Priya (Hindi Female)", "Anjura (Expressive Hindi Female)", "Anvi (Soft Hindi Female)", "Sophie (French Female)", "Yuki (Japanese Female)", "Sita (Bhojpuri Female)"],
         "description": "Adult female voice - clear and expressive"
     },
@@ -3795,6 +3800,17 @@ def get_user_credits_db(username):
     logger.error(f"[TOKEN TXN] Balance lookup found no account row for username={username!r} in DB_PATH={DB_PATH!r}")
     return 0
 
+def _record_generation_credit_usage(engine_name, amount):
+    amount = int(amount or 0)
+    if amount <= 0:
+        return
+
+    username = str(st.session_state.get("logged_user") or "").strip()
+    get_user_credits_db.clear()
+    remaining = get_user_credits_db(username) if username else st.session_state.get("user_credits", 0)
+    st.session_state["user_credits"] = remaining
+    st.session_state["credit_balance"] = remaining
+
 def add_credits(username, amount, credit_type="standard"):
     """Real credit addition to database. Verifies the row actually existed/updated before committing."""
     if not username or amount <= 0:
@@ -3819,6 +3835,7 @@ def add_credits(username, amount, credit_type="standard"):
             return False
 
         conn.commit()
+        get_user_credits_db.clear()
         cursor.execute("SELECT credits, voucher_credits FROM users WHERE username = ?", (username,))
         row = cursor.fetchone()
         new_balance = (row[0] + row[1]) if row else None
@@ -3866,6 +3883,7 @@ def deduct_credits_db(username, amount):
                 return False
 
             conn.commit()
+            get_user_credits_db.clear()
             logger.info(f"[TOKEN TXN] deduct_credits_db OK: -{amount} from {username!r} -> new_total_balance={total_credits - amount}")
             return True
         logger.warning(f"[TOKEN TXN] deduct_credits_db FAILED: no user row for username={username!r} (amount={amount})")
@@ -5092,6 +5110,7 @@ def finalize_razorpay_payment(username, order_id, payment_id, signature, amount,
         existing_status = str(existing[2]).lower() if existing else ""
         if existing and existing_status == "success":
             conn.close()
+            get_user_credits_db.clear()
             st.session_state["payment_verified"] = True
             st.session_state["razorpay_processed_order_id"] = order_id
             st.session_state["payment_processing"] = False
@@ -5158,6 +5177,7 @@ def finalize_razorpay_payment(username, order_id, payment_id, signature, amount,
         conn.commit()
         conn.close()
 
+        get_user_credits_db.clear()
         st.session_state["razorpay_order_id"] = None
         st.session_state["razorpay_payment_id"] = None
         st.session_state["razorpay_signature"] = None
@@ -6154,7 +6174,7 @@ def safe_deepface_analyze(image_path, actions=None):
         else:
             result["category"] = "Adult Male"
             result["voice_label"] = "Adam (Premium Male)"
-            result["voice_id"] = "21m00Tcm4TlvDq8ikWAM"
+            result["voice_id"] = _default_elevenlabs_voice_id_for_gender("male")
         
         result["success"] = True
         logger.info(f"safe_deepface_analyze OK -> Age:{detected_age}, Gender:{detected_gender}, Category:{result['category']}")
@@ -6169,7 +6189,17 @@ def safe_deepface_analyze(image_path, actions=None):
     return result
 
 
-def safe_generate_face_video_wrapper(prompt, face_image_path, duration=30, emotion="neutral", camera_angle="front", quality="Standard", voice_language=None, voice_label=None):
+def safe_generate_face_video_wrapper(
+    prompt,
+    face_image_path,
+    duration=30,
+    emotion="neutral",
+    camera_angle="front",
+    quality="Standard",
+    voice_language=None,
+    voice_label=None,
+    aspect_ratio=None,
+):
     """Wrapper around generate_face_video with comprehensive error handling.
     Ensures face_image_path is valid before proceeding.
     Returns: (video_path_or_None, error_message_or_None)
@@ -6215,6 +6245,7 @@ def safe_generate_face_video_wrapper(prompt, face_image_path, duration=30, emoti
             quality=quality,
             voice_language=voice_language,
             voice_label=voice_label,
+            aspect_ratio=aspect_ratio,
         )
         
         if not video_path:
@@ -6889,7 +6920,7 @@ def run_async_in_thread(coro):
         raise exception[0]
     return result[0] if result else None
 
-DEFAULT_ELEVENLABS_VOICE_ID = "21m00Tcm4TlvDq8ikWAM"
+DEFAULT_ELEVENLABS_VOICE_ID = _default_elevenlabs_voice_id_for_gender("male")
 
 
 def get_safe_elevenlabs_voice_id(voice_id=None, default_id=DEFAULT_ELEVENLABS_VOICE_ID):
@@ -6931,16 +6962,25 @@ def resolve_elevenlabs_voice_id(voice_id=None, preferred_gender=None):
     if not available:
         return requested_id or DEFAULT_ELEVENLABS_VOICE_ID
 
-    by_id = {str(item.get("voice_id", "")): item for item in available if item.get("voice_id")}
-    if requested_id in by_id:
-        return requested_id
-
     gender = normalize_gender_label(preferred_gender)
     if not gender and voice_id:
         for metadata in ELEVENLABS_VOICES.values():
             if metadata.get("id") == voice_id:
                 gender = normalize_gender_label(metadata.get("gender"))
                 break
+
+    by_id = {str(item.get("voice_id", "")): item for item in available if item.get("voice_id")}
+    if requested_id in by_id:
+        labels = by_id[requested_id].get("labels") or {}
+        actual_gender = normalize_gender_label(labels.get("gender") or labels.get("sex"))
+        if not gender or not actual_gender or actual_gender == gender:
+            return requested_id
+        logger.warning(
+            "ElevenLabs voice ID %s is %s, but %s was requested.",
+            requested_id,
+            actual_gender,
+            gender,
+        )
 
     if gender in {"male", "female"}:
         for item in available:
@@ -6950,8 +6990,14 @@ def resolve_elevenlabs_voice_id(voice_id=None, preferred_gender=None):
                 logger.warning("ElevenLabs voice ID %s unavailable; using account %s voice %s.", voice_id, gender, item.get("voice_id"))
                 return str(item["voice_id"])
 
-    fallback_id = DEFAULT_ELEVENLABS_VOICE_ID
+    fallback_id = _default_elevenlabs_voice_id_for_gender(gender)
     if fallback_id in by_id:
+        return fallback_id
+    if gender in {"male", "female"}:
+        logger.warning(
+            "No %s ElevenLabs voice is available; preserving the requested voice gender.",
+            gender,
+        )
         return fallback_id
     fallback_id = str(available[0].get("voice_id", ""))
     logger.warning("ElevenLabs voice ID %s unavailable; using account voice %s.", voice_id, fallback_id)
@@ -8140,7 +8186,9 @@ class StitcherEngine:
             selected_voice_meta = ELEVENLABS_VOICES.get(voice_profile, {})
             selected_voice_id = selected_voice_meta.get("id")
             if not selected_voice_id:
-                selected_voice_id = "21m00Tcm4TlvDq8ikWAM" if "Male" in voice_profile else "pNInz6obpgDQ5IdwJg7p"
+                selected_voice_id = _default_elevenlabs_voice_id_for_gender(
+                    "male" if "Male" in voice_profile else "female"
+                )
             if ELEVENLABS_API_KEY:
                 voice_built = AudioEngine.generate_elevenlabs_speech(text, audio_segment_path, selected_voice_id)
             if not voice_built:
@@ -8286,6 +8334,103 @@ def safe_remove_file(file_path):
             os.remove(file_path)
     except Exception:
         pass
+
+def _normalize_face_video_aspect_ratio(video_path, aspect_ratio):
+    if aspect_ratio not in FACE_VIDEO_ASPECT_RATIO_LABELS:
+        raise ValueError(f"Unsupported face video aspect ratio: {aspect_ratio}")
+
+    os.makedirs("face_videos", exist_ok=True)
+    downloaded_path = None
+    output_path = os.path.join("face_videos", f"face_ratio_{uuid.uuid4().hex[:8]}.mp4")
+    try:
+        if isinstance(video_path, str) and video_path.startswith(("http://", "https://")):
+            file_descriptor, downloaded_path = tempfile.mkstemp(
+                prefix="face_ratio_source_",
+                suffix=".mp4",
+                dir="face_videos",
+            )
+            os.close(file_descriptor)
+            with requests.get(video_path, stream=True, timeout=(15, 120)) as response:
+                response.raise_for_status()
+                with open(downloaded_path, "wb") as downloaded_file:
+                    for chunk in response.iter_content(chunk_size=1024 * 1024):
+                        if chunk:
+                            downloaded_file.write(chunk)
+            source_path = downloaded_path
+        else:
+            source_path = os.fspath(video_path)
+            if not os.path.isfile(source_path):
+                raise FileNotFoundError(f"Generated face video not found: {source_path}")
+
+        probe_result = subprocess.run(
+            [
+                "ffprobe",
+                "-v",
+                "error",
+                "-select_streams",
+                "v:0",
+                "-show_entries",
+                "stream=width,height",
+                "-of",
+                "json",
+                source_path,
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            check=True,
+            timeout=30,
+        )
+        video_streams = json.loads(probe_result.stdout).get("streams", [])
+        if not video_streams:
+            raise RuntimeError("Generated face video has no readable video stream.")
+        long_edge = max(int(video_streams[0]["width"]), int(video_streams[0]["height"]))
+        output_width, output_height = _face_video_dimensions(long_edge, aspect_ratio)
+        video_filter = (
+            f"scale={output_width}:{output_height}:force_original_aspect_ratio=decrease,"
+            f"pad={output_width}:{output_height}:(ow-iw)/2:(oh-ih)/2:color=black,setsar=1"
+        )
+        subprocess.run(
+            [
+                "ffmpeg",
+                "-y",
+                "-i",
+                source_path,
+                "-map",
+                "0:v:0",
+                "-map",
+                "0:a?",
+                "-vf",
+                video_filter,
+                "-c:v",
+                "libx264",
+                "-preset",
+                "fast",
+                "-crf",
+                "20",
+                "-pix_fmt",
+                "yuv420p",
+                "-c:a",
+                "aac",
+                "-b:a",
+                "128k",
+                "-movflags",
+                "+faststart",
+                output_path,
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=True,
+            timeout=600,
+        )
+        if not os.path.isfile(output_path) or os.path.getsize(output_path) <= 1000:
+            raise RuntimeError("Aspect-ratio conversion returned an empty face video.")
+        return output_path
+    except Exception:
+        safe_remove_file(output_path)
+        raise
+    finally:
+        safe_remove_file(downloaded_path)
 
 def convert_mp4_to_webm(mp4_path, webm_path):
     safe_remove_file(webm_path)
@@ -9109,7 +9254,19 @@ def run_expressive_face_pipeline(face_image_path, audio_path, output_video_path,
         return False
 
 
-def generate_expressive_face_video(prompt, face_image_path, duration=30, emotion="neutral", camera_angle="front", quality="HD", preferred_engine="Auto (LivePortrait → SadTalker → Wav2Lip)", motion_level="high", voice_language=None, voice_label=None):
+def generate_expressive_face_video(
+    prompt,
+    face_image_path,
+    duration=30,
+    emotion="neutral",
+    camera_angle="front",
+    quality="HD",
+    preferred_engine="Auto (LivePortrait → SadTalker → Wav2Lip)",
+    motion_level="high",
+    voice_language=None,
+    voice_label=None,
+    aspect_ratio="9:16",
+):
     if not face_image_path or not os.path.exists(face_image_path):
         return None
 
@@ -9117,13 +9274,16 @@ def generate_expressive_face_video(prompt, face_image_path, duration=30, emotion
     audio_path = f"face_videos/voice_{uuid.uuid4().hex[:8]}.mp3"
     audio_success = _synthesize_face_audio_strict(prompt, audio_path, voice_cfg, duration_hint=duration)
 
-    quality_settings = {
-        "Standard": (512, 512),
-        "HD": (768, 768),
-        "4K": (1024, 1024),
-        "Premium": (1024, 1024),
+    quality_long_edges = {
+        "Standard": 512,
+        "HD": 768,
+        "4K": 1024,
+        "Premium": 1024,
     }
-    out_w, out_h = quality_settings.get(quality, (768, 768))
+    out_w, out_h = _face_video_dimensions(
+        quality_long_edges.get(quality, 768),
+        aspect_ratio,
+    )
     output_video_path = f"face_videos/expressive_face_video_{quality.lower()}_{uuid.uuid4().hex[:8]}.mp4"
 
     try:
@@ -9308,7 +9468,9 @@ def _resolve_face_voice_config(voice_language=None, voice_label=None, preferred_
         selected_voice = available_voices[0]
 
     voice_meta = ELEVENLABS_VOICES.get(selected_voice, {})
-    selected_voice_id = voice_meta.get("id", "21m00Tcm4TlvDq8ikWAM")
+    selected_gender = normalize_gender_label(voice_meta.get("gender")) or preferred_gender or "male"
+    selected_voice_id = voice_meta.get("id") or _default_elevenlabs_voice_id_for_gender(selected_gender)
+    fallback_voice_id = _default_elevenlabs_voice_id_for_gender(selected_gender)
     voice_lang = str(voice_meta.get("language", "English")).strip().lower()
     fallback_language_choice = "🇮🇳 Hinglish (Fluent Hindi Mix)" if (language_pref == "Hindi" or voice_lang in {"hindi", "bhojpuri"}) else "🇬🇧 English (US Standard)"
 
@@ -9319,21 +9481,61 @@ def _resolve_face_voice_config(voice_language=None, voice_label=None, preferred_
         "language": language_pref,
         "voice_label": selected_voice,
         "voice_id": selected_voice_id,
+        "gender": selected_gender,
+        "fallback_voice_id": fallback_voice_id,
         "fallback_language_choice": fallback_language_choice,
         "available_voices": available_voices,
     }
 
 
+FACE_VIDEO_ASPECT_RATIO_LABELS = {
+    "9:16": "Portrait (9:16)",
+    "16:9": "Landscape (16:9)",
+    "1:1": "Square (1:1)",
+}
+
+
+def _render_face_video_aspect_ratio(key):
+    return st.selectbox(
+        "Video aspect ratio",
+        options=list(FACE_VIDEO_ASPECT_RATIO_LABELS),
+        format_func=FACE_VIDEO_ASPECT_RATIO_LABELS.get,
+        key=key,
+        help="Keeps the full face visible; unused frame space is padded instead of cropped.",
+    )
+
+
 def _synthesize_face_audio_strict(prompt_text, audio_path, voice_cfg, duration_hint=10):
     """Best-effort TTS chain to avoid silent face videos in production."""
     audio_success = False
+    selected_gender = voice_cfg.get("gender", "male")
+    selected_voice_id = voice_cfg.get(
+        "voice_id",
+        _default_elevenlabs_voice_id_for_gender(selected_gender),
+    )
+    fallback_voice_id = voice_cfg.get(
+        "fallback_voice_id",
+        _default_elevenlabs_voice_id_for_gender(selected_gender),
+    )
 
     # 1) Try selected ElevenLabs voice.
-    audio_success = generate_elevenlabs_audio_for_face(prompt_text, audio_path, voice_cfg.get("voice_id", "21m00Tcm4TlvDq8ikWAM"))
+    audio_success = generate_elevenlabs_audio_for_face(
+        prompt_text,
+        audio_path,
+        selected_voice_id,
+        fallback_voice_id=fallback_voice_id,
+        preferred_gender=selected_gender,
+    )
 
-    # 2) If selected voice ID is invalid, retry with stable default voice.
+    # 2) Retry with a stable voice of the same gender.
     if not audio_success:
-        audio_success = generate_elevenlabs_audio_for_face(prompt_text, audio_path, "21m00Tcm4TlvDq8ikWAM")
+        audio_success = generate_elevenlabs_audio_for_face(
+            prompt_text,
+            audio_path,
+            fallback_voice_id,
+            fallback_voice_id=fallback_voice_id,
+            preferred_gender=selected_gender,
+        )
 
     # 3) Edge-TTS fallback with multilingual retry voices.
     if not audio_success:
@@ -9356,9 +9558,9 @@ def _synthesize_face_audio_strict(prompt_text, audio_path, voice_cfg, duration_h
             generated_audio = generate_emotion_voice(
                 prompt_text,
                 emotion="neutral",
-                voice_type=fallback_voice_type,
+                voice_type=selected_gender if selected_gender in {"male", "female"} else fallback_voice_type,
                 output_path=audio_path,
-                elevenlabs_voice_id=voice_cfg.get("voice_id", "21m00Tcm4TlvDq8ikWAM"),
+                elevenlabs_voice_id=selected_voice_id,
             )
             audio_success = bool(generated_audio and os.path.exists(audio_path) and os.path.getsize(audio_path) > 2048)
         except Exception:
@@ -9378,7 +9580,7 @@ def deepface_scan_face_and_select_voice(face_image_path):
     Returns: dict with {voice_id, voice_label, category, age, gender}
     """
     result = {
-        "voice_id": "21m00Tcm4TlvDq8ikWAM",  # Default: Adam
+        "voice_id": _default_elevenlabs_voice_id_for_gender("male"),
         "voice_label": "Adam (Premium Male)",
         "category": "Adult Male",
         "age": 25,
@@ -9428,7 +9630,7 @@ def deepface_scan_face_and_select_voice(face_image_path):
             voice_label = voice_module["default_voice"]
             category = voice_module["category"]
         else:
-            voice_id = "21m00Tcm4TlvDq8ikWAM"
+            voice_id = _default_elevenlabs_voice_id_for_gender("male")
             voice_label = "Adam (Premium Male)"
             category = "Adult Male"
         
@@ -9475,7 +9677,7 @@ def _clamp_face_video_duration(duration, quality="Standard"):
 def generate_face_video(prompt, face_image_path, duration=30, emotion="neutral", 
                         camera_angle="front", quality="Standard", 
                         voice_language=None, voice_label=None, runpod_api_key=None,
-                        audio_path=None):
+                        audio_path=None, aspect_ratio=None):
     """Generate through Replicate first, with the configured RunPod workflow as fallback."""
     print("=" * 60)
     print("🎬 generate_face_video() called - ComfyUI RunPod Cloud Mode")
@@ -9502,6 +9704,8 @@ def generate_face_video(prompt, face_image_path, duration=30, emotion="neutral",
     )
     
     if video_result:
+        if aspect_ratio:
+            return _normalize_face_video_aspect_ratio(video_result, aspect_ratio)
         return video_result
     
     logger.error("RunPod and Replicate face video generation failed.")
@@ -9944,18 +10148,35 @@ def _create_tone_audio(duration_seconds=5.0):
     return path
 
 
-def generate_elevenlabs_audio_for_face(text, output_path, voice_id="21m00Tcm4TlvDq8ikWAM"):
+def generate_elevenlabs_audio_for_face(
+    text,
+    output_path,
+    voice_id=None,
+    fallback_voice_id=None,
+    preferred_gender=None,
+):
     eleven_key = os.getenv("ELEVENLABS_API_KEY") or get_system_secret("ELEVENLABS_API_KEY")
     if not eleven_key:
         return False
 
+    gender = normalize_gender_label(preferred_gender)
+    if not gender and voice_id:
+        gender = next(
+            (
+                normalize_gender_label(metadata.get("gender"))
+                for metadata in ELEVENLABS_VOICES.values()
+                if metadata.get("id") == voice_id
+            ),
+            "male",
+        )
+    fallback_voice_id = fallback_voice_id or _default_elevenlabs_voice_id_for_gender(gender or "male")
     candidate_ids = []
-    safe_voice_id = resolve_elevenlabs_voice_id(voice_id)
-    safe_voice_id = get_safe_elevenlabs_voice_id(safe_voice_id, DEFAULT_ELEVENLABS_VOICE_ID)
+    safe_voice_id = resolve_elevenlabs_voice_id(voice_id, preferred_gender=gender)
+    safe_voice_id = get_safe_elevenlabs_voice_id(safe_voice_id, fallback_voice_id)
     if safe_voice_id:
         candidate_ids.append(safe_voice_id)
-    if safe_voice_id != DEFAULT_ELEVENLABS_VOICE_ID:
-        candidate_ids.append(DEFAULT_ELEVENLABS_VOICE_ID)
+    if safe_voice_id != fallback_voice_id:
+        candidate_ids.append(fallback_voice_id)
 
     for candidate_id in dict.fromkeys(candidate_ids):
         safe_remove_file(output_path)
@@ -9970,7 +10191,11 @@ def generate_elevenlabs_audio_for_face(text, output_path, voice_id="21m00Tcm4Tlv
                 if os.path.exists(output_path) and os.path.getsize(output_path) > 2000:
                     return True
             elif response.status_code in {400, 401, 404, 422}:
-                logger.warning(f"ElevenLabs voice ID {candidate_id} rejected ({response.status_code}); retrying with default voice.")
+                logger.warning(
+                    "ElevenLabs voice ID %s rejected (%s); retrying with same-gender fallback.",
+                    candidate_id,
+                    response.status_code,
+                )
                 continue
         except Exception as e:
             logger.warning(f"ElevenLabs request failed for voice {candidate_id}: {e}")
@@ -10008,7 +10233,9 @@ def process_editor_video(uploaded_files, output_path, effect="none", transition=
         selected_voice_meta = ELEVENLABS_VOICES.get(voice_profile, {})
         selected_voice_id = selected_voice_meta.get("id")
         if not selected_voice_id:
-            selected_voice_id = "21m00Tcm4TlvDq8ikWAM" if "Male" in voice_profile else "pNInz6obpgDQ5IdwJg7p"
+            selected_voice_id = _default_elevenlabs_voice_id_for_gender(
+                "male" if "Male" in voice_profile else "female"
+            )
 
         voice_built = False
         if ELEVENLABS_API_KEY:
@@ -10483,10 +10710,12 @@ def render_ai_agent_ui():
                     else:
                         try:
                             # Deduct credits
-                            deduct_credits_db(st.session_state["logged_user"], required_tokens)
+                            if not deduct_credits_db(st.session_state["logged_user"], required_tokens):
+                                st.error("Credits could not be reserved. Please try again.")
+                                st.stop()
                             st.session_state['user_credits'] = get_user_credits_db(st.session_state["logged_user"])
                             
-                            with st.spinner("🔄 Configuring AI Agent for your business..."):
+                            with generation_credit_progress("AI Agent", required_tokens), st.spinner("🔄 Configuring AI Agent for your business..."):
                                 st.session_state["agent_business_name"] = business_name
                                 st.session_state["agent_products"] = [p.strip() for p in products_text.split("\n") if p.strip()]
                                 st.session_state["agent_schedule"] = {
@@ -11140,7 +11369,6 @@ def render_ai_sales_ui():
                     st.error(message)
                     st.stop()
 
-                st.success(message)
                 if len(selected_script.strip()) < 10:
                     refund_face_video_credits(required_tokens, "Sales script was too short")
                     st.error("Script is too short! Please provide more details.")
@@ -11154,7 +11382,7 @@ def render_ai_sales_ui():
                     (100, "Final output ready")
                 ]
                 progress_bar = st.progress(0, text=f"Step 1/4: {progress_steps[0][1]}...")
-                with st.status("Step 1/4: Preparing script and product context...", expanded=True) as sales_progress:
+                with generation_credit_progress("AI Sales Video", required_tokens) as credit_notice, st.status("Step 1/4: Preparing script and product context...", expanded=True) as sales_progress:
                     try:
                         progress_bar.progress(15, text="Step 1/4: Script validated and product context ready")
                         sales_progress.update(label="Step 2/4: Generating voice from selected script...", state="running")
@@ -11213,6 +11441,7 @@ def render_ai_sales_ui():
                             tone=sales_tone,
                         )
 
+                        credit_notice.empty()
                         progress_bar.progress(100, text="Final output ready")
                         sales_progress.update(label="Final output ready", state="complete")
                         st.session_state["sales_funnel"] = funnel
@@ -11236,6 +11465,7 @@ def render_ai_sales_ui():
                                 credits_charged=required_tokens,
                             )
                             st.session_state["sales_video_history"] = load_sales_video_history_db(sales_username)
+                        _record_generation_credit_usage("AI Sales Video", required_tokens)
                         _show_generation_success()
                         st.rerun()
 
@@ -11642,12 +11872,14 @@ def generate_emotion_voice(text, emotion="neutral", voice_type="male", output_pa
     # ═══ TIER 1: ELEVENLABS ═══
     if eleven_key:
         candidate_ids = []
-        safe_voice_id = resolve_elevenlabs_voice_id(elevenlabs_voice_id, preferred_gender=voice_type)
-        safe_voice_id = get_safe_elevenlabs_voice_id(safe_voice_id, DEFAULT_ELEVENLABS_VOICE_ID)
+        voice_gender = normalize_gender_label(voice_type)
+        gender_fallback_id = _default_elevenlabs_voice_id_for_gender(voice_gender or "male")
+        safe_voice_id = resolve_elevenlabs_voice_id(elevenlabs_voice_id, preferred_gender=voice_gender)
+        safe_voice_id = get_safe_elevenlabs_voice_id(safe_voice_id, gender_fallback_id)
         if safe_voice_id:
             candidate_ids.append(safe_voice_id)
-        if safe_voice_id != DEFAULT_ELEVENLABS_VOICE_ID:
-            candidate_ids.append(DEFAULT_ELEVENLABS_VOICE_ID)
+        if safe_voice_id != gender_fallback_id:
+            candidate_ids.append(gender_fallback_id)
         for voice_id_to_try in dict.fromkeys(candidate_ids):
             try:
                 url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id_to_try}"
@@ -11660,7 +11892,11 @@ def generate_emotion_voice(text, emotion="neutral", voice_type="male", output_pa
                         logger.info(f"ElevenLabs OK: {text[:40]}...")
                         return output_path
                 elif resp.status_code in {400, 401, 404, 422}:
-                    logger.warning(f"ElevenLabs voice ID {voice_id_to_try} rejected ({resp.status_code}); retrying with default voice.")
+                    logger.warning(
+                        "ElevenLabs voice ID %s rejected (%s); retrying with same-gender fallback.",
+                        voice_id_to_try,
+                        resp.status_code,
+                    )
                     continue
                 elif resp.status_code == 401: _fail("ElevenLabs: Invalid API key (HTTP 401)")
                 elif resp.status_code == 429: _fail("ElevenLabs: Quota exceeded (HTTP 429). Check your usage limits.")
@@ -11945,8 +12181,8 @@ def render_live_emotion_voice():
                     with st.spinner("Generating ZOVIX Emotion Voice..."):
                         try:
                             voice_meta = ELEVENLABS_VOICES.get(emotion_voice, {})
-                            voice_id = voice_meta.get("id", "21m00Tcm4TlvDq8ikWAM")
                             selected_voice_gender = voice_meta.get("gender", "male")
+                            voice_id = voice_meta.get("id") or _default_elevenlabs_voice_id_for_gender(selected_voice_gender)
                             output_path = f"face_videos/emotion_voice_{uuid.uuid4().hex[:8]}.mp3"
                             
                             # ✅ FIX: Call generate_emotion_voice() instead of generate_elevenlabs_audio_for_face()
@@ -12335,7 +12571,6 @@ def run_blueprints_mode():
                         if not success:
                             st.error(message)
                         else:
-                            st.success(message)
                             st.session_state["active_blueprint"] = None
                             st.session_state["active_blueprint_svg"] = None
                             st.session_state["active_blueprint_error"] = None
@@ -12343,7 +12578,7 @@ def run_blueprints_mode():
                             selected_template_name = selected_template
                             if selected_template_name and selected_template_name != "None" and selected_template_name in template_map:
                                 template_context = template_map[selected_template_name].get("prompt", "")
-                            with st.spinner("GPT-4o is reading your brief; Replicate is rendering the blueprint..."):
+                            with generation_credit_progress("Blueprints", required_tokens) as credit_notice, st.spinner("GPT-4o is reading your brief; Replicate is rendering the blueprint..."):
                                 try:
                                     blueprint_path = generate_blueprint_with_gpt4o_replicate(
                                         cleaned_prompt,
@@ -12353,6 +12588,7 @@ def run_blueprints_mode():
                                         template_context=template_context,
                                         quality=bp_quality,
                                     )
+                                    credit_notice.empty()
                                     if blueprint_path and os.path.exists(blueprint_path):
                                         blueprint_path = _watermark_if_free_plan(blueprint_path)
                                         st.session_state["active_blueprint"] = blueprint_path
@@ -12368,6 +12604,7 @@ def run_blueprints_mode():
                                             required_tokens
                                         )
                                         st.session_state["history_renders"] = load_renders_history_db(st.session_state["logged_user"])
+                                        _record_generation_credit_usage("Blueprints", required_tokens)
                                         _show_generation_success()
                                         st.rerun()
                                     else:
@@ -14242,7 +14479,7 @@ def run_creative_workshop():
                                 st.session_state['user_credits'] = get_user_credits_db(st.session_state["logged_user"])
                                 st.session_state['credit_balance'] = st.session_state['user_credits']
 
-                                with st.spinner("Generating by ZOVIX..."):
+                                with generation_credit_progress("Creative Workshop", required_tokens), st.spinner("Generating by ZOVIX..."):
                                     effective_workshop_negative_prompt = combine_negative_prompts(
                                         workshop_neg_prompt_str,
                                         WORKSHOP_DEFAULT_NEGATIVE_PROMPT,
@@ -14285,6 +14522,7 @@ def run_creative_workshop():
                                     )
                                     st.session_state["history_renders"] = load_renders_history_db(st.session_state["logged_user"])
 
+                                    _record_generation_credit_usage("Creative Workshop", required_tokens)
                                     _show_generation_success()
                                     st.rerun()
                                 else:
@@ -14648,10 +14886,16 @@ def run_upscaler_mode():
                         st.error(f"Insufficient credits! Required: {required_tokens}, Available: {st.session_state.get('user_credits', 0)}")
                     else:
                         # Deduct credits
-                        deduct_credits_db(st.session_state["logged_user"], required_tokens)
+                        if not deduct_credits_db(st.session_state["logged_user"], required_tokens):
+                            current_balance = get_user_credits_db(st.session_state["logged_user"])
+                            st.session_state["user_credits"] = current_balance
+                            st.session_state["credit_balance"] = current_balance
+                            st.error("Credits could not be reserved. Please try again.")
+                            st.stop()
                         st.session_state['user_credits'] = get_user_credits_db(st.session_state["logged_user"])
+                        st.session_state["credit_balance"] = st.session_state["user_credits"]
                         
-                        with st.status("Preparing photo restoration…", expanded=True) as upscale_status:
+                        with generation_credit_progress("Upscaler", required_tokens) as credit_notice, st.status("Preparing photo restoration…", expanded=True) as upscale_status:
                             def update_upscale_status(message):
                                 upscale_status.update(label=message, state="running", expanded=True)
 
@@ -14665,6 +14909,7 @@ def run_upscaler_mode():
                                 face_fidelity=face_fidelity,
                                 progress_callback=update_upscale_status,
                             )
+                            credit_notice.empty()
                             
                             if upscaled_path and os.path.exists(upscaled_path):
                                 upscale_status.update(label="Photo restoration complete", state="complete", expanded=False)
@@ -14684,6 +14929,7 @@ def run_upscaler_mode():
                                 )
                                 st.session_state["history_renders"] = load_renders_history_db(st.session_state["logged_user"])
                                 
+                                _record_generation_credit_usage("Upscaler", required_tokens)
                                 _show_generation_success()
                                 st.rerun()
                             else:
@@ -15113,10 +15359,16 @@ def run_draw_mode():
                         st.error(f"❌ Insufficient credits! Required: {required_tokens}, Available: {st.session_state.get('user_credits', 0)}")
                     else:
                         try:
-                            deduct_credits_db(st.session_state["logged_user"], required_tokens)
+                            if not deduct_credits_db(st.session_state["logged_user"], required_tokens):
+                                current_balance = get_user_credits_db(st.session_state["logged_user"])
+                                st.session_state["user_credits"] = current_balance
+                                st.session_state["credit_balance"] = current_balance
+                                st.error("Credits could not be reserved. Please try again.")
+                                st.stop()
                             st.session_state['user_credits'] = get_user_credits_db(st.session_state["logged_user"])
+                            st.session_state["credit_balance"] = st.session_state["user_credits"]
                             
-                            with st.spinner("Generating ZOVIX Draw..."):
+                            with generation_credit_progress("Draw", required_tokens) as credit_notice, st.spinner("Generating ZOVIX Draw..."):
                                 drawing_path = generate_drawing_hybrid(
                                     prompt=draw_prompt,
                                     style=draw_style,
@@ -15124,6 +15376,7 @@ def run_draw_mode():
                                     engine=engine_choice,
                                     quality=dr_quality
                                 )
+                                credit_notice.empty()
                                 
                                 if drawing_path and os.path.exists(drawing_path):
                                     drawing_path = _watermark_if_free_plan(drawing_path)
@@ -15144,6 +15397,7 @@ def run_draw_mode():
                                     )
                                     st.session_state["history_renders"] = load_renders_history_db(st.session_state["logged_user"])
                                     
+                                    _record_generation_credit_usage("Draw", required_tokens)
                                     _show_generation_success()
                                     st.rerun()
                                 else:
@@ -15998,7 +16252,7 @@ def run_video_editor_mode():
                                 vo_text = st.session_state.get("editor_voiceover_text", "")
                                 vo_profile = st.session_state.get("editor_voiceover_profile", "Adam (Premium Male)")
 
-                            with st.spinner("Generating ZOVIX Video Editor..."):
+                            with generation_credit_progress("Video Editor", required_tokens, pending=True), st.spinner("Generating ZOVIX Video Editor..."):
                                 success = process_editor_video(
                                     uploaded_files=current_uploads,
                                     output_path=output_path,
@@ -16013,8 +16267,14 @@ def run_video_editor_mode():
                                 )
 
                             if success and os.path.exists(output_path) and os.path.getsize(output_path) > 1000:
-                                deduct_credits_db(st.session_state["logged_user"], required_tokens)
+                                if not deduct_credits_db(st.session_state["logged_user"], required_tokens):
+                                    current_balance = get_user_credits_db(st.session_state["logged_user"])
+                                    st.session_state["user_credits"] = current_balance
+                                    st.session_state["credit_balance"] = current_balance
+                                    st.error("Video was generated, but credits could not be charged. Please contact support.")
+                                    st.stop()
                                 st.session_state["user_credits"] = get_user_credits_db(st.session_state["logged_user"])
+                                st.session_state["credit_balance"] = st.session_state["user_credits"]
                                 st.session_state["active_editor_output"] = output_path
 
                                 timestamp = time.strftime("%Y%m%d_%H%M%S")
@@ -16027,6 +16287,7 @@ def run_video_editor_mode():
                                     required_tokens
                                 )
                                 st.session_state["history_renders"] = load_renders_history_db(st.session_state["logged_user"])
+                                _record_generation_credit_usage("Video Editor", required_tokens)
                                 _show_generation_success()
                                 st.rerun()
                             else:
@@ -16164,8 +16425,7 @@ def get_gender_based_voice_recommendation(detected_gender, language='English'):
 
 def render_face_generation_policy_notice():
     st.markdown(
-        "Only use faces, voices, and other identifying media when you have the rights and permissions required. "
-        "You are responsible for your use of uploaded media and generated outputs."
+        "Only use faces, voices."
     )
 
 
@@ -16280,6 +16540,7 @@ def run_face_video_mode():
                     index=face_quality_options.index(face_selected_quality),
                     key="fv_quality",
                 )
+            face_aspect_ratio = _render_face_video_aspect_ratio("fv_aspect_ratio")
             fv_voice_language = st.selectbox(
                 "Voice Language",
                 ["Hindi", "English", "All Voices"],
@@ -16314,7 +16575,6 @@ def run_face_video_mode():
                 if not success:
                     st.error(message)
                 else:
-                    st.success(message)
                     if not face_prompt.strip():
                         refund_face_video_credits(required_tokens, "Face script was empty")
                         st.error("Please enter a video description for lip sync.")
@@ -16322,7 +16582,7 @@ def run_face_video_mode():
                         refund_face_video_credits(required_tokens, "Face image was missing")
                         st.error("Please upload a face image or take a photo using camera mode.")
                     else:
-                        with st.spinner("Generating ZOVIX Face Video..."):
+                        with generation_credit_progress("Face Video Generator", required_tokens) as credit_notice, st.spinner("Generating ZOVIX Face Video..."):
                             # Use safe wrapper with error handling
                             video_path, gen_error = safe_generate_face_video_wrapper(
                                 face_prompt,
@@ -16331,7 +16591,9 @@ def run_face_video_mode():
                                 quality=quality,
                                 voice_language=fv_voice_language,
                                 voice_label=fv_voice_model,
+                                aspect_ratio=face_aspect_ratio,
                             )
+                            credit_notice.empty()
                             if gen_error:
                                 refund_face_video_credits(required_tokens, gen_error)
                                 st.error(gen_error)
@@ -16341,6 +16603,7 @@ def run_face_video_mode():
                                 file_name = f"zovix_face_video_{quality.lower()}_{timestamp}.mp4"
                                 save_face_video_to_db(st.session_state["logged_user"], file_name, face_prompt, video_path, st.session_state["face_image_upload"], quality, required_tokens)
                                 st.session_state["face_video_history"] = load_face_video_history_db(st.session_state["logged_user"])
+                                _record_generation_credit_usage("Face Video Generator", required_tokens)
                                 _show_generation_success()
                                 st.rerun()
                             else:
@@ -16461,6 +16724,7 @@ pip install gfpgan realesrgan""",
 
             efv_duration = st.select_slider("Duration (seconds)", options=[5, 10, 15, 20, 30, 45, 60], value=10, key="efv_duration")
             efv_quality = st.selectbox("Video Quality:", ["Standard", "HD", "4K"], key="efv_quality")
+            expressive_aspect_ratio = _render_face_video_aspect_ratio("efv_aspect_ratio")
             efv_voice_language = st.selectbox(
                 "Voice Language",
                 ["Hindi", "English", "All Voices"],
@@ -16495,7 +16759,6 @@ pip install gfpgan realesrgan""",
                 if not success:
                     st.error(message)
                 else:
-                    st.success(message)
                     if not efv_prompt.strip():
                         refund_face_video_credits(required_tokens, "Expressive face script was empty")
                         st.error("Please enter a script for expressive face generation.")
@@ -16503,7 +16766,7 @@ pip install gfpgan realesrgan""",
                         refund_face_video_credits(required_tokens, "Expressive face image was missing")
                         st.error("Please upload a face image first.")
                     else:
-                        with st.spinner("Generating ZOVIX Expressive Face Video..."):
+                        with generation_credit_progress("Expressive Face Video", required_tokens) as credit_notice, st.spinner("Generating ZOVIX Expressive Face Video..."):
                             video_path = generate_expressive_face_video(
                                 efv_prompt,
                                 st.session_state["face_image_upload"],
@@ -16512,7 +16775,9 @@ pip install gfpgan realesrgan""",
                                 preferred_engine=engine_choice,
                                 voice_language=efv_voice_language,
                                 voice_label=efv_voice_model,
+                                aspect_ratio=expressive_aspect_ratio,
                             )
+                            credit_notice.empty()
                             if video_path and os.path.exists(video_path):
                                 st.session_state["active_expressive_face_video"] = video_path
                                 timestamp = time.strftime("%Y%m%d_%H%M%S")
@@ -16527,6 +16792,7 @@ pip install gfpgan realesrgan""",
                                     required_tokens,
                                 )
                                 st.session_state["face_video_history"] = load_face_video_history_db(st.session_state["logged_user"])
+                                _record_generation_credit_usage("Expressive Face Video", required_tokens)
                                 _show_generation_success()
                                 st.rerun()
                             else:
@@ -17007,6 +17273,7 @@ def run_unified_face_video_mode():
                     key="fv_quality",
                     label_visibility="collapsed"
                 )
+            unified_aspect_ratio = _render_face_video_aspect_ratio("unified_fv_aspect_ratio")
             st.markdown("<br>", unsafe_allow_html=True)
             
             # ============================================
@@ -17123,8 +17390,7 @@ def run_unified_face_video_mode():
                             st.error(message)
                         else:
                             reserved_tokens = required_tokens
-                            st.success(f"✓ {message}")
-                            with st.spinner("Generating ZOVIX Face Video..."):
+                            with generation_credit_progress("Face Video Generator", required_tokens), st.spinner("Generating ZOVIX Face Video..."):
                                 video_url = generate_face_video(
                                     prompt=face_prompt,
                                     face_image_path=temp_face_path,
@@ -17134,6 +17400,7 @@ def run_unified_face_video_mode():
                                     voice_label=manual_voice,
                                     runpod_api_key=None,
                                     audio_path=temp_audio_path,
+                                    aspect_ratio=unified_aspect_ratio,
                                 )
 
                             if video_url:
@@ -17155,6 +17422,7 @@ def run_unified_face_video_mode():
                                     st.session_state["logged_user"]
                                 )
                                 keep_face_file = True
+                                _record_generation_credit_usage("Face Video Generator", required_tokens)
                                 st.balloons()
                                 _show_generation_success()
                                 st.rerun()
@@ -17841,6 +18109,7 @@ def _run_cinematic_generation_job(job_id, script_text, duration_choice, selected
         _save_cinematic_job(job_id, {
             "status": "Completed",
             "video_path": output_path,
+            "credits_deducted": required_tokens,
             "error": None,
         })
     except Exception as exc:
@@ -17877,6 +18146,10 @@ if hasattr(st, "fragment"):
             st.session_state["cinematic_video_ready"] = True
             st.session_state["cinematic_video_path"] = job.get("video_path")
             st.session_state["cinematic_job_id"] = None
+            _record_generation_credit_usage(
+                "Cinematic Engine",
+                job.get("credits_deducted", 0),
+            )
             _show_generation_success()
             st.rerun()
         elif job["status"] == "Failed":
@@ -17913,6 +18186,10 @@ if hasattr(st, "fragment"):
                 unsafe_allow_html=True,
             )
             st.info(f"🎬 Generating video... {job['status']}")
+            if "credits_deducted" in job:
+                st.info(generation_credit_message(
+                    "Cinematic Engine", job["credits_deducted"], st.session_state["user_credits"]
+                ))
 else:
     def render_cinematic_job_status():
         job_id = st.session_state.get("cinematic_job_id")
@@ -17920,6 +18197,10 @@ else:
             job = _get_cinematic_job(job_id)
             if job and job["status"] not in {"Completed", "Failed"}:
                 st.info(f"⏳ Status: {job['status']}")
+                if "credits_deducted" in job:
+                    st.info(generation_credit_message(
+                        "Cinematic Engine", job["credits_deducted"], st.session_state["user_credits"]
+                    ))
 
 
 def run_cinematic_engine():
@@ -18473,10 +18754,11 @@ def run_cinematic_engine():
                         st.error(message)
                     else:
                         username = st.session_state.get("logged_user")
-                        with st.spinner("Generating ZOVIX Blueprint..."):
+                        with generation_credit_progress("DeepSeek AI Blueprint", required_tokens) as credit_notice, st.spinner("Generating ZOVIX Blueprint..."):
                             try:
                                 aspect_for_deepseek = "9:16" if "VERTICAL" in st.session_state.get("studio_deepseek_aspect", "9:16 VERTICAL") else "16:9"
                                 blueprint = generate_video_blueprint_with_deepseek(user_input, aspect_for_deepseek)
+                                credit_notice.empty()
                                 if "error" in blueprint:
                                     refund_face_video_credits(required_tokens, "DeepSeek blueprint generation failed", username=username)
                                     st.error(f"❌ DeepSeek Error: {blueprint['error']}")
@@ -18489,6 +18771,7 @@ def run_cinematic_engine():
                                     # auto-syncs widget state to st.session_state["user_prompt"].
                                     # Use a local variable for all downstream logic instead.
                                     final_prompt = user_input or st.session_state.get("user_prompt", "")
+                                    _record_generation_credit_usage("DeepSeek AI Blueprint", required_tokens)
                                     _show_generation_success()
                                     st.rerun()
                             except Exception as exc:
@@ -18631,6 +18914,7 @@ def run_cinematic_engine():
                             initial_job = {
                                 "status": "Starting cinematic engine...",
                                 "video_path": None,
+                                "credits_deducted": required_tokens,
                                 "error": None,
                             }
                         _save_cinematic_job(job_id, initial_job)
@@ -19972,6 +20256,8 @@ if st.session_state.get("is_logged_in"):
     if not preload_logged_in_user_data(username):
         st.stop()
 
+st.session_state.pop("last_generation_credit_usage", None)
+
 if st.session_state["current_page"] == "landing":
     _start_studio_asset_prefetch()
     from landing_page import WorldClassLandingPage
@@ -21011,6 +21297,7 @@ elif st.session_state["current_page"] == "ghost_engine":
         load_portfolio_callback=_reload_ghost_engine_portfolio,
         deduct_tokens_callback=validate_and_deduct_tokens,
         refund_tokens_callback=refund_face_video_credits,
+        report_credit_usage_callback=_record_generation_credit_usage,
     )
     render_zovix_site_footer()
     st.stop()

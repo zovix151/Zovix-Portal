@@ -380,6 +380,7 @@ def run_zovix_ghost_engine(
     voice_model: str | None = None,
     face_reference_bytes: bytes | None = None,
     aspect_ratio: str = "16:9",
+    duration_seconds: int | None = None,
 ) -> str:
     """Run the direct GPT-4o → Flux Pro → image-to-video workflow."""
     if not isinstance(user_script, str) or not user_script.strip():
@@ -389,6 +390,8 @@ def run_zovix_ghost_engine(
             f"Unsupported Ghost Engine aspect ratio {aspect_ratio!r}. "
             f"Choose one of: {', '.join(GHOST_ASPECT_RATIOS)}."
         )
+    if duration_seconds is not None and duration_seconds not in (5, 10):
+        raise ValueError("Ghost Engine duration must be 5 or 10 seconds.")
     started = time.perf_counter()
     stage = "validation"
     artifacts: list[str] = []
@@ -477,11 +480,14 @@ def run_zovix_ghost_engine(
         stage = "Direct image-to-video"
         report(2, "running")
         from camera_motion_engine import apply_camera_motion
-        try:
-            requested_duration = float(os.getenv("ZOVIX_GHOST_I2V_DURATION_SECONDS", "5"))
-        except ValueError:
-            requested_duration = 5.0
-        duration = min(5.0, max(2.0, requested_duration))
+        if duration_seconds is None:
+            try:
+                requested_duration = float(os.getenv("ZOVIX_GHOST_I2V_DURATION_SECONDS", "5"))
+            except ValueError:
+                requested_duration = 5.0
+            duration = min(5.0, max(2.0, requested_duration))
+        else:
+            duration = float(duration_seconds)
         final_path = apply_camera_motion(
             keyframe,
             None,
