@@ -10,6 +10,26 @@ ROOT_DIR = Path(__file__).resolve().parent
 STATIC_DIR = ROOT_DIR / "static"
 
 
+def _is_https_request(scope, headers):
+    forwarded_proto = headers.get(b"x-forwarded-proto", b"")
+    if forwarded_proto:
+        proto = forwarded_proto.split(b",", 1)[0].strip().lower()
+        if proto == b"https":
+            return True
+        if proto == b"http":
+            return False
+
+    forwarded_ssl = headers.get(b"x-forwarded-ssl", b"")
+    if forwarded_ssl.split(b",", 1)[0].strip().lower() in {
+        b"on",
+        b"true",
+        b"1",
+    }:
+        return True
+
+    return scope.get("scheme", "http").lower() == "https"
+
+
 class SeoAndHttpsMiddleware:
     def __init__(self, app):
         self.app = app
@@ -20,13 +40,11 @@ class SeoAndHttpsMiddleware:
             return
 
         headers = dict(scope.get("headers", []))
-        host = headers.get(b"host", b"").split(b":", 1)[0].lower()
-        forwarded_proto = headers.get(
-            b"x-forwarded-proto",
-            scope.get("scheme", "http").encode("ascii"),
-        ).split(b",", 1)[0].strip().lower()
+        host = headers.get(b"host", b"").split(b":", 1)[0].lower().rstrip(b".")
 
-        if host in {b"zovix.pro", b"www.zovix.pro"} and forwarded_proto == b"http":
+        if host in {b"zovix.pro", b"www.zovix.pro"} and (
+            not _is_https_request(scope, headers) or host == b"www.zovix.pro"
+        ):
             path = scope.get("raw_path", scope["path"].encode("ascii"))
             query = scope.get("query_string", b"")
             location = b"https://zovix.pro" + path

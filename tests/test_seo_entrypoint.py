@@ -12,6 +12,11 @@ import pytest
 import seo_entrypoint
 
 
+class NoRedirectHandler(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, request, response, code, message, headers, new_url):
+        return None
+
+
 @pytest.mark.parametrize("mode", [None, "replit", "studio"])
 def test_sitemap_and_robots_are_served_at_root(mode):
     with socket.socket() as sock:
@@ -60,13 +65,21 @@ def test_sitemap_and_robots_are_served_at_root(mode):
             assert head.headers.get_content_type() == "application/xml"
             assert head.read() == b""
 
-        with urllib.request.urlopen(base_url + "/robots.txt") as robots:
+        secure_robots_request = urllib.request.Request(
+            base_url + "/robots.txt",
+            headers={"Host": "zovix.pro", "X-Forwarded-Proto": "https"},
+        )
+        with urllib.request.urlopen(secure_robots_request) as robots:
             assert robots.headers.get("Cache-Control") == "no-cache, max-age=0, must-revalidate"
             assert robots.read() == (seo_entrypoint.STATIC_DIR / "robots.txt").read_bytes()
 
         bot_request = urllib.request.Request(
             base_url + "/",
-            headers={"User-Agent": "Googlebot"},
+            headers={
+                "Host": "zovix.pro",
+                "User-Agent": "Googlebot",
+                "X-Forwarded-Proto": "https",
+            },
         )
         with urllib.request.urlopen(bot_request) as bot_root:
             bot_body = bot_root.read()
@@ -101,26 +114,54 @@ def test_sitemap_and_robots_are_served_at_root(mode):
             with urllib.request.urlopen(base_url + "/?page=login") as login:
                 assert login.read() == root_body
 
-        class NoRedirectHandler(urllib.request.HTTPRedirectHandler):
-            def redirect_request(self, request, response, code, message, headers, new_url):
-                return None
-
         no_redirect_opener = urllib.request.build_opener(NoRedirectHandler)
-        http_request = urllib.request.Request(
+        apex_http_request = urllib.request.Request(
             base_url + "/?page=studio",
             headers={"Host": "zovix.pro", "X-Forwarded-Proto": "http"},
         )
         with pytest.raises(urllib.error.HTTPError) as redirect_error:
-            no_redirect_opener.open(http_request)
+            no_redirect_opener.open(apex_http_request)
         assert redirect_error.value.code == 301
         assert redirect_error.value.headers["Location"] == "https://zovix.pro/?page=studio"
 
+        www_http_request = urllib.request.Request(
+            base_url + "/robots.txt?inspection=1",
+            headers={"Host": "www.zovix.pro", "X-Forwarded-Proto": "http"},
+        )
+        with pytest.raises(urllib.error.HTTPError) as www_redirect_error:
+            no_redirect_opener.open(www_http_request)
+        assert www_redirect_error.value.code == 301
+        assert (
+            www_redirect_error.value.headers["Location"]
+            == "https://zovix.pro/robots.txt?inspection=1"
+        )
+
         https_request = urllib.request.Request(
-            base_url + "/",
+            base_url + "/robots.txt",
             headers={"Host": "zovix.pro", "X-Forwarded-Proto": "https"},
         )
-        with no_redirect_opener.open(https_request) as https_root:
-            assert https_root.status == 200
+        with no_redirect_opener.open(https_request) as https_robots:
+            assert https_robots.status == 200
+            assert https_robots.read() == (seo_entrypoint.STATIC_DIR / "robots.txt").read_bytes()
+
+        forwarded_ssl_request = urllib.request.Request(
+            base_url + "/",
+            headers={"Host": "zovix.pro", "X-Forwarded-Ssl": "on"},
+        )
+        with no_redirect_opener.open(forwarded_ssl_request) as secure_root:
+            assert secure_root.status == 200
+
+        www_https_request = urllib.request.Request(
+            base_url + "/?page=studio",
+            headers={"Host": "www.zovix.pro", "X-Forwarded-Proto": "https"},
+        )
+        with pytest.raises(urllib.error.HTTPError) as www_https_error:
+            no_redirect_opener.open(www_https_request)
+        assert www_https_error.value.code == 301
+        assert (
+            www_https_error.value.headers["Location"]
+            == "https://zovix.pro/?page=studio"
+        )
     finally:
         process.terminate()
         process.wait(timeout=10)
