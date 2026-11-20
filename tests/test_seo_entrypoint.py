@@ -65,6 +65,7 @@ def test_sitemap_and_robots_are_served_at_root(mode):
             assert head.headers.get_content_type() == "application/xml"
             assert head.read() == b""
 
+        no_redirect_opener = urllib.request.build_opener(NoRedirectHandler)
         secure_robots_request = urllib.request.Request(
             base_url + "/robots.txt",
             headers={"Host": "zovix.pro", "X-Forwarded-Proto": "https"},
@@ -72,6 +73,26 @@ def test_sitemap_and_robots_are_served_at_root(mode):
         with urllib.request.urlopen(secure_robots_request) as robots:
             assert robots.headers.get("Cache-Control") == "no-cache, max-age=0, must-revalidate"
             assert robots.read() == (seo_entrypoint.STATIC_DIR / "robots.txt").read_bytes()
+
+        inspection_request = urllib.request.Request(
+            base_url + "/robots.txt",
+            headers={
+                "Host": "zovix.pro",
+                "User-Agent": "Google-InspectionTool",
+                "X-Forwarded-Proto": "http",
+            },
+        )
+        with no_redirect_opener.open(inspection_request) as inspection_robots:
+            assert inspection_robots.status == 200
+            assert inspection_robots.headers.get("Location") is None
+            assert inspection_robots.headers.get_content_type() == "text/plain"
+            assert inspection_robots.headers.get_content_charset() == "utf-8"
+            assert inspection_robots.headers.get("Cache-Control") == (
+                "no-cache, max-age=0, must-revalidate"
+            )
+            assert inspection_robots.read() == (
+                seo_entrypoint.STATIC_DIR / "robots.txt"
+            ).read_bytes()
 
         bot_request = urllib.request.Request(
             base_url + "/",
@@ -114,7 +135,6 @@ def test_sitemap_and_robots_are_served_at_root(mode):
             with urllib.request.urlopen(base_url + "/?page=login") as login:
                 assert login.read() == root_body
 
-        no_redirect_opener = urllib.request.build_opener(NoRedirectHandler)
         apex_http_request = urllib.request.Request(
             base_url + "/?page=studio",
             headers={"Host": "zovix.pro", "X-Forwarded-Proto": "http"},
@@ -125,7 +145,7 @@ def test_sitemap_and_robots_are_served_at_root(mode):
         assert redirect_error.value.headers["Location"] == "https://zovix.pro/?page=studio"
 
         www_http_request = urllib.request.Request(
-            base_url + "/robots.txt?inspection=1",
+            base_url + "/about?inspection=1",
             headers={"Host": "www.zovix.pro", "X-Forwarded-Proto": "http"},
         )
         with pytest.raises(urllib.error.HTTPError) as www_redirect_error:
@@ -133,7 +153,7 @@ def test_sitemap_and_robots_are_served_at_root(mode):
         assert www_redirect_error.value.code == 301
         assert (
             www_redirect_error.value.headers["Location"]
-            == "https://zovix.pro/robots.txt?inspection=1"
+            == "https://zovix.pro/about?inspection=1"
         )
 
         https_request = urllib.request.Request(

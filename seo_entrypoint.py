@@ -10,6 +10,14 @@ ROOT_DIR = Path(__file__).resolve().parent
 STATIC_DIR = ROOT_DIR / "static"
 
 
+def _robots_response():
+    return FileResponse(
+        STATIC_DIR / "robots.txt",
+        media_type="text/plain",
+        headers={"Cache-Control": "no-cache, max-age=0, must-revalidate"},
+    )
+
+
 def _is_https_request(scope, headers):
     forwarded_proto = headers.get(b"x-forwarded-proto", b"")
     if forwarded_proto:
@@ -37,6 +45,10 @@ class SeoAndHttpsMiddleware:
     async def __call__(self, scope, receive, send):
         if scope["type"] != "http":
             await self.app(scope, receive, send)
+            return
+
+        if scope["path"] == "/robots.txt" and scope["method"] in {"GET", "HEAD"}:
+            await _robots_response()(scope, receive, send)
             return
 
         headers = dict(scope.get("headers", []))
@@ -79,11 +91,7 @@ class SeoAndHttpsMiddleware:
 
 
 async def serve_robots(_request):
-    return FileResponse(
-        STATIC_DIR / "robots.txt",
-        media_type="text/plain",
-        headers={"Cache-Control": "no-cache, max-age=0, must-revalidate"},
-    )
+    return _robots_response()
 
 
 async def serve_sitemap(_request):
