@@ -64,6 +64,26 @@ def test_sitemap_and_robots_are_served_at_root(mode):
             assert robots.headers.get("Cache-Control") == "no-cache, max-age=0, must-revalidate"
             assert robots.read() == (seo_entrypoint.STATIC_DIR / "robots.txt").read_bytes()
 
+        bot_request = urllib.request.Request(
+            base_url + "/",
+            headers={"User-Agent": "Googlebot"},
+        )
+        with urllib.request.urlopen(bot_request) as bot_root:
+            bot_body = bot_root.read()
+        assert bot_body == (seo_entrypoint.STATIC_DIR / "index.html").read_bytes()
+        for metadata in (
+            b"<title>Zovix \xe2\x80\x94 Cinematic AI Studio</title>",
+            b'<meta name="description" content="Create cinematic AI videos, scenes, and visuals with Zovix. '
+            b'Direct scenes, control camera motion, and generate high-impact AI media.">',
+            b'<link rel="canonical" href="https://zovix.pro/" />',
+            b'<meta property="og:title" content="Zovix \xe2\x80\x94 Cinematic AI Studio">',
+            b'<meta property="og:description" content="Create cinematic AI videos, scenes, and visuals with Zovix. '
+            b'Direct scenes, control camera motion, and generate high-impact AI media.">',
+            b'<meta property="og:url" content="https://zovix.pro/">',
+            b'<meta property="og:type" content="website">',
+        ):
+            assert metadata in bot_body
+
         for path, filename in [
             ("/about", "about.html"),
             ("/engines", "engines.html"),
@@ -80,6 +100,27 @@ def test_sitemap_and_robots_are_served_at_root(mode):
             assert b"streamlit" in root_body.lower()
             with urllib.request.urlopen(base_url + "/?page=login") as login:
                 assert login.read() == root_body
+
+        class NoRedirectHandler(urllib.request.HTTPRedirectHandler):
+            def redirect_request(self, request, response, code, message, headers, new_url):
+                return None
+
+        no_redirect_opener = urllib.request.build_opener(NoRedirectHandler)
+        http_request = urllib.request.Request(
+            base_url + "/?page=studio",
+            headers={"Host": "zovix.pro", "X-Forwarded-Proto": "http"},
+        )
+        with pytest.raises(urllib.error.HTTPError) as redirect_error:
+            no_redirect_opener.open(http_request)
+        assert redirect_error.value.code == 301
+        assert redirect_error.value.headers["Location"] == "https://zovix.pro/?page=studio"
+
+        https_request = urllib.request.Request(
+            base_url + "/",
+            headers={"Host": "zovix.pro", "X-Forwarded-Proto": "https"},
+        )
+        with no_redirect_opener.open(https_request) as https_root:
+            assert https_root.status == 200
     finally:
         process.terminate()
         process.wait(timeout=10)

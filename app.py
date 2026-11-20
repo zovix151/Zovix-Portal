@@ -47,7 +47,7 @@ from face_video_utils import (
 STUDIO_ENGINE_PANEL_RATIO = (1, 1.2)
 
 st.set_page_config(
-    page_title="Zovix AI Studio | AI Video Creation",
+    page_title="Zovix — Cinematic AI Studio",
     page_icon=str(Path(__file__).resolve().parent / "static" / "zovix-logo.svg"),
     layout="wide",
     initial_sidebar_state="collapsed",

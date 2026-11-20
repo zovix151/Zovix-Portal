@@ -49,6 +49,9 @@ def test_original_details_reach_keyframe_and_motion(monkeypatch, with_reference,
     assert script in calls["motion"]["scene_prompt"]
     assert "Selected director controls override" in calls["motion"]["scene_prompt"]
     assert "armor" in calls["motion"]["scene_prompt"]
+    assert "cinematic photorealism" in calls["keyframe"]["flux_prompt"]
+    assert "rich, believable background fitted to the stated location" in calls["keyframe"]["flux_prompt"]
+    assert "gently lifted shadow detail and subtle fill light" in calls["keyframe"]["flux_prompt"]
     assert calls["motion"]["duration_seconds"] == duration_seconds
     assert calls["keyframe"].get("face_reference_bytes") == reference
 

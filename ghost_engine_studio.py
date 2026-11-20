@@ -22,6 +22,7 @@ from spatial_director_engine import (
 )
 
 logger = logging.getLogger("Zovix.Layer7")
+_AUTO_SCENE_SETTING = "Auto (Match Scene)"
 
 
 def _forget_session_character_reference():
@@ -32,6 +33,18 @@ def _forget_session_character_reference():
         "ghost_face_reference",
     ):
         st.session_state.pop(key, None)
+
+
+def _build_director_overrides(camera_motion, lighting_setup, atmosphere_fx, character_action):
+    overrides = {
+        "camera_motion": camera_motion,
+        "character_action": character_action,
+    }
+    if lighting_setup != _AUTO_SCENE_SETTING:
+        overrides["lighting_setup"] = lighting_setup
+    if atmosphere_fx != _AUTO_SCENE_SETTING:
+        overrides["atmosphere_fx"] = atmosphere_fx
+    return overrides
 
 
 def render_ghost_engine_studio(
@@ -420,8 +433,8 @@ def render_ghost_engine_studio(
                 "Scene script / prompt",
                 height=112,
                 max_chars=2000,
-                placeholder="Write your scene and character direction...",
-                help="Describe the character, armor, colors, materials, accessories and setting. Explicit director controls override conflicting camera, lighting, atmosphere and action details in the prompt.",
+                placeholder="Describe the subject, setting, time of day, weather, and visual details...",
+                help="Describe the subject and setting, including time of day, weather, background, colors, and materials. The director matches lighting and atmosphere to the scene unless you choose explicit controls.",
                 key="ghost_script",
             )
             aspect_ratio_labels = {
@@ -457,18 +470,20 @@ def render_ghost_engine_studio(
             with lighting_column:
                 lighting_setup = st.selectbox(
                     "Lighting",
-                    list(_LIGHTING_SETUPS),
+                    [_AUTO_SCENE_SETTING, *_LIGHTING_SETUPS],
                     index=0,
                     key="ghost_lighting_setup",
+                    help="Auto matches light to the scene and gently lifts shadow detail. Choose a lighting style to override it.",
                 )
 
             atmosphere_column, action_column = st.columns(2, gap="medium")
             with atmosphere_column:
                 atmosphere_fx = st.selectbox(
                     "Atmosphere",
-                    list(_ATMOSPHERE_EFFECTS),
-                    index=4,
+                    [_AUTO_SCENE_SETTING, *_ATMOSPHERE_EFFECTS],
+                    index=0,
                     key="ghost_atmosphere_fx",
+                    help="Auto matches environmental effects to the scene. Choose an effect to override it.",
                 )
             with action_column:
                 character_action = st.selectbox(
@@ -590,12 +605,12 @@ def render_ghost_engine_studio(
                             with generation_credit_progress("Ghost Engine", deducted_tokens) as credit_notice, st.spinner("Creating your cinematic video…"):
                                 output_path = run_zovix_ghost_engine(
                                     script,
-                                    config_overrides={
-                                        "camera_motion": camera_motion,
-                                        "lighting_setup": lighting_setup,
-                                        "atmosphere_fx": atmosphere_fx,
-                                        "character_action": character_action,
-                                    },
+                                    config_overrides=_build_director_overrides(
+                                        camera_motion,
+                                        lighting_setup,
+                                        atmosphere_fx,
+                                        character_action,
+                                    ),
                                     face_reference_bytes=(
                                         face_reference_bytes if face_lock else None
                                     ),

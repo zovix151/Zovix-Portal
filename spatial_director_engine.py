@@ -209,9 +209,16 @@ Create flux_prompt as a detailed image-generation prompt that faithfully preserv
 every explicit visual detail in the scene, including character count and identities,
 clothing, armor, materials, colors, markings, accessories, weapons, placement,
 environment and actions. Do not replace, omit, or invent specified details.
-Respect negations and preserve the scene's intended style; do not assume photorealism.
+Respect negations and preserve the scene's intended style. Use cinematic photorealism
+as the default unless the user explicitly requests illustration, anime, painterly, or
+another non-photorealistic style. Enrich the background to fit the described location,
+time, weather and action with plausible environmental detail and clear foreground,
+midground and background depth; avoid generic or empty studio backdrops unless requested.
+Use realistic material texture, natural skin texture when a human subject is present,
+and balanced cinematic exposure with a gentle fill lift in shadows. Keep highlights
+controlled and preserve intentional night, low-key, or dramatic lighting.
 Include composition, lighting, camera angle and depth only where compatible with
-the user's scene. Use natural skin texture only when a human subject is present.
+the user's scene and never override explicit details or style.
 
 Choose exactly one allowed value for each camera, lighting, atmosphere,
 character action, and emotion field. For audio_dialogue, return only dialogue explicitly present in the

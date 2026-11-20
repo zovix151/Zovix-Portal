@@ -1,13 +1,63 @@
 import os
 from pathlib import Path
 
-from starlette.responses import FileResponse
+from starlette.responses import FileResponse, RedirectResponse
 from starlette.routing import Route
 from streamlit.web.server.starlette import App
 
 
 ROOT_DIR = Path(__file__).resolve().parent
 STATIC_DIR = ROOT_DIR / "static"
+
+
+class SeoAndHttpsMiddleware:
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
+        headers = dict(scope.get("headers", []))
+        host = headers.get(b"host", b"").split(b":", 1)[0].lower()
+        forwarded_proto = headers.get(
+            b"x-forwarded-proto",
+            scope.get("scheme", "http").encode("ascii"),
+        ).split(b",", 1)[0].strip().lower()
+
+        if host in {b"zovix.pro", b"www.zovix.pro"} and forwarded_proto == b"http":
+            path = scope.get("raw_path", scope["path"].encode("ascii"))
+            query = scope.get("query_string", b"")
+            location = b"https://zovix.pro" + path
+            if query:
+                location += b"?" + query
+            response = RedirectResponse(location.decode("ascii"), status_code=301)
+            await response(scope, receive, send)
+            return
+
+        user_agent = headers.get(b"user-agent", b"").lower()
+        crawler_markers = (
+            b"bot",
+            b"crawler",
+            b"spider",
+            b"slurp",
+            b"preview",
+            b"google-inspectiontool",
+        )
+        if scope["path"] == "/" and any(marker in user_agent for marker in crawler_markers):
+            response = FileResponse(
+                STATIC_DIR / "index.html",
+                media_type="text/html",
+                headers={
+                    "X-Robots-Tag": "index, follow",
+                    "Cache-Control": "public, max-age=300",
+                },
+            )
+            await response(scope, receive, send)
+            return
+
+        await self.app(scope, receive, send)
 
 
 async def serve_robots(_request):
@@ -68,16 +118,18 @@ def create_app(mode):
         Route("/face-generation-policy", serve_face_generation_policy),
     ]
     if mode == "studio":
-        return App(ROOT_DIR / "app.py", routes=seo_routes)
-    if mode != "replit":
+        streamlit_app = App(ROOT_DIR / "app.py", routes=seo_routes)
+    elif mode == "replit":
+        streamlit_app = App(
+            ROOT_DIR / "replit_face_app.py",
+            routes=seo_routes + [
+                Route("/", serve_home),
+            ],
+        )
+    else:
         raise ValueError(f"Unknown ZOVIX_APP_MODE: {mode!r}; expected 'replit' or 'studio'")
 
-    return App(
-        ROOT_DIR / "replit_face_app.py",
-        routes=seo_routes + [
-            Route("/", serve_home),
-        ],
-    )
+    return SeoAndHttpsMiddleware(streamlit_app)
 
 
 app = create_app(os.environ.get("ZOVIX_APP_MODE", "studio"))

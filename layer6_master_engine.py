@@ -447,7 +447,13 @@ def run_zovix_ghost_engine(
             f"{lighting_setup} lighting, {atmosphere_fx} atmosphere. "
             f"Compose specifically for a {aspect_ratio} aspect ratio. "
             "Keep each character's distinct face, body, hairstyle, costume, armor, accessories "
-            "and distinguishing markings consistent; do not add, remove, or exchange these details."
+            "and distinguishing markings consistent; do not add, remove, or exchange these details. "
+            "Use cinematic photorealism unless the user explicitly requests a different visual style. "
+            "Create a rich, believable background fitted to the stated location, time, weather and action, "
+            "with coherent foreground, midground and background depth and realistic environmental textures. "
+            "Use balanced exposure, gently lifted shadow detail and subtle fill light without washing out "
+            "highlights or changing an intentional night, low-key or dramatic mood. Preserve explicit "
+            "background and lighting details; do not substitute a generic or empty studio backdrop."
         )
         if face_reference_bytes:
             config["face_reference_bytes"] = face_reference_bytes
