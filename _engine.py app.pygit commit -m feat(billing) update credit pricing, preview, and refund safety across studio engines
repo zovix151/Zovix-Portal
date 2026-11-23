@@ -1,0 +1,163 @@
+warning: in the working copy of 'app.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'credits_engine.py', LF will be replaced by CRLF the next time Git touches it
+[1mdiff --git a/app.py b/app.py[m
+[1mindex 056fa1a..98fa834 100644[m
+[1m--- a/app.py[m
+[1m+++ b/app.py[m
+[36m@@ -43,6 +43,7 @@[m [mfrom face_video_utils import ([m
+     default_elevenlabs_voice_id_for_gender as _default_elevenlabs_voice_id_for_gender,[m
+     face_video_dimensions as _face_video_dimensions,[m
+ )[m
+[32m+[m[32mfrom face_audio_transcription import transcribe_audio_word_count[m
+ [m
+ STUDIO_ENGINE_PANEL_RATIO = (1, 1.2)[m
+ [m
+[36m@@ -1671,7 +1672,12 @@[m [mimport socket[m
+ import platform[m
+ from production_engine import generate_production_face_video, generate_production_voice, generate_production_face_video_streamlit, generate_production_voice_streamlit, get_language_list, get_emotion_list, get_cost_estimate, check_endpoint_health[m
+ from production_engine import generate_production_face_video, generate_production_voice[m
+[31m-from credits_engine import validate_and_deduct_tokens, get_face_video_token_cost[m
+[32m+[m[32mfrom credits_engine import ([m
+[32m+[m[32m    get_cinematic_story_token_cost,[m
+[32m+[m[32m    get_face_video_token_cost,[m
+[32m+[m[32m    get_live_emotion_token_cost,[m
+[32m+[m[32m    validate_and_deduct_tokens,[m
+[32m+[m[32m)[m
+ import importlib[m
+ import deepseek_engine[m
+ from sales_funnel import build_sales_funnel[m
+[36m@@ -1685,7 +1691,13 @@[m [mfrom video_composer import compose_sales_video[m
+ # Fallback keeps the credit check available if the standalone credits module is unavailable.[m
+ # taaki missing hone par bhi NameError na aaye aur generation proceed ho.[m
+ if 'validate_and_deduct_tokens' not in globals():[m
+[31m-    def validate_and_deduct_tokens(mode_name: str = "", quality: str = "Standard", word_count=None, duration_choice=None):[m
+[32m+[m[32m    def validate_and_deduct_tokens([m
+[32m+[m[32m        mode_name: str = "",[m
+[32m+[m[32m        quality: str = "Standard",[m
+[32m+[m[32m        word_count=None,[m
+[32m+[m[32m        duration_choice=None,[m
+[32m+[m[32m        character_count=None,[m
+[32m+[m[32m    ):[m
+         """[m
+         Fallback token validation/deduction. Delegates to the real[m
+         DB-backed implementation in deepinfra_engine.py so tokens[m
+[36m@@ -1693,7 +1705,13 @@[m [mif 'validate_and_deduct_tokens' not in globals():[m
+         """[m
+         try:[m
+             from credits_engine import validate_and_deduct_tokens as _real[m
+[31m-            return _real(mode_name, quality, word_count, duration_choice)[m
+[32m+[m[32m            return _real([m
+[32m+[m[32m                mode_name,[m
+[32m+[m[32m                quality,[m
+[32m+[m[32m                word_count,[m
+[32m+[m[32m                duration_choice,[m
+[32m+[m[32m                character_count,[m
+[32m+[m[32m            )[m
+         except Exception as e:[m
+             logger.error(f"validate_and_deduct_tokens fallback error: {e}")[m
+             return False, 0, "⚠️ Credit system unavailable. Please try again."[m
+[36m@@ -2909,23 +2927,49 @@[m [mLANGUAGE_VOICE_MAP = {[m
+ # 11. TOKEN BURN RATE[m
+ # ========================================================[m
+ [m
+[32m+[m[32mDYNAMIC_UI_TOKEN_COST = 10[m
+[32m+[m[32mAI_AGENT_QUALITY_COSTS = {"Standard": 3, "Pro": 5}[m
+[32m+[m
+ BASE_BURN_RATE = {[m
+     "Face Video Generator": 0,[m
+     "Face Video Studio": 25,[m
+     "Expressive Face Video": 25,[m
+     "Cinematic Engine": 25,[m
+     "Creative Workshop": 3,[m
+[31m-    "AI Agent": 2,[m
+[32m+[m[32m    "AI Agent": AI_AGENT_QUALITY_COSTS["Standard"],[m
+     "AI Sales": 2,[m
+[31m-    "Dynamic UI": 2,[m
+[32m+[m[32m    "Dynamic UI": DYNAMIC_UI_TOKEN_COST,[m
+     "Live Emotion": 10,[m
+     "Blueprints": 3,[m
+[31m-    "Upscaler": 3,[m
+[31m-    "Draw": 3,[m
+[31m-    "Video Editor": 10,[m
+[32m+[m[32m    "Upscaler": 7,[m
+[32m+[m[32m    "Draw": 7,[m
+[32m+[m[32m    "Video Editor": 15,[m
+ }[m
+ [m
+[32m+[m[32mDRAW_QUALITY_COSTS = {"Standard": 7, "HD": 10}[m
+[32m+[m[32mVIDEO_EDITOR_QUALITY_COSTS = {"Standard": 15, "HD": 25, "4K": 35}[m
+[32m+[m[32mUPSCALER_QUALITY_COSTS = {"Standard": 7, "HD": 10}[m
+[32m+[m
+ def calculate_tokens(mode_name: str, selected_quality: str) -> int:[m
+[32m+[m[32m    if mode_name == "AI Agent":[m
+[32m+[m[32m        return AI_AGENT_QUALITY_COSTS.get([m
+[32m+[m[32m            selected_quality,[m
+[32m+[m[32m            AI_AGENT_QUALITY_COSTS["Standard"],[m
+[32m+[m[32m        )[m
+[32m+[m[32m    if mode_name == "Draw":[m
+[32m+[m[32m        return DRAW_QUALITY_COSTS.get(selected_quality, DRAW_QUALITY_COSTS["Standard"])[m
+[32m+[m[32m    if mode_name == "Video Editor":[m
+[32m+[m[32m        return VIDEO_EDITOR_QUALITY_COSTS.get([m
+[32m+[m[32m            selected_quality,[m
+[32m+[m[32m            VIDEO_EDITOR_QUALITY_COSTS["Standard"],[m
+[32m+[m[32m        )[m
+[32m+[m[32m    if mode_name == "Upscaler":[m
+[32m+[m[32m        return UPSCALER_QUALITY_COSTS.get([m
+[32m+[m[32m            selected_quality,[m
+[32m+[m[32m            UPSCALER_QUALITY_COSTS["Standard"],[m
+[32m+[m[32m        )[m
+[32m+[m[32m    if mode_name == "Dynamic UI":[m
+[32m+[m[32m        return DYNAMIC_UI_TOKEN_COST[m
+     base_cost = BASE_BURN_RATE.get(mode_name, 2)[m
+     heavy_engines = ["Face Video Generator", "Face Video Studio", "Expressive Face Video", "Cinematic Engine", "Live Emotion", "Video Editor"][m
+     if selected_quality in ["High", "Pro", "Ultra-HD", "4K"]:[m
+[36m@@ -7415,19 +7459,19 @@[m [mdef _enhance_workshop_prompt_gpt4o(prompt, negative_prompt=""):[m
+ [m
+ WORKSHOP_QUALITY_SETTINGS = {[m
+     "Standard": {[m
+[31m-        "credits": 2,[m
+[32m+[m[32m        "credits": 6,[m
+         "megapixels": "1",[m
+         "num_inference_steps": 28,[m
+         "output_long_edge": 1920,[m
+     },[m
+     "HD": {[m
+[31m-        "credits": 3,[m
+[32m+[m[32m        "credits": 8,[m
+         "megapixels": "1",[m
+         "num_inference_steps": 40,[m
+         "output_long_edge": 2560,[m
+     },[m
+     "Pro": {[m
+[31m-        "credits": 4,[m
+[32m+[m[32m        "credits": 10,[m
+         "megapixels": "1",[m
+         "num_inference_steps": 50,[m
+         "output_long_edge": 3840,[m
+[36m@@ -10695,6 +10739,7 @@[m [mdef render_ai_agent_ui():[m
+                 key="agent_quality",[m
+                 label_visibility="collapsed"[m
+             )[m
+[32m+[m[32m            st.caption("Activation cost: Standard 3 credits · Pro 5 credits")[m
+             [m
+             # ✅ FIXED: Activate Button with proper logic[m
+             if st.button("🚀 Activate AI Agent", key="agent_activate_btn", width="stretch"):[m
+[36m@@ -10703,22 +10748,27 @@[m [mdef render_ai_agent_ui():[m
+                 elif not products_text.strip():[m
+                     st.error("❌ Please list at least one product or service.")[m
+                 else:[m
+[31m-                    required_tokens = 2 if agent_quality == "Standard" else 4[m
+[32m+[m[32m                    required_tokens = AI_AGENT_QUALITY_COSTS.get([m
+[32m+[m[32m                        agent_quality,[m
+[32m+[m[32m                        AI_AGENT_QUALITY_COSTS["Standard"],[m
+[32m+[m[32m                    )[m
+                     [m
+                     if st.session_state.get('user_credits', 0) < required_tokens:[m
+                         st.error(f"❌ Insufficient credits! Required: {required_tokens}, Available: {st.session_state.get('user_credits', 0)}")[m
+                     else:[m
+[32m+[m[32m                        credits_deducted = False[m
+[32m+[m[32m                        activation_saved = False[m
+                         try:[m
+                             # Deduct credits[m
+                             if not deduct_credits_db(st.session_state["logged_user"], required_tokens):[m
+                                 st.error("Credits could not b

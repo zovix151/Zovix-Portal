@@ -592,6 +592,7 @@ def render_ghost_engine_studio(
                         billing_ok, deducted_tokens, billing_message = deduct_tokens_callback(
                             "Cinematic Engine",
                             quality=quality,
+                            duration_choice=duration_seconds,
                         )
                     except Exception as exc:
                         logger.exception("Cinematic Engine token validation failed.")

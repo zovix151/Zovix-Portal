@@ -43,6 +43,7 @@ from face_video_utils import (
     default_elevenlabs_voice_id_for_gender as _default_elevenlabs_voice_id_for_gender,
     face_video_dimensions as _face_video_dimensions,
 )
+from face_audio_transcription import transcribe_audio_word_count
 
 STUDIO_ENGINE_PANEL_RATIO = (1, 1.2)
 
@@ -1671,7 +1672,12 @@ import socket
 import platform
 from production_engine import generate_production_face_video, generate_production_voice, generate_production_face_video_streamlit, generate_production_voice_streamlit, get_language_list, get_emotion_list, get_cost_estimate, check_endpoint_health
 from production_engine import generate_production_face_video, generate_production_voice
-from credits_engine import validate_and_deduct_tokens, get_face_video_token_cost
+from credits_engine import (
+    get_cinematic_story_token_cost,
+    get_face_video_token_cost,
+    get_live_emotion_token_cost,
+    validate_and_deduct_tokens,
+)
 import importlib
 import deepseek_engine
 from sales_funnel import build_sales_funnel
@@ -1685,7 +1691,13 @@ from video_composer import compose_sales_video
 # Fallback keeps the credit check available if the standalone credits module is unavailable.
 # taaki missing hone par bhi NameError na aaye aur generation proceed ho.
 if 'validate_and_deduct_tokens' not in globals():
-    def validate_and_deduct_tokens(mode_name: str = "", quality: str = "Standard", word_count=None, duration_choice=None):
+    def validate_and_deduct_tokens(
+        mode_name: str = "",
+        quality: str = "Standard",
+        word_count=None,
+        duration_choice=None,
+        character_count=None,
+    ):
         """
         Fallback token validation/deduction. Delegates to the real
         DB-backed implementation in deepinfra_engine.py so tokens
@@ -1693,7 +1705,13 @@ if 'validate_and_deduct_tokens' not in globals():
         """
         try:
             from credits_engine import validate_and_deduct_tokens as _real
-            return _real(mode_name, quality, word_count, duration_choice)
+            return _real(
+                mode_name,
+                quality,
+                word_count,
+                duration_choice,
+                character_count,
+            )
         except Exception as e:
             logger.error(f"validate_and_deduct_tokens fallback error: {e}")
             return False, 0, "⚠️ Credit system unavailable. Please try again."
@@ -2909,23 +2927,49 @@ LANGUAGE_VOICE_MAP = {
 # 11. TOKEN BURN RATE
 # ========================================================
 
+DYNAMIC_UI_TOKEN_COST = 10
+AI_AGENT_QUALITY_COSTS = {"Standard": 3, "Pro": 5}
+
 BASE_BURN_RATE = {
     "Face Video Generator": 0,
     "Face Video Studio": 25,
     "Expressive Face Video": 25,
     "Cinematic Engine": 25,
     "Creative Workshop": 3,
-    "AI Agent": 2,
+    "AI Agent": AI_AGENT_QUALITY_COSTS["Standard"],
     "AI Sales": 2,
-    "Dynamic UI": 2,
+    "Dynamic UI": DYNAMIC_UI_TOKEN_COST,
     "Live Emotion": 10,
     "Blueprints": 3,
-    "Upscaler": 3,
-    "Draw": 3,
-    "Video Editor": 10,
+    "Upscaler": 7,
+    "Draw": 7,
+    "Video Editor": 15,
 }
 
+DRAW_QUALITY_COSTS = {"Standard": 7, "HD": 10}
+VIDEO_EDITOR_QUALITY_COSTS = {"Standard": 15, "HD": 25, "4K": 35}
+UPSCALER_QUALITY_COSTS = {"Standard": 7, "HD": 10}
+
 def calculate_tokens(mode_name: str, selected_quality: str) -> int:
+    if mode_name == "AI Agent":
+        return AI_AGENT_QUALITY_COSTS.get(
+            selected_quality,
+            AI_AGENT_QUALITY_COSTS["Standard"],
+        )
+    if mode_name == "Draw":
+        return DRAW_QUALITY_COSTS.get(selected_quality, DRAW_QUALITY_COSTS["Standard"])
+    if mode_name == "Video Editor":
+        return VIDEO_EDITOR_QUALITY_COSTS.get(
+            selected_quality,
+            VIDEO_EDITOR_QUALITY_COSTS["Standard"],
+        )
+    if mode_name == "Upscaler":
+        return UPSCALER_QUALITY_COSTS.get(
+            selected_quality,
+            UPSCALER_QUALITY_COSTS["Standard"],
+        )
+    if mode_name == "Dynamic UI":
+        return DYNAMIC_UI_TOKEN_COST
     base_cost = BASE_BURN_RATE.get(mode_name, 2)
     heavy_engines = ["Face Video Generator", "Face Video Studio", "Expressive Face Video", "Cinematic Engine", "Live Emotion", "Video Editor"]
     if selected_quality in ["High", "Pro", "Ultra-HD", "4K"]:
@@ -7415,19 +7459,19 @@ def _enhance_workshop_prompt_gpt4o(prompt, negative_prompt=""):
 
 WORKSHOP_QUALITY_SETTINGS = {
     "Standard": {
-        "credits": 2,
+        "credits": 6,
         "megapixels": "1",
         "num_inference_steps": 28,
         "output_long_edge": 1920,
     },
     "HD": {
-        "credits": 3,
+        "credits": 8,
         "megapixels": "1",
         "num_inference_steps": 40,
         "output_long_edge": 2560,
     },
     "Pro": {
-        "credits": 4,
+        "credits": 10,
         "megapixels": "1",
         "num_inference_steps": 50,
         "output_long_edge": 3840,
@@ -10695,6 +10739,7 @@ def render_ai_agent_ui():
                 key="agent_quality",
                 label_visibility="collapsed"
             )
+            st.caption("Activation cost: Standard 3 credits · Pro 5 credits")
             
             # ✅ FIXED: Activate Button with proper logic
             if st.button("🚀 Activate AI Agent", key="agent_activate_btn", width="stretch"):
@@ -10703,22 +10748,27 @@ def render_ai_agent_ui():
                 elif not products_text.strip():
                     st.error("❌ Please list at least one product or service.")
                 else:
-                    required_tokens = 2 if agent_quality == "Standard" else 4
+                    required_tokens = AI_AGENT_QUALITY_COSTS.get(
+                        agent_quality,
+                        AI_AGENT_QUALITY_COSTS["Standard"],
+                    )
                     
                     if st.session_state.get('user_credits', 0) < required_tokens:
                         st.error(f"❌ Insufficient credits! Required: {required_tokens}, Available: {st.session_state.get('user_credits', 0)}")
                     else:
+                        credits_deducted = False
+                        activation_saved = False
                         try:
                             # Deduct credits
                             if not deduct_credits_db(st.session_state["logged_user"], required_tokens):
                                 st.error("Credits could not be reserved. Please try again.")
                                 st.stop()
+                            credits_deducted = True
                             st.session_state['user_credits'] = get_user_credits_db(st.session_state["logged_user"])
                             
                             with generation_credit_progress("AI Agent", required_tokens), st.spinner("🔄 Configuring AI Agent for your business..."):
-                                st.session_state["agent_business_name"] = business_name
-                                st.session_state["agent_products"] = [p.strip() for p in products_text.split("\n") if p.strip()]
-                                st.session_state["agent_schedule"] = {
+                                agent_products = [p.strip() for p in products_text.split("\n") if p.strip()]
+                                agent_schedule = {
                                     "open": str(opening_time),
                                     "close": str(closing_time),
                                     "instagram": instagram_handle,
@@ -10728,24 +10778,37 @@ def render_ai_agent_ui():
                                 
                                 # Save to database
                                 conn = sqlite3.connect(DB_PATH, check_same_thread=False)
-                                cursor = conn.cursor()
                                 try:
+                                    cursor = conn.cursor()
                                     cursor.execute(
                                         "INSERT OR REPLACE INTO ai_agent_config (username, business_name, products, schedule) VALUES (?, ?, ?, ?)",
-                                        (st.session_state["logged_user"], business_name, json.dumps(st.session_state["agent_products"]), json.dumps(st.session_state["agent_schedule"]))
+                                        (st.session_state["logged_user"], business_name, json.dumps(agent_products), json.dumps(agent_schedule))
                                     )
                                     conn.commit()
-                                except Exception as db_e:
-                                    logger.warning(f"DB save error: {db_e}")
                                 finally:
                                     conn.close()
+                                activation_saved = True
+                                st.session_state["agent_business_name"] = business_name
+                                st.session_state["agent_products"] = agent_products
+                                st.session_state["agent_schedule"] = agent_schedule
                                 
                                 st.session_state["ai_agent_mode"] = True
                                 st.toast("✅ AI Agent activated successfully!")
                                 st.rerun()
                         except Exception as e:
-                            refund_face_video_credits(required_tokens, f"AI Agent activation failed: {e}")
-                            st.error(f"❌ Error: {str(e)}")
+                            refund_succeeded = False
+                            if credits_deducted and not activation_saved:
+                                refund_succeeded = refund_face_video_credits(
+                                    required_tokens,
+                                    f"AI Agent activation failed: {e}",
+                                )
+                            logger.exception("AI Agent activation failed")
+                            if refund_succeeded:
+                                st.error(f"❌ Activation failed; {required_tokens} credits refunded. Error: {e}")
+                            elif credits_deducted and not activation_saved:
+                                st.error(f"❌ Activation failed and the refund could not be completed. Contact support. Error: {e}")
+                            else:
+                                st.error(f"❌ Error: {str(e)}")
     
     with agent_col2:
         with st.container(border=True):
@@ -11106,19 +11169,72 @@ def render_ai_agent_ui():
     with tab3:
         with st.container(border=True):
             st.markdown('<p style="color: #8B5CF6; font-family: Orbitron; font-size: 12px;">⚡ AGENT COMMANDS</p>', unsafe_allow_html=True)
+            agent_quality = st.selectbox(
+                "AI Agent Quality",
+                ["Standard", "Pro"],
+                key="agent_studio_quality",
+            )
+            st.caption("Per campaign: Standard 3 credits · Pro 5 credits")
             target = st.selectbox("Select Target Strategy", ["Viral Instagram Ad", "Professional LinkedIn Post", "Fast Twitter Thread", "Email Marketing Campaign"])
             
             if st.button("🚀 Execute AI Ad Campaign", width="stretch"):
+                if not require_login_for_generation("AI Agent Mode"):
+                    st.stop()
                 if not st.session_state.get("agent_business_name") or not st.session_state.get("agent_products"):
                     st.error("Missing Brand Details! Please setup Brand Profile and Product Manager first.")
                 else:
-                    with st.spinner("Agent is analyzing market trends and generating copy..."):
-                        ad_text = generate_agent_ad(
-                            st.session_state.get("agent_business_name"),
-                            st.session_state.get("agent_products", []),
-                            target
+                    required_tokens = AI_AGENT_QUALITY_COSTS.get(
+                        agent_quality,
+                        AI_AGENT_QUALITY_COSTS["Standard"],
+                    )
+                    username = str(st.session_state.get("logged_user") or "").strip()
+                    get_user_credits_db.clear()
+                    available_credits = get_user_credits_db(username)
+                    st.session_state["user_credits"] = available_credits
+                    st.session_state["credit_balance"] = available_credits
+                    if available_credits < required_tokens:
+                        st.error(
+                            f"Insufficient credits! Required: {required_tokens}, "
+                            f"available: {available_credits}."
                         )
-                        st.session_state["agent_generated_ad"] = ad_text
+                    elif not deduct_credits_db(username, required_tokens):
+                        get_user_credits_db.clear()
+                        available_credits = get_user_credits_db(username)
+                        st.session_state["user_credits"] = available_credits
+                        st.session_state["credit_balance"] = available_credits
+                        st.error("Credits could not be reserved. Please try again.")
+                    else:
+                        try:
+                            with generation_credit_progress("AI Agent", required_tokens), st.spinner("Agent is analyzing market trends and generating copy..."):
+                                ad_text = generate_agent_ad(
+                                    st.session_state.get("agent_business_name"),
+                                    st.session_state.get("agent_products", []),
+                                    target
+                                )
+                            if not str(ad_text or "").strip() or str(ad_text).startswith("Please configure"):
+                                refund_succeeded = refund_face_video_credits(
+                                    required_tokens,
+                                    "AI Agent returned no campaign content",
+                                    username=username,
+                                )
+                                if refund_succeeded:
+                                    st.error("AI Agent could not generate campaign content. Credits refunded.")
+                                else:
+                                    st.error("AI Agent could not generate campaign content and the refund failed. Contact support.")
+                            else:
+                                st.session_state["agent_generated_ad"] = ad_text
+                                _record_generation_credit_usage("AI Agent", required_tokens)
+                        except Exception as exc:
+                            refund_succeeded = refund_face_video_credits(
+                                required_tokens,
+                                f"AI Agent campaign generation failed: {exc}",
+                                username=username,
+                            )
+                            logger.exception("AI Agent campaign generation failed")
+                            if refund_succeeded:
+                                st.error(f"AI Agent failed; {required_tokens} credits refunded. Error: {exc}")
+                            else:
+                                st.error(f"AI Agent failed and refund could not be completed. Contact support. Error: {exc}")
             
             if st.session_state.get("agent_generated_ad"):
                 st.markdown("---")
@@ -11783,15 +11899,12 @@ def generate_dynamic_ui():
                 format_func=lambda value: value.title(),
                 label_visibility="visible",
             )
-            st.session_state["dynamic_ui_profile_mode"] = profile
-            st.session_state["user_behavior_profile"] = profile
             theme = st.selectbox(
                 "Theme Mode",
                 ["Auto", "Dark", "Light"],
                 key="dyn_ui_theme",
                 label_visibility="visible",
             )
-            st.session_state["ui_theme_mode"] = theme
             if profile == "beginner":
                 st.info("🧑 Beginner mode: Simplified interface with tooltips and guided workflows")
             elif profile == "intermediate":
@@ -11800,8 +11913,33 @@ def generate_dynamic_ui():
                 st.info("🧑‍🔬 Advanced mode: Full control with expert tools and shortcuts")
 
             if st.button("Apply UI Settings", key="dyn_ui_apply", width="stretch"):
-                st.toast(f"UI Profile set to {profile.title()}!")
-                st.rerun()
+                required_tokens = DYNAMIC_UI_TOKEN_COST
+                username = str(st.session_state.get("logged_user") or "").strip()
+                if not username:
+                    st.error("Please log in to apply UI settings.")
+                else:
+                    get_user_credits_db.clear()
+                    available_credits = get_user_credits_db(username)
+                    st.session_state["user_credits"] = available_credits
+                    st.session_state["credit_balance"] = available_credits
+                    if available_credits < required_tokens:
+                        st.error(
+                            f"Insufficient credits! Required: {required_tokens}, "
+                            f"available: {available_credits}."
+                        )
+                    elif not deduct_credits_db(username, required_tokens):
+                        get_user_credits_db.clear()
+                        available_credits = get_user_credits_db(username)
+                        st.session_state["user_credits"] = available_credits
+                        st.session_state["credit_balance"] = available_credits
+                        st.error("Credits could not be reserved. Please try again.")
+                    else:
+                        st.session_state["dynamic_ui_profile_mode"] = profile
+                        st.session_state["user_behavior_profile"] = profile
+                        st.session_state["ui_theme_mode"] = theme
+                        _record_generation_credit_usage("Dynamic UI", required_tokens)
+                        st.toast(f"UI Profile set to {profile.title()}!")
+                        st.rerun()
 
     with col2:
         with st.container(border=True, key="dynamic_ui_dashboard_panel"):
@@ -12150,6 +12288,10 @@ def render_live_emotion_voice():
                 key="emotion_voice_text_input",
                 label_visibility="visible",
             )
+            st.caption(
+                f"{len(emotion_text)}/2,000 characters · "
+                f"{get_live_emotion_token_cost(len(emotion_text))} credits"
+            )
             emotion = st.selectbox(
                 "😊 Select Emotion",
                 ["neutral", "happy", "sad", "angry", "excited", "fearful", "mysterious", "serious"],
@@ -12178,7 +12320,14 @@ def render_live_emotion_voice():
                 if not emotion_text.strip():
                     st.error("Please enter text.")
                 else:
-                    with st.spinner("Generating ZOVIX Emotion Voice..."):
+                    success, required_tokens, message = validate_and_deduct_tokens(
+                        "Live Emotion",
+                        character_count=len(emotion_text),
+                    )
+                    if not success:
+                        st.error(message)
+                    else:
+                        generation_succeeded = False
                         try:
                             voice_meta = ELEVENLABS_VOICES.get(emotion_voice, {})
                             selected_voice_gender = voice_meta.get("gender", "male")
@@ -12186,16 +12335,19 @@ def render_live_emotion_voice():
                             output_path = f"face_videos/emotion_voice_{uuid.uuid4().hex[:8]}.mp3"
                             
                             # ✅ FIX: Call generate_emotion_voice() instead of generate_elevenlabs_audio_for_face()
-                            audio_ok = generate_emotion_voice(
-                                text=emotion_text,
-                                emotion=emotion,
-                                voice_type=selected_voice_gender,
-                                output_path=output_path,
-                                elevenlabs_voice_id=voice_id
-                            )
+                            with st.spinner("Generating ZOVIX Emotion Voice..."):
+                                audio_ok = generate_emotion_voice(
+                                    text=emotion_text,
+                                    emotion=emotion,
+                                    voice_type=selected_voice_gender,
+                                    output_path=output_path,
+                                    elevenlabs_voice_id=voice_id
+                                )
                             
                             # ✅ FIX: Check if audio_ok is a path (string) or boolean
                             if audio_ok and os.path.exists(audio_ok if isinstance(audio_ok, str) else output_path):
+                                generation_succeeded = True
+                                _record_generation_credit_usage("Live Emotion", required_tokens)
                                 actual_path = audio_ok if isinstance(audio_ok, str) else output_path
                                 st.session_state["emotion_voice_output"] = actual_path
                                 st.session_state["emotion_voice_text"] = emotion_text
@@ -12217,8 +12369,17 @@ def render_live_emotion_voice():
                                 _show_generation_success()
                                 st.rerun()
                             else:
+                                refund_face_video_credits(
+                                    required_tokens,
+                                    "Live Emotion voice generation failed",
+                                )
                                 st.error("Voice generation failed. Check API keys and try again.")
                         except Exception as e:
+                            if not generation_succeeded:
+                                refund_face_video_credits(
+                                    required_tokens,
+                                    f"Live Emotion voice generation error: {e}",
+                                )
                             st.error(f"Error: {str(e)}")
 
     with col2:
@@ -14879,7 +15040,7 @@ def run_upscaler_mode():
                     st.error("Replicate is not configured. Add REPLICATE_API_TOKEN to .env or Streamlit secrets.")
                 else:
                     # Deduct credits
-                    quality_map = {"Standard": 2, "HD": 3}
+                    quality_map = UPSCALER_QUALITY_COSTS
                     required_tokens = quality_map.get(us_quality, 2)
                     
                     if st.session_state.get('user_credits', 0) < required_tokens:
@@ -15352,7 +15513,7 @@ def run_draw_mode():
                 if not draw_prompt.strip():
                     st.error("❌ Please enter a drawing description.")
                 else:
-                    quality_map = {"Standard": 2, "HD": 3}
+                    quality_map = DRAW_QUALITY_COSTS
                     required_tokens = quality_map.get(dr_quality, 2)
                     
                     if st.session_state.get('user_credits', 0) < required_tokens:
@@ -16233,7 +16394,7 @@ def run_video_editor_mode():
                 elif not st.session_state.get("is_logged_in"):
                     st.error("❌ Please log in first.")
                 else:
-                    quality_map = {"Standard": 3, "HD": 4, "4K": 6}
+                    quality_map = VIDEO_EDITOR_QUALITY_COSTS
                     required_tokens = quality_map.get(editor_quality, 3)
                     user_credits = st.session_state.get("user_credits", 0)
                     if user_credits < required_tokens:
@@ -17248,7 +17409,7 @@ def run_unified_face_video_mode():
                     type=["mp3", "wav", "m4a", "ogg"],
                     key="unified_fv_recorded_voice",
                     label_visibility="collapsed",
-                    help="Upload your own spoken dialogue and keep it within the selected video duration.",
+                    help="Upload your own spoken dialogue. It is transcribed locally to enforce the 120-word limit.",
                 )
                 if recorded_voice_upload:
                     st.audio(recorded_voice_upload)
@@ -17379,7 +17540,13 @@ def run_unified_face_video_mode():
                             if not is_audio_audible(temp_audio_path):
                                 raise ValueError("No audible speech was detected in the uploaded recording.")
                             prompt_for_history = f"Recorded voice: {recorded_voice_upload.name}"
-                            face_word_count = max(1, int(audio_duration * 5 + 0.999))
+                            face_word_count = transcribe_audio_word_count(temp_audio_path)
+                            if face_word_count > 120:
+                                st.error(
+                                    f"Your recorded voice has {face_word_count} words. "
+                                    "The maximum is 120 words. Please trim the recording and upload it again."
+                                )
+                                return
                         else:
                             face_word_count = len(face_prompt.split())
 
@@ -18729,11 +18896,15 @@ def run_cinematic_engine():
                 "Prompt Input",
                 placeholder="Explain video concept: e.g. Ek kisan ke paas do beej the...",
                 height=90,
-                max_chars=600,
+                max_chars=2000,
                 label_visibility="collapsed",
                 key="user_prompt"
             )
-            st.caption(f"✍️ Characters: **{len(user_input or '')}/600**")
+            st.caption(
+                f"✍️ Characters: **{len(user_input or '')}/2000** · "
+                f"DeepSeek Blueprint: 4 credits; video: "
+                f"{get_cinematic_story_token_cost(len(user_input or ''))} credits"
+            )
             
             st.markdown('<p class="cinematic-field-label" style="font-family: Inter; font-size: 11px; color: #94a3b8; margin-bottom: 4px;">📐 Aspect Ratio</p>', unsafe_allow_html=True)
             aspect_choice = st.selectbox(
@@ -18858,9 +19029,13 @@ def run_cinematic_engine():
                 placeholder="Explain video concept: e.g. Bermuda triangle ka ansuljha rahasya jo kisi ko nahi pata tha." if input_mode == "💡 Autonomous AI Topic" 
                 else "Write a custom script separated by paragraph breaks...",
                 height=90,
-                max_chars=600,
+                max_chars=2000,
                 label_visibility="collapsed",
                 key="user_prompt"
+            )
+            st.caption(
+                f"✍️ Characters: **{len(user_input or '')}/2000** · "
+                f"Video generation: {get_cinematic_story_token_cost(len(user_input or ''))} credits"
             )
         
         # Render Quality
@@ -18889,6 +19064,7 @@ def run_cinematic_engine():
                             "Cinematic Engine",
                             cinematic_quality,
                             duration_choice=dur_choice,
+                            character_count=len(user_input),
                         )
                         if not success:
                             st.error(message)

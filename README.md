@@ -127,6 +127,8 @@ pip install -r requirements.txt
 
 Install FFmpeg separately using your operating system's package manager, then confirm `ffmpeg` is available on `PATH`.
 
+Face Video Studio transcribes uploaded voice recordings locally with `faster-whisper` to enforce the 120-word limit. The default `small` model is downloaded on first use; set `FACE_STUDIO_ASR_MODEL` to choose another faster-whisper model size.
+
 ### 4. Configure environment variables
 
 Create a `.env` file in the repository root, or configure the same values through your hosting provider's secret manager. Use your own credentials—do not commit `.env` or paste secrets into source control.

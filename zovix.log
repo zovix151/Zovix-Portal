@@ -30349,3 +30349,86 @@ RuntimeError: Zovix Ghost Engine failed at Direct image-to-video after 14.2s: Im
 2026-11-18 14:43:11,630 - Zovix - INFO - Using Supabase PostgreSQL database
 2026-11-18 14:43:16,785 - Zovix - INFO - Using Supabase PostgreSQL database
 2026-11-18 14:43:17,820 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 14:03:28,732 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 14:03:30,717 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-11-23 14:03:30,728 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-11-23 14:03:30,730 - Zovix - INFO - Redis cache client initialized lazily
+2026-11-23 14:03:32,857 - Zovix - INFO - Database initialized successfully
+2026-11-23 14:03:57,568 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 14:03:59,173 - Zovix - INFO - Database initialized successfully
+2026-11-23 14:04:09,343 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 14:04:11,099 - Zovix - INFO - Database initialized successfully
+2026-11-23 14:04:16,563 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 14:04:24,382 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 14:04:25,325 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 14:04:43,511 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 14:20:24,734 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 14:20:27,177 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 14:22:56,662 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 14:22:57,929 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 14:25:36,546 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 14:25:39,015 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 14:25:44,978 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 14:25:45,520 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 14:27:17,046 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 14:27:19,320 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 14:27:35,237 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 14:27:36,145 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 14:31:05,023 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 14:31:07,394 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 14:31:15,943 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 14:31:16,826 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 14:31:26,604 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 14:31:27,456 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 14:31:31,148 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 14:31:32,189 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 14:37:39,730 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 14:37:40,734 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 14:37:46,745 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 14:37:47,696 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 14:41:05,217 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 14:41:07,563 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 14:41:13,463 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 14:41:14,335 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 14:49:49,482 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 14:49:51,857 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 14:50:44,836 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 14:50:45,855 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 16:14:29,356 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 16:14:30,126 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-11-23 16:14:30,140 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-11-23 16:14:30,142 - Zovix - INFO - Redis cache client initialized lazily
+2026-11-23 16:14:33,606 - Zovix - INFO - Database initialized successfully
+2026-11-23 16:15:03,274 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 16:15:06,482 - Zovix - INFO - Database initialized successfully
+2026-11-23 16:15:14,633 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 16:56:11,418 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 16:56:12,966 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 17:00:08,486 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 17:00:53,297 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 17:00:53,374 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 17:00:54,166 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 17:01:06,000 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 17:01:14,635 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 17:02:02,499 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 17:07:25,055 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 17:07:28,247 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 17:07:41,160 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 17:07:42,276 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 17:10:54,892 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 17:10:55,454 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-11-23 17:10:55,469 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-11-23 17:10:55,471 - Zovix - INFO - Redis cache client initialized lazily
+2026-11-23 17:10:58,073 - Zovix - INFO - Database initialized successfully
+2026-11-23 17:11:05,747 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 17:11:09,028 - Zovix - INFO - Database initialized successfully
+2026-11-23 17:11:20,700 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 17:11:24,185 - Zovix - INFO - Database initialized successfully
+2026-11-23 17:11:32,693 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 17:11:46,324 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 17:11:47,295 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 17:14:30,521 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 17:14:33,818 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 17:14:42,683 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 17:14:43,761 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-23 17:15:05,142 - Zovix - INFO - Using Supabase PostgreSQL database

@@ -21,24 +21,90 @@ FACE_VIDEO_WORD_PRICES = {
     "Premium": ((50, 38), (85, 48), (120, 75)),
 }
 SALES_VIDEO_QUALITY_COSTS = {"Standard": 70, "HD": 85, "4K": 100}
+BLUEPRINT_QUALITY_TOKEN_COSTS = {"Standard": 7, "HD": 10}
 GHOST_ENGINE_TOKEN_COST = 25
 CINEMATIC_QUALITY_TOKEN_COSTS = {"Standard": 25, "HD": 40}
+GHOST_ENGINE_DURATION_TOKEN_COSTS = {
+    5: {"Standard": 20, "HD": 30},
+    10: {"Standard": 28, "HD": 35},
+}
 
 
-def get_prompt_word_cost(engine_name, quality="Standard", word_count=0, duration_choice=None):
+def get_live_emotion_token_cost(character_count):
+    try:
+        characters = int(character_count or 0)
+    except (TypeError, ValueError):
+        characters = 0
+    if characters <= 0:
+        return 0
+    if characters <= 250:
+        return 5
+    if characters <= 600:
+        return 7
+    if characters <= 1200:
+        return 12
+    return 12 + ((characters - 1200 + 599) // 600) * 6
+
+
+def get_cinematic_story_token_cost(character_count):
+    try:
+        characters = int(character_count or 0)
+    except (TypeError, ValueError):
+        characters = 0
+    if characters <= 0:
+        return 0
+    if characters <= 250:
+        return 10
+    if characters <= 600:
+        return 15
+    if characters <= 1200:
+        return 20
+    return 40
+
+
+def _get_ghost_engine_duration_cost(duration_choice, quality):
+    try:
+        duration_seconds = int(duration_choice)
+    except (TypeError, ValueError):
+        return None
+    return GHOST_ENGINE_DURATION_TOKEN_COSTS.get(duration_seconds, {}).get(quality)
+
+
+def get_prompt_word_cost(
+    engine_name,
+    quality="Standard",
+    word_count=0,
+    duration_choice=None,
+    character_count=None,
+):
     """Return the word-band credit cost matching the face-video pricing rules."""
     engine_key = str(engine_name or "").strip().lower()
     if engine_key == "ghost engine":
+        duration_cost = _get_ghost_engine_duration_cost(duration_choice, quality)
+        if duration_cost is not None:
+            return duration_cost
         return 40 if quality == "HD" else max(0, int(GHOST_ENGINE_TOKEN_COST))
     if engine_key == "deepseek ai blueprint":
         return 4
+    if engine_key == "blueprints":
+        return BLUEPRINT_QUALITY_TOKEN_COSTS.get(
+            quality,
+            BLUEPRINT_QUALITY_TOKEN_COSTS["Standard"],
+        )
     if engine_key == "cinematic engine":
+        duration_cost = _get_ghost_engine_duration_cost(duration_choice, quality)
+        if duration_cost is not None:
+            return duration_cost
+        if character_count is not None:
+            return get_cinematic_story_token_cost(character_count)
         return CINEMATIC_QUALITY_TOKEN_COSTS.get(
             quality,
             CINEMATIC_QUALITY_TOKEN_COSTS["Standard"],
         )
     if engine_key == "ai sales video":
         return SALES_VIDEO_QUALITY_COSTS.get(quality, SALES_VIDEO_QUALITY_COSTS["Standard"])
+    if engine_key == "live emotion":
+        return get_live_emotion_token_cost(character_count)
 
     face_like_engines = {
         "face video generator",
@@ -69,9 +135,21 @@ def get_face_video_token_cost(quality="Standard", word_count=0):
     return get_prompt_word_cost("Face Video Generator", quality, word_count)
 
 
-def validate_and_deduct_tokens(engine_name, quality="Standard", word_count=None, duration_choice=None):
+def validate_and_deduct_tokens(
+    engine_name,
+    quality="Standard",
+    word_count=None,
+    duration_choice=None,
+    character_count=None,
+):
     # Face-video and sales prompt pricing follows the same quality and script word-count table.
-    required = get_prompt_word_cost(engine_name, quality, word_count, duration_choice)
+    required = get_prompt_word_cost(
+        engine_name,
+        quality,
+        word_count,
+        duration_choice,
+        character_count,
+    )
     if required is None:
         return False, 0, "Prompt is limited to 120 words. Please shorten it."
     low_balance_threshold = 25
