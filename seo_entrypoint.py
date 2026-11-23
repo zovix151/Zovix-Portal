@@ -110,6 +110,14 @@ async def serve_brand_logo(_request):
     return FileResponse(STATIC_DIR / "zovix-logo.svg", media_type="image/svg+xml")
 
 
+async def serve_favicon_png(_request):
+    return FileResponse(STATIC_DIR / "favicon.png", media_type="image/png")
+
+
+async def serve_favicon_ico(_request):
+    return FileResponse(STATIC_DIR / "favicon.ico", media_type="image/vnd.microsoft.icon")
+
+
 async def serve_about(_request):
     return FileResponse(
         STATIC_DIR / "about.html",
@@ -139,6 +147,8 @@ def create_app(mode):
         Route("/robots.txt", serve_robots),
         Route("/sitemap.xml", serve_sitemap),
         Route("/zovix-logo.svg", serve_brand_logo),
+        Route("/favicon.png", serve_favicon_png),
+        Route("/favicon.ico", serve_favicon_ico),
         Route("/about", serve_about),
         Route("/engines", serve_engines),
         Route("/face-generation-policy", serve_face_generation_policy),
