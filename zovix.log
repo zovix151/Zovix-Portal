@@ -30432,3 +30432,13 @@ RuntimeError: Zovix Ghost Engine failed at Direct image-to-video after 14.2s: Im
 2026-11-23 17:14:42,683 - Zovix - INFO - Using Supabase PostgreSQL database
 2026-11-23 17:14:43,761 - Zovix - INFO - Using Supabase PostgreSQL database
 2026-11-23 17:15:05,142 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-24 16:18:10,304 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-24 16:18:10,849 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-11-24 16:18:10,861 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-11-24 16:18:10,862 - Zovix - INFO - Redis cache client initialized lazily
+2026-11-24 16:18:12,796 - Zovix - INFO - Database initialized successfully
+2026-11-24 16:18:32,691 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-24 16:18:35,020 - Zovix - INFO - Database initialized successfully
+2026-11-24 16:19:34,993 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-24 16:19:36,371 - Zovix - INFO - Database initialized successfully
+2026-11-24 16:19:41,512 - Zovix - INFO - Using Supabase PostgreSQL database

@@ -112,13 +112,17 @@ def render_workspace_header(
         @media (max-width: 768px) {{
             [data-testid="stHorizontalBlock"]:has(.st-key-{button_key})
             > [data-testid="stColumn"]:has(.st-key-{button_key}) {{
-                display: none !important;
+                display: flex !important;
+                flex: 0 0 auto !important;
+                width: auto !important;
+                max-width: none !important;
             }}
             [data-testid="stHorizontalBlock"]:has(.st-key-{button_key})
             > [data-testid="stColumn"]:not(:has(.st-key-{button_key})) {{
-                flex: 1 1 100% !important;
-                width: 100% !important;
-                max-width: 100% !important;
+                flex: 1 1 auto !important;
+                width: auto !important;
+                max-width: none !important;
+                min-width: 0 !important;
             }}
         }}
         </style>
