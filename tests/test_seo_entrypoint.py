@@ -1,4 +1,6 @@
 import os
+import io
+import json
 import socket
 import subprocess
 import sys
@@ -8,6 +10,7 @@ import urllib.request
 import xml.etree.ElementTree as ET
 
 import pytest
+from PIL import Image
 
 import seo_entrypoint
 
@@ -59,6 +62,28 @@ def test_sitemap_and_robots_are_served_at_root(mode):
         assert body == (seo_entrypoint.STATIC_DIR / "sitemap.xml").read_bytes()
         assert ET.fromstring(body).tag.endswith("}urlset")
 
+        with urllib.request.urlopen(base_url + "/manifest.json") as manifest_response:
+            assert manifest_response.status == 200
+            assert manifest_response.headers.get_content_type() == "application/manifest+json"
+            manifest = json.load(manifest_response)
+        assert manifest["name"] == "Zovix"
+        assert manifest["start_url"] == "/?page=studio"
+        assert manifest["scope"] == "/"
+        assert manifest["display"] == "standalone"
+        assert {icon["sizes"] for icon in manifest["icons"]} == {"192x192", "512x512"}
+        for icon in manifest["icons"]:
+            with urllib.request.urlopen(base_url + icon["src"]) as icon_response:
+                assert icon_response.headers.get_content_type() == "image/png"
+                image = Image.open(io.BytesIO(icon_response.read()))
+                size = int(icon["sizes"].split("x")[0])
+                assert image.size == (size, size)
+                assert image.format == "PNG"
+        with urllib.request.urlopen(
+            urllib.request.Request(base_url + "/manifest.json", method="HEAD")
+        ) as manifest_head:
+            assert manifest_head.headers.get_content_type() == "application/manifest+json"
+            assert manifest_head.read() == b""
+
         request = urllib.request.Request(base_url + "/sitemap.xml", method="HEAD")
         with urllib.request.urlopen(request) as head:
             assert head.status == 200
@@ -105,6 +130,7 @@ def test_sitemap_and_robots_are_served_at_root(mode):
         with urllib.request.urlopen(bot_request) as bot_root:
             bot_body = bot_root.read()
         assert bot_body == (seo_entrypoint.STATIC_DIR / "index.html").read_bytes()
+        assert seo_entrypoint.MANIFEST_LINK in bot_body
         for metadata in (
             b"<title>Zovix \xe2\x80\x94 Cinematic AI Studio</title>",
             b'<meta name="description" content="Create cinematic AI videos, scenes, and visuals with Zovix. '
@@ -128,12 +154,26 @@ def test_sitemap_and_robots_are_served_at_root(mode):
 
         with urllib.request.urlopen(base_url + "/") as root:
             root_body = root.read()
+            assert root.headers.get("Content-Length") == str(len(root_body))
+        assert seo_entrypoint.MANIFEST_LINK in root_body
         if mode == "replit":
             assert root_body == (seo_entrypoint.STATIC_DIR / "index.html").read_bytes()
         else:
             assert b"streamlit" in root_body.lower()
+            assert seo_entrypoint.MANIFEST_LINK in root_body.split(b"</head>", 1)[0]
             with urllib.request.urlopen(base_url + "/?page=login") as login:
                 assert login.read() == root_body
+            with urllib.request.urlopen(urllib.request.Request(
+                base_url + "/",
+                headers={"Accept-Encoding": "gzip", "If-None-Match": '"old-etag"'},
+            )) as cached_root:
+                assert cached_root.status == 200
+                assert seo_entrypoint.MANIFEST_LINK in cached_root.read()
+            with urllib.request.urlopen(
+                urllib.request.Request(base_url + "/", method="HEAD")
+            ) as root_head:
+                assert root_head.headers.get("Content-Length") == str(len(root_body))
+                assert root_head.read() == b""
 
         apex_http_request = urllib.request.Request(
             base_url + "/?page=studio",

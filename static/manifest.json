@@ -1,0 +1,19 @@
+{
+  "name": "Zovix",
+  "short_name": "Zovix",
+  "start_url": "/?page=studio",
+  "scope": "/",
+  "display": "standalone",
+  "icons": [
+    {
+      "src": "/app/static/favicon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
