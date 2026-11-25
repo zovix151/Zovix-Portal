@@ -161,6 +161,14 @@ async def serve_manifest(_request):
     return FileResponse(STATIC_DIR / "manifest.json", media_type="application/manifest+json")
 
 
+async def serve_assetlinks(_request):
+    return FileResponse(
+        STATIC_DIR / ".well-known" / "assetlinks.json",
+        media_type="application/json",
+        headers={"Cache-Control": "no-cache, max-age=0, must-revalidate"},
+    )
+
+
 async def serve_home(_request):
     return FileResponse(
         STATIC_DIR / "index.html",
@@ -210,6 +218,7 @@ def create_app(mode):
         Route("/robots.txt", serve_robots),
         Route("/sitemap.xml", serve_sitemap),
         Route("/manifest.json", serve_manifest),
+        Route("/.well-known/assetlinks.json", serve_assetlinks),
         Route("/zovix-logo.svg", serve_brand_logo),
         Route("/favicon.png", serve_favicon_png),
         Route("/favicon.ico", serve_favicon_ico),
