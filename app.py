@@ -30691,6 +30691,61 @@ elif st.session_state.get("current_page") == "studio_mode":
             display: none !important;
         }
         @media (max-width: 768px) {
+            html body [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) [data-testid="stVerticalBlockBorderWrapper"] {
+                padding: 14px !important;
+                background: #fff !important;
+                border: 1px solid #e1eaf3 !important;
+                border-radius: 14px !important;
+                box-shadow: 0 5px 18px rgba(43,81,118,.065) !important;
+            }
+            html body [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) [data-testid="stVerticalBlock"] {
+                gap: 12px !important;
+            }
+            html body [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) [data-testid="stSelectbox"],
+            html body [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) [data-testid="stTextArea"],
+            html body [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) [data-testid="stTextInput"],
+            html body [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) [data-testid="stFileUploader"] {
+                box-sizing: border-box !important;
+                width: 100% !important;
+                min-width: 0 !important;
+                max-width: 100% !important;
+            }
+            html body [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) [data-testid="stWidgetLabel"] label {
+                white-space: normal !important;
+                overflow-wrap: anywhere !important;
+                line-height: 1.4 !important;
+            }
+            html body [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) [data-baseweb="select"] > div {
+                min-height: 44px !important;
+            }
+            html body [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) [data-testid="stButton"] > button,
+            html body [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) [data-testid="stDownloadButton"] > button {
+                min-height: 42px !important;
+                border-radius: 9px !important;
+            }
+            html body [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) :is(
+                .st-key-us_upscale_btn, .st-key-workshop_generation_action_btn, .st-key-bp_generate_btn,
+                .st-key-dr_generate_btn, .st-key-movie_generate_btn_editor, .st-key-sales_generate_btn,
+                .st-key-dyn_ui_apply, .st-key-unified_fv_generate_btn, .st-key-fv_generate_btn,
+                .st-key-efv_generate_btn, .st-key-emotion_generate_btn, .st-key-agent_activate_btn,
+                .st-key-studio_generate_action_btn
+            ) button {
+                color: #fff !important;
+                background: linear-gradient(105deg,#08b9d4,#6656e9) !important;
+                border: 0 !important;
+                box-shadow: 0 5px 14px rgba(73,112,221,.16) !important;
+            }
+            html body [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) :is(
+                .st-key-us_upscale_btn, .st-key-workshop_generation_action_btn, .st-key-bp_generate_btn,
+                .st-key-dr_generate_btn, .st-key-movie_generate_btn_editor, .st-key-sales_generate_btn,
+                .st-key-dyn_ui_apply, .st-key-unified_fv_generate_btn, .st-key-fv_generate_btn,
+                .st-key-efv_generate_btn, .st-key-emotion_generate_btn, .st-key-agent_activate_btn,
+                .st-key-studio_generate_action_btn
+            ) button :is(p, span, div) {
+                color: #fff !important;
+                -webkit-text-fill-color: #fff !important;
+                font-weight: 700 !important;
+            }
             [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .block-container {
                 padding-left: 22px !important;
                 padding-right: 22px !important;

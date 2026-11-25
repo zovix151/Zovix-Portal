@@ -139,7 +139,8 @@ def render_workspace_header(
             }}
             html body [data-testid="stMain"] .st-key-{button_key} [data-testid="stButton"] > button p::after {{
                 content: "← Back";
-                color: #fff;
+                color: #fff !important;
+                -webkit-text-fill-color: #fff !important;
                 text-transform: none;
                 font: 700 12px 'Inter', Arial, sans-serif;
                 letter-spacing: .2px;
