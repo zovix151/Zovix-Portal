@@ -30442,3 +30442,287 @@ RuntimeError: Zovix Ghost Engine failed at Direct image-to-video after 14.2s: Im
 2026-11-24 16:19:34,993 - Zovix - INFO - Using Supabase PostgreSQL database
 2026-11-24 16:19:36,371 - Zovix - INFO - Database initialized successfully
 2026-11-24 16:19:41,512 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-25 17:50:05,355 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-25 17:50:07,158 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-11-25 17:50:07,169 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-11-25 17:50:07,170 - Zovix - INFO - Redis cache client initialized lazily
+2026-11-25 17:50:09,656 - Zovix - INFO - Database initialized successfully
+2026-11-25 17:50:48,914 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-25 17:50:52,440 - Zovix - INFO - Database initialized successfully
+2026-11-25 17:50:58,704 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-25 17:51:35,766 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-25 17:51:36,904 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-25 17:53:01,831 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-25 17:53:02,872 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-25 17:53:14,217 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-25 17:53:14,773 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-25 17:53:21,859 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-25 17:53:22,861 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-25 18:01:26,073 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-25 18:01:26,963 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-11-25 18:01:26,975 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-11-25 18:01:26,977 - Zovix - INFO - Redis cache client initialized lazily
+2026-11-25 18:01:29,056 - Zovix - INFO - Database initialized successfully
+2026-11-25 18:01:30,392 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-25 18:01:32,481 - Zovix - INFO - Database initialized successfully
+2026-11-25 18:01:36,480 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-25 18:01:39,794 - Zovix - INFO - Database initialized successfully
+2026-11-25 18:01:42,089 - asyncio - ERROR - Exception in callback _ProactorBasePipeTransport._call_connection_lost(None)
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost(None)>
+Traceback (most recent call last):
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\asyncio\events.py", line 80, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\asyncio\proactor_events.py", line 162, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-11-25 18:01:42,601 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-25 18:01:45,963 - Zovix - INFO - Database initialized successfully
+2026-11-25 18:01:48,686 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-25 18:01:51,529 - Zovix - INFO - Database initialized successfully
+2026-11-25 18:01:54,814 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-25 18:01:57,546 - Zovix - INFO - Database initialized successfully
+2026-11-25 18:02:00,940 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-25 18:02:03,697 - Zovix - INFO - Database initialized successfully
+2026-11-25 18:02:07,063 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-25 18:02:09,056 - Zovix - INFO - Database initialized successfully
+2026-11-25 18:02:13,188 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-25 18:02:16,059 - Zovix - INFO - Database initialized successfully
+2026-11-25 18:02:19,316 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-25 18:02:22,222 - Zovix - INFO - Database initialized successfully
+2026-11-25 18:02:25,439 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-25 18:02:27,369 - Zovix - INFO - Database initialized successfully
+2026-11-25 18:02:31,550 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-25 18:02:34,375 - Zovix - INFO - Database initialized successfully
+2026-11-25 18:02:37,659 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-25 18:02:40,439 - Zovix - INFO - Database initialized successfully
+2026-11-25 18:02:43,779 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-25 18:02:46,317 - Zovix - INFO - Database initialized successfully
+2026-11-25 18:02:49,917 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-25 18:02:52,252 - Zovix - INFO - Database initialized successfully
+2026-11-25 18:05:36,320 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-25 18:05:36,760 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-11-25 18:05:36,770 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-11-25 18:05:36,771 - Zovix - INFO - Redis cache client initialized lazily
+2026-11-25 18:05:38,378 - Zovix - INFO - Database initialized successfully
+2026-11-25 18:05:38,680 - Zovix - ERROR - Unable to load workspace data for preview_user
+Traceback (most recent call last):
+  File "app.py", line 3615, in _render_logged_in_user_data_loading
+    user_data = future.result()
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\concurrent\futures\_base.py", line 451, in result
+    return self.__get_result()
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\concurrent\futures\_base.py", line 403, in __get_result
+    raise self._exception
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\concurrent\futures\thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "app.py", line 3531, in _fetch_logged_in_user_data
+    raise LookupError(f"No account row found while loading workspace for {username!r}")
+LookupError: No account row found while loading workspace for 'preview_user'
+2026-11-25 18:05:38,839 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-25 18:05:45,120 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-25 18:05:46,740 - Zovix - INFO - Database initialized successfully
+2026-11-25 18:05:46,820 - Zovix - ERROR - Unable to load workspace data for preview_user
+Traceback (most recent call last):
+  File "app.py", line 3615, in _render_logged_in_user_data_loading
+    user_data = future.result()
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\concurrent\futures\_base.py", line 451, in result
+    return self.__get_result()
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\concurrent\futures\_base.py", line 403, in __get_result
+    raise self._exception
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\concurrent\futures\thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "app.py", line 3531, in _fetch_logged_in_user_data
+    raise LookupError(f"No account row found while loading workspace for {username!r}")
+LookupError: No account row found while loading workspace for 'preview_user'
+2026-11-25 18:05:47,000 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-25 18:05:54,262 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-25 18:05:56,518 - Zovix - ERROR - Unable to load workspace data for preview_user
+Traceback (most recent call last):
+  File "app.py", line 3615, in _render_logged_in_user_data_loading
+    user_data = future.result()
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\concurrent\futures\_base.py", line 451, in result
+    return self.__get_result()
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\concurrent\futures\_base.py", line 403, in __get_result
+    raise self._exception
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\concurrent\futures\thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "app.py", line 3531, in _fetch_logged_in_user_data
+    raise LookupError(f"No account row found while loading workspace for {username!r}")
+LookupError: No account row found while loading workspace for 'preview_user'
+2026-11-25 18:05:56,685 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-25 18:05:57,196 - Zovix - INFO - Database initialized successfully
+2026-11-25 18:06:03,381 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-25 18:06:06,008 - Zovix - ERROR - Unable to load workspace data for preview_user
+Traceback (most recent call last):
+  File "app.py", line 3615, in _render_logged_in_user_data_loading
+    user_data = future.result()
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\concurrent\futures\_base.py", line 451, in result
+    return self.__get_result()
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\concurrent\futures\_base.py", line 403, in __get_result
+    raise self._exception
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\concurrent\futures\thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "app.py", line 3531, in _fetch_logged_in_user_data
+    raise LookupError(f"No account row found while loading workspace for {username!r}")
+LookupError: No account row found while loading workspace for 'preview_user'
+2026-11-25 18:06:06,172 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-25 18:06:06,471 - Zovix - INFO - Database initialized successfully
+2026-11-25 18:06:12,502 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-25 18:06:14,458 - Zovix - INFO - Database initialized successfully
+2026-11-25 18:06:14,916 - Zovix - ERROR - Unable to load workspace data for preview_user
+Traceback (most recent call last):
+  File "app.py", line 3615, in _render_logged_in_user_data_loading
+    user_data = future.result()
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\concurrent\futures\_base.py", line 451, in result
+    return self.__get_result()
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\concurrent\futures\_base.py", line 403, in __get_result
+    raise self._exception
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\concurrent\futures\thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "app.py", line 3531, in _fetch_logged_in_user_data
+    raise LookupError(f"No account row found while loading workspace for {username!r}")
+LookupError: No account row found while loading workspace for 'preview_user'
+2026-11-25 18:06:15,075 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-25 18:06:21,615 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-25 18:06:24,129 - Zovix - ERROR - Unable to load workspace data for preview_user
+Traceback (most recent call last):
+  File "app.py", line 3615, in _render_logged_in_user_data_loading
+    user_data = future.result()
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\concurrent\futures\_base.py", line 451, in result
+    return self.__get_result()
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\concurrent\futures\_base.py", line 403, in __get_result
+    raise self._exception
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\concurrent\futures\thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "app.py", line 3531, in _fetch_logged_in_user_data
+    raise LookupError(f"No account row found while loading workspace for {username!r}")
+LookupError: No account row found while loading workspace for 'preview_user'
+2026-11-25 18:06:24,284 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-25 18:06:24,904 - Zovix - INFO - Database initialized successfully
+2026-11-25 18:06:30,739 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-25 18:06:32,484 - Zovix - ERROR - Unable to load workspace data for preview_user
+Traceback (most recent call last):
+  File "app.py", line 3615, in _render_logged_in_user_data_loading
+    user_data = future.result()
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\concurrent\futures\_base.py", line 451, in result
+    return self.__get_result()
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\concurrent\futures\_base.py", line 403, in __get_result
+    raise self._exception
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\concurrent\futures\thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "app.py", line 3531, in _fetch_logged_in_user_data
+    raise LookupError(f"No account row found while loading workspace for {username!r}")
+LookupError: No account row found while loading workspace for 'preview_user'
+2026-11-25 18:06:32,635 - Zovix - INFO - Database initialized successfully
+2026-11-25 18:06:32,644 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-25 18:06:39,865 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-25 18:06:41,877 - Zovix - ERROR - Unable to load workspace data for preview_user
+Traceback (most recent call last):
+  File "app.py", line 3615, in _render_logged_in_user_data_loading
+    user_data = future.result()
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\concurrent\futures\_base.py", line 451, in result
+    return self.__get_result()
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\concurrent\futures\_base.py", line 403, in __get_result
+    raise self._exception
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\concurrent\futures\thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "app.py", line 3531, in _fetch_logged_in_user_data
+    raise LookupError(f"No account row found while loading workspace for {username!r}")
+LookupError: No account row found while loading workspace for 'preview_user'
+2026-11-25 18:06:42,034 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-25 18:06:42,472 - Zovix - INFO - Database initialized successfully
+2026-11-25 18:06:48,968 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-25 18:06:51,872 - Zovix - INFO - Database initialized successfully
+2026-11-25 18:06:52,494 - Zovix - ERROR - Unable to load workspace data for preview_user
+Traceback (most recent call last):
+  File "app.py", line 3615, in _render_logged_in_user_data_loading
+    user_data = future.result()
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\concurrent\futures\_base.py", line 451, in result
+    return self.__get_result()
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\concurrent\futures\_base.py", line 403, in __get_result
+    raise self._exception
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\concurrent\futures\thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "app.py", line 3531, in _fetch_logged_in_user_data
+    raise LookupError(f"No account row found while loading workspace for {username!r}")
+LookupError: No account row found while loading workspace for 'preview_user'
+2026-11-25 18:06:52,658 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-25 18:06:58,083 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-25 18:07:00,125 - Zovix - ERROR - Unable to load workspace data for preview_user
+Traceback (most recent call last):
+  File "app.py", line 3615, in _render_logged_in_user_data_loading
+    user_data = future.result()
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\concurrent\futures\_base.py", line 451, in result
+    return self.__get_result()
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\concurrent\futures\_base.py", line 403, in __get_result
+    raise self._exception
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\concurrent\futures\thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "app.py", line 3531, in _fetch_logged_in_user_data
+    raise LookupError(f"No account row found while loading workspace for {username!r}")
+LookupError: No account row found while loading workspace for 'preview_user'
+2026-11-25 18:07:00,308 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-25 18:07:00,628 - Zovix - INFO - Database initialized successfully
+2026-11-25 18:07:07,213 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-25 18:07:09,384 - Zovix - ERROR - Unable to load workspace data for preview_user
+Traceback (most recent call last):
+  File "app.py", line 3615, in _render_logged_in_user_data_loading
+    user_data = future.result()
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\concurrent\futures\_base.py", line 451, in result
+    return self.__get_result()
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\concurrent\futures\_base.py", line 403, in __get_result
+    raise self._exception
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\concurrent\futures\thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "app.py", line 3531, in _fetch_logged_in_user_data
+    raise LookupError(f"No account row found while loading workspace for {username!r}")
+LookupError: No account row found while loading workspace for 'preview_user'
+2026-11-25 18:07:09,547 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-25 18:07:09,975 - Zovix - INFO - Database initialized successfully
+2026-11-25 18:07:16,350 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-25 18:07:18,250 - Zovix - ERROR - Unable to load workspace data for preview_user
+Traceback (most recent call last):
+  File "app.py", line 3615, in _render_logged_in_user_data_loading
+    user_data = future.result()
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\concurrent\futures\_base.py", line 451, in result
+    return self.__get_result()
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\concurrent\futures\_base.py", line 403, in __get_result
+    raise self._exception
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\concurrent\futures\thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "app.py", line 3531, in _fetch_logged_in_user_data
+    raise LookupError(f"No account row found while loading workspace for {username!r}")
+LookupError: No account row found while loading workspace for 'preview_user'
+2026-11-25 18:07:18,411 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-25 18:07:18,857 - Zovix - INFO - Database initialized successfully
+2026-11-25 18:07:25,451 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-25 18:07:28,399 - Zovix - INFO - Database initialized successfully
+2026-11-25 18:07:29,111 - Zovix - ERROR - Unable to load workspace data for preview_user
+Traceback (most recent call last):
+  File "app.py", line 3615, in _render_logged_in_user_data_loading
+    user_data = future.result()
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\concurrent\futures\_base.py", line 451, in result
+    return self.__get_result()
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\concurrent\futures\_base.py", line 403, in __get_result
+    raise self._exception
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\concurrent\futures\thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "app.py", line 3531, in _fetch_logged_in_user_data
+    raise LookupError(f"No account row found while loading workspace for {username!r}")
+LookupError: No account row found while loading workspace for 'preview_user'
+2026-11-25 18:07:29,276 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-25 18:07:34,570 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-25 18:07:37,088 - Zovix - ERROR - Unable to load workspace data for preview_user
+Traceback (most recent call last):
+  File "app.py", line 3615, in _render_logged_in_user_data_loading
+    user_data = future.result()
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\concurrent\futures\_base.py", line 451, in result
+    return self.__get_result()
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\concurrent\futures\_base.py", line 403, in __get_result
+    raise self._exception
+  File "C:\Users\rajme\AppData\Local\Programs\Python\Python310\lib\concurrent\futures\thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "app.py", line 3531, in _fetch_logged_in_user_data
+    raise LookupError(f"No account row found while loading workspace for {username!r}")
+LookupError: No account row found while loading workspace for 'preview_user'
+2026-11-25 18:07:37,281 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-25 18:07:37,723 - Zovix - INFO - Database initialized successfully
