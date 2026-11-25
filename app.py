@@ -337,6 +337,9 @@ components.html(
                     if (label.includes("sub-user")) return {page: "subusers"};
                     if (label.includes("mass factory")) return {page: "factory"};
                 }
+                if (key === "st-key-auth_modal_login_btn" || key === "st-key-auth_modal_register_btn") {
+                    return {page: "studio", force: true, opaque: true, noPush: true};
+                }
                 if (key.endsWith("_back_to_studio") || key === "st-key-studio_change_mode_btn") {
                     return {page: "studio", opaque: true};
                 }
@@ -454,7 +457,7 @@ components.html(
                 if (target.mode) nextUrl.searchParams.set("mode", target.mode);
                 else if (target.page !== "studio_mode") nextUrl.searchParams.delete("mode");
                 showOverlay(target);
-                if (nextUrl.href !== host.location.href) {
+                if (!target.noPush && nextUrl.href !== host.location.href) {
                     host.history.pushState(host.history.state, "", nextUrl.href);
                 }
             }, true);
@@ -11290,6 +11293,61 @@ def render_ai_sales_ui():
             max-width: 100% !important;
         }
         @media (max-width: 768px) {
+            html body section[data-testid="stMain"]:has(.st-key-sales_parameters)
+            [data-testid="stVerticalBlockBorderWrapper"] {
+                padding: 14px !important;
+                border-radius: 14px !important;
+            }
+            html body section[data-testid="stMain"]:has(.st-key-sales_parameters)
+            [data-testid="stSelectbox"],
+            html body section[data-testid="stMain"]:has(.st-key-sales_parameters)
+            [data-testid="stTextArea"],
+            html body section[data-testid="stMain"]:has(.st-key-sales_parameters)
+            [data-testid="stTextInput"],
+            html body section[data-testid="stMain"]:has(.st-key-sales_parameters)
+            [data-testid="stFileUploader"] {
+                box-sizing: border-box !important;
+                width: 100% !important;
+                min-width: 0 !important;
+                max-width: 100% !important;
+            }
+            html body section[data-testid="stMain"]:has(.st-key-sales_parameters)
+            [data-testid="stWidgetLabel"],
+            html body section[data-testid="stMain"]:has(.st-key-sales_parameters)
+            [data-testid="stWidgetLabel"] label {
+                display: block !important;
+                width: 100% !important;
+                height: auto !important;
+                min-height: 20px !important;
+                margin: 0 0 5px !important;
+                overflow: visible !important;
+                line-height: 1.4 !important;
+                white-space: normal !important;
+                overflow-wrap: anywhere !important;
+            }
+            html body section[data-testid="stMain"]:has(.st-key-sales_parameters)
+            [data-baseweb="select"] > div {
+                box-sizing: border-box !important;
+                width: 100% !important;
+                min-height: 44px !important;
+                height: auto !important;
+                overflow: visible !important;
+            }
+            html body section[data-testid="stMain"]:has(.st-key-sales_parameters)
+            [data-testid="stButton"] button,
+            html body section[data-testid="stMain"]:has(.st-key-sales_parameters)
+            [data-testid="stDownloadButton"] button {
+                min-height: 42px !important;
+                border-radius: 9px !important;
+                font: 700 12px 'Inter',Arial,sans-serif !important;
+            }
+            html body section[data-testid="stMain"]:has(.st-key-sales_parameters)
+            .st-key-sales_generate_btn button {
+                color: #fff !important;
+                background: linear-gradient(105deg,#08b9d4,#6656e9) !important;
+                border: 0 !important;
+                box-shadow: 0 5px 14px rgba(73,112,221,.16) !important;
+            }
             html body section[data-testid="stMain"]:has(.st-key-sales_parameters):has(.st-key-sales_output_panel)
             [data-testid="stHorizontalBlock"]:has(.st-key-sales_parameters):has(.st-key-sales_output_panel) {
                 display: flex !important;
@@ -11868,6 +11926,26 @@ def generate_dynamic_ui():
             overflow-wrap:anywhere !important;
         }
         @media (max-width:768px) {
+            html body section[data-testid="stMain"]:has(.st-key-dynamic_ui_settings_panel)
+            [data-testid="stVerticalBlockBorderWrapper"] {
+                padding:14px !important;
+                border-radius:14px !important;
+            }
+            html body section[data-testid="stMain"]:has(.st-key-dynamic_ui_settings_panel)
+            [data-testid="stButton"] button,
+            html body section[data-testid="stMain"]:has(.st-key-dynamic_ui_settings_panel)
+            [data-testid="stDownloadButton"] button {
+                min-height:42px !important;
+                border-radius:9px !important;
+                font:700 12px 'Inter',Arial,sans-serif !important;
+            }
+            html body section[data-testid="stMain"]:has(.st-key-dynamic_ui_settings_panel)
+            .st-key-dyn_ui_apply button {
+                color:#fff !important;
+                background:linear-gradient(105deg,#08b9d4,#6656e9) !important;
+                border:0 !important;
+                box-shadow:0 5px 14px rgba(73,112,221,.16) !important;
+            }
             html body section[data-testid="stMain"]:has(.st-key-dynamic_ui_settings_panel)
             [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"] .st-key-dynamic_ui_settings_panel):has(> [data-testid="stColumn"] .st-key-dynamic_ui_dashboard_panel) {
                 display:grid !important;
@@ -12559,7 +12637,7 @@ def run_blueprints_mode():
             white-space:normal !important;
             overflow-wrap:anywhere !important;
         }
-        @media (max-width:600px) {
+        @media (max-width:768px) {
             section[data-testid="stMain"]:has(.st-key-blueprint_parameters_panel)
             .st-key-bp_prompt_input,
             section[data-testid="stMain"]:has(.st-key-blueprint_parameters_panel)
@@ -12573,6 +12651,26 @@ def run_blueprints_mode():
             section[data-testid="stMain"]:has(.st-key-blueprint_parameters_panel)
             .st-key-bp_template_select {
                 margin-top:8px !important;
+            }
+            html body section[data-testid="stMain"]:has(.st-key-blueprint_parameters_panel)
+            [data-testid="stVerticalBlockBorderWrapper"] {
+                padding:14px !important;
+                border-radius:14px !important;
+            }
+            html body section[data-testid="stMain"]:has(.st-key-blueprint_parameters_panel)
+            [data-testid="stButton"] button,
+            html body section[data-testid="stMain"]:has(.st-key-blueprint_parameters_panel)
+            [data-testid="stDownloadButton"] button {
+                min-height:42px !important;
+                border-radius:9px !important;
+                font:700 12px 'Inter',Arial,sans-serif !important;
+            }
+            html body section[data-testid="stMain"]:has(.st-key-blueprint_parameters_panel)
+            .st-key-bp_generate_btn button {
+                color:#fff !important;
+                background:linear-gradient(105deg,#08b9d4,#6656e9) !important;
+                border:0 !important;
+                box-shadow:0 5px 14px rgba(73,112,221,.16) !important;
             }
             html body section[data-testid="stMain"]:has(.st-key-blueprint_parameters_panel)
             [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"] .st-key-blueprint_viewer_panel) {
@@ -14539,7 +14637,7 @@ def run_creative_workshop():
 
     st.markdown("""
     <style>
-        @media (max-width:600px) {
+        @media (max-width:768px) {
             section[data-testid="stMain"]:has(.st-key-workshop_generation_action_btn)
             [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"] .st-key-workshop_generation_action_btn) {
                 display:grid !important;
@@ -14560,6 +14658,48 @@ def run_creative_workshop():
                 height:auto !important;
                 min-height:240px !important;
                 padding:20px !important;
+            }
+            section[data-testid="stMain"]:has(.st-key-workshop_generation_action_btn) [data-testid="stVerticalBlockBorderWrapper"] {
+                padding:14px !important;
+                border-radius:14px !important;
+            }
+            section[data-testid="stMain"]:has(.st-key-workshop_generation_action_btn) [data-testid="stSelectbox"],
+            section[data-testid="stMain"]:has(.st-key-workshop_generation_action_btn) [data-testid="stTextArea"] {
+                box-sizing:border-box !important;
+                width:100% !important;
+                min-width:0 !important;
+                max-width:100% !important;
+            }
+            section[data-testid="stMain"]:has(.st-key-workshop_generation_action_btn) [data-testid="stWidgetLabel"],
+            section[data-testid="stMain"]:has(.st-key-workshop_generation_action_btn) [data-testid="stWidgetLabel"] label {
+                display:block !important;
+                width:100% !important;
+                height:auto !important;
+                min-height:20px !important;
+                margin:0 0 5px !important;
+                overflow:visible !important;
+                line-height:1.4 !important;
+                white-space:normal !important;
+                overflow-wrap:anywhere !important;
+            }
+            section[data-testid="stMain"]:has(.st-key-workshop_generation_action_btn) [data-baseweb="select"] > div {
+                box-sizing:border-box !important;
+                width:100% !important;
+                min-height:44px !important;
+                height:auto !important;
+                overflow:visible !important;
+            }
+            section[data-testid="stMain"]:has(.st-key-workshop_generation_action_btn) [data-testid="stButton"] button,
+            section[data-testid="stMain"]:has(.st-key-workshop_generation_action_btn) [data-testid="stDownloadButton"] button {
+                min-height:42px !important;
+                border-radius:9px !important;
+                font:700 12px 'Inter',Arial,sans-serif !important;
+            }
+            section[data-testid="stMain"]:has(.st-key-workshop_generation_action_btn) .st-key-workshop_generation_action_btn button {
+                color:#fff !important;
+                background:linear-gradient(105deg,#08b9d4,#6656e9) !important;
+                border:0 !important;
+                box-shadow:0 5px 14px rgba(73,112,221,.16) !important;
             }
         }
     </style>
@@ -15391,6 +15531,26 @@ def run_draw_mode():
         }
         @media (max-width:768px) {
             html body section[data-testid="stMain"]:has(.st-key-draw_parameters_panel)
+            [data-testid="stVerticalBlockBorderWrapper"] {
+                padding:14px !important;
+                border-radius:14px !important;
+            }
+            html body section[data-testid="stMain"]:has(.st-key-draw_parameters_panel)
+            [data-testid="stButton"] button,
+            html body section[data-testid="stMain"]:has(.st-key-draw_parameters_panel)
+            [data-testid="stDownloadButton"] button {
+                min-height:42px !important;
+                border-radius:9px !important;
+                font:700 12px 'Inter',Arial,sans-serif !important;
+            }
+            html body section[data-testid="stMain"]:has(.st-key-draw_parameters_panel)
+            .st-key-dr_generate_btn button {
+                color:#fff !important;
+                background:linear-gradient(105deg,#08b9d4,#6656e9) !important;
+                border:0 !important;
+                box-shadow:0 5px 14px rgba(73,112,221,.16) !important;
+            }
+            html body section[data-testid="stMain"]:has(.st-key-draw_parameters_panel)
             [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"] .st-key-draw_parameters_panel):has(> [data-testid="stColumn"] .st-key-draw_viewer_panel) {
                 display:grid !important;
                 grid-template-columns:minmax(0,1fr) !important;
@@ -15938,6 +16098,26 @@ def run_video_editor_mode():
             overflow-wrap:anywhere !important;
         }
         @media (max-width:768px) {
+            html body section[data-testid="stMain"]:has(.st-key-video_editor_parameters_panel)
+            [data-testid="stVerticalBlockBorderWrapper"] {
+                padding:14px !important;
+                border-radius:14px !important;
+            }
+            html body section[data-testid="stMain"]:has(.st-key-video_editor_parameters_panel)
+            [data-testid="stButton"] button,
+            html body section[data-testid="stMain"]:has(.st-key-video_editor_parameters_panel)
+            [data-testid="stDownloadButton"] button {
+                min-height:42px !important;
+                border-radius:9px !important;
+                font:700 12px 'Inter',Arial,sans-serif !important;
+            }
+            html body section[data-testid="stMain"]:has(.st-key-video_editor_parameters_panel)
+            .st-key-movie_generate_btn_editor button {
+                color:#fff !important;
+                background:linear-gradient(105deg,#08b9d4,#6656e9) !important;
+                border:0 !important;
+                box-shadow:0 5px 14px rgba(73,112,221,.16) !important;
+            }
             html body section[data-testid="stMain"]:has(.st-key-video_editor_parameters_panel)
             [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"] .st-key-video_editor_parameters_panel):has(> [data-testid="stColumn"] .st-key-video_editor_output_panel) {
                 display:grid !important;
@@ -17299,6 +17479,63 @@ def run_unified_face_video_mode():
             font-family: 'Inter', sans-serif !important;
             font-size: 12px !important;
             color: #e0e0e0 !important;
+        }
+        @media (max-width: 768px) {
+            html body section[data-testid="stMain"]:has(.st-key-unified_fv_generate_btn) .face-header.face-header {
+                min-height: 210px !important;
+                margin: 0 0 14px !important;
+                padding: 26px 16px !important;
+                align-items: center !important;
+                justify-content: center !important;
+                border-radius: 18px !important;
+                text-align: center !important;
+            }
+            html body section[data-testid="stMain"]:has(.st-key-unified_fv_generate_btn) .face-header.face-header h2,
+            html body section[data-testid="stMain"]:has(.st-key-unified_fv_generate_btn) .face-header.face-header p {
+                width: 100% !important;
+                max-width: 100% !important;
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+                text-align: center !important;
+            }
+            html body section[data-testid="stMain"]:has(.st-key-unified_fv_generate_btn) .face-header.face-header h2 {
+                font-size: clamp(22px, 6.4vw, 28px) !important;
+                line-height: 1.2 !important;
+            }
+            html body section[data-testid="stMain"]:has(.st-key-unified_fv_generate_btn) .face-header.face-header p {
+                font-size: 13px !important;
+                line-height: 1.45 !important;
+            }
+            html body section[data-testid="stMain"]:has(.st-key-unified_fv_generate_btn) .face-header.face-header .badge {
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+            }
+            html body section[data-testid="stMain"]:has(.st-key-unified_fv_generate_btn) [data-testid="stHorizontalBlock"] {
+                flex-wrap: wrap !important;
+                gap: 12px !important;
+            }
+            html body section[data-testid="stMain"]:has(.st-key-unified_fv_generate_btn) [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] {
+                flex: 1 1 100% !important;
+                width: 100% !important;
+                min-width: 0 !important;
+            }
+            html body section[data-testid="stMain"]:has(.st-key-unified_fv_generate_btn) [data-testid="stVerticalBlockBorderWrapper"] {
+                padding: 14px !important;
+                border-radius: 16px !important;
+            }
+            html body section[data-testid="stMain"]:has(.st-key-unified_fv_generate_btn) [data-testid="stRadio"] [role="radiogroup"] {
+                flex-wrap: wrap !important;
+                gap: 8px !important;
+            }
+            html body section[data-testid="stMain"]:has(.st-key-unified_fv_generate_btn) .st-key-unified_fv_generate_btn button {
+                min-height: 52px !important;
+                border-radius: 14px !important;
+                font-size: 15px !important;
+            }
+            html body section[data-testid="stMain"]:has(.st-key-unified_fv_generate_btn) [data-testid="stVideo"] {
+                width: 100% !important;
+                border-radius: 14px !important;
+            }
         }
         @media (max-width: 600px) {
             section[data-testid="stMain"]:has(.st-key-unified_fv_generate_btn)
@@ -21173,6 +21410,29 @@ elif st.session_state["current_page"] == "profile":
             border-color: #36c7c1 !important;
             font-family: 'Inter', sans-serif !important;
             font-weight: 700 !important;
+        }
+        [data-testid="stMain"] [data-testid="stVerticalBlockBorderWrapper"] > div > [data-testid="stVerticalBlock"] {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 12px !important;
+        }
+        [data-testid="stMain"] [data-testid="stVerticalBlockBorderWrapper"] [data-testid="stElementContainer"],
+        [data-testid="stMain"] [data-testid="stVerticalBlockBorderWrapper"] [data-testid="stMarkdown"] {
+            position: relative !important;
+            height: auto !important;
+            min-height: 0 !important;
+            transform: none !important;
+        }
+        [data-testid="stMain"] .st-key-profile_explore_plans {
+            position: relative !important;
+            margin: 0 !important;
+            clear: both;
+        }
+        [data-testid="stMain"] .st-key-profile_explore_plans button {
+            position: static !important;
+            min-height: 44px !important;
+            margin: 0 !important;
+            white-space: nowrap !important;
         }
         @media (max-width: 768px) {
             [data-testid="stMain"] .block-container {
