@@ -17478,35 +17478,6 @@ def run_unified_face_video_mode():
             color: #e0e0e0 !important;
         }
         @media (max-width: 768px) {
-            html body section[data-testid="stMain"]:has(.st-key-unified_fv_generate_btn) .face-header.face-header {
-                min-height: 210px !important;
-                margin: 0 0 14px !important;
-                padding: 26px 16px !important;
-                align-items: center !important;
-                justify-content: center !important;
-                border-radius: 18px !important;
-                text-align: center !important;
-            }
-            html body section[data-testid="stMain"]:has(.st-key-unified_fv_generate_btn) .face-header.face-header h2,
-            html body section[data-testid="stMain"]:has(.st-key-unified_fv_generate_btn) .face-header.face-header p {
-                width: 100% !important;
-                max-width: 100% !important;
-                margin-left: 0 !important;
-                margin-right: 0 !important;
-                text-align: center !important;
-            }
-            html body section[data-testid="stMain"]:has(.st-key-unified_fv_generate_btn) .face-header.face-header h2 {
-                font-size: clamp(22px, 6.4vw, 28px) !important;
-                line-height: 1.2 !important;
-            }
-            html body section[data-testid="stMain"]:has(.st-key-unified_fv_generate_btn) .face-header.face-header p {
-                font-size: 13px !important;
-                line-height: 1.45 !important;
-            }
-            html body section[data-testid="stMain"]:has(.st-key-unified_fv_generate_btn) .face-header.face-header .badge {
-                margin-left: 0 !important;
-                margin-right: 0 !important;
-            }
             html body section[data-testid="stMain"]:has(.st-key-unified_fv_generate_btn) [data-testid="stHorizontalBlock"] {
                 flex-wrap: wrap !important;
                 gap: 12px !important;
@@ -30932,6 +30903,130 @@ elif st.session_state.get("current_page") == "studio_mode":
                 flex: 1 1 100% !important;
                 width: 100% !important;
                 max-width: 100% !important;
+            }
+        }
+        @media (max-width: 768px) {
+            html body section[data-testid="stMain"]:has(.st-key-studio_change_mode_btn)
+            .st-key-studio_change_mode_btn [data-testid="stButton"] > button {
+                width: auto !important;
+                min-height: 34px !important;
+                height: 34px !important;
+                padding: 0 14px !important;
+                border-radius: 999px !important;
+            }
+            html body [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) :is(
+                .studio-mode-photo-hero.studio-mode-photo-hero, .cinematic-header.cinematic-header,
+                .editor-header.editor-header, .face-header.face-header, .live-emotion-hero, .upscaler-hero
+            ) {
+                position: relative !important;
+                isolation: isolate !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                justify-content: center !important;
+                gap: 8px !important;
+                width: 100% !important;
+                min-height: 190px !important;
+                height: auto !important;
+                margin: 4px 0 12px !important;
+                padding: 20px 16px !important;
+                overflow: hidden !important;
+                border: 1px solid rgba(255,255,255,.48) !important;
+                border-radius: 16px !important;
+                box-shadow: 0 8px 22px rgba(32,77,126,.1) !important;
+                text-align: left !important;
+                transform: none !important;
+            }
+            html body [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .live-emotion-hero {
+                background: url("/app/static/studio_live_emotions_engine.webp") center 43% / cover no-repeat !important;
+            }
+            html body [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) .upscaler-hero {
+                background: url("/app/static/studio_upscaler_creature.png") center 43% / cover no-repeat !important;
+            }
+            html body [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) :is(
+                .studio-mode-photo-hero.studio-mode-photo-hero, .cinematic-header.cinematic-header,
+                .editor-header.editor-header, .face-header.face-header, .live-emotion-hero, .upscaler-hero
+            )::before {
+                position: absolute !important;
+                display: block !important;
+                inset: 0 !important;
+                z-index: 0 !important;
+                content: "" !important;
+                transform: none !important;
+                opacity: 1 !important;
+                border-radius: inherit !important;
+                background: linear-gradient(90deg,rgba(12,43,83,.92),rgba(12,43,83,.76) 38%,rgba(12,43,83,.16)) !important;
+                pointer-events: none !important;
+            }
+            html body [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) :is(.live-emotion-hero, .upscaler-hero)::after {
+                display: none !important;
+            }
+            html body [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) :is(
+                .studio-mode-photo-hero.studio-mode-photo-hero, .cinematic-header.cinematic-header,
+                .editor-header.editor-header, .face-header.face-header, .live-emotion-hero, .upscaler-hero
+            ) > * {
+                position: relative !important;
+                z-index: 1 !important;
+                max-width: 100% !important;
+                text-align: left !important;
+            }
+            html body [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) :is(
+                .studio-mode-photo-hero.studio-mode-photo-hero, .cinematic-header.cinematic-header,
+                .editor-header.editor-header, .face-header.face-header, .live-emotion-hero, .upscaler-hero
+            ) > span:first-child {
+                margin: 0 !important;
+                padding: 0 !important;
+                border: 0 !important;
+                background: transparent !important;
+                color: #56e4f3 !important;
+                -webkit-text-fill-color: #56e4f3 !important;
+                font: 800 10px/1.4 'Inter',Arial,sans-serif !important;
+                letter-spacing: 1px !important;
+                text-shadow: 0 2px 16px rgba(0,0,0,.8) !important;
+            }
+            html body [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) :is(
+                .studio-mode-photo-hero.studio-mode-photo-hero, .cinematic-header.cinematic-header,
+                .editor-header.editor-header, .face-header.face-header, .live-emotion-hero, .upscaler-hero
+            ) :is(h1, h2) {
+                width: auto !important;
+                margin: 3px 0 !important;
+                color: #fff !important;
+                -webkit-text-fill-color: #fff !important;
+                font: 800 clamp(26px,8vw,34px)/1.2 'Inter',Arial,sans-serif !important;
+                text-shadow: 0 2px 18px rgba(0,0,0,.62) !important;
+                text-align: left !important;
+                overflow-wrap: anywhere !important;
+            }
+            html body [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) :is(
+                .studio-mode-photo-hero.studio-mode-photo-hero, .cinematic-header.cinematic-header,
+                .editor-header.editor-header, .face-header.face-header, .live-emotion-hero, .upscaler-hero
+            ) :is(h1, h2) span {
+                color: #31c6e7 !important;
+                background: none !important;
+                -webkit-text-fill-color: #31c6e7 !important;
+                font: inherit !important;
+            }
+            html body [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) :is(
+                .studio-mode-photo-hero.studio-mode-photo-hero, .cinematic-header.cinematic-header,
+                .editor-header.editor-header, .face-header.face-header, .live-emotion-hero, .upscaler-hero
+            ) p {
+                width: 100% !important;
+                max-width: 100% !important;
+                margin: 0 !important;
+                color: #fff !important;
+                -webkit-text-fill-color: #fff !important;
+                font: 600 clamp(14px,1.5vw,16px)/1.5 'Inter',Arial,sans-serif !important;
+                text-shadow: 0 2px 18px rgba(0,0,0,.62) !important;
+                text-align: left !important;
+            }
+        }
+        @media (max-width: 480px) {
+            html body [data-testid="stMain"]:has(.st-key-studio_change_mode_btn) :is(
+                .studio-mode-photo-hero.studio-mode-photo-hero, .cinematic-header.cinematic-header,
+                .editor-header.editor-header, .face-header.face-header, .live-emotion-hero, .upscaler-hero
+            ) {
+                min-height: 176px !important;
+                padding: 18px 14px !important;
             }
         }
     </style>
