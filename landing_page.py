@@ -1,5 +1,9 @@
 import streamlit as st
 from html import escape
+import os
+from pathlib import Path
+from urllib.parse import urlsplit
+
 from plan_catalog import GLOBAL_PLANS
 from static_assets import inline_static_asset_urls, static_asset_data_uri
 
@@ -8,6 +12,24 @@ st.set_page_config(
     page_icon="🎬",
     layout="wide",
 )
+
+
+def _android_apk_url():
+    url = os.getenv("ZOVIX_ANDROID_APK_URL", "").strip()
+    if url:
+        parsed = urlsplit(url)
+        if (
+            any(char.isspace() or ord(char) < 32 or char == "\\" for char in url)
+            or not (
+                (parsed.scheme in ("http", "https") and parsed.netloc)
+                or (not parsed.scheme and not parsed.netloc and url.startswith("/") and not url.startswith("//"))
+            )
+        ):
+            raise ValueError("ZOVIX_ANDROID_APK_URL must be an HTTP(S) URL or an absolute site path")
+        return url
+    if (Path(__file__).resolve().parent / "static" / "downloads" / "zovix-android.apk").is_file():
+        return "/app/static/downloads/zovix-android.apk"
+    return ""
 
 
 class WorldClassLandingPage:
@@ -988,7 +1010,7 @@ class WorldClassLandingPage:
         .zx-eng-card span { font-size: clamp(10px, calc(var(--p) * 6.5), 12px); }
 
         @media (max-width: 900px) {
-            .landing-nav .nav-links a:not(.nav-cta-btn):not(.zx-login), .zx-nav-sep, .zx-lang { display: none !important; }
+            .landing-nav .nav-links a:not(.nav-cta-btn):not(.zx-login):not(.zx-get-app), .zx-nav-sep, .zx-lang { display: none !important; }
             .landing-nav .nav-links { display: flex !important; }
             .landing-nav .nav-links a.nav-cta-btn { display: inline-flex !important; }
             .landing-nav .nav-links a.zx-login { display: inline-flex !important; }
@@ -2212,7 +2234,7 @@ class WorldClassLandingPage:
             .landing-nav .nav-links {
                 gap: 8px;
             }
-            .landing-nav .nav-links > a:not(.zx-login):not(.nav-cta-btn),
+            .landing-nav .nav-links > a:not(.zx-login):not(.nav-cta-btn):not(.zx-get-app),
             .landing-nav .zx-nav-sep,
             .landing-nav .zx-lang {
                 display: none !important;
@@ -2632,11 +2654,57 @@ class WorldClassLandingPage:
             }
         }
 
+        .landing-nav .nav-links a.zx-get-app, .zx-app-note { display: none; }
+        @media (max-width: 900px) {
+            .landing-nav:has(.zx-get-app) { flex-wrap: nowrap; gap: 6px; }
+            .landing-nav:has(.zx-get-app) .nav-links { gap: 6px; flex-wrap: nowrap; }
+            .landing-nav .nav-links a.zx-get-app {
+                display: inline-flex !important;
+                justify-content: center;
+                min-height: 34px;
+                padding: 0 10px;
+                border: 1.4px solid #15284b;
+                border-radius: 999px;
+                color: #15284b;
+                font-size: 11px;
+                font-weight: 600;
+            }
+            .landing-nav:has(.zx-get-app) .nav-links a.zx-login,
+            .landing-nav:has(.zx-get-app) .nav-links a.nav-cta-btn {
+                min-height: 34px;
+                padding: 0 10px;
+                font-size: 11px;
+            }
+            .zx-app-note {
+                display: block;
+                color: #53627a;
+                font: 500 12px/1.4 'Inter', sans-serif;
+            }
+        }
+        @media (max-width: 360px) {
+            .landing-nav:has(.zx-get-app), .landing-nav.scrolled:has(.zx-get-app) { padding: 0 8px; }
+            .landing-nav:has(.zx-get-app) .nav-logo { gap: 5px; }
+            .landing-nav:has(.zx-get-app) .zx-logo-mark { width: 27px; }
+            .landing-nav:has(.zx-get-app) .zx-logo-text { font-size: 17px; }
+            .landing-nav:has(.zx-get-app) .nav-links { gap: 4px; }
+            .landing-nav:has(.zx-get-app) .nav-links a.zx-login,
+            .landing-nav:has(.zx-get-app) .nav-links a.nav-cta-btn,
+            .landing-nav:has(.zx-get-app) .nav-links a.zx-get-app { padding: 0 7px; }
+        }
+        @media (display-mode: standalone) {
+            .landing-nav .nav-links a.zx-get-app, .zx-app-note { display: none !important; }
+        }
+
         </style>
         """
         st.markdown(inline_static_asset_urls(landing_css), unsafe_allow_html=True)
 
     def _navbar_html(self):
+        apk_url = _android_apk_url()
+        app_link = (
+            f"<a class='zx-get-app' href='{escape(apk_url, quote=True)}' download='Zovix-Android.apk'>Get App</a>"
+            if apk_url else ""
+        )
         return (
             "<nav class='landing-nav' id='navbar'>"
             "<a href='#' class='nav-logo'><span class='zx-logo-mark'></span><span class='nav-brand-copy'><span class='zx-logo-text'>ZOVIX</span><small>AI CREATIVE STUDIO</small></span></a>"
@@ -2646,6 +2714,7 @@ class WorldClassLandingPage:
             "<span class='zx-nav-sep'></span><span class='zx-lang'><i class='zx-i'>language</i>EN<i class='zx-caret'></i></span>"
             "<a class='zx-login' href='?page=login' target='_self'>Login</a>"
             "<a class='nav-cta-btn' href='?page=login' target='_self'>Get Started</a>"
+            f"{app_link}"
             "</div></nav>"
         )
 
@@ -2775,6 +2844,10 @@ class WorldClassLandingPage:
             "<polygon points='56,18 30,32 30,58 56,44' fill='url(#zxc3)'/><polyline points='4,18 30,32 56,18' fill='none' stroke='#d6ebff' stroke-width='1' opacity='.8'/></svg>"
         )
 
+        app_note = (
+            "<div class='zx-app-note'>Android app available — tap Get App to download the APK.</div>"
+            if _android_apk_url() else ""
+        )
         hero = (
             f"<div class='zx-a zx-badge' style='{pos(160, 190, 306)}'><i class='zx-i'>auto_awesome</i><b>Next Gen AI Creative Platform</b>12 Powerful Engines. Endless Possibilities.</div>"
             f"<h1 class='zx-a zx-h1' style='{pos(160, 216, 340)}'>Zovix AI Studio.<br>Every <span class='zx-grad'>Creative</span><br>Possibility.</h1>"
@@ -2782,6 +2855,7 @@ class WorldClassLandingPage:
             f"<div class='zx-a zx-cta' style='{pos(160, 465, 440)}'>"
             "<a class='zx-btn zx-btn-primary' href='?page=login' target='_self'><i class='zx-i'>rocket_launch</i>Start Creating Free<i class='zx-i'>arrow_forward</i></a>"
             "<a class='zx-btn zx-btn-ghost' href='#how-it-works'><i class='zx-i'>play_arrow</i>Watch ZOVIX in Action</a></div>"
+            f"{app_note}"
             f"{stats_html}"
             f"<div class='zx-a zx-checks' style='{pos(160, 518, 440)}'><span>No Credit Card Required</span><span>Instant Access</span><span>Free Plan Available</span></div>"
             f"<div class='zx-a zx-demo' style=\"{pos(674, 225, 410, 230)};background-image:url('{photo('1493246507139-91e8fad9978e')}');\">"

@@ -129,6 +129,14 @@ Install FFmpeg separately using your operating system's package manager, then co
 
 Face Video Studio transcribes uploaded voice recordings locally with `faster-whisper` to enforce the 120-word limit. The default `small` model is downloaded on first use; set `FACE_STUDIO_ASR_MODEL` to choose another faster-whisper model size.
 
+For the mobile landing-page Android download prompt, provide a signed APK at
+`static/downloads/zovix-android.apk` or set `ZOVIX_ANDROID_APK_URL` to its
+direct HTTP(S) download URL or an absolute site path. The URL takes precedence
+over the local file. The prompt stays hidden until one is supplied and is hidden
+in standalone display mode. For cross-origin URLs, configure the download server
+to return an attachment filename; browsers may ignore the link's `download`
+attribute for cross-origin downloads.
+
 ### 4. Configure environment variables
 
 Create a `.env` file in the repository root, or configure the same values through your hosting provider's secret manager. Use your own credentials—do not commit `.env` or paste secrets into source control.
