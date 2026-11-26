@@ -1,7 +1,7 @@
 {
   "name": "Zovix",
   "short_name": "Zovix",
-  "start_url": "/?page=studio",
+  "start_url": "/?page=landing",
   "scope": "/",
   "display": "standalone",
   "icons": [

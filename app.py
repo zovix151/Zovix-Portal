@@ -2523,10 +2523,7 @@ if requested_page == "login":
         st.query_params["page"] = "landing"
 elif requested_page in {"studio", "studio_mode", "payments", "profile", "scheduler", "subusers", "factory", "portfolio", "tutorials", "documentation", "community", "support", "ghost_engine"} and not st.session_state.get("is_logged_in", False):
     st.session_state["current_page"] = "landing"
-    if requested_page == "studio":
-        st.session_state["auth_redirect_mode"] = "Cinematic Engine"
-    else:
-        st.session_state.pop("auth_redirect_mode", None)
+    st.session_state.pop("auth_redirect_mode", None)
     st.query_params["page"] = "landing"
 elif requested_page in {"landing", "studio"}:
     st.session_state["current_page"] = requested_page

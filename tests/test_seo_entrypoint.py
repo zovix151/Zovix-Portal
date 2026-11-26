@@ -69,7 +69,7 @@ def test_sitemap_and_robots_are_served_at_root(mode):
             assert manifest_response.headers.get_content_type() == "application/manifest+json"
             manifest = json.load(manifest_response)
         assert manifest["name"] == "Zovix"
-        assert manifest["start_url"] == "/?page=studio"
+        assert manifest["start_url"] == "/?page=landing"
         assert manifest["scope"] == "/"
         assert manifest["display"] == "standalone"
         assert {icon["sizes"] for icon in manifest["icons"]} == {"192x192", "512x512"}
