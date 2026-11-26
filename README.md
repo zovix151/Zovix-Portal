@@ -136,6 +136,10 @@ over the local file. The prompt stays hidden until one is supplied and is hidden
 in standalone display mode. For cross-origin URLs, configure the download server
 to return an attachment filename; browsers may ignore the link's `download`
 attribute for cross-origin downloads.
+The SHA-256 signing certificate of the distributed APK must also be listed in
+`static/.well-known/assetlinks.json`; otherwise Chrome shows a browser toolbar
+instead of opening the Trusted Web Activity full-screen. Update the association
+when the APK signing key changes.
 
 ### 4. Configure environment variables
 

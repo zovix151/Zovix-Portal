@@ -1,6 +1,7 @@
-import os
+import hashlib
 import io
 import json
+import os
 import socket
 import subprocess
 import sys
@@ -8,6 +9,7 @@ import time
 import urllib.error
 import urllib.request
 import xml.etree.ElementTree as ET
+import zipfile
 
 import pytest
 from PIL import Image
@@ -78,6 +80,15 @@ def test_sitemap_and_robots_are_served_at_root(mode):
                 size = int(icon["sizes"].split("x")[0])
                 assert image.size == (size, size)
                 assert image.format == "PNG"
+        with urllib.request.build_opener(NoRedirectHandler).open(
+            base_url + "/.well-known/assetlinks.json"
+        ) as assetlinks_response:
+            assert assetlinks_response.status == 200
+            assert assetlinks_response.headers.get_content_type() == "application/json"
+            assert assetlinks_response.headers.get("Cache-Control") == "no-cache, max-age=0, must-revalidate"
+            assert json.load(assetlinks_response) == json.loads(
+                (seo_entrypoint.STATIC_DIR / ".well-known" / "assetlinks.json").read_text(encoding="utf-8")
+            )
         with urllib.request.urlopen(
             urllib.request.Request(base_url + "/manifest.json", method="HEAD")
         ) as manifest_head:
@@ -226,6 +237,35 @@ def test_sitemap_and_robots_are_served_at_root(mode):
         process.terminate()
         process.wait(timeout=10)
         process.stderr.close()
+
+
+def test_assetlinks_matches_downloadable_apk_signer():
+    pkcs7 = pytest.importorskip("cryptography.hazmat.primitives.serialization.pkcs7")
+    from cryptography.hazmat.primitives.serialization import Encoding
+
+    apk_path = seo_entrypoint.STATIC_DIR / "downloads" / "zovix-android.apk"
+    with zipfile.ZipFile(apk_path) as apk:
+        signature_files = [
+            name for name in apk.namelist()
+            if name.upper().startswith("META-INF/") and name.upper().endswith((".RSA", ".DSA", ".EC"))
+        ]
+        assert signature_files, "The downloadable APK has no v1 signature"
+        fingerprints = {
+            ":".join(f"{byte:02X}" for byte in hashlib.sha256(cert.public_bytes(Encoding.DER)).digest())
+            for name in signature_files
+            for cert in pkcs7.load_der_pkcs7_certificates(apk.read(name))
+        }
+
+    statements = json.loads(
+        (seo_entrypoint.STATIC_DIR / ".well-known" / "assetlinks.json").read_text(encoding="utf-8")
+    )
+    assert any(
+        "delegate_permission/common.handle_all_urls" in statement["relation"]
+        and statement["target"]["namespace"] == "android_app"
+        and statement["target"]["package_name"] == "pro.zovix.twa"
+        and fingerprints.intersection(statement["target"]["sha256_cert_fingerprints"])
+        for statement in statements
+    )
 
 
 def test_invalid_app_mode_fails_explicitly():
