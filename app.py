@@ -24425,7 +24425,7 @@ elif st.session_state["current_page"] == "studio":
         .zd-section-head { display:flex; align-items:flex-end; justify-content:space-between; gap:12px; margin:17px 0 9px; }
         .st-key-studio_engine_mode_header .zd-engine-mode-head { display:block; margin:18px 0 8px; }
         .zd-engine-mode-title-row { display:flex; align-items:center; justify-content:space-between; gap:12px; }
-        .zd-engine-mode-title-row .zd-section-heading { display:flex; align-items:center; gap:9px; }
+        .zd-section-heading { display:flex; align-items:center; gap:9px; white-space:nowrap; }
         .zd-engine-mode-title-row h2 { margin:0; }
         .zd-section-head h2 { margin:0; color:#1d2b42; font:800 15px/1.2 'Inter',sans-serif; letter-spacing:-.02em; }
         .zd-section-head p { margin:3px 0 0; color:#768399; font-size:9px; }
@@ -28594,16 +28594,84 @@ elif st.session_state["current_page"] == "studio":
                                 st.session_state["studio_favorite_keys"] = sorted(favorite_keys)
                                 st.rerun()
 
-    dashboard_hero_image = static_asset_data_uri("studio_hero.webp")
     st.markdown(
-        f"""
+        """
         <style>
-        .st-key-studio_hero_container {{
-            background-image:
-                linear-gradient(90deg,rgba(239,246,255,.64) 0%,rgba(239,246,255,.42) 32%,rgba(239,246,255,.12) 64%,rgba(239,246,255,0) 100%),
-                url("{dashboard_hero_image}") !important;
-            background-size:cover !important;
-        }}
+        .st-key-studio_hero_container {
+            position:relative !important;
+            isolation:isolate !important;
+            overflow:hidden !important;
+            border:1px solid rgba(148,163,184,.3) !important;
+            border-radius:24px !important;
+            background:#f5f8fd !important;
+            background-image:none !important;
+            box-shadow:0 18px 46px rgba(26,43,71,.14),inset 0 1px 0 rgba(255,255,255,.9) !important;
+            padding-bottom:30px !important;
+        }
+        .st-key-studio_hero_container .zd-hero {
+            position:static !important;
+            background:none !important;
+        }
+        .st-key-studio_hero_container [data-testid="stElementContainer"]:has(.zd-hero-video) {
+            position:static !important;
+        }
+        .st-key-studio_desktop_topbar {
+            margin-bottom:0 !important;
+        }
+        .st-key-studio_hero_container .zd-hero-video,
+        .st-key-studio_hero_container .zd-hero-video-shade {
+            position:absolute !important;
+            inset:0 !important;
+            width:100% !important;
+            height:100% !important;
+            pointer-events:none !important;
+        }
+        .st-key-studio_hero_container .zd-hero-video {
+            z-index:0 !important;
+            object-fit:cover !important;
+            filter:brightness(1.16) saturate(1.05) !important;
+        }
+        .st-key-studio_hero_container .zd-hero-video-shade {
+            z-index:1 !important;
+            background:linear-gradient(90deg,rgba(8,12,22,.62),rgba(8,12,22,.30) 58%,rgba(8,12,22,.10)) !important;
+        }
+        .st-key-studio_hero_container .zd-hero-copy,
+        .st-key-studio_hero_container .st-key-studio_hero_controls,
+        .st-key-studio_hero_container .st-key-studio_creation_type_choices {
+            position:relative !important;
+            z-index:2 !important;
+        }
+        .st-key-studio_hero_container .st-key-studio_hero_controls {
+            border:1px solid rgba(210,220,235,.78) !important;
+            border-radius:16px !important;
+            background:rgba(248,250,255,.96) !important;
+            box-shadow:0 10px 28px rgba(18,34,59,.13) !important;
+            backdrop-filter:blur(16px);
+        }
+        .st-key-studio_hero_container .zd-hero-kicker,
+        .st-key-studio_hero_container .zd-hero p {
+            color:#fff !important;
+            text-shadow:0 2px 18px rgba(0,0,0,.4) !important;
+        }
+        html body .st-key-studio_hero_container .zd-hero h1,
+        html body.zovix-mobile-dashboard-responsive .st-key-studio_hero_container .zd-hero h1,
+        html body.zovix-desktop-mobile .st-key-studio_hero_container .zd-hero h1 {
+            color:#fff !important;
+            background:none !important;
+            -webkit-text-fill-color:#fff !important;
+            text-shadow:0 0 12px rgba(255,255,255,.28),0 2px 18px rgba(0,0,0,.52) !important;
+            filter:none !important;
+            animation:none !important;
+        }
+        html body .st-key-studio_hero_container .zd-hero h1 > span:not([data-testid="stHeaderActionElements"]),
+        html body.zovix-mobile-dashboard-responsive .st-key-studio_hero_container .zd-hero h1 > span:not([data-testid="stHeaderActionElements"]),
+        html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive .st-key-studio_hero_container .zd-hero h1 > span:not([data-testid="stHeaderActionElements"]),
+        html body.zovix-desktop-mobile .st-key-studio_hero_container .zd-hero h1 > span:not([data-testid="stHeaderActionElements"]) {
+            color:#fff !important;
+            background:none !important;
+            -webkit-text-fill-color:#fff !important;
+            text-shadow:0 2px 8px rgba(0,0,0,.92),0 0 2px rgba(0,0,0,.85) !important;
+        }
         </style>
         """,
         unsafe_allow_html=True,
@@ -28736,8 +28804,12 @@ elif st.session_state["current_page"] == "studio":
             st.markdown(
                 f"""
                 <section class="zd-hero">
+                  <video class="zd-hero-video" aria-hidden="true" tabindex="-1"
+                    src="/app/static/WhatsApp%20Video%202026-11-27%20at%202.56.01%20PM.mp4"
+                    poster="/app/static/studio_hero.webp" autoplay muted loop playsinline preload="auto"></video>
+                  <div class="zd-hero-video-shade" aria-hidden="true"></div>
                   <div class="zd-hero-copy"><div class="zd-hero-kicker">Welcome back, <strong>{safe_name}</strong> 👋</div>
-                  <h1>What will you <span>create</span> today?</h1>
+                  <h1>What will you create today?</h1>
                   <p>Bring your ideas to life with stunning visuals, videos, characters, and voices using ZOVIX AI.</p>
                   </div>
                 </section>
@@ -28865,8 +28937,8 @@ elif st.session_state["current_page"] == "studio":
         with st.container(key="studio_engine_header"):
             st.markdown(
                 "<div class='zd-section-head'>"
-                "<div class='zd-section-heading'><span class='zd-section-icon' aria-hidden='true'>✦</span><div>"
-                "<h2>AI Mode</h2></div></div>"
+                "<div class='zd-section-heading'><span class='zd-section-icon' aria-hidden='true'>✦</span>"
+                "<h2>AI Mode</h2></div>"
                 "<a href='#engines'>View All&nbsp; →</a></div>",
                 unsafe_allow_html=True,
             )
