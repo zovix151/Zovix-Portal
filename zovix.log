@@ -30797,3 +30797,15 @@ LookupError: No account row found while loading workspace for 'preview_user'
 2026-11-26 17:12:53,610 - Zovix - INFO - Using Supabase PostgreSQL database
 2026-11-26 17:13:06,858 - Zovix - INFO - Using Supabase PostgreSQL database
 2026-11-26 17:13:07,795 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-27 14:20:24,539 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-27 14:20:26,273 - Zovix - INFO - Redis rate-limit client initialized lazily
+2026-11-27 14:20:26,288 - Zovix - INFO - Load balancer initialized with 4 workers
+2026-11-27 14:20:26,289 - Zovix - INFO - Redis cache client initialized lazily
+2026-11-27 14:20:28,754 - Zovix - INFO - Database initialized successfully
+2026-11-27 14:20:38,501 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-27 14:20:40,587 - Zovix - INFO - Database initialized successfully
+2026-11-27 14:20:54,303 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-27 14:20:55,910 - Zovix - INFO - Database initialized successfully
+2026-11-27 14:21:02,241 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-27 14:21:31,913 - Zovix - INFO - Using Supabase PostgreSQL database
+2026-11-27 14:21:32,665 - Zovix - INFO - Using Supabase PostgreSQL database
