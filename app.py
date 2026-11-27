@@ -28635,6 +28635,25 @@ elif st.session_state["current_page"] == "studio":
             z-index:1 !important;
             background:linear-gradient(90deg,rgba(8,12,22,.62),rgba(8,12,22,.30) 58%,rgba(8,12,22,.10)) !important;
         }
+        html body.zovix-mobile-dashboard-responsive .st-key-studio_hero_container .zd-hero,
+        html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive .st-key-studio_hero_container .zd-hero,
+        html body.zovix-desktop-mobile .st-key-studio_hero_container .zd-hero {
+            background:none !important;
+        }
+        html body.zovix-mobile-dashboard-responsive .st-key-studio_hero_container .zd-hero::before,
+        html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive .st-key-studio_hero_container .zd-hero::before,
+        html body.zovix-desktop-mobile .st-key-studio_hero_container .zd-hero::before {
+            display:none !important;
+        }
+        html body.zovix-mobile-dashboard-responsive .st-key-studio_hero_container .zd-hero-kicker,
+        html body.zovix-mobile-dashboard-responsive .st-key-studio_hero_container .zd-hero p,
+        html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive .st-key-studio_hero_container .zd-hero-kicker,
+        html body.zovix-desktop-mobile.zovix-mobile-dashboard-responsive .st-key-studio_hero_container .zd-hero p,
+        html body.zovix-desktop-mobile .st-key-studio_hero_container .zd-hero-kicker,
+        html body.zovix-desktop-mobile .st-key-studio_hero_container .zd-hero p {
+            color:#fff !important;
+            text-shadow:0 2px 8px rgba(0,0,0,.82) !important;
+        }
         .st-key-studio_hero_container .zd-hero-copy,
         .st-key-studio_hero_container .st-key-studio_hero_controls,
         .st-key-studio_hero_container .st-key-studio_creation_type_choices {
